@@ -33,6 +33,10 @@ ns.defaults = {
 		zoneMapPoint = "TOPRIGHT",
 		zoneMapOffsetX = 20,
 		zoneMapOffsetY = 300,
+		worldMap = false,      -- maximierte Weltkarte auf einen Monitor legen (statt über das ganze Fenster)
+		worldMapMonitor = 0,
+		questLog = false,      -- verkleinerte Weltkarte („Karte & Questlog“) auf einen Monitor legen
+		questLogMonitor = 0,
 		mapFollowZone = true,
 		mapAutoOpen = false,
 		mapNoFade = false,     -- mapFade = 0; der vorherige Wert steht dann in ns.global.mapFadeSaved

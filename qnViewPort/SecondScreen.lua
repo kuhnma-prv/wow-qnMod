@@ -4,8 +4,9 @@
 --   * berechnet daraus den Viewport, so dass die 3D-Welt nur auf dem Hauptmonitor liegt,
 --   * legt auf Wunsch Taschen und Zonenkarte an eine Ecke eines wählbaren Monitors
 --     und zeigt/verbirgt die Zonenkarte,
---   * bietet ein paar Einstellungen für die Weltkarte.
--- Chat und Karte werden nicht verschoben. Alle Angaben in Bildschirmpixeln des Spielfensters.
+--   * legt auf Wunsch die maximierte Weltkarte auf einen Monitor und bietet ein paar
+--     Einstellungen für die Weltkarte.
+-- Der Chat wird nicht verschoben. Alle Angaben in Bildschirmpixeln des Spielfensters.
 
 local _, ns = ...
 local L = ns.L
@@ -114,6 +115,9 @@ end
 
 local bagPlace = NewPlacement("bags", HUD_EDIT_MODE_BAGS_LABEL, 0, 0.8, 1)
 local mapPlace = NewPlacement("zoneMap", L["Zonenkarte"], 1, 0.8, 0)
+-- ganze Monitore (ohne …Point/…Offset: Ecke unten rechts, Abstände 0)
+local worldPlace = NewPlacement("worldMap", WORLDMAP_BUTTON, 0.3, 1, 0.3)
+local questPlace = NewPlacement("questLog", MAP_AND_QUEST_LOG, 1, 0.5, 1)
 
 -- Legt einen Bereich fest: Monitor, Ecke, Abstände von den Rändern dieser Ecke.
 local function UpdatePlacement(pl)
@@ -318,15 +322,118 @@ end
 Dual.ApplyMapFade = ApplyMapFade
 
 ---------------------------------------------------------------------------
+-- Weltkarte auf einem Monitor (nur mit ihren Optionen)
+-- Maximiert („worldMap“): Blizzard rechnet die Größe aus der Größe von UIParent und setzt die Karte
+-- oben mittig an UIParent (WorldMapMixin:UpdateMaximizedSize, maximizePoint "TOP"); die schwarze
+-- Fläche (BlackoutFrame) liegt über ganz UIParent. Bei einem Fenster über mehrere Monitore reicht
+-- beides über alle. Hier dieselbe Rechnung mit dem Bereich des Monitors statt UIParent.
+-- Verkleinert = „Karte & Questlog“ („questLog“; ToggleQuestLog öffnet in Forever diese Ansicht):
+-- Blizzards Fensterverwaltung setzt sie als linkes Fenster an UIParent TOPLEFT
+-- (FramePositionDelegate:UpdateUIPanelPositions). Hier derselbe Anker am Bereich des Monitors.
+---------------------------------------------------------------------------
+
+local SPACER_HEIGHT = 67   -- TITLE_CANVAS_SPACER_FRAME_HEIGHT (lokal in Blizzard_WorldMap.lua)
+local SCREEN_BORDER = 30   -- SCREEN_BORDER_PIXELS in UpdateMaximizedSize
+local worldMapPlaced       -- "max" bzw. "min", solange die Karte von uns gesetzt ist
+
+local function SetBlackout(f, target)
+	if f.BlackoutFrame then
+		f.BlackoutFrame:ClearAllPoints()
+		f.BlackoutFrame:SetAllPoints(target)
+	end
+end
+
+-- Blizzards Anker (an UIParent) unverändert an target hängen; unbekannte Anker nicht anfassen
+local function Reanchor(f, target)
+	local point, rel, relPoint, x, y = f:GetPoint(1)
+	rel = rel or UIParent
+	if not point or rel == target or (rel ~= UIParent and rel ~= questPlace.area) then
+		return
+	end
+	f:ClearAllPoints()
+	f:SetPoint(point, target, relPoint, x, y)
+end
+
+-- Größe und Lage wie Blizzards UpdateMaximizedSize, bezogen auf area
+local function FitWorldMap(f, area)
+	local k = area:GetEffectiveScale() / f:GetEffectiveScale()
+	local pw, ph = area:GetWidth() * k - SCREEN_BORDER, area:GetHeight() * k
+	local unclamped = (ph - SPACER_HEIGHT) * f.minimizedWidth / (f.minimizedHeight - SPACER_HEIGHT)
+	local w = math.min(pw, unclamped)
+	local h = (ph - SPACER_HEIGHT) * (w / unclamped) + SPACER_HEIGHT
+	f:SetSize(math.floor(w), math.floor(h))
+	f:ClearAllPoints()
+	f:SetPoint("TOP", area, "TOP")
+	SetBlackout(f, area)
+	f:OnFrameSizeChanged()
+end
+
+function Dual.PlaceWorldMap()
+	local f = _G.WorldMapFrame
+	if not (f and f.IsMaximized and f.minimizedWidth) then
+		return
+	end
+	if f:IsProtected() and qnCore.DeferInCombat(Dual.PlaceWorldMap) then
+		return
+	end
+	local d = DB()
+	local shown = f:IsShown()
+	local maximized = shown and f:IsMaximized()
+	if maximized and d.worldMap then
+		FitWorldMap(f, worldPlace.area)
+		worldMapPlaced = "max"
+	elseif shown and not maximized and d.questLog then
+		Reanchor(f, questPlace.area)
+		SetBlackout(f, UIParent)   -- evtl. noch vom maximierten Zustand am Monitor
+		worldMapPlaced = "min"
+	elseif worldMapPlaced then
+		-- Option aus (oder Ansicht gewechselt): zurück an UIParent wie bei Blizzard
+		if worldMapPlaced == "max" and maximized then
+			FitWorldMap(f, UIParent)
+		elseif worldMapPlaced == "min" and shown and not maximized then
+			Reanchor(f, UIParent)
+		end
+		SetBlackout(f, UIParent)
+		worldMapPlaced = nil
+	end
+end
+
+-- Nach Blizzards eigener Anordnung: Maximieren/Verkleinern, Fenstergröße, Öffnen und jede
+-- Neuanordnung der Fenster (ShowUIPanel/HideUIPanel/UpdateUIPanelPositions setzen die verkleinerte
+-- Karte wieder an UIParent). Sofort und noch einmal im nächsten Frame.
+local worldMapHooked = false
+local function HookWorldMap()
+	local f = _G.WorldMapFrame
+	if worldMapHooked or not (f and f.SynchronizeDisplayState and f.UpdateMaximizedSize) then
+		return
+	end
+	worldMapHooked = true
+	local later = qnCore.Debounce(Dual.PlaceWorldMap)
+	local function Place()
+		if worldMapPlaced or DB().worldMap or DB().questLog then
+			Dual.PlaceWorldMap()
+			later()
+		end
+	end
+	hooksecurefunc(f, "SynchronizeDisplayState", Place)
+	hooksecurefunc(f, "UpdateMaximizedSize", Place)
+	for _, name in ipairs({ "ShowUIPanel", "HideUIPanel", "UpdateUIPanelPositions" }) do
+		hooksecurefunc(name, Place)
+	end
+	EventRegistry:RegisterCallback("WorldMapOnShow", Place, Dual)
+end
+
+---------------------------------------------------------------------------
 -- Anwenden
 ---------------------------------------------------------------------------
 
--- Eigene Rahmen, Taschen und Zonenkarte (je nur mit ihrer Option); Chat, Weltkarte und
--- andere Blizzard-Fenster bleiben, wo sie sind.
+-- Eigene Rahmen, Taschen, Zonenkarte und maximierte Weltkarte (je nur mit ihrer Option); Chat
+-- und andere Blizzard-Fenster bleiben, wo sie sind.
 function Dual.ApplyAll()
 	Dual.UpdateArea()
 	Dual.DockBags()
 	Dual.PlaceZoneMap()
+	Dual.PlaceWorldMap()
 end
 
 -- Nach geänderten Einstellungen alles neu anwenden, ohne Chatmeldung. Mit withViewport (und
@@ -582,7 +689,7 @@ end
 
 local function BuildPage()
 	local desc = ns.Header(page, "qnViewPort – " .. L["Zweiter Monitor"],
-		L["Das Spielfenster muss über mehrere Monitore gezogen sein (Fenstermodus, z. B. 5760 × 2160). Dann liegt die 3D-Welt auf dem Hauptmonitor. Oberflächenelemente verschiebst du im Bearbeitungsmodus von Blizzard; Elemente außerhalb der Monitore findest du auf der Seite „Monitore“, Taschen und Zonenkarte auf der Seite „Platzierung“."])
+		L["Das Spielfenster muss über mehrere Monitore gezogen sein (Fenstermodus, z. B. 5760 × 2160). Dann liegt die 3D-Welt auf dem Hauptmonitor. Oberflächenelemente verschiebst du im Bearbeitungsmodus von Blizzard; Elemente außerhalb der Monitore findest du auf der Seite „Monitore“, Taschen, Zonenkarte und Weltkarte auf der Seite „Platzierung“."])
 
 	local enable = Check(L["Zwei-Monitor-Modus aktiv (3D-Welt nur auf dem Hauptmonitor)"], nil, nil, nil,
 		function() return DB().enabled end, Dual.SetEnabled)
@@ -613,21 +720,10 @@ local function BuildPage()
 	local yBox = NumBox(L["Abstand von oben"], "offsetY")
 	yBox:SetPoint("LEFT", hBox, "RIGHT", 150, 0)
 
-	-- Weltkarte
-	local mapHead = UI.Text(page, "GameFontNormal", WORLDMAP_BUTTON)
-	mapHead:SetPoint("TOPLEFT", wBox, "BOTTOMLEFT", -70, -22)
-	local cFollow = Check(L["Karte folgt der aktuellen Zone"], "mapFollowZone")
-	cFollow:SetPoint("TOPLEFT", mapHead, "BOTTOMLEFT", -4, -4)
-	local cOpen = Check(L["Karte beim Einloggen öffnen"], "mapAutoOpen")
-	cOpen:SetPoint("TOPLEFT", cFollow, "BOTTOMLEFT", 0, -2)
-	local cFade = Check(L["Karte beim Laufen nicht ausblenden"], "mapNoFade",
-		L["Setzt die Blizzard-Einstellung mapFade auf 0. Beim Ausschalten wird der vorherige Wert wiederhergestellt."],
-		function() ApplyMapFade(true) end)
-	cFade:SetPoint("TOPLEFT", cOpen, "BOTTOMLEFT", 0, -2)
-
-	local apply = ApplyButton(cFade, true)
-	local openMap = UI.Button(page, L["Karte öffnen"], 160, Dual.OpenMap)
-	openMap:SetPoint("LEFT", apply, "RIGHT", 10, 0)
+	-- linksbündig mit dem Kontrollkästchen oben (wBox steht 70 weiter rechts)
+	local apply = ApplyButton(wBox, true)
+	apply:ClearAllPoints()
+	apply:SetPoint("TOPLEFT", wBox, "BOTTOMLEFT", -70, -22)
 
 	info = UI.Text(page, "GameFontHighlight")
 	info:SetPoint("TOPLEFT", apply, "BOTTOMLEFT", 0, -16)
@@ -679,7 +775,7 @@ end
 
 local function BuildPlacementPage()
 	local desc = ns.Header(page, "qnViewPort – " .. L["Platzierung"],
-		L["Legt Taschen und Zonenkarte an eine Ecke eines Monitors. Die Abstände zählen in Pixeln vom Rand dieser Ecke nach innen. Ohne Haken bei „… platzieren“ fasst qnViewPort das jeweilige Fenster nicht an."])
+		L["Legt Taschen und Zonenkarte an eine Ecke eines Monitors und die Weltkarte auf einen Monitor. Die Abstände zählen in Pixeln vom Rand der Ecke nach innen. Ohne Haken fasst qnViewPort das jeweilige Fenster nicht an."])
 
 	-- Taschen
 	local bagHead = UI.Text(page, "GameFontNormal", HUD_EDIT_MODE_BAGS_LABEL)
@@ -703,11 +799,46 @@ local function BuildPlacementPage()
 	cPlace:SetPoint("TOPLEFT", cShow, "BOTTOMLEFT", 0, -2)
 	local mapMonitor = PlacementControls("zoneMap", cPlace, L["Monitor für die Zonenkarte"], L["Ecke für die Zonenkarte"])
 
-	local cGuides = Check(L["Bereiche anzeigen"], "guides",
-		L["Rahmt die Bereiche ein: blau Taschen, gelb Zonenkarte (nur wenn die Platzierung an ist)."], Dual.UpdateArea)
-	cGuides:SetPoint("TOPLEFT", mapMonitor, "BOTTOMLEFT", -94, -44)
+	-- Weltkarte: maximiert und verkleinert („Karte & Questlog“) je auf einen ganzen Monitor
+	local worldHead = UI.Text(page, "GameFontNormal", WORLDMAP_BUTTON)
+	worldHead:SetPoint("TOPLEFT", mapMonitor, "BOTTOMLEFT", -90, -52)
+	local cWorld = Check(L["Maximierte Weltkarte auf"], "worldMap",
+		L["Blizzard legt die maximierte Weltkarte über das ganze Spielfenster, bei mehreren Monitoren also über alle. An: Karte und schwarze Fläche nur auf dem gewählten Monitor."],
+		Dual.ApplyAll)
+	cWorld:SetPoint("TOPLEFT", worldHead, "BOTTOMLEFT", -4, -4)
+	local worldMonitor = Choice("", 240, MonitorEntries,
+		function() return MonitorIndex("worldMap") end,
+		function(i) DB().worldMapMonitor = i end, Dual.ApplyAll)
+	worldMonitor:SetPoint("LEFT", cWorld, "LEFT", 260, 0)
+	UI.Tooltip(worldMonitor, L["Monitor für die maximierte Weltkarte"], L["Nummern wie auf der Seite „Monitore“."])
+	local cQuest = Check(L["„Karte & Questlog“ auf"], "questLog",
+		L["Die verkleinerte Weltkarte mit dem Questlog – das Questlog öffnet diese Ansicht. Blizzard legt sie an den linken Rand des Spielfensters. An: an den linken Rand des gewählten Monitors."],
+		Dual.ApplyAll)
+	cQuest:SetPoint("TOPLEFT", cWorld, "BOTTOMLEFT", 0, -6)
+	local questMonitor = Choice("", 240, MonitorEntries,
+		function() return MonitorIndex("questLog") end,
+		function(i) DB().questLogMonitor = i end, Dual.ApplyAll)
+	questMonitor:SetPoint("LEFT", cQuest, "LEFT", 260, 0)
+	UI.Tooltip(questMonitor, L["Monitor für „Karte & Questlog“"], L["Nummern wie auf der Seite „Monitore“."])
 
-	ApplyButton(cGuides, false)
+	local cFollow = Check(L["Karte folgt der aktuellen Zone"], "mapFollowZone",
+		L["Wechselt bei offener Karte beim Betreten einer neuen Zone auf deren Karte. Beim Öffnen zeigt Blizzard ohnehin die aktuelle Zone."])
+	cFollow:SetPoint("TOPLEFT", cQuest, "BOTTOMLEFT", 0, -6)
+	local cOpen = Check(L["Karte beim Einloggen öffnen"], "mapAutoOpen",
+		L["Nur beim Einloggen und nach /reload, nicht nach Ladebildschirmen."])
+	cOpen:SetPoint("LEFT", cFollow, "LEFT", 300, 0)
+	local cFade = Check(L["Karte beim Laufen nicht ausblenden"], "mapNoFade",
+		L["Setzt die Blizzard-Einstellung mapFade auf 0. Beim Ausschalten wird der vorherige Wert wiederhergestellt. Blizzard blendet die Karte ohnehin nur aus, solange die Maus nicht über ihr ist – bei der maximierten Karte also kaum."],
+		function() ApplyMapFade(true) end)
+	cFade:SetPoint("TOPLEFT", cFollow, "BOTTOMLEFT", 0, -2)
+
+	local cGuides = Check(L["Bereiche anzeigen"], "guides",
+		L["Rahmt die Bereiche ein: blau Taschen, gelb Zonenkarte, grün Weltkarte, violett „Karte & Questlog“ (nur wenn die Platzierung an ist)."], Dual.UpdateArea)
+	cGuides:SetPoint("TOPLEFT", cFade, "BOTTOMLEFT", 0, -10)
+
+	local apply = ApplyButton(cGuides, false)
+	local openMap = UI.Button(page, L["Karte öffnen"], 160, Dual.OpenMap)
+	openMap:SetPoint("LEFT", apply, "RIGHT", 10, 0)
 end
 
 ---------------------------------------------------------------------------
@@ -919,13 +1050,16 @@ function ns.InitSecondScreen()
 			dockLater()
 		end
 	end)
-	-- Zonenkarte: schon geladen oder später per ADDON_LOADED
+	-- Zonenkarte und Weltkarte: schon geladen oder später per ADDON_LOADED
 	HookZoneMap()
+	HookWorldMap()
 
 	local events = ns.events
 	events.Register("ADDON_LOADED", function(_, name)
 		if name == ZONEMAP_ADDON then
 			HookZoneMap()
+		elseif name == "Blizzard_WorldMap" then
+			HookWorldMap()
 		end
 	end)
 	events.Register("PLAYER_ENTERING_WORLD", function(_, isInitialLogin, isReloadingUi)

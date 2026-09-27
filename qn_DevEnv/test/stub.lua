@@ -701,6 +701,31 @@ function DamageMeter:SetUseClassColor(v) QN_DM.classColor = v end
 WorldMapFrame = NewFrame("Frame", "WorldMapFrame")
 WorldMapFrame._shown = false
 function WorldMapFrame:SetMapID(id) self.mapID = id end
+-- Maximieren/Verkleinern (Blizzard_WorldMap.lua): Fensterverwaltung setzt die maximierte Karte mit
+-- maximizePoint "TOP" an UIParent, die verkleinerte als linkes Fenster an UIParent TOPLEFT
+-- (UIParentPanelManager.lua, UpdateUIPanelPositions); die schwarze Fläche liegt über UIParent (XML).
+WorldMapFrame.minimizedWidth, WorldMapFrame.minimizedHeight = 702, 534
+WorldMapFrame.isMaximized = false
+WorldMapFrame.BlackoutFrame = NewFrame("Frame", nil, WorldMapFrame)
+WorldMapFrame.BlackoutFrame:SetAllPoints(UIParent)
+function WorldMapFrame:IsMaximized() return self.isMaximized == true end
+function WorldMapFrame:GetPoint(i) local p = (self._points or {})[i or 1] if p then return unpack(p) end end
+function WorldMapFrame:OnFrameSizeChanged() end
+function WorldMapFrame:UpdateMaximizedSize() self:SetSize(UIParent:GetHeight() * 1.3, UIParent:GetHeight()) end
+function WorldMapFrame:SynchronizeDisplayState()
+	self:ClearAllPoints()
+	if self:IsMaximized() then
+		self:SetPoint("TOP", UIParent, "TOP")
+	else
+		self:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 16, -116)
+	end
+end
+function WorldMapFrame:Maximize() self.isMaximized = true self:UpdateMaximizedSize() self:SynchronizeDisplayState() end
+function WorldMapFrame:Minimize() self.isMaximized = false self:SetSize(self.minimizedWidth, self.minimizedHeight) self:SynchronizeDisplayState() end
+-- Fensterverwaltung (UIParentPanelManager.lua): zeigt/verbirgt; Lage setzt die Karte oben selbst
+function ShowUIPanel(frame) if frame then frame:Show() if frame.SynchronizeDisplayState then frame:SynchronizeDisplayState() end end end
+function HideUIPanel(frame) if frame then frame:Hide() end end
+function UpdateUIPanelPositions(frame) if frame and frame.SynchronizeDisplayState then frame:SynchronizeDisplayState() end end
 C_CVar.GetCVarDefault = function(k) return ({ mapFade = "1" })[k] end
 
 -- qnUnitFrames-Bedarf: Rahmen im Schlachtzugsstil (Blizzard_UnitFrame\Shared\CompactUnitFrame.lua),
