@@ -1,0 +1,27 @@
+## Interface: 16001
+## Title: qnMod [|cffeda55fInventory|r] |cff00aa000.1.0|r
+## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
+## Notes: Remembers bags, bank, mail and gold of all characters and shows the item count in the item tooltip.
+## Notes-deDE: Merkt sich Taschen, Bank, Post und Gold aller Charaktere und zeigt den Bestand im Item-Tooltip.
+## Author: qn
+## Version: 0.1.0
+## Group: qnCore
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## SavedVariables: qnInventoryDB
+## Dependencies: qnCore
+
+Locale.lua
+Core.lua
+Scan.lua
+Mail.lua
+Tooltip.lua
