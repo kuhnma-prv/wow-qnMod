@@ -1,0 +1,33 @@
+## Interface: 16001
+## Title: qnMod [|cffeda55fBuffs|r] |cff00aa000.1.0|r
+## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
+## Notes: Freely customizable display of buffs and debuffs for WoW Classic Forever.
+## Notes-deDE: Frei gestaltbare Anzeige von Stärkungs- und Schwächungszaubern für WoW Classic Forever.
+## Author: qn
+## Version: 0.1.0
+## Group: qnCore
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## SavedVariables: qnBuffModDB
+## Dependencies: qnCore
+
+Locale.lua
+Data.lua
+Format.lua
+Auras.lua
+Weapons.lua
+Warnings.lua
+Entry.lua
+Tooltip.lua
+Window.lua
+Core.lua
+Config.lua
