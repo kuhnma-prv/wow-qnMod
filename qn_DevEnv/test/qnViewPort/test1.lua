@@ -16,19 +16,41 @@ function CreateFrame(kind, name, parent, template)
 	return f
 end
 
--- LibSharedMedia-Ersatz mit einem Muster
-local lsmData = { ["Mein Muster"] = "Interface\\AddOns\\X\\muster", None = "" }
+-- LibSharedMedia-Ersatz: ein eigenes Muster, eine Kopie eines Blizzard-Musters (andere Schreibweise),
+-- eine Vollbild-Überlagerung und reines Weiß; erst nach qnCore geladen (wie mit Titan)
+local lsmNames, lsmData = {}, {}
+local lsm = {
+	Register = function(_, kind, n, file)
+		if lsmData[n] == nil then lsmNames[#lsmNames + 1] = n end
+		lsmData[n] = file
+	end,
+	List = function(_, kind) return lsmNames end,
+	IsValid = function(_, kind, n) return lsmData[n] ~= nil end,
+	Fetch = function(_, kind, n) return lsmData[n] end,
+}
+lsm:Register("background", "Mein Muster", "Interface\\AddOns\\X\\muster")
+lsm:Register("background", "None", "")
+lsm:Register("background", "Blizzard Rock", "Interface/FrameGeneral/UI-Background-ROCK")
+lsm:Register("background", "Blizzard Low Health", "Interface\\FullScreenTextures\\LowHealth")
+lsm:Register("background", "Solid", "Interface\\Buttons\\WHITE8X8")
+local lsmReady = false
 LibStub = function(name, silent)
-	if name ~= "LibSharedMedia-3.0" then return nil end
-	return {
-		List = function(_, kind) return { "Mein Muster", "None" } end,
-		IsValid = function(_, kind, n) return lsmData[n] ~= nil end,
-		Fetch = function(_, kind, n) return lsmData[n] end,
-	}
+	return name == "LibSharedMedia-3.0" and lsmReady and lsm or nil
 end
 
 local core = LoadAddon("qnCore")
+local qnCount = #qnCore.Patterns
+Check(qnCount == 10 and lsmData["qn Stripes"] == nil, "qnCore: 10 eigene Muster, LSM noch nicht da")
+lsmReady = true
 local vp = LoadAddon("qnViewPort")
+Check(lsmData["qn Stripes"] == "Interface\\AddOns\\qnCore\\Media\\Patterns\\Stripes"
+	and lsmData["qn Grain"] ~= nil, "qnCore-Muster bei LSM angemeldet (ADDON_LOADED)")
+Check(#vp.PATTERNS == 8 + qnCount, "qnViewPort: 8 Blizzard- + qnCore-Muster")
+-- Dateien der eigenen Muster vorhanden
+for _, p in ipairs(qnCore.Patterns) do
+	local path = ADDONS .. "/" .. p[3]:gsub("^Interface\\AddOns\\", ""):gsub("\\", "/") .. ".tga"
+	if not READFILE(path) then Check(false, "Datei fehlt: " .. path) end
+end
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
@@ -47,8 +69,10 @@ for _, d in ipairs(dropdowns) do if d._text == L["Kein Muster (nur Farbe)"] then
 for _, s in ipairs(sliders) do if s._value == 50 then slider = s end end
 print("Dropdowns/Regler:", #dropdowns, #sliders)
 Check(dd and slider, "Dropdown und Regler angelegt")
--- Einträge: kein Muster + 8 Blizzard + 1 LSM (None ausgelassen)
-Check(#dd._radios == 10, "10 Einträge im Dropdown (" .. #dd._radios .. ")")
+-- Einträge: kein Muster + eigene Liste + 1 LSM (None, Kopien von Fels und qnCore-Mustern,
+-- Vollbild und Weiß ausgelassen)
+local lsmIndex = 1 + #vp.PATTERNS + 1
+Check(#dd._radios == lsmIndex, lsmIndex .. " Einträge im Dropdown (" .. #dd._radios .. ")")
 Check(dd._text == L["Kein Muster (nur Farbe)"], "Anzeige: kein Muster")
 dd:PickRadio(2)
 Check(vp.db.pattern == "rock", "Fels gewählt")
@@ -59,6 +83,9 @@ Check(slider._enabled == true, "Regler aktiv")
 slider:SetValue(30)
 Check(vp.db.patternAlpha == 0.3 and p[1]._alpha == 0.3, "Deckkraft 30 %")
 dd:PickRadio(10)
+Check(vp.db.pattern == "qnStripes" and p[1]._file == qnCore.Patterns[1][3], "qnCore-Muster Schraffur")
+Check(dd._text == qnCore.Patterns[1][2], "Anzeige: Schraffur")
+dd:PickRadio(lsmIndex)
 Check(vp.db.pattern == "lsm:Mein Muster" and p[1]._file == "Interface\\AddOns\\X\\muster", "LSM-Muster")
 -- Profilwechsel: neues Layout = Kopie; zurück zeigt alte Werte
 SetEditModeLayout(4)
@@ -72,4 +99,11 @@ Check(vp.db.pattern == "lsm:Mein Muster" and vp.db.patternAlpha == 0.3, "zurück
 vp.db.pattern = "lsm:Gibt es nicht"
 vp.UpdateBorderLook()
 Check(true, "fehlendes Muster ohne Fehler")
+-- früher gewählte LSM-Kopien werden zum eigenen Eintrag (im Dropdown sonst nicht auffindbar)
+vp.db.pattern = "lsm:Blizzard Rock"
+vp.UpdateBorderLook()
+Check(vp.db.pattern == "rock", "lsm:Blizzard Rock -> rock")
+vp.db.pattern = "lsm:qn Dots"
+vp.UpdateBorderLook()
+Check(vp.db.pattern == "qnDots" and p[1]._file == qnCore.Patterns[4][3], "lsm:qn Dots -> qnDots")
 print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")

@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fCore|r] |cff00aa000.1.0|r
+## Title: qnMod [|cffeda55fCore|r] |cff00aa000.1.1|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
 ## Notes: Core and library of the qn addons: settings profiles per Edit Mode layout, bag automation, remembers minimap tracking.
 ## Notes-deDE: Kern und Bibliothek der qn-Addons: Einstellungsprofile je Layout des Bearbeitungsmodus, Taschen-Automatik, merkt sich die Verfolgung an der Minikarte.
 ## Author: qn
-## Version: 0.1.0
+## Version: 0.1.1
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
 ## Category-esES: Interfaz de usuario
@@ -21,6 +21,7 @@
 
 Library.lua
 Locale.lua
+Patterns.lua
 Profiles.lua
 SettingsBuilder.lua
 Widgets.lua

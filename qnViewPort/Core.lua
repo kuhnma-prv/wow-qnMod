@@ -204,21 +204,42 @@ ns.PATTERNS = {
 	{ "parchment", L["Pergament"], "Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal" },
 	{ "achievement", ACHIEVEMENTS, "Interface\\AchievementFrame\\UI-Achievement-AchievementBackground" },
 }
+-- dahinter die eigenen Muster aus qnCore
+for _, p in ipairs(lib.Patterns) do
+	ns.PATTERNS[#ns.PATTERNS + 1] = { p[1], p[2], p[3] }
+end
 
 local function LSM()
 	return LibStub and LibStub("LibSharedMedia-3.0", true)
 end
 
--- Auswahlliste für das Dropdown: { Schlüssel, Text }; Muster aus LibSharedMedia (falls vorhanden) dahinter
+-- Vergleichbarer Dateipfad: Groß-/Kleinschreibung und Trenner sind WoW gleich
+local function FileKey(file)
+	return type(file) == "string" and file:lower():gsub("/", "\\") or nil
+end
+
+-- LSM-Hintergründe, die als Kachelmuster nichts taugen: Vollbild-Überlagerungen und reines Weiß
+-- (die Farbe wird schon gewählt)
+local function Unsuitable(fileKey)
+	return fileKey == "" or fileKey:find("^interface\\fullscreentextures\\")
+		or fileKey == "interface\\buttons\\white8x8"
+end
+
+-- Auswahlliste für das Dropdown: { Schlüssel, Text }; Muster aus LibSharedMedia (falls vorhanden)
+-- dahinter, ohne Dateien, die schon in der Liste stehen
 function ns.PatternChoices()
 	local list = { { "none", L["Kein Muster (nur Farbe)"] } }
+	local seen = {}
 	for _, p in ipairs(ns.PATTERNS) do
 		list[#list + 1] = { p[1], p[2] }
+		seen[FileKey(p[3])] = true
 	end
 	local lsm = LSM()
 	if lsm then
 		for _, name in ipairs(lsm:List("background")) do
-			if name ~= "None" then
+			local key = FileKey(lsm:Fetch("background", name))
+			if key and not seen[key] and not Unsuitable(key) then
+				seen[key] = true
 				list[#list + 1] = { "lsm:" .. name, name .. " |cff999999(LSM)|r" }
 			end
 		end
@@ -252,8 +273,23 @@ function ns.SetBorderPattern(key, alpha)
 	end
 end
 
+-- Gespeichertes LSM-Muster, dessen Datei auch in ns.PATTERNS steht (im Dropdown ausgeblendet):
+-- auf den eigenen Eintrag umstellen. Geht erst, wenn LSM geladen ist, deshalb nicht im Upgrade.
+local function MigrateLsmPattern(db)
+	local file = type(db.pattern) == "string" and db.pattern:find("^lsm:") and PatternFile(db.pattern)
+	if file then
+		for _, p in ipairs(ns.PATTERNS) do
+			if FileKey(p[3]) == FileKey(file) then
+				db.pattern = p[1]
+				return
+			end
+		end
+	end
+end
+
 -- Farbe und Muster des aktiven Profils
 function ns.UpdateBorderLook()
+	MigrateLsmPattern(ns.db)
 	ns.SetBorderColor(ns.db.color)
 	ns.SetBorderPattern(ns.db.pattern, ns.db.patternAlpha)
 end

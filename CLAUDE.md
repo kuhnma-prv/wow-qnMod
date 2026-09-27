@@ -28,7 +28,9 @@ Alle außer qnCore: `## Dependencies: qnCore`, `## IconTexture: Interface\AddOns
 Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCore.Settings.NewCategory`/`SetIn`,
 `store:Set`/`SetValues`, `qnCore.DeferInCombat`, `qnCore.Debounce`, `qnCore.ClassColor(classFile)`,
 `qnCore.Popup.Confirm`/`EditText`, `qnCore.AnchorFactors`/`PointOffset`/`NearestCorner`, `qnCore.Visible`
-(Rahmen in den sichtbaren Bereich holen; qnViewPort liefert die Monitore), `qnCore.UI.*` (Canvas-Bausteine).
+(Rahmen in den sichtbaren Bereich holen; qnViewPort liefert die Monitore), `qnCore.UI.*` (Canvas-Bausteine),
+`qnCore.Patterns` (eigene Kachelmuster `{ Schlüssel, Name, Datei, LSM-Name }` in `qnCore\Media\Patterns`,
+erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als „qn …“ angemeldet).
 
 ## Vorgaben des Nutzers
 
