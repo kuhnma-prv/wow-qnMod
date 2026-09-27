@@ -1,0 +1,27 @@
+## Interface: 16001
+## Title: qnMod [|cffeda55fUnit Frames|r] |cff00aa000.1.0|r
+## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
+## Notes: Click casting on Blizzard's party and raid frames: cast spells or macros with mouse button and modifier key (like HealBot).
+## Notes-deDE: Klickzauber auf Blizzards Gruppen- und Schlachtzugsrahmen: Zauber oder Makros per Maustaste und Zusatztaste wirken (wie HealBot).
+## Author: qn
+## Version: 0.1.0
+## Group: qnCore
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## SavedVariables: qnUnitFramesDB
+## Dependencies: qnCore
+
+Locale.lua
+Core.lua
+Clicks.lua
+Options.lua
+ClicksPage.lua
