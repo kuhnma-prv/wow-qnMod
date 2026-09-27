@@ -1,0 +1,420 @@
+-- qnViewPort: Monitoranordnung.
+-- Liest qnViewPortMonitors aus Monitors.lua (erzeugt von scripts\Initialize-WowMonitors.ps1
+-- bzw. Set-WowWindow.ps1) und liefert daraus
+--   * den Hauptmonitor: Viewport der 3D-Welt und Bereich für UIParent,
+--   * die Teile des Fensters, die auf einem Monitor zu sehen sind,
+--   * den 2. Monitor und die wählbaren Monitore für die Platzierungsbereiche (SecondScreen.lua).
+-- Dazu: UIParent auf den Hauptmonitor begrenzen, Rahmen außerhalb der Monitore finden.
+-- Den sichtbaren Bereich liefert es qnCore.Visible (Rahmen in den sichtbaren Bereich holen, auch für
+-- qnMeter, qnNumKeyPad, qnBuffMod) und meldet dort jede Änderung der Anordnung.
+-- Rechtecke in Fensterpixeln { x, y, w, h }, Ursprung oben links. "abs" = Einheiten bei
+-- wirksamer Skalierung 1, Ursprung unten links (wie GetLeft() * GetEffectiveScale()).
+
+local _, ns = ...
+local L = ns.L
+local Visible = qnCore.Visible
+
+local Layout = {}
+ns.Layout = Layout
+
+local DB = ns.DualDB
+
+---------------------------------------------------------------------------
+-- Monitordaten
+---------------------------------------------------------------------------
+
+local cache, cacheW, cacheH, problem
+
+-- Monitordaten, umgerechnet auf die aktuelle Fenstergröße; nil wenn keine oder unpassend.
+function Layout.GetData()
+	local W, H = ns.screen[1], ns.screen[2]
+	if cacheW == W and cacheH == H then
+		return cache or nil
+	end
+	cacheW, cacheH, cache, problem = W, H, false, nil
+
+	local data = _G.qnViewPortMonitors
+	if type(data) ~= "table" or type(data.window) ~= "table" or type(data.monitors) ~= "table" then
+		problem = L["Keine Monitordaten – qnViewPort\\scripts\\Initialize-WowMonitors.ps1 ausführen, dann /reload."]
+		return nil
+	end
+	local dw, dh = tonumber(data.window.width) or 0, tonumber(data.window.height) or 0
+	if dw <= 0 or dh <= 0 then
+		problem = L["Monitordaten ohne Fenstergröße."]
+		return nil
+	end
+	-- Anders großes Fenster (z. B. Auflösungsskalierung) nur bei gleichem Seitenverhältnis umrechnen.
+	if math.abs(dw / dh - W / H) > 0.01 then
+		problem = L["Spielfenster %d × %d passt nicht zu den Monitordaten (%d × %d) – Set-WowWindow.ps1 ausführen."]:format(W, H, dw, dh)
+		return nil
+	end
+	local kx, ky = W / dw, H / dh
+	local function Px(v, k)
+		return math.floor((tonumber(v) or 0) * k + 0.5)
+	end
+	local list, main = {}, nil
+	for _, m in ipairs(data.monitors) do
+		local r = {
+			index = #list + 1,
+			x = Px(m.x, kx), y = Px(m.y, ky), w = Px(m.width, kx), h = Px(m.height, ky),
+			name = m.name, device = m.device, selected = m.selected,
+		}
+		if r.w > 0 and r.h > 0 then
+			list[#list + 1] = r
+			if m.main and not main then
+				main = r
+			end
+		end
+	end
+	main = main or list[1]
+	if not main then
+		problem = L["Monitordaten ohne Monitor."]
+		return nil
+	end
+	cache = { monitors = list, main = main }
+	return cache
+end
+
+-- Monitordaten, sofern sie benutzt werden sollen
+function Layout.Active()
+	return DB().useMonitorData and Layout.GetData() or nil
+end
+
+function Layout.GetProblem()
+	Layout.GetData()
+	return problem
+end
+
+-- ganzes Spielfenster
+function Layout.Full()
+	return { x = 0, y = 0, w = ns.screen[1], h = ns.screen[2] }
+end
+
+local function IsFull(r)
+	return r.x < 1 and r.y < 1 and r.w > ns.screen[1] - 1 and r.h > ns.screen[2] - 1
+end
+
+-- Rechteck des 2. Monitors aus den Handeinstellungen (x, y, w, h)
+local function ManualSecond()
+	local d = DB()
+	local W, H = ns.screen[1], ns.screen[2]
+	local w2 = math.max(1, math.min(math.floor(d.width), W - 1))
+	local h2 = math.max(1, math.min(math.floor(d.height), H))
+	local oy = math.max(0, math.min(math.floor(d.offsetY), H - h2))
+	return { x = (d.side == "LEFT") and 0 or (W - w2), y = oy, w = w2, h = h2 }
+end
+
+-- Hauptmonitor, auf dem die 3D-Welt liegt; nil = ganzes Fenster
+function Layout.GetMainRect()
+	local data = Layout.Active()
+	if data then
+		return data.main
+	end
+	if DB().enabled then
+		local s = ManualSecond()
+		local W, H = ns.screen[1], ns.screen[2]
+		return { x = (DB().side == "LEFT") and s.w or 0, y = 0, w = W - s.w, h = H }
+	end
+end
+
+-- 2. Monitor: größter Nicht-Hauptmonitor aus den Monitordaten, sonst aus den Handeinstellungen
+function Layout.GetSecondRect()
+	local data = Layout.Active()
+	if not data then
+		return ManualSecond()
+	end
+	local best
+	for _, r in ipairs(data.monitors) do
+		if r ~= data.main and (not best or r.w * r.h > best.w * best.h) then
+			best = r
+		end
+	end
+	return best
+end
+
+-- Teile des Fensters, die auf einem Monitor zu sehen sind (Fensterpixel)
+function Layout.GetVisible()
+	local data = Layout.Active()
+	if data then
+		return data.monitors
+	end
+	if DB().enabled then
+		return { Layout.GetMainRect(), ManualSecond() }
+	end
+	return { Layout.Full() }
+end
+
+-- Viewport-Versätze { links, rechts, oben, unten } für ein Rechteck
+function Layout.ViewportFor(r)
+	local W, H = ns.screen[1], ns.screen[2]
+	return { r.x, W - r.x - r.w, r.y, H - r.y - r.h }
+end
+
+function Layout.ToAbs(r)
+	local ux, uy = ns.UnitsPerPixel()
+	local H = ns.screen[2]
+	return { l = r.x * ux, r = (r.x + r.w) * ux, t = (H - r.y) * uy, b = (H - r.y - r.h) * uy }
+end
+
+function Layout.GetVisibleAbs()
+	local out = {}
+	for i, r in ipairs(Layout.GetVisible()) do
+		out[i] = Layout.ToAbs(r)
+	end
+	return out
+end
+
+---------------------------------------------------------------------------
+-- UIParent auf den Hauptmonitor begrenzen
+-- Blizzards Oberfläche hängt fast vollständig an UIParent (Ecken, Mitte). Liegt UIParent
+-- nur über dem Hauptmonitor, landet sie dort – auch bei unterschiedlich großen Monitoren,
+-- wo Teile des Fensters auf keinem Monitor zu sehen sind.
+---------------------------------------------------------------------------
+
+-- Nur auf Knopfdruck (Optionen, Seite „Monitore“): verschiebt damit alle Blizzard-Rahmen, die an
+-- UIParent hängen. Gilt bis zum Zurücksetzen, zum Abschalten des Zwei-Monitor-Modus, einem Profil
+-- ohne Zwei-Monitor-Modus oder /reload. Solange hält ReapplyUI die gewählte Begrenzung aufrecht.
+local constrained = false
+local constrainedRect   -- zuletzt angewendeter Bereich (Pixel), solange constrained
+
+-- rect = Bereich in Pixeln oder nil = ganzes Fenster. Liefert true, wenn angewendet.
+local function SetUIParent(rect)
+	if InCombatLockdown() then
+		ns.Print(L["%s ist geschützt – im Kampf nicht verschiebbar."]:format("UIParent"))
+		return false
+	end
+	-- ns.FrameSetPoint = Methode der Widget-Klasse (ohne Umweg über überschriebene Methoden)
+	local W, H = ns.screen[1], ns.screen[2]
+	local ux, uy = ns.UnitsPerPixel()
+	local s = UIParent:GetScale()
+	ns.FrameClearAllPoints(UIParent)
+	if rect then
+		-- UIParent hat keinen Elternrahmen: Versätze in eigenen Einheiten, bezogen auf das Fenster
+		ns.FrameSetPoint(UIParent, "TOPLEFT", rect.x * ux / s, -rect.y * uy / s)
+		ns.FrameSetPoint(UIParent, "BOTTOMRIGHT", -(W - rect.x - rect.w) * ux / s, (H - rect.y - rect.h) * uy / s)
+	else
+		ns.FrameSetPoint(UIParent, "TOPLEFT", 0, 0)
+		ns.FrameSetPoint(UIParent, "BOTTOMRIGHT", 0, 0)
+	end
+	constrained = rect ~= nil
+	constrainedRect = rect
+	Visible.Notify()
+	return true
+end
+
+-- Wendet die ausdrücklich gewählte Begrenzung erneut an: Blizzard setzt UIParent bei jedem
+-- PLAYER_ENTERING_WORLD zurück (UpdateUIParentPosition, UIParentUtil.lua), und die Versätze in
+-- UIParent-Einheiten hängen von Fenstergröße und Skalierung ab (ns.ApplyGeometry). Im Kampf erst
+-- danach. Keine Rekursion: SetUIParent setzt über ns.FrameSetPoint, nicht über Blizzards Funktion.
+local function ReapplyUI()
+	if not constrained or qnCore.DeferInCombat(ReapplyUI) then
+		return
+	end
+	-- Bereich neu ermitteln (Fenstergröße kann sich geändert haben), sonst der gemerkte
+	local rect = DB().enabled and Layout.GetMainRect()
+	if not rect or IsFull(rect) then
+		rect = constrainedRect
+	end
+	SetUIParent(rect)
+end
+Layout.ReapplyUI = ReapplyUI
+
+-- Knopf „Oberfläche auf den Hauptmonitor“ (Seite „Monitore“)
+function Layout.ConstrainUI()
+	local rect = DB().enabled and Layout.GetMainRect()
+	if not rect or IsFull(rect) then
+		ns.Print(L["Nur im Zwei-Monitor-Modus, wenn das Spielfenster über mehrere Monitore reicht."])
+		return
+	end
+	if SetUIParent(rect) then
+		ns.Print(L["Blizzard-Oberfläche auf dem Hauptmonitor (bis zum Zurücksetzen oder /reload)."])
+	end
+end
+
+-- Knopf „Zurücksetzen“ bzw. Zwei-Monitor-Modus aus: wieder über das ganze Fenster
+function Layout.ReleaseUI()
+	if constrained then
+		SetUIParent(nil)
+	end
+end
+
+function Layout.IsUIConstrained()
+	return constrained
+end
+
+---------------------------------------------------------------------------
+-- Sichtbarkeit von Rahmen (Rechnen und Verschieben: qnCore.Visible)
+---------------------------------------------------------------------------
+
+local function FrameName(f)
+	return f:GetName() or f:GetDebugName()
+end
+
+-- Herkunft: Blizzard, wenn der globale Name von Blizzards (sicherem) Code angelegt wurde.
+local function Source(f)
+	local name = f:GetName()
+	if name and _G[name] == f and issecurevariable then
+		local secure, addon = issecurevariable(_G, name)
+		if secure then
+			return "Blizzard", true
+		end
+		return addon or "Addon", false
+	end
+	return L["unbenannt"], false
+end
+
+-- Prüft alle sichtbaren Oberflächenelemente (Kinder von UIParent) und liefert die, die ganz
+-- oder teilweise außerhalb der Monitore liegen, Blizzard zuerst. Verschiebt nichts.
+function Layout.CheckFrames()
+	local rects = Layout.GetVisibleAbs()
+	local ui = Visible.FrameAbs(UIParent)
+	local result = {}
+	for _, f in ipairs({ UIParent:GetChildren() }) do
+		if not f:IsForbidden() and not f.qnViewPortIgnore
+			and f:IsVisible() and f:GetAlpha() > 0.05 then
+			local a = Visible.FrameAbs(f)
+			local fullscreen = a and ui and math.abs(a.l - ui.l) < 2 and math.abs(a.r - ui.r) < 2
+				and math.abs(a.t - ui.t) < 2 and math.abs(a.b - ui.b) < 2
+			if a and not fullscreen and a.r - a.l > 4 and a.t - a.b > 4 then
+				local visible = Visible.VisibleFraction(a, rects)
+				if visible <= 0.9999 then
+					local source, blizzard = Source(f)
+					result[#result + 1] = {
+						frame = f, name = FrameName(f), source = source, blizzard = blizzard,
+						visible = visible, editMode = f.system ~= nil, protected = f:IsProtected(),
+					}
+				end
+			end
+		end
+	end
+	table.sort(result, function(x, y)
+		if x.blizzard ~= y.blizzard then
+			return x.blizzard
+		end
+		return x.name < y.name
+	end)
+	return result
+end
+
+-- Verschiebt EIN Element in den sichtbaren Bereich (Knopf in der Liste der Optionen).
+-- Chatfenster: Lage über Blizzards Funktion speichern, sonst setzt der Chat sie beim Laden zurück.
+function Layout.MoveFrame(f)
+	local name = FrameName(f)
+	local moved = Visible.MoveAndReport(f, name, ns.Print)
+	if moved then
+		if name:match("^ChatFrame%d+$") then
+			FCF_SavePositionAndDimensions(f)
+		end
+		if f.system ~= nil then
+			ns.Print(L["Rahmen des Bearbeitungsmodus: gilt bis /reload bzw. bis das Layout neu geladen wird. Dauerhaft: im Bearbeitungsmodus verschieben."])
+		end
+	end
+	return moved
+end
+
+---------------------------------------------------------------------------
+-- Anordnung übernehmen (Start, Fenstergröße geändert)
+---------------------------------------------------------------------------
+
+local function Key(data)
+	local parts = { ns.screen[1] .. "x" .. ns.screen[2] }
+	for _, m in ipairs(data.monitors) do
+		parts[#parts + 1] = ("%d,%d,%d,%d%s"):format(m.x, m.y, m.w, m.h, m == data.main and "*" or "")
+	end
+	return table.concat(parts, ";")
+end
+
+-- Neue Monitoranordnung: einmalig die 3D-Welt (Viewport) auf den Hauptmonitor legen.
+-- Schaltet weder den Zwei-Monitor-Modus ein noch verschiebt es Oberflächenelemente.
+-- Spätere Änderungen des Spielers am Viewport bleiben, bis sich die Anordnung ändert.
+function Layout.Refresh()
+	local data = Layout.Active()
+	if data and #data.monitors > 1 and not IsFull(data.main) then
+		local key = Key(data)
+		local g = ns.global
+		if key ~= g.layoutKey then
+			-- kontoweit gespeichert: die Übernahme gilt einmal je Anordnung, nicht einmal je Profil
+			g.layoutKey = key
+			ns.EndKeep()
+			ns.ApplyViewport(Layout.ViewportFor(data.main))
+			ns.Print(L["Monitoranordnung übernommen: %d Monitore, 3D-Welt auf dem Hauptmonitor (%d × %d)."]:format(
+				#data.monitors, data.main.w, data.main.h))
+		end
+	end
+	Visible.Notify()
+end
+
+---------------------------------------------------------------------------
+-- Ereignisse und Hooks
+---------------------------------------------------------------------------
+
+-- Start (aus Core.lua nach ADDON_LOADED); angewendet wird danach über ns.ApplyGeometry.
+-- Ab hier gilt für qnCore.Visible der Bereich auf den Monitoren.
+function Layout.Init()
+	Visible.SetAreaProvider(Layout.GetVisibleAbs)
+	ns.events.Register("PLAYER_ENTERING_WORLD", Visible.Notify)
+	-- Blizzard legt UIParent hier wieder über das ganze Fenster (oben nur um Notch/Debug-Leisten versetzt)
+	hooksecurefunc("UpdateUIParentPosition", ReapplyUI)
+end
+
+---------------------------------------------------------------------------
+-- Slash: /qnvp monitors | check
+---------------------------------------------------------------------------
+
+function Layout.Describe()
+	local lines = {}
+	local data = Layout.GetData()
+	if not data then
+		lines[1] = "|cffff8080" .. (problem or L["Keine Monitordaten."]) .. "|r"
+		return lines
+	end
+	for _, m in ipairs(data.monitors) do
+		lines[#lines + 1] = ("%d: %s  x %d, y %d, %d × %d%s%s"):format(m.index, m.name or m.device or "?",
+			m.x, m.y, m.w, m.h, m == data.main and ("  |cff80ff80%s|r"):format(L["Hauptmonitor"]) or "",
+			m.selected == false and ("  (%s)"):format(L["nicht ausgewählt, zeigt aber einen Teil des Fensters"]) or "")
+	end
+	if not DB().useMonitorData then
+		lines[#lines + 1] = "|cffffff80" .. L["Monitordaten sind abgeschaltet (Optionen, Zweiter Monitor)."] .. "|r"
+	end
+	return lines
+end
+
+function Layout.Slash(cmd)
+	if cmd == "monitors" or cmd == "monitore" then
+		ns.Print((constrained and L["Spielfenster %d × %d, Oberfläche auf dem Hauptmonitor:"]
+			or L["Spielfenster %d × %d, Oberfläche über das ganze Fenster:"]):format(ns.screen[1], ns.screen[2]))
+		for _, line in ipairs(Layout.Describe()) do
+			ns.Print(line)
+		end
+		return true
+	elseif cmd == "check" then
+		Layout.Report()
+		return true
+	end
+	return false
+end
+
+-- Kurzbeschreibung eines Prüfergebnisses
+function Layout.DescribeEntry(e)
+	local where = e.visible < 0.0001 and ("|cffff6060%s|r"):format(L["ganz außerhalb"])
+		or L["|cffffd060teilweise außerhalb|r (%d %% sichtbar)"]:format(math.floor(e.visible * 100))
+	local notes = { e.source }
+	if e.editMode then notes[#notes + 1] = HUD_EDIT_MODE_MENU end
+	if e.protected then notes[#notes + 1] = L["geschützt"] end
+	return where, table.concat(notes, ", ")
+end
+
+-- Meldet Rahmen außerhalb der Monitore im Chat (/qnvp check). Verschiebt nichts.
+function Layout.Report()
+	local list = Layout.CheckFrames()
+	if #list == 0 then
+		ns.Print(L["Alle sichtbaren Oberflächenelemente liegen auf einem Monitor."])
+	end
+	for _, e in ipairs(list) do
+		local where, notes = Layout.DescribeEntry(e)
+		ns.Print(("|cffffff80%s|r – %s – %s"):format(e.name, where, notes))
+	end
+	if #list > 0 then
+		ns.Print(L["Einzeln verschieben: Optionen → qnViewPort → Monitore."])
+	end
+end

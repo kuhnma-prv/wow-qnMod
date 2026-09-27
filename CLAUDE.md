@@ -103,8 +103,10 @@ Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCor
   Nach jeder Änderung alle Szenarien laufen lassen; neue Funktionen bekommen ein eigenes Szenario.
   XML wird nicht geladen. Testfehler zuerst gegen Blizzards Quelltext prüfen – meist sind es Lücken der
   Attrappe; die dann in der Attrappe schließen, nicht im Addon.
-- Mehrmonitor-Skripte: `D:\Games\Battle.net\World of Warcraft\qnTools` (`Initialize-WowMonitors.ps1`,
-  `Set-WowWindow.ps1`) schreiben `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`).
+- Mehrmonitor-Skripte: `qnViewPort\scripts` (`Initialize-WowMonitors.ps1`, `Set-WowWindow.ps1`,
+  gemeinsam `qnMonitors.ps1`) schreiben `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`);
+  die Monitorauswahl liegt in `monitors.json` im WoW-Hauptordner (für alle Clients gemeinsam,
+  außerhalb des Repos). WoW lädt nur Dateien aus der TOC.
 - Gemeinsames Icon: `qnCore\Media\qnIcon.tga` (64×64 TGA).
 
 ## Arbeitsweise

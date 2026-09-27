@@ -1,0 +1,30 @@
+## Interface: 16001
+## Title: qnMod [|cffeda55fViewport|r] |cff00aa000.1.0|r
+## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
+## Notes: Shrinks the area in which the 3D world is rendered, with border color/pattern and multi-monitor support (WoW Classic Forever).
+## Notes-deDE: Verkleinert den Bereich, in dem die 3D-Welt gezeichnet wird, mit Randfarbe/-muster und Mehrmonitor-Betrieb (WoW Classic Forever).
+## Author: qn
+## Version: 0.1.0
+## Group: qnCore
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## SavedVariables: qnViewPortDB
+## Dependencies: qnCore
+## OptionalDeps: Titan
+
+Locale.lua
+Monitors.lua
+Core.lua
+Options.lua
+Layout.lua
+SecondScreen.lua
+Titan.lua
