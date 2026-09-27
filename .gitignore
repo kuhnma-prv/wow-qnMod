@@ -1,0 +1,3 @@
+# Alle Unterordner ignorieren, außer denen, die mit "qn" beginnen
+/*/
+!/qn*/
