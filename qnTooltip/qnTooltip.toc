@@ -1,0 +1,37 @@
+## Interface: 16001
+## Title: qnMod [|cffeda55fTooltip|r] |cff00aa000.1.0|r
+## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
+## Notes: Customizable tooltips: look, position, unit lines built from elements, health bar, target, item level and IDs.
+## Notes-deDE: Anpassbare Tooltips: Aussehen, Position, Einheiten-Zeilen aus Bausteinen, Lebensbalken, Ziel, Gegenstandsstufe und IDs.
+## Author: qn
+## Version: 0.1.0
+## Group: qnCore
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## SavedVariables: qnTooltipDB
+## Dependencies: qnCore
+## OptionalDeps: LibSharedMedia-3.0
+
+Locale.lua
+Core.lua
+Style.lua
+StatusBar.lua
+UnitData.lua
+Inspect.lua
+Unit.lua
+Target.lua
+Model.lua
+Anchor.lua
+Ids.lua
+Chat.lua
+Options.lua
+ElementsPage.lua

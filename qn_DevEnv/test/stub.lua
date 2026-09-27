@@ -196,7 +196,19 @@ function Frame:GetChecked() return self._checked end
 function Frame:SetChecked(v) self._checked = v end
 function Frame:GetText() return self._text end
 function Frame:SetText(v) self._text = v end
-function Frame:SetFormattedText(f, ...) self._text = f:format(...) end
+-- secret-Zahlen (Tabellen der Szenarien) formatiert der Client auch mit %d/%f: dann als %s ausgeben
+function Frame:SetFormattedText(f, ...)
+	local ok, text = pcall(string.format, f, ...)
+	if not ok then
+		local secret = false
+		for i = 1, select("#", ...) do
+			if issecretvalue((select(i, ...))) then secret = true end
+		end
+		if not secret then error(text, 2) end
+		text = f:gsub("%%[%d%.]*[dfi]", "%%s"):format(...)
+	end
+	self._text = text
+end
 function Frame:HasFocus() return false end
 function Frame:GetStringWidth() return 50 end
 function Frame:NumLines() return 0 end
@@ -976,4 +988,231 @@ function EnableRestrictedEnvironment()
 		end
 		return false
 	end
+end
+
+-- qnTooltip-Bedarf: vollständige Tooltips, nur auf Anforderung eines Szenarios: EnableTooltips() vor
+-- LoadAddon aufrufen. Nachgebaut nach dem Forever-Quelltext:
+--   Tooltipdaten (TooltipDataHandler.lua InternalProcessInfo): Zeilen anlegen, lineIndex setzen,
+--   PostCalls je Typ, Show; Typen und Zeilentypen aus TooltipInfoSharedDocumentation.
+--   GameTooltipTemplate (Mainline\GameTooltip.xml): Zeilen $parentTextLeftN/RightN, NineSlice, StatusBar.
+-- Einheiten: QN_UNITS[Einheit] = { name, realm, class, className, level, raceName, factionGroup,
+--   factionName, reaction, classif, creature, isPlayer, guid, guild = { Name, Rang, Nr., Realm }, surname,
+--   dead, health, maxHealth, pvpName, afk, raidIcon, role, title (NSC), target = Einheit }.
+--   "<Einheit>target" löst sich über .target auf; QN_GUIDS[GUID] = Einheit (UnitTokenFromGUID).
+-- ProcessTooltip(tip, data) verarbeitet Tooltipdaten; tip:SetUnit(Einheit) baut sie aus QN_UNITS.
+function EnableTooltips()
+	for _, e in ipairs({ "MODIFIER_STATE_CHANGED", "INSPECT_READY", "UPDATE_CHAT_WINDOWS" }) do VALID[e] = true end
+	Enum.TooltipDataType = { Item = 0, Spell = 1, Unit = 2, Corpse = 3, Object = 4, Currency = 5, UnitAura = 7, Mount = 10, Quest = 23, Macro = 25 }
+	Enum.TooltipDataLineType = { None = 0, Blank = 1, UnitName = 2, SpellName = 13, ItemName = 22, UnitLevel = 47, UnitType = 48, UnitDead = 49 }
+	POSTCALLS = {}
+	TooltipDataProcessor = { AllTypes = "ALL", AddTooltipPreCall = nop, AddLinePreCall = nop, AddLinePostCall = nop }
+	function TooltipDataProcessor.AddTooltipPostCall(t, fn)
+		POSTCALLS[t] = POSTCALLS[t] or {}
+		table.insert(POSTCALLS[t], fn)
+	end
+
+	-- Schriften
+	local function Font(name, file, size, flag)
+		local f = NewFrame("Font", name)
+		f._fontInfo = { file, size, flag }
+		function f:GetFont() return unpack(self._fontInfo) end
+		function f:SetFont(a, b, c) self._fontInfo = { a, b, c } end
+		function f:SetShadowOffset() end
+		function f:SetShadowColor() end
+		return f
+	end
+	Font("GameTooltipHeaderText", "Fonts\\FRIZQT__.TTF", 14, "")
+	Font("GameTooltipText", "Fonts\\FRIZQT__.TTF", 12, "")
+	Font("Tooltip_Small", "Fonts\\FRIZQT__.TTF", 10, "")
+	function NumberFontNormal:GetFont() return "Fonts\\ARIALN.TTF", 12, "" end
+
+	-- Tooltip mit Zeilen
+	local function Tooltip(name)
+		local tip = NewFrame("GameTooltip", name, UIParent)
+		tip._shown = false
+		tip._lines = 0
+		tip.NineSlice = NewFrame("Frame", nil, tip)
+		local function Line(side, n)
+			local key = name .. "Text" .. side .. n
+			return _G[key] or NewFrame("FontString", key, tip)
+		end
+		function tip:NumLines() return self._lines end
+		function tip:AddLine(text, r, g, b)
+			self._lines = self._lines + 1
+			local left, right = Line("Left", self._lines), Line("Right", self._lines)
+			left._text, right._text, left._textColor = text, nil, r and { r, g, b, 1 } or nil
+		end
+		function tip:AddDoubleLine(l, r)
+			self:AddLine(l)
+			Line("Right", self._lines)._text = r
+		end
+		function tip:ClearLines()
+			for i = 1, self._lines do Line("Left", i)._text, Line("Right", i)._text = nil, nil end
+			self._lines = 0
+			self._data = nil
+			if self._scripts.OnTooltipCleared then self._scripts.OnTooltipCleared(self) end
+		end
+		function tip:SetOwner(owner, anchor, x, y)
+			self._owner, self._anchor = owner, { anchor, x, y }
+			self:ClearLines()
+		end
+		function tip:GetOwner() return self._owner end
+		function tip:SetText(t) self:ClearLines() self:AddLine(t) end
+		function tip:HasScript() return true end
+		function tip:SetScale(s) self._scale = s end
+		function tip:SetHyperlink(link) self._link = link end
+		function tip:SetUnit(unit) ProcessTooltip(self, UnitTooltipData(unit)) end
+		function tip:GetUnit()
+			local d = self._data
+			if d and d.type == Enum.TooltipDataType.Unit then
+				local unit = UnitTokenFromGUID(d.guid)
+				return unit and UnitName(unit), unit, d.guid
+			end
+		end
+		-- linke Texte aller Zeilen (leere als "")
+		function tip:Texts()
+			local t = {}
+			for i = 1, self._lines do t[i] = Line("Left", i)._text or "" end
+			return t
+		end
+		return tip
+	end
+	GameTooltip = Tooltip("GameTooltip")
+	for _, n in ipairs({ "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2" }) do
+		Tooltip(n)
+	end
+	-- Lebensbalken (GameTooltipUnitHealthBarMixin: Wert 0–1)
+	local bar = NewFrame("StatusBar", "GameTooltipStatusBar", GameTooltip)
+	bar._shown = false
+	bar._value = 0
+	function bar:SetValue(v) self._value = v if self._scripts.OnValueChanged then self._scripts.OnValueChanged(self, v) end end
+	function bar:GetValue() return self._value end
+	function bar:SetStatusBarColor(r, g, b) self._barColor = { r, g, b } end
+	function bar:SetStatusBarTexture(t) self._barTexture = t end
+	GameTooltip.StatusBar = bar
+
+	function ProcessTooltip(tip, data)
+		tip:ClearLines()
+		for _, line in ipairs(data.lines or {}) do
+			tip:AddLine(line.leftText)
+			line.lineIndex = tip:NumLines()
+		end
+		tip._data = data
+		for _, fn in ipairs(POSTCALLS[data.type] or {}) do fn(tip, data) end
+		tip:Show()
+		SharedTooltip_SetBackdropStyle(tip)
+	end
+	function SharedTooltip_SetBackdropStyle(tip) tip.NineSlice:Show() end
+	function GameTooltip_SetDefaultAnchor(tip, parent)
+		tip:SetOwner(parent, "ANCHOR_NONE")
+		tip:ClearAllPoints()
+		tip:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -13, 64)
+	end
+	function GameTooltip_AddInstructionLine(tip, text) tip:AddLine(text) end
+	function GameTooltip_AddBlankLineToTooltip(tip) tip:AddLine(" ") end
+
+	-- Einheiten
+	QN_UNITS = QN_UNITS or {}
+	QN_GUIDS = QN_GUIDS or {}
+	local function Resolve(u)
+		if type(u) ~= "string" then return nil end
+		if QN_UNITS[u] then return u end
+		local base = u:match("^(.+)target$")
+		if base then
+			local b = Resolve(base)
+			return b and QN_UNITS[b] and Resolve(QN_UNITS[b].target)
+		end
+	end
+	local function U(u) local r = Resolve(u) return r and QN_UNITS[r] end
+	UNIT_RESOLVE = Resolve
+	function UnitTokenFromGUID(guid) return QN_GUIDS[guid] end
+	function UnitExists(u) return U(u) ~= nil end
+	function UnitIsUnit(a, b) local ra, rb = Resolve(a), Resolve(b) return ra ~= nil and ra == rb end
+	-- Forever (camelot): Vor- und Nachname (NameUtil.GetUnitFirstName); Realm über GetPlayerInfoByGUID
+	function UnitName(u) local d = U(u) if d then return d.name, d.surname end end
+	function GetPlayerInfoByGUID(guid) local d = U(QN_GUIDS[guid]) if d then return d.className, d.class, d.raceName, nil, d.sex, d.name, d.realm or "" end end
+	function UnitPVPName(u) local d = U(u) return d and (d.pvpName or d.name) end
+	function UnitGUID(u) local d = U(u) return d and d.guid end
+	function UnitIsPlayer(u) local d = U(u) return d and d.isPlayer or false end
+	function UnitLevel(u) local d = U(u) return d and d.level or 0 end
+	function UnitEffectiveLevel(u) return UnitLevel(u) end
+	function UnitRace(u) local d = U(u) return d and d.raceName end
+	function UnitClass(u) local d = U(u) if d then return d.className, d.class end end
+	function UnitFactionGroup(u) local d = U(u) if d then return d.factionGroup, d.factionName end end
+	function UnitReaction(u) local d = U(u) return d and d.reaction end
+	function UnitClassification(u) local d = U(u) return d and d.classif or "normal" end
+	function UnitCreatureType(u) local d = U(u) return d and d.creature end
+	function UnitSex(u) local d = U(u) return d and d.sex or 1 end
+	function GetGuildInfo(u) local d = U(u) if d and d.guild then return unpack(d.guild) end end
+	function UnitGroupRolesAssigned(u) local d = U(u) return d and d.role or "NONE" end
+	function GetRaidTargetIndex(u) local d = U(u) return d and d.raidIcon end
+	function UnitIsPVPFreeForAll() return false end
+	function UnitIsQuestBoss(u) local d = U(u) return d and d.questBoss or false end
+	function UnitIsAFK(u) local d = U(u) return d and d.afk or false end
+	function UnitIsDND() return false end
+	function UnitIsConnected() return true end
+	function UnitIsDeadOrGhost(u) local d = U(u) return d and d.dead or false end
+	function UnitHealth(u) local d = U(u) return d and d.health or 0 end
+	function UnitHealthMax(u) local d = U(u) return d and d.maxHealth or 1 end
+	function UnitHealthPercent(u) local d = U(u) if d then if issecretvalue(d.health) then return d.health end return d.health / d.maxHealth * 100 end end
+	function UnitSelectionColor(u) local d = U(u) if d and d.selection then return unpack(d.selection) end return 1, 1, 0 end
+	function UnitIsOtherPlayersPet() return false end
+	function UnitInRaid() return nil end
+	function UnitIsVisible(u) return U(u) ~= nil end
+	function GetUnitSpeed(u) local d = U(u) return d and d.speed or 0 end
+	function GetNumGroupMembers() return QN_GROUP and #QN_GROUP or 0 end
+	function IsInRaid() return QN_GROUP_RAID or false end
+	function IsInGroup() return QN_GROUP ~= nil end
+	function GetRaidRosterInfo() return nil end
+	QN_UNITS.player = QN_UNITS.player or { name = "Tester", class = "WARRIOR", className = "Krieger", level = 60, isPlayer = true, guid = "Player-1", factionGroup = "Alliance", factionName = FACTION_ALLIANCE, raceName = "Mensch" }
+	QN_GUIDS["Player-1"] = "player"
+	C_FriendList = { IsFriend = function(guid) return QN_FRIENDS and QN_FRIENDS[guid] or false end }
+	-- Betrachten
+	QN_INSPECT = {}   -- Protokoll der NotifyInspect-Aufrufe
+	function CanInspect(u) return U(u) ~= nil end
+	function NotifyInspect(u) QN_INSPECT[#QN_INSPECT + 1] = u end
+	function ClearInspectPlayer() QN_INSPECT.cleared = true end
+	C_PaperDollInfo.GetInspectItemLevel = function(u) local d = U(u) return d and d.itemLevel end
+	function GetAverageItemLevel() return 70.4, 65.6 end
+
+	-- Blizzard-Tabellen und -Funktionen
+	ICON_LIST = {}
+	for i = 1, 8 do ICON_LIST[i] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_" .. i .. ":" end
+	CLASS_ICON_TCOORDS = setmetatable({}, { __index = function() return { 0, 0.25, 0, 0.25 } end })
+	FACTION_BAR_COLORS = {}
+	for i = 1, 8 do FACTION_BAR_COLORS[i] = { r = i / 8, g = 0.5, b = 0 } end
+	function GetCreatureDifficultyColor(level) return { r = 1, g = level > 60 and 0 or 1, b = 0 } end
+	function GetQuestDifficultyColor(level) return { r = 0.25, g = 0.75, b = 0.25 } end
+	CurveConstants = { ScaleTo100 = {} }
+	BASE_MOVEMENT_SPEED = 7
+	Constants = { ChatFrameConstants = { MaxChatWindows = 10 } }
+	for i = 1, 10 do NewFrame("ScrollingMessageFrame", "ChatFrame" .. i) end
+	function HealthBar_OnValueChanged(self, value, smooth) self._smooth = smooth and value end
+	function GetMouseFoci() return { QN_FOCUS or WorldFrame } end
+	C_Item = C_Item or {}
+	C_Item.GetItemQualityByID = function(id) return QN_ITEMS and QN_ITEMS[id] and QN_ITEMS[id].quality end
+	C_Item.GetItemQualityColor = function(q) return 0.64, 0.21, 0.93, "ffa335ee" end
+	C_Item.GetItemIconByID = function(id) return QN_ITEMS and QN_ITEMS[id] and QN_ITEMS[id].icon end
+	C_Item.GetItemInfo = function(id) local it = QN_ITEMS and QN_ITEMS[id] if it then return it.name, nil, it.quality, nil, nil, nil, nil, it.stack end end
+	C_Spell.GetSpellTexture = function(id) return 136000 + id end
+	C_QuestLog = { GetQuestDifficultyLevel = function(id) return 12 end }
+	function ColorPickerFrame:SetupColorPickerAndShow(info) self._info = info end
+	function ColorPickerFrame:GetColorRGB() return unpack(self._rgb or { 1, 1, 1 }) end
+	function ColorPickerFrame:GetPreviousValues() local i = self._info return { r = i.r, g = i.g, b = i.b } end
+end
+
+-- Tooltipdaten einer Einheit wie in Forever: Name, (Gilde), (NSC-Titel), Stufe, (Fraktion, PvP)
+function UnitTooltipData(unit)
+	local d = QN_UNITS[UNIT_RESOLVE(unit)]
+	local lines = { { type = Enum.TooltipDataLineType.UnitName, leftText = d.pvpName or d.name } }
+	if d.guild then lines[#lines + 1] = { type = 0, leftText = d.guild[1] } end
+	if d.title then lines[#lines + 1] = { type = 0, leftText = "<" .. d.title .. ">" } end
+	-- Forever: Stufenzeile ohne Zeilentyp (levelType = true: mit Typ UnitLevel), Klasse in eigener Zeile
+	local levelText = TOOLTIP_UNIT_LEVEL:format(tostring(d.level)) .. (d.isPlayer and (" " .. tostring(d.raceName) .. " (" .. PLAYER .. ")") or "")
+	lines[#lines + 1] = { type = d.levelType and Enum.TooltipDataLineType.UnitLevel or 0, leftText = levelText }
+	if d.isPlayer then lines[#lines + 1] = { type = 0, leftText = d.className } end
+	if d.isPlayer then lines[#lines + 1] = { type = 0, leftText = d.factionName } end
+	if d.pvp then lines[#lines + 1] = { type = 0, leftText = PVP } end
+	for _, extra in ipairs(d.extra or {}) do lines[#lines + 1] = { type = 0, leftText = extra } end
+	return { type = Enum.TooltipDataType.Unit, guid = d.guid, lines = lines, healthGUID = d.guid }
 end

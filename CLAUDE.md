@@ -18,6 +18,7 @@ nicht anfassen, nicht als Vorlage oder Quelle verwenden, im Code nicht erwähnen
 | qnInventory | Bestand/Gold je Charakter, Tooltip-Zeilen | qnInventoryDB |
 | qnBuffMod | frei gestaltbare Aurenfenster | qnBuffModDB |
 | qnUnitFrames | Klickzauber (wie HealBot) auf Blizzards Gruppen-/Schlachtzugsrahmen über sichere Attribute; Belegung je Profil und Klasse | qnUnitFramesDB |
+| qnTooltip | Tooltips: Aussehen (eigener Backdrop statt NineSlice), Position nur auf Wunsch, Einheiten-Kopfzeilen aus Bausteinen (Seiten „Zeilen“), Lebensbalken, Ziel, Gegenstandsstufe, IDs | qnTooltipDB |
 
 Alle außer qnCore: `## Dependencies: qnCore`, `## IconTexture: Interface\AddOns\qnCore\Media\qnIcon`,
 `## Category-<Sprache>:` wie Titan (Benutzerinterface/User Interface), `## Title: qnMod [|cffeda55f<Kurzname>|r] |cff00aa00<Version>|r` (wie Titan; Version bei jeder Änderung von
@@ -87,6 +88,10 @@ erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als �
   Blizzard-TOCs. Beispiel: `SecureAuraHeaderTemplate` gibt es nicht (nur Spieltyp classic) → qnBuffMod
   nutzt nur unsichere Fenster. Bei Vorlagen/Dateien immer die TOC-Bedingung prüfen, nicht nur ob die
   Datei existiert.
+- **Nachnamen:** `UnitName` liefert Vor- und **Nachname** (nicht den Realm; `NameUtil.GetUnitFirstName`),
+  `UnitPVPName` „Vorname Nachname“. Realm über `GetPlayerInfoByGUID` (7. Rückgabe, "" = eigener).
+- Spieler-Tooltip: Stufenzeile („Stufe %s …“, `TOOLTIP_UNIT_LEVEL`) ohne Zeilentyp `UnitLevel`, Klasse und
+  Fraktion in eigenen Zeilen danach (im Spiel gesehen).
 - Aura-Filter: `NOT_CANCELABLE` gibt es nicht mehr → `!CANCELABLE` (Negation mit `!`).
 - Aktionsleisten wie Mainline: 180 Plätze, Seiten 13–15 = Leisten 6–8.
 - Addon-Icons erscheinen nur in der Addon-Liste (20×20), kein Addon-Fach an der Minikarte.
