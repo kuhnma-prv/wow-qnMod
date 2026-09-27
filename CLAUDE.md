@@ -97,14 +97,18 @@ Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCor
   C-Funktionen und Widget-Methoden stehen nicht im Quellbaum.
 - Entwicklungsumgebung: `qn_DevEnv` (im AddOns-Ordner, im Repo; ohne TOC, WoW lädt ihn nicht).
   `qn_DevEnv\test` – fengari (Lua-VM in Node, lokal in `node_modules`, nicht im Repo; wird von
-  `Invoke-QnTests.ps1` bei Bedarf per `npm install` geholt) mit WoW-Attrappe `stub.lua` und Szenarien `test*.lua`.
-  Alle ausführen: `pwsh qn_DevEnv\test\Invoke-QnTests.ps1` (`-Filter test9`, `-Locale enUS`, `-Detail`);
-  einzeln: `node run.mjs testN.lua` (AddOns-Ordner = Elternordner von `qn_DevEnv`, Sprache über
+  `Invoke-QnTests.ps1` bei Bedarf per `npm install` geholt) mit WoW-Attrappe `stub.lua` und Szenarien
+  je getestetem Addon in einem Ordner, dort durchnummeriert (`qn_DevEnv\test\qnBuffMod\test3.lua`);
+  Szenarien für die gemeinsame Bibliothek (Profile, Migration, Visible …) liegen unter `qnCore`.
+  Alle ausführen: `pwsh qn_DevEnv\test\Invoke-QnTests.ps1` (`-Filter qnBuffMod` oder `-Filter qnCore/test3`,
+  `-Locale enUS`, `-Detail`); einzeln: `node run.mjs qnBuffMod/test3.lua` (AddOns-Ordner = Elternordner
+  von `qn_DevEnv`, Sprache über
   `$env:QN_LOCALE`). Die Attrappe lädt die echten Forever-GlobalStrings der Sprache (nicht im Repo;
   `run.mjs`/`gs.mjs` laden fehlende über `globalstrings.mjs`, aktualisieren mit
   `node qn_DevEnv\test\globalstrings.mjs --update`); Testvariablen
   deshalb nie wie GlobalStrings benennen (`COMBAT` war einer → heißt jetzt `QN_COMBAT`).
-  Nach jeder Änderung alle Szenarien laufen lassen; neue Funktionen bekommen ein eigenes Szenario.
+  Nach jeder Änderung alle Szenarien laufen lassen; neue Funktionen bekommen ein eigenes Szenario
+  (nächste freie Nummer im Ordner des Addons).
   XML wird nicht geladen. Testfehler zuerst gegen Blizzards Quelltext prüfen – meist sind es Lücken der
   Attrappe; die dann in der Attrappe schließen, nicht im Addon.
 - Mehrmonitor-Skripte: `qnViewPort\scripts` (`Initialize-WowMonitors.ps1`, `Set-WowWindow.ps1`,

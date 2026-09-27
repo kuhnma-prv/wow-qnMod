@@ -4,7 +4,7 @@
 -- Negative Spalten liegen links davon (Navigations- und Pfeilblock).
 -- type: Numeric = immer sichtbar, Enter/Nav/Arrow = zuschaltbar.
 -- Die Position einer Taste in der Liste bestimmt ihren Aktionsplatz;
--- deshalb darf die Reihenfolge nicht geändert werden (test16 vergleicht mit dem alten Stand).
+-- deshalb darf die Reihenfolge nicht geändert werden (Szenario qnNumKeyPad/test1 vergleicht mit dem alten Stand).
 
 local _, ns = ...
 

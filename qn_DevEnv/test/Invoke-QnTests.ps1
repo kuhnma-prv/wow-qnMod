@@ -1,9 +1,11 @@
-# Führt alle Testszenarien (test*.lua) gegen die qn-Addons von WoW Classic Forever aus,
-# je Szenario auf einem deutschen und einem englischen Client.
-# Aufruf: pwsh Invoke-QnTests.ps1 [-Filter test9] [-Locale enUS] [-Detail]
+# Führt alle Testszenarien gegen die qn-Addons von WoW Classic Forever aus, je Szenario auf einem
+# deutschen und einem englischen Client. Szenarien liegen je getestetem Addon in einem Ordner
+# (qnCore\test1.lua, qnBuffMod\test3.lua …).
+# Aufruf: pwsh Invoke-QnTests.ps1 [-Filter qnBuffMod] [-Filter qnCore/test3] [-Locale enUS] [-Detail]
+#   -Filter  Addon-Ordner oder Addon/Szenario, Platzhalter erlaubt (qnCore/test1*, */test2)
 # Auf dem englischen Client scheitert ein Szenario auch, wenn ein Text ohne Übersetzung erschien.
 param(
-	[string]$Filter = 'test*',
+	[string]$Filter = '*',
 	[string[]]$Locale = @('deDE', 'enUS'),
 	[switch]$Detail
 )
@@ -17,9 +19,19 @@ if (-not (Test-Path "$here\node_modules\fengari")) {
 	Pop-Location
 }
 
+# Reihenfolge wie in CLAUDE.md, weitere Addon-Ordner danach alphabetisch
+$ORDER = @('qnCore', 'qnMeter', 'qnNumKeyPad', 'qnViewPort', 'qnInventory', 'qnBuffMod', 'qnUnitFrames')
+$pattern = if ($Filter -match '/') { $Filter } else { "$Filter/*" }
+$files = Get-ChildItem $here -Directory -Filter 'qn*' | ForEach-Object {
+	$addon = $_.Name
+	Get-ChildItem $_.FullName -Filter 'test*.lua' | ForEach-Object {
+		[pscustomobject]@{ Addon = $addon; Number = [int]('0' + ($_.BaseName -replace '\D', '')); Name = "$addon/$($_.Name)" }
+	}
+} | Where-Object { $_.Name -like "$pattern.lua" -or $_.Name -like $pattern } |
+	Sort-Object { $i = [array]::IndexOf($ORDER, $_.Addon); if ($i -lt 0) { 99 } else { $i } }, Addon, Number
+if (-not $files) { Write-Host "Keine Szenarien für '$Filter'." -ForegroundColor Yellow; exit 1 }
+
 $failed = 0
-$files = Get-ChildItem $here -Filter "$Filter.lua" |
-	Sort-Object { [int]('0' + ($_.BaseName -replace '\D', '')) }
 foreach ($loc in $Locale) {
 	$env:QN_LOCALE = $loc
 	foreach ($file in $files) {
