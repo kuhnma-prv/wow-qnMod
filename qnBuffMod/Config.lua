@@ -171,8 +171,8 @@ local function BuildGeneral(category, layout)
 	local cat = category
 
 	S.Header(layout, L["Blizzard-Fenster"])
-	G:Checkbox(cat, "hideBlizzardBuffs", L["Blizzards Zauberfenster ausblenden"],
-		L["Blendet Blizzards Fenster für Stärkungs- und Schwächungszauber aus."])
+	G:Checkbox(cat, "hideBlizzardBuffs", L["Blizzards Zauberfenster verbergen"],
+		L["Verbirgt Blizzards Fenster für Stärkungs- und Schwächungszauber."])
 
 	S.Header(layout, COLORS)
 	G:Color(cat, "backgroundColor", L["Fensterhintergrund"], L["Hintergrund aller Fenster ohne eigene Farbe."], nil, L["Fensterhintergrund: Deckkraft"])
@@ -188,7 +188,7 @@ local function BuildGeneral(category, layout)
 		return ns.db.enableExpiration
 	end
 	S.Depends(G:Checkbox(cat, "expirationCastOnly", L["Nur Zauber, die du selbst wirken kannst"]), warn, Warn)
-	S.Depends(G:Checkbox(cat, "expirationSound", L["Ton bei der Warnung"]), warn, Warn)
+	S.Depends(G:Checkbox(cat, "expirationSound", L["Ton abspielen"]), warn, Warn)
 	S.Depends(G:Slider(cat, "expirationTime1", L["Warnen bei Dauer 2:00 – 10:00"], 0, 60, 5, ns.SecondsLabel), warn, Warn)
 	S.Depends(G:Slider(cat, "expirationTime2", L["Warnen bei Dauer 10:01 – 30:00"], 0, 180, 5, ns.SecondsLabel), warn, Warn)
 	S.Depends(G:Slider(cat, "expirationTime3", L["Warnen bei Dauer ab 30:01"], 0, 300, 5, ns.SecondsLabel), warn, Warn)
@@ -209,13 +209,13 @@ local function BuildWindowPage(category)
 	S.Button(layout, L["Fenster löschen"], L["Löschen …"], function()
 		StaticPopup_Show("QNBUFFMOD_DELETE_WINDOW", L["Fenster %d"]:format(ns.SelectedID()))
 	end, L["Löscht das gewählte Fenster samt Einstellungen."])
-	S.Button(layout, L["Fensterposition"], RESET, function()
+	S.Button(layout, L["Position zurücksetzen"], RESET, function()
 		local win = Window()
 		if win then
 			win:ResetPosition()
 		end
 	end, L["Verschiebt das Fenster in die Bildschirmmitte."])
-	S.Button(layout, L["Fenster außerhalb des Bildes"], L["In sichtbaren Bereich holen"], function()
+	S.Button(layout, L["Fenster suchen"], L["In sichtbaren Bereich holen"], function()
 		local win = Window()
 		if win then
 			win:BringIntoView()
@@ -242,19 +242,19 @@ local function BuildWindowPage(category)
 	local vis = W:Choose(cat, "visWindow", SHOW, {
 		{ E.vis.ALWAYS, BATTLEFIELD_MINIMAP_SHOW_ALWAYS },
 		{ E.vis.BASIC, L["Standardbedingungen"] },
-		{ E.vis.CUSTOM, L["Erweiterte Bedingung"] },
+		{ E.vis.CUSTOM, L["Eigene Bedingung"] },
 	})
 	local basic = Is("visWindow", E.vis.BASIC)
-	S.Depends(W:Check(cat, "visHideInCombat", L["Im Kampf ausblenden"]), vis, basic)
-	S.Depends(W:Check(cat, "visHideNotCombat", L["Außerhalb des Kampfes ausblenden"]), vis, basic)
-	S.Depends(W:Check(cat, "visHideInVehicle", L["Im Fahrzeug ausblenden"]), vis, basic)
-	S.Depends(W:Check(cat, "visHideNotVehicle", L["Außerhalb von Fahrzeugen ausblenden"]), vis, basic)
+	S.Depends(W:Check(cat, "visHideInCombat", L["Im Kampf verbergen"]), vis, basic)
+	S.Depends(W:Check(cat, "visHideNotCombat", L["Außerhalb des Kampfes verbergen"]), vis, basic)
+	S.Depends(W:Check(cat, "visHideInVehicle", L["Im Fahrzeug verbergen"]), vis, basic)
+	S.Depends(W:Check(cat, "visHideNotVehicle", L["Außerhalb von Fahrzeugen verbergen"]), vis, basic)
 	-- der Text selbst hat kein eigenes Steuerelement (Dialog)
-	W:Register(cat, "visCondition", L["Erweiterte Bedingung"], nil, On("visCondition"))
+	W:Register(cat, "visCondition", L["Eigene Bedingung"], nil, On("visCondition"))
 	local custom = Is("visWindow", E.vis.CUSTOM)
-	S.Depends(S.Button(layout, L["Erweiterte Bedingung"], L["Bearbeiten …"], function()
+	S.Depends(S.Button(layout, L["Eigene Bedingung"], L["Bearbeiten …"], function()
 		StaticPopup_Show("QNBUFFMOD_CONDITION", L["Fenster %d"]:format(ns.SelectedID()))
-	end, L["Makrobedingungen, z. B. '[vehicleui] hide; [combat] hide; show'."]), vis, custom)
+	end, L["Makrobedingung mit show/hide, z. B. '[vehicleui] hide; [combat] hide; show'."]), vis, custom)
 	S.Depends(S.Button(layout, L["Bedingung prüfen"], L["Testen"], function()
 		ns.TestCondition(ns.SelectedID())
 	end, L["Zeigt im Chat, was die gespeicherte Bedingung gerade bewirkt."]), vis, custom)
@@ -269,7 +269,7 @@ local function BuildLayoutPage(category)
 	W:Check(cat, "showBackground", HUD_EDIT_MODE_SETTING_UNIT_FRAME_SHOW_PARTY_FRAME_BACKGROUND)
 	local own = W:Check(cat, "useCustomBackgroundColor", L["Eigene Farbe für dieses Fenster"])
 	local color, alpha = W:Color(cat, "windowBackgroundColor", COMPACT_UNIT_FRAME_PROFILE_HEALTH_BAR_COLOR_BG, nil,
-		On("windowBackgroundColor"), L["Hintergrund: Deckkraft"])
+		On("windowBackgroundColor"), L["Deckkraft des Hintergrunds"])
 	S.Depends(color, own, Is("useCustomBackgroundColor", true))
 	S.Depends(alpha, own, Is("useCustomBackgroundColor", true))
 
@@ -311,7 +311,7 @@ local function BuildButtonsPage(category)
 
 	S.Header(layout, L["Knöpfe"])
 	local style = W:Choose(cat, "buttonStyle", HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE, {
-		{ E.style.BAR, L["Stil 1 (Symbol und Leiste)"] },
+		{ E.style.BAR, L["Stil 1 (Symbol und Balken)"] },
 		{ E.style.ICON, L["Stil 2 (nur Symbol)"] },
 	})
 	local one, two = Is("buttonStyle", E.style.BAR), Is("buttonStyle", E.style.ICON)
@@ -319,7 +319,7 @@ local function BuildButtonsPage(category)
 		return S.Depends(init, style, pred)
 	end
 
-	S.Header(layout, L["Stil 1 (Symbol und Leiste)"])
+	S.Header(layout, L["Stil 1 (Symbol und Balken)"])
 	Dep(W:Slide(cat, "buffSize1", HUD_EDIT_MODE_SETTING_AURA_FRAME_ICON_SIZE, 15, 45), one)
 	Dep(W:Choose(cat, "rightAlign1", L["Symbolposition"], {
 		{ E.side.DEFAULT, DEFAULT },
@@ -328,9 +328,9 @@ local function BuildButtonsPage(category)
 	}), one)
 	Dep(W:Check(cat, "colorCodeIcons1", L["Rahmen von Schwächungszaubern einfärben"], LEGEND), one)
 	Dep(W:Check(cat, "normalIconBorder1", L["Standard-Symbolrahmen"], L["Zeigt das ganze Symbol samt seinem eigenen Rand, statt es an den Kanten zu beschneiden."]), one)
-	Dep(W:Slide(cat, "detailWidth1", L["Leistenbreite"], 0, 400), one)
-	Dep(W:Check(cat, "colorBuffs1", L["Leistenhintergrund einfärben"]), one)
-	Dep(W:Check(cat, "colorCodeBackground1", L["Leisten von Schwächungszaubern einfärben"], LEGEND), one)
+	Dep(W:Slide(cat, "detailWidth1", L["Balkenbreite"], 0, 400), one)
+	Dep(W:Check(cat, "colorBuffs1", L["Balkenhintergrund einfärben"]), one)
+	Dep(W:Check(cat, "colorCodeBackground1", L["Balken von Schwächungszaubern einfärben"], LEGEND), one)
 	Dep(W:Check(cat, "showNames1", PROFESSIONS_FLYOUT_SHOW_NAME), one)
 	Dep(W:Check(cat, "colorCodeDebuffs1", L["Namen von Schwächungszaubern einfärben"], LEGEND), one)
 	Dep(W:Choose(cat, "nameJustifyWithTime1", L["Name ausrichten (neben der Zeit)"], JUSTIFY), one)
@@ -346,8 +346,8 @@ local function BuildButtonsPage(category)
 		{ E.timeAt.BELOW, L["Unter dem Namen"] },
 	}), one)
 	Dep(W:Choose(cat, "timeJustifyNoName1", L["Zeit ausrichten (ohne Namen)"], JUSTIFY), one)
-	Dep(W:Check(cat, "showBuffTimer1", L["Restzeit als Leiste"]), one)
-	Dep(W:Check(cat, "showTimerBackground1", L["Hintergrund der Leiste"]), one)
+	Dep(W:Check(cat, "showBuffTimer1", L["Restzeit als Balken"]), one)
+	Dep(W:Check(cat, "showTimerBackground1", L["Hintergrund des Balkens"]), one)
 	Dep(W:Slide(cat, "spacingOnLeft1", L["Textabstand links"], 0, 50), one)
 	Dep(W:Slide(cat, "spacingOnRight1", L["Textabstand rechts"], 0, 50), one)
 

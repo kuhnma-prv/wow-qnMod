@@ -23,6 +23,17 @@ L["%s (Blizzard-Vorgabe)"] = "%s (Blizzard preset)"
 L["%s (charakterspezifisch, %s)"] = "%s (character-specific, %s)"
 L["%s (Konto)"] = "%s (account)"
 
+-- Library.lua: Ankerpunkte (qnCore.PointEntries)
+L["Oben links"] = "Top left"
+L["Oben Mitte"] = "Top center"
+L["Oben rechts"] = "Top right"
+L["Links Mitte"] = "Left center"
+L["Mitte"] = "Center"
+L["Rechts Mitte"] = "Right center"
+L["Unten links"] = "Bottom left"
+L["Unten Mitte"] = "Bottom center"
+L["Unten rechts"] = "Bottom right"
+
 -- Visible.lua (übernommen aus qnViewPort)
 L["%s in den sichtbaren Bereich verschoben."] = "%s moved into the visible area."
 L["%s ist geschützt – im Kampf nicht verschiebbar."] = "%s is protected – cannot be moved in combat."

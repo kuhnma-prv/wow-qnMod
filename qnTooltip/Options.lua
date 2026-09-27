@@ -1,5 +1,5 @@
 -- qnTooltip: Optionen im Blizzard-Einstellungsfenster (Settings-API).
--- Hauptseite: Aussehen und Schriften; Unterseiten: Position, Lebensbalken, Spieler, NSC,
+-- Hauptseite: allgemeine Schalter; Unterseiten: Darstellung, Position, Lebensbalken, Spieler, NSC,
 -- Gegenstände & Zauber sowie die Zeilen-Bausteine (ElementsPage.lua).
 -- Die Einstellungen gehören zum aktiven Profil (qnCore); die Werte von Spielern und NSC liegen in
 -- ns.db.player bzw. ns.db.npc.
@@ -33,7 +33,19 @@ local function FontOptions(B, cat, prefix, title)
 end
 
 local function MainPage(B, cat, layout)
-	S.Header(layout, L["Aussehen"])
+	S.Header(layout, GENERAL)
+	B:Checkbox(cat, "moreTooltips", L["Auch Link-, Vergleichs- und Freundes-Tooltips gestalten"],
+		L["Beim Abschalten behalten diese Tooltips ihr Aussehen bis zum nächsten /reload."])
+	B:Checkbox(cat, "hideUnitFrameHint", L["Hinweis zum Rechtsklick an Einheitenrahmen entfernen"])
+	B:Checkbox(cat, "chatHover", L["Tooltip beim Überfahren von Chat-Links"])
+	B:Checkbox(cat, "modifierShowsAll", L["Mit Alt oder Strg alle Bausteine zeigen"],
+		L["Solange Alt oder Strg gedrückt ist, zeigen Einheiten-Tooltips auch abgeschaltete und gefilterte Bausteine."])
+end
+
+local function AppearancePage(B, category)
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, APPEARANCE_LABEL)
+	-- eigene Kopfzeile statt APPEARANCE_LABEL: das hieße wie die Seite (wie in qnNumKeyPad)
+	S.Header(layout, DISPLAY)
 	B:Slider(cat, "scale", L["Skalierung"], 0.5, 2, 0.05, S.DecimalFormatter)
 	B:Dropdown(cat, "bgFile", BACKGROUND, ns.Style.BackgroundEntries)
 	B:Color(cat, "bgColor", L["Hintergrundfarbe"], nil, nil, L["Deckkraft des Hintergrunds"])
@@ -49,14 +61,6 @@ local function MainPage(B, cat, layout)
 	S.Header(layout, L["Schriften"])
 	FontOptions(B, cat, "header", L["Kopfzeile"])
 	FontOptions(B, cat, "body", L["Textzeilen"])
-
-	S.Header(layout, L["Weiteres"])
-	B:Checkbox(cat, "moreTooltips", L["Auch Link-, Vergleichs- und Freundes-Tooltips gestalten"],
-		L["Beim Abschalten behalten diese Tooltips ihr Aussehen bis zum nächsten /reload."])
-	B:Checkbox(cat, "hideUnitFrameHint", L["Hinweis zum Rechtsklick an Einheitenrahmen entfernen"])
-	B:Checkbox(cat, "chatHover", L["Tooltip beim Überfahren von Chat-Links"])
-	B:Checkbox(cat, "modifierShowsAll", L["Mit Alt oder Strg alle Bausteine zeigen"],
-		L["Solange Alt oder Strg gedrückt ist, zeigen Einheiten-Tooltips auch abgeschaltete und gefilterte Bausteine."])
 end
 
 local function PositionPage(B, BP, BN, category)
@@ -64,9 +68,9 @@ local function PositionPage(B, BP, BN, category)
 	S.Header(layout, L["Position"])
 	B:Dropdown(cat, "anchorMode", L["Position"], ns.Anchor.ModeEntries(false),
 		L["Nur wenn hier nicht 'Blizzard-Standard' gewählt ist, setzt qnTooltip den Tooltip an eine andere Stelle."])
-	B:Dropdown(cat, "anchorPoint", L["Fester Punkt: Ecke"], ns.Anchor.PointEntries)
-	B:Slider(cat, "anchorX", L["Fester Punkt: Abstand X"], -1000, 1000, 1)
-	B:Slider(cat, "anchorY", L["Fester Punkt: Abstand Y"], -1000, 1000, 1)
+	B:Dropdown(cat, "anchorPoint", L["Fester Punkt: Anker"], qnCore.PointEntries())
+	B:Slider(cat, "anchorX", L["Fester Punkt: X-Versatz"], -1000, 1000, 1)
+	B:Slider(cat, "anchorY", L["Fester Punkt: Y-Versatz"], -1000, 1000, 1)
 	BP:Dropdown(cat, "anchorMode", L["Position für Spieler"], ns.Anchor.ModeEntries(true))
 	BN:Dropdown(cat, "anchorMode", L["Position für NSC"], ns.Anchor.ModeEntries(true))
 	B:Checkbox(cat, "returnInCombat", L["Im Kampf an Blizzards Stelle"])
@@ -145,6 +149,7 @@ end
 local function Build(category, layout)
 	local B, BP, BN = Builders()
 	MainPage(B, category, layout)
+	AppearancePage(B, category)
 	PositionPage(B, BP, BN, category)
 	BarPage(B, category)
 	UnitPage(BP, category, "player", PLAYER)

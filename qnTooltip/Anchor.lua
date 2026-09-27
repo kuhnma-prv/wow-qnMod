@@ -93,20 +93,6 @@ local function OnDefaultAnchor(tip, parent)
 	tip.qnDefaultAnchor = true
 end
 
-function Anchor.PointEntries()
-	return {
-		{ "TOPLEFT", L["Oben links"] },
-		{ "TOP", L["Oben Mitte"] },
-		{ "TOPRIGHT", L["Oben rechts"] },
-		{ "LEFT", L["Links Mitte"] },
-		{ "CENTER", L["Mitte"] },
-		{ "RIGHT", L["Rechts Mitte"] },
-		{ "BOTTOMLEFT", L["Unten links"] },
-		{ "BOTTOM", L["Unten Mitte"] },
-		{ "BOTTOMRIGHT", L["Unten rechts"] },
-	}
-end
-
 function Anchor.Init()
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", OnDefaultAnchor)
 	hooksecurefunc(GameTooltip, "SetOwner", function(tip)

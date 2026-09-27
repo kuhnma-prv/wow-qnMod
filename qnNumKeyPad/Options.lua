@@ -38,13 +38,6 @@ local PAGES = {
 	{ 15, L["Seite 15 – Aktionsleiste 8"] },
 }
 
--- Richtungen/Seiten: Blizzard-Texte aus dem Bearbeitungsmodus (deDE: Oben, Unten, Links, Rechts)
-local ANCHORS = {
-	{ "TOPLEFT", L["Oben links"] }, { "TOP", HUD_EDIT_MODE_SETTING_ENCOUNTER_EVENTS_ICON_DIRECTION_TOP }, { "TOPRIGHT", L["Oben rechts"] },
-	{ "LEFT", HUD_EDIT_MODE_SETTING_AURA_FRAME_ICON_DIRECTION_LEFT }, { "CENTER", L["Mitte"] }, { "RIGHT", HUD_EDIT_MODE_SETTING_AURA_FRAME_ICON_DIRECTION_RIGHT },
-	{ "BOTTOMLEFT", L["Unten links"] }, { "BOTTOM", HUD_EDIT_MODE_SETTING_ENCOUNTER_EVENTS_ICON_DIRECTION_BOTTOM }, { "BOTTOMRIGHT", L["Unten rechts"] },
-}
-
 local function LayoutEntries()
 	local list = {}
 	for _, layout in ipairs(ns.LAYOUTS) do
@@ -61,7 +54,7 @@ local function Build(category, layout)
 	-- Allgemein -----------------------------------------------------------
 	local cat = category
 	S.Header(layout, GENERAL)
-	B:Checkbox(cat, "enabled", L["Ziffernblock aktiviert"],
+	B:Checkbox(cat, "enabled", L["Ziffernblock aktiv"],
 		L["Aus: Leiste ausgeblendet und alle Tastenbelegungen des Ziffernblocks aufgehoben."])
 	B:Checkbox(cat, "locked", L["Position sperren"],
 		L["Verhindert versehentliches Verschieben. Entsperrt zeigt die Leiste eine grüne Fläche zum Ziehen; Rechtsklick darauf öffnet diese Optionen."])
@@ -83,8 +76,8 @@ local function Build(category, layout)
 	B:Checkbox(cat, "stance", L["Haltungswechsel"],
 		L["Tasten 1–12 folgen der Haltungs-/Gestaltleiste, so wie die Hauptleiste (z. B. Kampfhaltung, Katzengestalt, Verstohlenheit). Ohne Haltung gelten die eigenen Plätze."])
 
-	-- Aussehen ------------------------------------------------------------
-	local look, lookLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Aussehen"])
+	-- Darstellung ---------------------------------------------------------
+	local look, lookLayout = Settings.RegisterVerticalLayoutSubcategory(category, APPEARANCE_LABEL)
 	S.Header(lookLayout, L["Größe und Abstände"])
 	B:Slider(look, "scale", L["Skalierung"], 0.3, 2, 0.05, S.DecimalFormatter)
 	B:Slider(look, "padH", L["Abstand waagerecht"], 0, 30, 1)
@@ -95,14 +88,14 @@ local function Build(category, layout)
 	-- eigene Kopfzeile statt APPEARANCE_LABEL: das hieße auf Englisch wie die Seite ("Appearance")
 	S.Header(lookLayout, DISPLAY)
 	B:Slider(look, "alpha", L["Deckkraft"], 0, 1, 0.05, S.FractionFormatter)
-	B:Slider(look, "bgAlpha", L["Hintergrund-Deckkraft"], 0, 1, 0.05, S.FractionFormatter)
+	B:Slider(look, "bgAlpha", L["Deckkraft des Hintergrunds"], 0, 1, 0.05, S.FractionFormatter)
 	B:Checkbox(look, "showGrid", L["Leere Tasten anzeigen"])
 	B:Dropdown(look, "labels", L["Tastenbeschriftung"], {
 		{ 1, L["Kurz (1, 2, +, …)"] },
 		{ 2, L["Tastenname (Num 1, …)"] },
 		{ 3, NONE_KEY },
 	})
-	B:Slider(look, "fontSize", L["Schriftgröße Beschriftung"], 0, 24, 1, S.FontSizeFormatter)
+	B:Slider(look, "fontSize", L["Schriftgröße der Beschriftung"], 0, 24, 1, S.FontSizeFormatter)
 	B:Checkbox(look, "hideMacro", L["Makrotext ausblenden"])
 	B:Checkbox(look, "hideBorder", L["Rahmen für ausgerüstete Gegenstände ausblenden"])
 	B:Checkbox(look, "zoom", L["Symbole zoomen"], L["Schneidet den Rand der Symbole ab."])
@@ -114,6 +107,23 @@ local function Build(category, layout)
 	})
 	B:Checkbox(look, "clickThrough", L["Mausklicks durchlassen"],
 		L["Tasten reagieren nicht auf die Maus; nur die Tastatur löst sie aus."])
+
+	-- Position ------------------------------------------------------------
+	local pos, posLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Position"])
+	S.Header(posLayout, L["Position"])
+	-- dieselbe Einstellung wie unter "Allgemein", nur ein zweites Steuerelement
+	Settings.CreateCheckbox(pos, B.settings.locked)
+	B:Dropdown(pos, "point", L["Anker"], qnCore.PointEntries(), L["Bezugspunkt am Bildschirm und an der Leiste. Beim Wechsel bleibt die Leiste an ihrem Platz."],
+		nil, ns.KeepPosition)
+	B:Slider(pos, "x", L["X-Versatz"], -3000, 3000, 1)
+	B:Slider(pos, "y", L["Y-Versatz"], -3000, 3000, 1)
+	S.Button(posLayout, L["Waagerecht zentrieren"], L["Zentrieren"], function() ns.CenterBar(true) end)
+	S.Button(posLayout, L["Senkrecht zentrieren"], L["Zentrieren"], function() ns.CenterBar(false) end)
+	S.Button(posLayout, L["Position zurücksetzen"], RESET, ns.ResetPosition)
+	B:Checkbox(pos, "autoVisible", L["Automatisch im sichtbaren Bereich halten"],
+		L["Holt die Leiste nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."])
+	S.Button(posLayout, L["Leiste suchen"], L["In sichtbaren Bereich holen"], ns.MoveIntoVisible,
+		L["Verschiebt die Leiste jetzt auf den nächsten sichtbaren Monitor (/qnnkp visible)."])
 
 	-- Sichtbarkeit --------------------------------------------------------
 	local vis, visLayout = Settings.RegisterVerticalLayoutSubcategory(category, HUD_EDIT_MODE_SETTING_AURA_FRAME_VISIBLE_SETTING)
@@ -143,23 +153,6 @@ local function Build(category, layout)
 	S.Button(visLayout, L["Eigene Bedingung"], L["Bearbeiten …"], function()
 		StaticPopup_Show("QNNUMKEYPAD_CUSTOM")
 	end, L["Makrobedingung mit show/hide, z. B. '[combat] show; [mod:alt] show; hide'."])
-
-	-- Position ------------------------------------------------------------
-	local pos, posLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Position"])
-	S.Header(posLayout, L["Position"])
-	-- dieselbe Einstellung wie unter "Allgemein", nur ein zweites Steuerelement
-	Settings.CreateCheckbox(pos, B.settings.locked)
-	B:Dropdown(pos, "point", L["Anker"], ANCHORS, L["Bezugspunkt am Bildschirm und an der Leiste. Beim Wechsel bleibt die Leiste an ihrem Platz."],
-		nil, ns.KeepPosition)
-	B:Slider(pos, "x", L["X-Versatz"], -3000, 3000, 1)
-	B:Slider(pos, "y", L["Y-Versatz"], -3000, 3000, 1)
-	S.Button(posLayout, L["Waagerecht zentrieren"], L["Zentrieren"], function() ns.CenterBar(true) end)
-	S.Button(posLayout, L["Senkrecht zentrieren"], L["Zentrieren"], function() ns.CenterBar(false) end)
-	S.Button(posLayout, L["Position zurücksetzen"], RESET, ns.ResetPosition)
-	B:Checkbox(pos, "autoVisible", L["Automatisch im sichtbaren Bereich halten"],
-		L["Holt die Leiste nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."])
-	S.Button(posLayout, L["Leiste suchen"], L["In sichtbaren Bereich holen"], ns.MoveIntoVisible,
-		L["Verschiebt die Leiste jetzt auf den nächsten sichtbaren Monitor (/qnnkp visible)."])
 
 	-- Aktionsplätze -------------------------------------------------------
 	local slots, slotsLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Aktionsplätze"])

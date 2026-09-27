@@ -26,7 +26,7 @@ local function Build(cat, layout)
 	B:Dropdown(cat, "showMode", HUD_EDIT_MODE_SETTING_DAMAGE_METER_VISIBILITY, {
 		{ 1, ALWAYS },
 		{ 2, L["Nur im Kampf"] },
-		{ 3, L["Nur in Gruppe/Raid"] },
+		{ 3, L["Nur in Gruppe oder Schlachtzug"] },
 	})
 	B:Checkbox(cat, "showTitle", L["Titelleiste anzeigen"])
 	B:Slider(cat, "scale", L["Skalierung"], 0.5, 2, 0.05, S.DecimalFormatter)
@@ -53,7 +53,7 @@ local function Build(cat, layout)
 	S.Depends(B:Slider(cat, "fontSize", FONT_SIZE, 0, 24, 1, S.FontSizeFormatter, L["0 = Standardgröße der Schadensanzeige."]), link, NotLinked)
 	S.Depends(B:Checkbox(cat, "showIcons", L["Klassensymbole anzeigen"]), link, NotLinked)
 	S.Depends(B:Checkbox(cat, "classColors", CLASS_COLORS), link, NotLinked)
-	S.Depends(B:Slider(cat, "bgAlpha", L["Hintergrund-Deckkraft"], 0, 1, 0.05, S.FractionFormatter), link, NotLinked)
+	S.Depends(B:Slider(cat, "bgAlpha", L["Deckkraft des Hintergrunds"], 0, 1, 0.05, S.FractionFormatter), link, NotLinked)
 	B:Dropdown(cat, "texture", L["Balkentextur"], TextureEntries)
 	B:Checkbox(cat, "showRank", L["Rang vor dem Namen"])
 	B:Checkbox(cat, "useMyColor", L["Eigenen Balken rot färben"])

@@ -255,6 +255,23 @@ function lib.NearestCorner(frame, point)
 	return (py > cy and "TOP" or "BOTTOM") .. (px > cx and "RIGHT" or "LEFT")
 end
 
+-- Ankerpunkte zur Auswahl (Dropdown): { { "TOPLEFT", "Oben links" }, … }, alle neun oder nur die
+-- vier Ecken. Texte aus der Locale von qnCore (erst zur Laufzeit gelesen).
+function lib.PointEntries(cornersOnly)
+	local L = ns.L
+	if cornersOnly then
+		return {
+			{ "TOPLEFT", L["Oben links"] }, { "TOPRIGHT", L["Oben rechts"] },
+			{ "BOTTOMLEFT", L["Unten links"] }, { "BOTTOMRIGHT", L["Unten rechts"] },
+		}
+	end
+	return {
+		{ "TOPLEFT", L["Oben links"] }, { "TOP", L["Oben Mitte"] }, { "TOPRIGHT", L["Oben rechts"] },
+		{ "LEFT", L["Links Mitte"] }, { "CENTER", L["Mitte"] }, { "RIGHT", L["Rechts Mitte"] },
+		{ "BOTTOMLEFT", L["Unten links"] }, { "BOTTOM", L["Unten Mitte"] }, { "BOTTOMRIGHT", L["Unten rechts"] },
+	}
+end
+
 ---------------------------------------------------------------------------
 -- Kampf und Zeitsteuerung
 ---------------------------------------------------------------------------

@@ -56,14 +56,9 @@ end
 ---------------------------------------------------------------------------
 
 -- { Ecke, Text } – zugleich die Einträge des Auswahlknopfs
-local CORNERS = {
-	{ "BOTTOMRIGHT", L["unten rechts"] },
-	{ "BOTTOMLEFT", L["unten links"] },
-	{ "TOPRIGHT", L["oben rechts"] },
-	{ "TOPLEFT", L["oben links"] },
-}
+local CORNERS = qnCore.PointEntries(true)
 
--- Gewählte Ecke; unbekannter Wert: die erste
+-- Gewählte Ecke; unbekannter Wert: unten rechts
 local function Corner(prefix)
 	local p = DB()[prefix .. "Point"]
 	for _, c in ipairs(CORNERS) do
@@ -71,7 +66,7 @@ local function Corner(prefix)
 			return p
 		end
 	end
-	return CORNERS[1][1]
+	return "BOTTOMRIGHT"
 end
 
 -- Liegt die Ecke rechts bzw. oben?
@@ -586,7 +581,7 @@ end
 ---------------------------------------------------------------------------
 
 local function BuildPage()
-	local desc = ns.Header(page, "qnViewPort – " .. L["Zwei-Monitor-Modus"],
+	local desc = ns.Header(page, "qnViewPort – " .. L["Zweiter Monitor"],
 		L["Das Spielfenster muss über mehrere Monitore gezogen sein (Fenstermodus, z. B. 5760 × 2160). Dann liegt die 3D-Welt auf dem Hauptmonitor. Oberflächenelemente verschiebst du im Bearbeitungsmodus von Blizzard; Elemente außerhalb der Monitore findest du auf der Seite „Monitore“, Taschen und Zonenkarte auf der Seite „Platzierung“."])
 
 	local enable = Check(L["Zwei-Monitor-Modus aktiv (3D-Welt nur auf dem Hauptmonitor)"], nil, nil, nil,
@@ -911,9 +906,9 @@ end
 ---------------------------------------------------------------------------
 
 function ns.InitSecondScreen()
+	NewPage(L["Monitore"], BuildMonitorPage)
 	sub = NewPage(L["Zweiter Monitor"], BuildPage)
 	NewPage(L["Platzierung"], BuildPlacementPage)
-	NewPage(L["Monitore"], BuildMonitorPage)
 
 	-- Taschen: Blizzard setzt die Anker in UpdateContainerFrameAnchors – beim Öffnen und Schließen
 	-- jeder Tasche und der kombinierten Tasche (ContainerFrame.lua). Unser Hook läuft danach,
