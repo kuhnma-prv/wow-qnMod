@@ -61,14 +61,15 @@ Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCor
   1. **Blizzard-GlobalString**, wenn es einen gibt, dessen **deutscher Text genau dem bisherigen deutschen
      Text entspricht** und dessen Bedeutung passt: dann direkt die Blizzard-Variable im Code
      (`BANK`, `DELETE`, `CANCEL`, `DEFAULT`, `GENERAL` …), kein eigener Schlüssel. Nachschlagen:
-     `node qnTools\test\gs.mjs "Text"` (Forever-GlobalStrings deDE/enUS in `qnTools\test\GlobalStrings`).
+     `node qn_DevEnv\test\gs.mjs "Text"` (Forever-GlobalStrings deDE/enUS in
+     `qn_DevEnv\test\GlobalStrings`).
   2. Sonst eigene englische Übersetzung (Blizzard-Begriffe verwenden: Edit Mode, Action Bar, Bags …).
 - Keine Texte zusammenstückeln: ganze Sätze als ein Schlüssel, Werte über `%s`/`%d`
   (`L["%s: beim Öffnen"]:format(name)`). Mehrzeilige Hilfetexte als ein Schlüssel.
 - Nicht übersetzt werden: Slash-Befehle, Addon-Namen, Einstellungs-Schlüssel, Ereignisnamen, reine
   Entwicklerhinweise (mit `-- nicht übersetzen` am Zeilenende kennzeichnen).
 - TOC: `## Notes:` Englisch, `## Notes-deDE:` Deutsch.
-- Prüfen: `node qnTools\test\check-locale.mjs [Addon]` (fehlende/unbenutzte Übersetzungen, vergessene
+- Prüfen: `node qn_DevEnv\test\check-locale.mjs [Addon]` (fehlende/unbenutzte Übersetzungen, vergessene
   deutsche Texte, TOC) und `Invoke-QnTests.ps1` (läuft auf deDE **und** enUS; auf enUS scheitert ein
   Szenario, wenn ein Text ohne Übersetzung angezeigt wurde). Tests nie auf deutsche Anzeigetexte
   festlegen, sondern `ns.L[...]`/`qnCore.GERMAN` verwenden.
@@ -94,11 +95,14 @@ Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCor
 - Blizzard-Quelltext: `git clone --depth 1 --branch forever https://github.com/Gethe/wow-ui-source`
   (Zweig `classic_beta` ist veraltet). Statische Prüfung liefert nur Kandidaten: GlobalStrings,
   C-Funktionen und Widget-Methoden stehen nicht im Quellbaum.
-- Testumgebung: `D:\Games\Battle.net\World of Warcraft\qnTools\test` – fengari (Lua-VM in Node, lokal
-  in `node_modules`) mit WoW-Attrappe `stub.lua` und Szenarien `test*.lua`.
-  Alle ausführen: `pwsh qnTools\test\Invoke-QnTests.ps1` (`-Filter test9`, `-Locale enUS`, `-Detail`);
-  einzeln: `node run.mjs testN.lua` (AddOns-Ordner = `_classic_beta_` als Vorgabe, Sprache über
-  `$env:QN_LOCALE`). Die Attrappe lädt die echten Forever-GlobalStrings der Sprache; Testvariablen
+- Entwicklungsumgebung: `qn_DevEnv` (im AddOns-Ordner, im Repo; ohne TOC, WoW lädt ihn nicht).
+  `qn_DevEnv\test` – fengari (Lua-VM in Node, lokal in `node_modules`, nicht im Repo; wird von
+  `Invoke-QnTests.ps1` bei Bedarf per `npm install` geholt) mit WoW-Attrappe `stub.lua` und Szenarien `test*.lua`.
+  Alle ausführen: `pwsh qn_DevEnv\test\Invoke-QnTests.ps1` (`-Filter test9`, `-Locale enUS`, `-Detail`);
+  einzeln: `node run.mjs testN.lua` (AddOns-Ordner = Elternordner von `qn_DevEnv`, Sprache über
+  `$env:QN_LOCALE`). Die Attrappe lädt die echten Forever-GlobalStrings der Sprache (nicht im Repo;
+  `run.mjs`/`gs.mjs` laden fehlende über `globalstrings.mjs`, aktualisieren mit
+  `node qn_DevEnv\test\globalstrings.mjs --update`); Testvariablen
   deshalb nie wie GlobalStrings benennen (`COMBAT` war einer → heißt jetzt `QN_COMBAT`).
   Nach jeder Änderung alle Szenarien laufen lassen; neue Funktionen bekommen ein eigenes Szenario.
   XML wird nicht geladen. Testfehler zuerst gegen Blizzards Quelltext prüfen – meist sind es Lücken der
@@ -107,6 +111,8 @@ Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCor
   gemeinsam `qnMonitors.ps1`) schreiben `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`);
   die Monitorauswahl liegt in `monitors.json` im WoW-Hauptordner (für alle Clients gemeinsam,
   außerhalb des Repos). WoW lädt nur Dateien aus der TOC.
+- Hilfen in `qn_DevEnv`: `Get-WowWindow.ps1` (Lage/Rahmen des WoW-Fensters, nur lesen),
+  `Get-Screen.ps1` (Bildschirmfoto aller Monitore nach `screen.png`, nicht im Repo).
 - Gemeinsames Icon: `qnCore\Media\qnIcon.tga` (64×64 TGA).
 
 ## Arbeitsweise
