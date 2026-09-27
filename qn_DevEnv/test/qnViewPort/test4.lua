@@ -33,8 +33,11 @@ for name, d in pairs(DEF) do
 		bott = { pt = d[4], rel_fr = "UIParent", rel_pt = d[5] },
 	}
 	vars[P .. name] = { off_x = 0, off_y = d[6], show = false, auto_hide = false }
-	CreateFrame("Button", P .. name, UIParent)
-	CreateFrame("Button", "Titan_Bar__Hider_" .. name, UIParent)._w = 1920
+end
+-- Titan legt Leiste und Auto-Hide-Leiste erst beim Betreten der Welt an (SetupTitan)
+function TitanPanelButton_CreateBar(frame_str)
+	CreateFrame("Button", frame_str, UIParent)
+	CreateFrame("Button", TitanBarData[frame_str].hider, UIParent)._w = 1920
 end
 function TitanPanelBarButton_Show(frame)
 	local data, v = TitanBarData[frame], TitanBarDataVars[frame]
@@ -82,6 +85,29 @@ function TitanPanelButton_UpdateTooltip(self) end
 function TitanPanelPluginHandle_OnUpdate(t, oldarg) end
 function TitanPanelButton_OnClick(self, button) end
 
+-- Skalierung (Titan.lua, TitanTemplate.lua): Titan setzt SetScale auf Leisten und Text-Plugins
+local TITAN_VARS = { Scale = 1, TooltipFont = 1 }
+function TitanPanelGetVar(k) return TITAN_VARS[k] end
+local pluginBar = {}   -- [id] = Kurzname der Leiste
+function TitanUtils_GetButton(id) return _G["TitanPanel" .. id .. "Button"], id end
+function TitanUtils_GetButtonID(name) return name and name:match("^TitanPanel(.*)Button$") end
+function TitanUtils_GetWhichBar(id) return pluginBar[id] end
+function TitanPanelButton_UpdateButton(id)
+	local b = TitanUtils_GetButton(id)
+	if b and b.textPlugin then
+		b:SetScale(TitanPanelGetVar("Scale"))
+	end
+end
+function TitanPanel_InitPanelButtons(reason)
+	for frame in pairs(TitanBarData) do
+		_G[frame]:SetScale(TitanPanelGetVar("Scale"))
+	end
+	TitanPanelBarButton_DisplayBarsWanted(reason)
+	for id in pairs(pluginBar) do
+		TitanPanelButton_UpdateButton(id)
+	end
+end
+
 ---------------------------------------------------------------------------
 -- Laden; Monitore wie qnViewPort (5760 × 2160, 2. Monitor 1920 × 1200 bei y 377)
 ---------------------------------------------------------------------------
@@ -106,6 +132,15 @@ for name in pairs(DEF) do
 	Check(TitanBarData[P .. name].show.rel_fr == _G["qnViewPortTitanAnchor" .. name]
 		and TitanBarData[P .. name].bott.rel_fr == _G["qnViewPortTitanAnchor" .. name], "Bezugsrahmen ersetzt: " .. name)
 end
+-- wie SetupTitan beim Betreten der Welt, also nach qnViewPort
+for frame in pairs(TitanBarData) do
+	TitanPanelButton_CreateBar(frame)
+end
+local wrapped = true
+for frame in pairs(TitanBarData) do
+	wrapped = wrapped and _G[frame].qnViewPortSetScale ~= nil
+end
+Check(wrapped, "erst nach qnViewPort angelegte Leisten bekommen den Faktor des Monitors")
 local function Set(bar, v)
 	vp.db.titan[bar] = v
 	tt.Apply()
@@ -295,5 +330,45 @@ ctrl:SetPoint("TOPLEFT", btn, "BOTTOM", 0, 0)
 TitanPanelButton_OnClick(btn, "LeftButton")
 p, rel, rp = Last(ctrl)
 Check(#ctrl._points == 1 and p == "TOPLEFT" and rp == "BOTTOM", ("Steuerfenster mit Platz: Titans Anker bleibt: %s %s"):format(p, tostring(rp)))
+
+---------------------------------------------------------------------------
+-- Skalierung je Monitor (zusätzlich zu Titans Skalierung)
+---------------------------------------------------------------------------
+local function Near(a, b) return math.abs((a or 0) - b) < 1e-6 end
+btn.textPlugin = true
+pluginBar.Clock = "Bar"
+local bag = CreateFrame("Button", "TitanPanelBagButton", UIParent)   -- nur Symbol: Titan skaliert es nicht
+pluginBar.Bag = "Bar"
+local xp = CreateFrame("Button", "TitanPanelXPButton", UIParent)
+xp.textPlugin = true
+pluginBar.XP = "Short01"
+vp.db.titan.Bar, vp.db.titan.AuxBar = 2, 1
+tt.Apply()
+Check(Near(_G[P .. "Bar"]._scale, 1) and Near(btn._scale, 1) and bag._scale == nil,
+	"ohne Faktor: Titans Skalierung unverändert, Symbol-Plugin nicht angefasst")
+vp.db.titan.scale = { [2] = 0.65 }
+tt.Apply()
+Check(Near(_G[P .. "Bar"]._scale, 0.65) and Near(_G[P .. "AuxBar"]._scale, 1),
+	("Leiste auf Monitor 2 mit 65 %%, auf Monitor 1 unverändert: %s / %s"):format(_G[P .. "Bar"]._scale, _G[P .. "AuxBar"]._scale))
+Check(Near(btn._scale, 0.65) and Near(bag._scale, 0.65) and Near(xp._scale, 1),
+	"Plugins der Leiste mit Faktor (auch reine Symbole), Plugin auf kurzer Leiste nicht")
+TITAN_VARS.Scale = 1.2
+tt.Apply()
+Check(Near(_G[P .. "Bar"]._scale, 0.78) and Near(btn._scale, 0.78) and Near(_G[P .. "AuxBar"]._scale, 1.2),
+	"Faktor wirkt zusätzlich zu Titans Skalierung")
+-- Titans Tooltip am Plugin auf Monitor 2
+Place(btn, 4000, M2.t - 24, 30, 24)
+Place(TitanPanelTooltip, 0, 0, 200, 100)
+Anchored(TitanPanelTooltip, "TOPLEFT")
+TitanPanelButton_OnEnter(btn)
+Check(Near(TitanPanelTooltip._scale, 0.65), ("Titans Tooltip mit Faktor des Monitors: %s"):format(tostring(TitanPanelTooltip._scale)))
+-- Faktor zurück auf 100 %
+vp.db.titan.scale = {}
+tt.Apply()
+Check(Near(_G[P .. "Bar"]._scale, 1.2) and Near(btn._scale, 1.2) and Near(bag._scale, 1.2),
+	"Faktor entfernt: wieder Titans Skalierung")
+tt.RefreshOptions()
+Check(true, "Optionsseite mit Reglern je Monitor aufgefrischt")
+TITAN_VARS.Scale = 1
 
 print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")

@@ -136,6 +136,8 @@ L["Blizzard-Oberfläche auf dem Hauptmonitor (bis zum Zurücksetzen oder /reload
 
 -- Titan.lua
 L["Wie Titan (ganze Oberfläche)"] = "As Titan (entire UI)"
+L["Skalierung je Monitor"] = "Scale per monitor"
+L["Größe der Leisten, Plugins und Tooltips von Titan auf diesem Monitor, zusätzlich zu Titans eigener Skalierung. Für Monitore mit unterschiedlicher Pixeldichte, z. B. etwa 65 % für einen Monitor mit 100 % Windows-Skalierung neben einem Hauptmonitor mit 150 %."] = "Size of Titan's bars, plugins and tooltips on this monitor, in addition to Titan's own scale. For monitors with different pixel density, e.g. about 65 % for a monitor at 100 % Windows scaling next to a main monitor at 150 %."
 L["Monitor %d (nicht vorhanden)"] = "Monitor %d (not present)"
 L["Legt die durchgehenden Titan-Leisten an die obere bzw. untere Kante eines Monitors. Ein- und ausgeschaltet werden sie weiter in Titan. Tooltips der Titan-Plugins bleiben auf dem Monitor des Plugins."] = "Places the full-width Titan bars on the top or bottom edge of a monitor. They are still turned on and off in Titan. Tooltips of Titan plugins stay on the plugin's monitor."
 L["Legt die Leisten erneut an ihre Monitore, z. B. nach einer Änderung der Monitoranordnung."] = "Places the bars on their monitors again, e.g. after the monitor arrangement has changed."

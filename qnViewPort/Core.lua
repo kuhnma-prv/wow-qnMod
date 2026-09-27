@@ -45,6 +45,7 @@ ns.defaults = {
 		Bar2 = 0,
 		AuxBar = 0,
 		AuxBar2 = 0,
+		scale = {},   -- [Monitornummer] = Faktor (1 = 100 %)
 	},
 }
 

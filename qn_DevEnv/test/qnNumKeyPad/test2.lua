@@ -106,7 +106,9 @@ for _, p in ipairs(placed) do
 end
 local last = placed[#placed]
 Check(not jumped, "nach dem Kampf nicht mit neuem Anker und alten Versätzen gesetzt")
-Check(nkp.db.x == -1629 and nkp.db.y == 200 and last and last[1] == "BOTTOMRIGHT" and last[2] == -1629 and last[3] == 200,
+-- SetPoint in Einheiten der Leiste (Skalierung 1.1): Versätze durch die Skalierung geteilt
+Check(nkp.db.x == -1629 and nkp.db.y == 200 and last and last[1] == "BOTTOMRIGHT"
+	and math.abs(last[2] - -1629 / 1.1) < 1e-6 and math.abs(last[3] - 200 / 1.1) < 1e-6,
 	("nach dem Kampf umgerechnet und gesetzt (%s, %s)"):format(nkp.db.x, nkp.db.y))
 Set("scale", 1)
 nkp.ResetPosition()
