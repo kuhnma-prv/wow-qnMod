@@ -12,6 +12,10 @@ L["Bisher wurde kein Text ohne Übersetzung angezeigt."] = "No untranslated text
 L["/qncore – Optionen   |   /qncore profile – Profile   |   /qncore status – aktives Profil anzeigen   |   /qncore locale – fehlende Übersetzungen"] = "/qncore – options   |   /qncore profile – profiles   |   /qncore status – show active profile   |   /qncore locale – missing translations"
 L["Profil gewechselt: %s"] = "Profile changed: %s"
 
+-- Options.lua: Questzielverfolgung
+L["Wie im Bearbeitungsmodus"] = "As in Edit Mode"
+L["Schriftgröße der Questzielverfolgung unterhalb von Blizzards Minimum 12 (Überschriften 2 größer). „Wie im Bearbeitungsmodus“: es gilt Blizzards Regler. Gilt je Layout des Bearbeitungsmodus."] = "Objective Tracker text size below Blizzard's minimum of 12 (headers 2 larger). \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."
+
 -- Profiles.lua
 L["Bisherige Einstellungen in das Profil %s übernommen."] = "Previous settings moved into profile %s."
 L["noch nicht ermittelt"] = "not yet determined"

@@ -11,7 +11,7 @@ nicht anfassen, nicht als Vorlage oder Quelle verwenden, im Code nicht erwähnen
 
 | Addon | Zweck | SavedVariables |
 |---|---|---|
-| qnCore | Haupt-Addon + Bibliothek (global `qnCore`): Profile, Settings-Builder, Widgets, Taschen-Automatik, Minikarten-Verfolgung merken, Seite „Profile“ | qnCoreDB, qnCoreCharDB |
+| qnCore | Haupt-Addon + Bibliothek (global `qnCore`): Profile, Settings-Builder, Widgets, Taschen-Automatik, Minikarten-Verfolgung merken, Schrift der Questzielverfolgung unter 12 (je Profil, `QuestTracker.lua`), Seite „Profile“ | qnCoreDB (samt eigener `profiles`), qnCoreCharDB |
 | qnMeter | Bedrohungsanzeige | qnMeterDB |
 | qnNumKeyPad | Ziffernblock-Aktionsleiste | qnNumKeyPadProfiles (alt: qnNumKeyPadDB) |
 | qnViewPort | verkleinerter 3D-Bereich, Randfarbe/-muster, Zwei-Monitor-Betrieb; mit Titan (OptionalDeps) Titan-Leisten je Monitor und Tooltips am Monitorrand (`Titan.lua`) | qnViewPortDB |

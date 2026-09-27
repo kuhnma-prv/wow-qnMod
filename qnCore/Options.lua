@@ -1,6 +1,7 @@
 -- qnCore: Optionen im Blizzard-Einstellungsfenster (Settings-API).
--- Hauptseite "qnCore" (Profil, Minikarte) und Unterseite "Taschen-Automatik".
+-- Hauptseite "qnCore" (Profil, Minikarte, Questzielverfolgung) und Unterseite "Taschen-Automatik".
 -- Taschen und der Schalter der Verfolgung gelten immer kontoweit (qnCoreDB.global), nie je Profil oder Charakter.
+-- Die Schrift der Questzielverfolgung gilt je Profil (ns.store).
 -- Die Seite "Profile" baut ProfilesPage.lua.
 
 local _, ns = ...
@@ -22,6 +23,17 @@ local function Build(category, layout)
 	B:Checkbox(category, "tracking", L["Verfolgung merken"],
 		L["Merkt sich je Charakter, was im Verfolgungsmenü der Minikarte an- oder abgewählt ist (z. B. Kräutersuche, Mineraliensuche, Schatzsucher), und stellt es nach dem Einloggen, /reload, Zonenwechsel und der Wiederbelebung wieder her. Der Schalter gilt für alle Charaktere."],
 		function(_, value) ns.Tracking.OnOptionChanged(value) end)
+
+	-- Questzielverfolgung (je Profil) ----------------------------------------
+	local QB = S.New({ store = ns.store, prefix = "QNCORE_", apply = function() ns.QuestTracker.Apply() end })
+	local sizes = { { 0, L["Wie im Bearbeitungsmodus"] } }
+	for _, size in ipairs(ns.QuestTracker.SIZES) do
+		sizes[#sizes + 1] = { size, tostring(size) }
+	end
+	S.Header(layout, HUD_EDIT_MODE_OBJECTIVE_TRACKER_LABEL)
+	QB:Dropdown(category, "questTextSize", HUD_EDIT_MODE_SETTING_OBJECTIVE_TRACKER_TEXT_SIZE, sizes,
+		L["Schriftgröße der Questzielverfolgung unterhalb von Blizzards Minimum 12 (Überschriften 2 größer). „Wie im Bearbeitungsmodus“: es gilt Blizzards Regler. Gilt je Layout des Bearbeitungsmodus."],
+		Settings.VarType.Number)
 
 	-- Taschen-Automatik ---------------------------------------------------
 	local bags, bagsLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Taschen-Automatik"])

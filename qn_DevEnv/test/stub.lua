@@ -427,6 +427,34 @@ function ChatFontNormal:GetFont() return "Fonts\\ARIALN.TTF", 14, "" end
 GameFontNormal = NewFrame("Font", "GameFontNormal")
 function GameFontNormal:GetFont() return "Fonts\\FRIZQT__.TTF", 12, "" end
 function CreateFont(name) local f = NewFrame("Font", name) f.GetFont = function() return "x", 12, "" end return f end
+
+-- Questzielverfolgung (Blizzard_ObjectiveTracker) --------------------------------
+-- Schriften mit Datei/Höhe; SetFontObject übernimmt wie im Client Datei und Höhe der Vorlage
+local function TrackerFont(name, height)
+	local f = NewFrame("Font", name)
+	f._path, f._height, f._flags = "Fonts\\FRIZQT__.TTF", height, ""
+	function f:GetFont() return self._path, self._height, self._flags end
+	function f:SetFont(path, h, flags) self._path, self._height, self._flags = path, h, flags end
+	function f:SetFontObject(src)
+		if type(src) == "string" then src = _G[src] end
+		self._font = src
+		self._path, self._height, self._flags = src:GetFont()
+	end
+	_G[name] = f
+	return f
+end
+for size = 12, 22 do TrackerFont("ObjectiveTrackerFont" .. size, size) end
+TrackerFont("ObjectiveTrackerLineFont", 12)
+TrackerFont("ObjectiveTrackerHeaderFont", 14)
+-- wie Blizzard_ObjectiveTrackerManager.lua (Grenzen 12–20, Überschrift 2 größer)
+ObjectiveTrackerManager = { updates = 0 }
+function ObjectiveTrackerManager:UpdateAll() self.updates = self.updates + 1 end
+function ObjectiveTrackerManager:SetTextSize(textSize)
+	if textSize < 12 or textSize > 20 then return end
+	ObjectiveTrackerLineFont:SetFontObject("ObjectiveTrackerFont" .. textSize)
+	ObjectiveTrackerHeaderFont:SetFontObject("ObjectiveTrackerFont" .. (textSize + 2))
+	self:UpdateAll()
+end
 GameFontNormalSmall = NewFrame("Font", "GameFontNormalSmall")
 ChatFontSmall = NewFrame("Font", "ChatFontSmall")
 NumberFontNormal = NewFrame("Font", "NumberFontNormal")

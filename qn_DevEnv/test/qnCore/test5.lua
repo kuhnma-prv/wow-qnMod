@@ -5,7 +5,7 @@ qnCoreDB = { version = 1, layouts = {}, global = {}, profiles = {
 	["preset:1"] = { chatTimestamps = "none", bags = { merchantOpen = "closed" } },
 } }
 local core = LoadAddon("qnCore")
-Check(qnCoreDB.profiles == nil and qnCoreDB.version == nil, "Profile aus qnCoreDB entfernt")
+Check(qnCoreDB.ownProfiles and next(qnCoreDB.profiles) == nil and qnCoreDB.version == nil, "alte Profile aus qnCoreDB entfernt, eigene Profile angelegt")
 Check(qnCoreDB.global.bags.merchantOpen == "backpack", "Taschen aus zuletzt aktivem Profil übernommen")
 Check(qnCoreDB.global.chatTimestamps == nil, "Zeitstempel nicht übernommen (Option entfernt)")
 Check(qnCoreDB.global.bags.auctionOpen == "all", "Vorgaben ergänzt")

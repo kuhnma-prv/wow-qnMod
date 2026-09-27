@@ -1,6 +1,7 @@
 -- qnCore: eigenes Addon – Vorgaben, Start, Slash-Befehle.
--- Die Optionen von qnCore (Taschen, Verfolgung) gelten immer kontoweit: sie liegen in
--- qnCoreDB.global und hängen weder an einem Profil noch an einem Charakter.
+-- Die Optionen von qnCore für Taschen und Verfolgung gelten immer kontoweit: sie liegen in
+-- qnCoreDB.global und hängen weder an einem Profil noch an einem Charakter. Die Schrift der
+-- Questzielverfolgung gilt je Profil (qnCoreDB.profiles).
 
 local ADDON, ns = ...
 local lib = qnCore
@@ -13,6 +14,11 @@ ns.defaults = {
 	tracking = true,               -- Verfolgung an der Minikarte merken (Tracking.lua)
 }
 
+-- Einstellungen je Profil (qnCoreDB.profiles, eigenes Profil von qnCore)
+ns.profileDefaults = {
+	questTextSize = 0,             -- Schrift der Questzielverfolgung, 0 = wie im Bearbeitungsmodus (QuestTracker.lua)
+}
+
 -- Veraltete Schlüssel in qnCoreDB.global
 local OBSOLETE = {
 	"chatTimestamps",   -- Zeitstempel-Option entfernt (gibt es im Spiel)
@@ -20,9 +26,10 @@ local OBSOLETE = {
 
 -- Frühere Fassung hatte die Taschen je Profil (qnCoreDB.profiles): einmalig in die
 -- kontoweiten Einstellungen übernehmen – aus dem zuletzt aktiven Profil dieses Charakters.
+-- Seit ownProfiles gesetzt ist, sind qnCoreDB.profiles die eigenen Profile von qnCore.
 local function MigrateProfiles(db)
 	local profiles = db.profiles
-	if type(profiles) ~= "table" then
+	if type(profiles) ~= "table" or db.ownProfiles then
 		return
 	end
 	local last = qnCoreCharDB and qnCoreCharDB.layout
@@ -85,11 +92,22 @@ ns.OnLoad(function()
 	lib.Profiles.Init()
 	MigrateProfiles(qnCoreDB)
 	lib.RemoveKeys(qnCoreDB.global, OBSOLETE)
+	if not qnCoreDB.ownProfiles then
+		qnCoreDB.profiles = {}   -- sonst hielte Profiles.Register die ganze Tabelle für das alte Format
+		qnCoreDB.ownProfiles = true
+	end
 
 	ns.global = lib.MergeDefaults(qnCoreDB.global, ns.defaults)
+	ns.store = lib.Profiles.Register({
+		ns = ns,
+		sv = "qnCoreDB",
+		defaults = ns.profileDefaults,
+		onSwitch = function() ns.QuestTracker.Apply() end,
+	})
 
 	ns.Bags.Init()
 	ns.Tracking.Init()
+	ns.QuestTracker.Init()
 	ns.InitOptions()
 	ns.InitProfilesPage()
 end)
