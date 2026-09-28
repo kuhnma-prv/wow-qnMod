@@ -21,7 +21,7 @@ layout (including character-specific ones) has its own profile.
 | **qnMeter** | Threat meter for your group against the current target (works with secret values) | `/qnmeter`, `/qnm` |
 | **qnNumKeyPad** | Action bar in the shape of a numpad | `/qnnumkeypad`, `/qnnkp`, `/numpad` |
 | **qnViewPort** | Shrinks the area in which the 3D world is rendered, border color/pattern, multi-monitor support; with Titan Panel: bars and tooltips per monitor | `/qnviewport`, `/qnvp`, `/viewport` |
-| **qnInventory** | Remembers bags, bank, mail and gold of all characters and shows item counts in the tooltip | `/qninventory`, `/qninv` |
+| **qnInventory** | Remembers bags, bank, mail and gold of all characters, shows item counts in the tooltip and shows bags, bank and mailbox of any character anywhere (windows like Blizzard's, with character selection) | `/qninventory`, `/qninv` |
 | **qnBuffMod** | Freely customizable buff and debuff windows | `/qnbuffmod`, `/qnbuff`, `/qnaura` |
 | **qnUnitFrames** | Click casting on Blizzard's party and raid frames (like HealBot), per profile and class | `/qnunitframes`, `/qnuf` |
 | **qnTooltip** | Customizable tooltips: look, optional position, unit lines built from elements, health bar, target, item level, IDs | `/qntooltip`, `/qntt` |

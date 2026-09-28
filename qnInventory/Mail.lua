@@ -9,13 +9,19 @@
 -- Versand).
 -- Nachnahme (C.O.D.): Anhänge gehören erst nach dem Bezahlen dem Empfänger und zählen nicht.
 -- Empfang: Solange der Briefkasten offen ist, wird sein Inhalt gespeichert.
+-- Für die Postansicht (ViewMail.lua) zusätzlich jeder Brief einzeln (char.mailList, siehe Core.lua).
 
 local _, ns = ...
 
 local IsSecret = ns.IsSecret
 
+local DAY = 24 * 60 * 60
+-- Briefe an eigene Charaktere liegen 30 Tage im Briefkasten
+local MAIL_DAYS = 30
+local LETTER_ICON = "Interface\\Icons\\INV_Letter_15"
+
 local mailOpen = false
-local pending   -- { realmDB, target = Name, items = { [itemID] = Anzahl }, money = Kupfer }
+local pending   -- { realmDB, target = Name, items = { [itemID] = Anzahl }, money = Kupfer, letter = Brief }
 
 -- Eigener Charakter zum eingegebenen Empfänger: Daten des Realms und gespeicherter Name, sonst nil.
 -- Akzeptiert "name", "Name" und "Name-Realm" (dieser oder ein verbundener Realm).
@@ -35,25 +41,34 @@ local function FindRecipient(recipient)
 end
 
 -- Nach dem Aufruf von SendMail sind die Anhänge noch vorhanden
-local function OnSendMail(recipient)
+local function OnSendMail(recipient, subject)
 	pending = nil
 	local realmDB, target = FindRecipient(recipient)
 	if not target or (realmDB == ns.realmDB and target == ns.player) then return end
 
-	local items = {}
 	-- Nachnahme (secret: vorsichtshalber als Nachnahme behandelt)
-	if ns.Plain(GetSendMailCOD(), 1) == 0 then
-		for i = 1, ATTACHMENTS_MAX_SEND do
-			local _, itemID, _, count = GetSendMailItem(i)
-			if not ns.AnySecret(itemID, count) and itemID then
+	local cod = ns.Plain(GetSendMailCOD(), 1)
+	local items, attachments, icon = {}, {}, nil
+	for i = 1, ATTACHMENTS_MAX_SEND do
+		local _, itemID, texture, count = GetSendMailItem(i)
+		if not ns.AnySecret(itemID, texture, count) and itemID then
+			if cod == 0 then
 				ns.AddCount(items, itemID, count)
 			end
+			-- GetSendMailItemLink steht nicht im Forever-Quelltext (C-Funktion, nicht prüfbar)
+			local link = GetSendMailItemLink and GetSendMailItemLink(i)
+			attachments[#attachments + 1] = { link or ("item:" .. itemID), count or 1 }
+			icon = icon or texture
 		end
 	end
 	local money = GetSendMailMoney()
 	if IsSecret(money) then money = 0 end
 
-	pending = { realmDB = realmDB, target = target, items = items, money = money }
+	local letter = {
+		sender = ns.player, subject = subject, money = money, cod = cod,
+		expires = time() + MAIL_DAYS * DAY, icon = icon or LETTER_ICON, items = attachments,
+	}
+	pending = { realmDB = realmDB, target = target, items = items, money = money, letter = letter }
 end
 
 local function DropPending()
@@ -75,6 +90,10 @@ local function CommitSend()
 		ns.AddCount(char.mail, itemID, count)
 	end
 	char.mailMoney = (char.mailMoney or 0) + p.money
+	-- neuester Brief oben, wie im Briefkasten
+	char.mailList = char.mailList or {}
+	table.insert(char.mailList, 1, p.letter)
+	ns.ViewChanged("mail")
 end
 
 -- Inhalt des Briefkastens; bricht ab (alter Stand bleibt), wenn ein Wert secret ist
@@ -82,27 +101,43 @@ local function ScanInbox()
 	local numItems, totalItems = GetInboxNumItems()
 	if IsSecret(numItems) then return end
 
-	local items, money = {}, 0
+	local items, money, list = {}, 0, {}
+	local now = time()
 	for i = 1, numItems do
-		local _, _, _, _, mailMoney, codAmount, _, itemCount = GetInboxHeaderInfo(i)
-		if ns.AnySecret(mailMoney, codAmount, itemCount) then return end
+		local packageIcon, stationeryIcon, sender, subject, mailMoney, codAmount, daysLeft, itemCount,
+			wasRead, _, _, _, isGM = GetInboxHeaderInfo(i)
+		if ns.AnySecret(packageIcon, stationeryIcon, sender, subject, mailMoney, codAmount, daysLeft,
+			itemCount, wasRead, isGM) then return end
 		money = money + (mailMoney or 0)
-		-- Nachnahme: Anhänge erst nach dem Bezahlen eigener Besitz
-		if itemCount and itemCount > 0 and (codAmount or 0) == 0 then
+		local letter = {
+			sender = sender, subject = subject, money = mailMoney, cod = codAmount, read = wasRead or nil,
+			expires = now + floor((daysLeft or 0) * DAY),
+			icon = (packageIcon and not isGM) and packageIcon or stationeryIcon, items = {},
+		}
+		if itemCount and itemCount > 0 then
 			for a = 1, ATTACHMENTS_MAX_RECEIVE do
 				local _, itemID, _, count, _, _, isCurrency = GetInboxItem(i, a)
 				if ns.AnySecret(itemID, count, isCurrency) then return end
 				if itemID and not isCurrency then
-					ns.AddCount(items, itemID, count)
+					-- Nachnahme: Anhänge erst nach dem Bezahlen eigener Besitz
+					if (codAmount or 0) == 0 then
+						ns.AddCount(items, itemID, count)
+					end
+					local link = GetInboxItemLink(i, a)
+					if IsSecret(link) then return end
+					letter.items[#letter.items + 1] = { link or ("item:" .. itemID), count or 1 }
 				end
 			end
 		end
+		list[i] = letter
 	end
 
 	ns.char.mail = items
 	ns.char.mailMoney = money
+	ns.char.mailList = list
 	-- Mehr Post, als der Server auf einmal anzeigt (max. 50)
 	ns.char.mailIncomplete = (not IsSecret(totalItems) and totalItems and totalItems > numItems) or nil
+	ns.ViewChanged("mail")
 end
 
 function ns.InitMail()

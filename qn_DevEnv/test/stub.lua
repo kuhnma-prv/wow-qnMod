@@ -475,6 +475,18 @@ function IsInventoryItemProfessionBag(u, inv) return PROF_BAGS[inv - 30] or fals
 C_Container.ContainerIDToInventoryID = function(id) return id + 30 end
 Enum.BagIndex.ReagentBag = 5
 
+-- qnInventory-Bedarf: Blizzards Fenster, an die die Kopfleisten der Ansichten kommen
+ContainerFrameCombinedBags = NewFrame("Frame", "ContainerFrameCombinedBags", UIParent)
+BankFrame = NewFrame("Frame", "BankFrame", UIParent)
+MailFrame = NewFrame("Frame", "MailFrame", UIParent)
+UISpecialFrames = {}
+-- Blizzard-Addons sind in der Attrappe immer schon geladen
+EventUtil = { ContinueOnAddOnLoaded = function(name, fn) fn() end }
+C_Bank.FetchMaxNumBankTabs = function() return 1 end
+C_Bank.FetchNextPurchasableBankTabData = function() return nil end
+function GetInventoryItemLink() return nil end
+function GetInboxItemLink() return nil end
+
 -- qnBuffMod-Bedarf
 BuffFrame = NewFrame("Frame", "BuffFrame")
 DebuffFrame = NewFrame("Frame", "DebuffFrame")

@@ -17,6 +17,14 @@ local L = ns.L
 --     bank = { [itemID] = Anzahl } oder nil, solange die Bank nie offen war
 --     mail = { [itemID] = Anzahl } oder nil, solange nichts bekannt ist
 --     mailMoney, mailIncomplete
+--   Inhalt je Platz bzw. Brief für die Ansichten (ab 0.2.0; fehlt, bis erneut erfasst):
+--     containers = { [Container-ID] = Behälter }   Taschen samt Schlüsselbund
+--     bankTabs = { Behälter mit id, … }            Bankfächer in der Reihenfolge des Bankfensters
+--     bankMaxTabs                                  Anzahl möglicher Bankfächer
+--     bankTabCost                                  Preis des nächsten Fachs, nil wenn alle gekauft
+--     Behälter = { size, link = Link der Tasche, items = { [Platz] = { Link, Anzahl } } }
+--     mailList = { { sender, subject, money, cod, expires = time(), read, icon,
+--                    items = { { Link, Anzahl }, … } }, … }
 -- }
 ---------------------------------------------------------------------------
 
@@ -139,14 +147,32 @@ local function DeleteChar(name)
 	end
 end
 
+-- Ansicht kind für den Charakter name (dieser Realm; Vorgabe: der zuletzt gewählte)
+local function ShowView(kind, name)
+	if not name or name == "" then
+		ns.Toggle(kind)
+		return
+	end
+	local stored = ns.FindChar(name)
+	if stored then
+		ns.Show(kind, ns.CharKey(ns.realm, stored))
+	else
+		ns.Print(L["%s ist auf %s nicht gespeichert."], name, ns.realm)
+	end
+end
+
+local VIEWS = { bags = true, bank = true, mail = true }
+
 -- rest in der eingegebenen Schreibweise (Charaktername)
 qnCore.RegisterSlash("QNINVENTORY", { "/qninv", "/qninventory" }, function(cmd, rest)
 	if cmd == "" or cmd == "gold" then
 		ShowGold()
 	elseif cmd == "delete" then
 		DeleteChar(rest)
+	elseif VIEWS[cmd] then
+		ShowView(cmd, rest)
 	else
-		ns.Print(L["Befehle: /qninv gold · /qninv delete <Name>"])
+		ns.Print(L["Befehle: /qninv gold · /qninv bags|bank|mail [Name] · /qninv delete <Name>"])
 	end
 end)
 
@@ -160,4 +186,5 @@ ns.events.Register("PLAYER_LOGIN", function()
 	ns.InitScan()
 	ns.InitMail()
 	ns.InitTooltip()
+	ns.InitViews()
 end)
