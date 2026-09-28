@@ -5,11 +5,15 @@
 -- deshalb die Größe der beiden Schriften ObjectiveTrackerLineFont und ObjectiveTrackerHeaderFont
 -- direkt (Überschrift wie bei Blizzard 2 größer). Blizzards Regler bleibt unangetastet.
 -- Setzt Blizzard die Schrift neu (Layoutwechsel, Regler), stellt ein Hook auf SetFontObject die
--- eigene Größe wieder her – noch vor Blizzards Neuaufbau der Verfolgung. Nach einer Änderung in
--- qnCore wird die Verfolgung außerhalb des Kampfes neu aufgebaut (im Kampf danach).
+-- eigene Größe wieder her – noch vor Blizzards Neuaufbau der Verfolgung.
+-- Die Verfolgung wird NIE von qnCore neu aufgebaut: ein Aufruf von ObjectiveTrackerManager:UpdateAll
+-- aus Addon-Code verseucht (Taint) ihre Daten; Blizzards spätere Aktualisierung (z. B. über den
+-- Bearbeitungsmodus beim Spezialisierungswechsel) liest dann im Szenario-Modul Auren
+-- (ShouldShowMawBuffs → C_UnitAuras.GetAuraDataByIndex) und scheitert an Secret-Values.
+-- Zeilenabstände passt Blizzard beim nächsten eigenen Neuaufbau an (Questfortschritt, Zonenwechsel,
+-- spätestens /reload).
 
 local _, ns = ...
-local lib = qnCore
 
 local QT = {}
 ns.QuestTracker = QT
@@ -42,14 +46,6 @@ end
 local function Override(size)
 	SetSize(ObjectiveTrackerLineFont, LINE_BASE, size)
 	SetSize(ObjectiveTrackerHeaderFont, HEADER_BASE, size + HEADER_EXTRA)
-end
-
-local Relayout
-Relayout = function()
-	if lib.DeferInCombat(Relayout) then
-		return
-	end
-	ObjectiveTrackerManager:UpdateAll()
 end
 
 -- Blizzard hat eine Schriftvorlage gesetzt: merken und die eigene Größe wiederherstellen
@@ -93,7 +89,6 @@ function QT.Apply()
 		ObjectiveTrackerLineFont:SetFontObject(blizzLine)
 		ObjectiveTrackerHeaderFont:SetFontObject(blizzHeader)
 	end
-	Relayout()
 end
 
 function QT.Init()

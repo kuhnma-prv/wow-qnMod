@@ -18,34 +18,30 @@ Check(M.updates == 0 and select(2, line:GetFont()) == 12, "Vorgabe: Blizzards Sc
 -- Auswahl 10 über das Einstellungsfenster
 SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(10)
 Check(select(2, line:GetFont()) == 10 and select(2, header:GetFont()) == 12, "10: Zeilen 10, Überschrift 12: " .. select(2, line:GetFont()) .. "/" .. select(2, header:GetFont()))
-Check(M.updates == 1, "Verfolgung neu aufgebaut: " .. M.updates)
+Check(M.updates == 0, "kein Neuaufbau aus Addon-Code (Taint): " .. M.updates)
 
 -- Blizzard setzt die Schrift neu (Layout, Regler): eigene Größe bleibt, vor Blizzards Neuaufbau
 M:SetTextSize(15)
 Check(select(2, line:GetFont()) == 10 and select(2, header:GetFont()) == 12, "nach SetTextSize(15) wieder 10/12")
+local blizzUpdates = M.updates   -- Blizzards eigener Neuaufbau in SetTextSize
 
 -- zweites Layout: Kopie (10), dann auf Blizzard zurück
 SetEditModeLayout(4)
 Check(core.db ~= qnCoreDB.profiles[raid] and core.db.questTextSize == 10, "neues Layout übernimmt 10")
-local before = M.updates
 SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(0)
 Check(select(2, line:GetFont()) == 15 and select(2, header:GetFont()) == 17, "0: Blizzards zuletzt gesetzte Schrift (15/17): " .. select(2, line:GetFont()))
-Check(M.updates == before + 1, "zurück auf Blizzard: neu aufgebaut")
 
--- Profilwechsel wendet an; gleiche Größe: kein Neuaufbau
+-- Profilwechsel wendet an
 SetEditModeLayout(3)
 Check(select(2, line:GetFont()) == 10 and SETTINGS.QNCORE_QUESTTEXTSIZE:GetValue() == 10, "zurück auf Raid: 10")
-before = M.updates
-core.QuestTracker.Apply()
-Check(M.updates == before, "unverändert: kein Neuaufbau")
 
--- im Kampf: Schrift sofort, Neuaufbau erst danach
+-- im Kampf: Schrift sofort (Schriftobjekte sind nicht geschützt)
 QN_COMBAT = true
 SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(8)
-Check(select(2, line:GetFont()) == 8 and M.updates == before, "im Kampf: Schrift 8, noch kein Neuaufbau")
+Check(select(2, line:GetFont()) == 8, "im Kampf: Schrift 8")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED") RunTimers()
-Check(M.updates == before + 1, "nach dem Kampf neu aufgebaut")
+Check(M.updates == blizzUpdates, "nie ein Neuaufbau aus Addon-Code")
 
 -- andere Alphabete: Höhe im Verhältnis der Vorlage (z. B. Chinesisch 15 bei 12)
 ObjectiveTrackerFont12:SetFont("Fonts\\ARKai_T.ttf", 15, "")

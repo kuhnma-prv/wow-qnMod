@@ -97,6 +97,10 @@ erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als �
   oder auf Wahrheit prüfen; nur an SetText/SetFormattedText/StatusBar:SetValue/AbbreviateLargeNumbers
   geben. Hilfen: `qnCore.IsSecret`, `qnCore.Plain(v, fallback)`. Aura-Daten
   (`SecretWhenUnitAuraRestricted`), Bedrohung und Damage-Meter-Werte im Kampf können secret sein.
+- **Taint + Secret-Values:** Blizzard-Code, der Auren liest, scheitert, sobald seine Ausführung tainted
+  ist („Auras cannot be accessed when secret while tainted“). Deshalb nie Blizzards Aktualisierungen
+  aus Addon-Code anstoßen (z. B. `ObjectiveTrackerManager:UpdateAll` – das Szenario-Modul liest Auren
+  über `ShouldShowMawBuffs`) und keine Felder in Blizzards Tabellen schreiben; nur `hooksecurefunc`.
 - Combat Log für Addons gesperrt. Eingebauter Damage Meter (`C_DamageMeter`) vorhanden.
 - **Ladebedingungen beachten:** Forever lädt Blizzard-Dateien nur gemäß `[AllowLoadGameType …]` in den
   Blizzard-TOCs. Beispiel: `SecureAuraHeaderTemplate` gibt es nicht (nur Spieltyp classic) → qnBuffMod
