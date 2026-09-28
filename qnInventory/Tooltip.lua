@@ -1,6 +1,6 @@
 -- qnInventory: Bestand aller Charaktere im Item-Tooltip.
 -- Kopfzeile "Charakter  Taschen/Bank/Post", dann je Charakter:  <Name in Klassenfarbe>  x/y/z
--- Erst dieser Realm, dann verbundene Realms mit "Name-Realm".
+-- Erst dieser Realm, dann verbundene Realms mit "Name-Realm", zuletzt die Accountbank.
 -- "?" heißt: Bank bzw. Briefkasten war mit diesem Charakter noch nie offen.
 -- "+" hinter der Post: Briefkasten nur teilweise bekannt (mehr als 50 Briefe oder nur die
 -- eigenen Sendungen an einen Charakter, dessen Briefkasten noch nie offen war).
@@ -34,6 +34,12 @@ local function AddLines(tooltip, itemID)
 	AddRealm(ns.realmDB)
 	for _, r in ipairs(ns.ConnectedRealms()) do
 		AddRealm(r.db, r.realm)
+	end
+	-- Accountbank (alle Charaktere gemeinsam)
+	local account = ns.account.bank and ns.account.bank[itemID] or 0
+	if account > 0 then
+		total = total + account
+		lines[#lines + 1] = { ACCOUNT_BANK_PANEL_TITLE, account }
 	end
 	if #lines == 0 then return end
 

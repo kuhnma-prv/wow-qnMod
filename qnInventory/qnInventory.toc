@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fInventory|r] |cff00aa000.2.0|r
+## Title: qnMod [|cffeda55fInventory|r] |cff00aa000.3.0|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
-## Notes: Remembers bags, bank, mail and gold of all characters, shows the item count in the item tooltip and shows bags, bank and mailbox of every character anywhere.
-## Notes-deDE: Merkt sich Taschen, Bank, Post und Gold aller Charaktere, zeigt den Bestand im Item-Tooltip und Taschen, Bank und Briefkasten jedes Charakters überall.
+## Notes: Remembers bags, bank, mail and gold of all characters, shows the item count in the item tooltip and shows bags, bank and mailbox of every character anywhere. With Titan Panel: plugins for bank/bag slots and gold.
+## Notes-deDE: Merkt sich Taschen, Bank, Post und Gold aller Charaktere, zeigt den Bestand im Item-Tooltip und Taschen, Bank und Briefkasten jedes Charakters überall. Mit Titan Panel: Plugins für Bank-/Taschenplätze und Gold.
 ## Author: qn
-## Version: 0.2.0
+## Version: 0.3.0
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
@@ -19,6 +19,7 @@
 ## Category-zhTW: 使用者介面
 ## SavedVariables: qnInventoryDB
 ## Dependencies: qnCore
+## OptionalDeps: Titan
 
 Locale.lua
 Core.lua
@@ -29,3 +30,5 @@ View.lua
 ViewBags.lua
 ViewBank.lua
 ViewMail.lua
+Options.lua
+Titan.lua

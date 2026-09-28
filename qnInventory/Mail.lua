@@ -93,7 +93,7 @@ local function CommitSend()
 	-- neuester Brief oben, wie im Briefkasten
 	char.mailList = char.mailList or {}
 	table.insert(char.mailList, 1, p.letter)
-	ns.ViewChanged("mail")
+	ns.DataChanged("mail")
 end
 
 -- Inhalt des Briefkastens; bricht ab (alter Stand bleibt), wenn ein Wert secret ist
@@ -137,7 +137,7 @@ local function ScanInbox()
 	ns.char.mailList = list
 	-- Mehr Post, als der Server auf einmal anzeigt (max. 50)
 	ns.char.mailIncomplete = (not IsSecret(totalItems) and totalItems and totalItems > numItems) or nil
-	ns.ViewChanged("mail")
+	ns.DataChanged("mail")
 end
 
 function ns.InitMail()

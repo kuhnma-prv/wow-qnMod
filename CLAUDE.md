@@ -15,7 +15,7 @@ nicht anfassen, nicht als Vorlage oder Quelle verwenden, im Code nicht erwähnen
 | qnMeter | Bedrohungsanzeige | qnMeterDB |
 | qnNumKeyPad | Ziffernblock-Aktionsleiste | qnNumKeyPadProfiles (alt: qnNumKeyPadDB) |
 | qnViewPort | verkleinerter 3D-Bereich, Randfarbe/-muster, Zwei-Monitor-Betrieb; mit Titan (OptionalDeps) Titan-Leisten je Monitor und Tooltips am Monitorrand (`Titan.lua`); Tooltips auf Taschenplätzen ganz auf dem Monitor der Tasche (`Layout.FitToMonitor`, für fremde Taschenansichten `qnViewPort.BagTooltip(tip, owner)`, genutzt von qnInventory) | qnViewPortDB |
-| qnInventory | Bestand/Gold je Charakter, Tooltip-Zeilen; Ansichten Taschen/Bank/Post jedes Charakters (Nachbauten von Blizzards Fenstern mit Charakterauswahl, `View*.lua`) | qnInventoryDB |
+| qnInventory | Bestand/Gold je Charakter, Tooltip-Zeilen; Ansichten Taschen/Bank/Post jedes Charakters (Nachbauten von Blizzards Fenstern mit Charakterauswahl, `View*.lua`); mit Titan (OptionalDeps) Plugins `qnInvBank`/`qnInvGold` (`Titan.lua`, Texte aus Titans Lokalisierung); Accountbank in `qnInventoryDB.account` (Gold immer, Inhalt beim Bankier); Optionen kontoweit (`qnInventoryDB.options`: andere Fraktion in Tooltips/Ansichten, Opt-in), Charakter löschen | qnInventoryDB |
 | qnBuffMod | frei gestaltbare Aurenfenster | qnBuffModDB |
 | qnUnitFrames | Klickzauber (wie HealBot) auf Blizzards Gruppen-/Schlachtzugsrahmen über sichere Attribute; Belegung je Profil und Klasse | qnUnitFramesDB |
 | qnTooltip | Tooltips: Aussehen (eigener Backdrop statt NineSlice), Position nur auf Wunsch, Einheiten-Kopfzeilen aus Bausteinen (Seiten „Zeilen“), Lebensbalken, Ziel, Gegenstandsstufe, IDs | qnTooltipDB |

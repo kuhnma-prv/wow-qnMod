@@ -11,8 +11,12 @@ local L = ns.L
 
 ---------------------------------------------------------------------------
 -- Datenbank
+-- qnInventoryDB.options = { bothFactions, viewsBothFactions }   kontoweit (Options.lua)
+-- qnInventoryDB.account = { money, bank = { [itemID] = Anzahl }, bankTabs = { Behälter mit id, … } }
+--     Accountbank (ab 0.3.0), gemeinsam für alle Charaktere; bank/bankTabs erst nach dem Bankier
 -- qnInventoryDB.realms[realm][name] = {
 --     class, money,
+--     faction = "Alliance"/"Horde"/"Neutral" (ab 0.3.0; fehlt, bis erneut eingeloggt)
 --     bags = { [itemID] = Anzahl },
 --     bank = { [itemID] = Anzahl } oder nil, solange die Bank nie offen war
 --     mail = { [itemID] = Anzahl } oder nil, solange nichts bekannt ist
@@ -28,9 +32,19 @@ local L = ns.L
 -- }
 ---------------------------------------------------------------------------
 
+-- Vorgaben der Optionen: andere Fraktion nur auf Wunsch (Opt-in)
+ns.OPTION_DEFAULTS = {
+	bothFactions = false,        -- Tooltips der Titan-Plugins: Allianz und Horde
+	viewsBothFactions = false,   -- Charakterauswahl der Ansichten: auch die andere Fraktion
+}
+
 local function InitDB()
 	qnInventoryDB = qnInventoryDB or {}
 	qnInventoryDB.realms = qnInventoryDB.realms or {}
+	qnInventoryDB.options = qnCore.MergeDefaults(qnInventoryDB.options or {}, ns.OPTION_DEFAULTS)
+	ns.options = qnInventoryDB.options
+	qnInventoryDB.account = qnInventoryDB.account or {}
+	ns.account = qnInventoryDB.account
 
 	ns.realm = GetRealmName()
 	ns.player = UnitName("player")
@@ -47,7 +61,46 @@ local function InitDB()
 	ns.char = char
 	local _, class = UnitClass("player")
 	char.class = qnCore.Plain(class, char.class)   -- secret: bisherige Klasse behalten
-	qnCore.RemoveKeys(char, { "faction", "updated" })   -- früher gespeichert, nie gelesen
+	char.faction = qnCore.Plain(UnitFactionGroup("player"), char.faction)
+	qnCore.RemoveKeys(char, { "updated" })   -- früher gespeichert, nie gelesen
+end
+
+-- Gehört ein gespeicherter Charakter zur Auswahl? both = andere Fraktion einschließen.
+-- Unbekannte Fraktion (seit 0.3.0 nicht eingeloggt) zählt immer dazu.
+function ns.FactionShown(char, both)
+	return both or not char.faction or char.faction == ns.char.faction
+end
+
+---------------------------------------------------------------------------
+-- Änderungen der gespeicherten Daten
+-- kind = "bags" (Taschen und Gold), "bank", "mail", "account" (Accountbank) oder "chars"
+-- (Charakter gelöscht, Fraktionsoption geändert)
+---------------------------------------------------------------------------
+
+local listeners = {}
+
+function ns.OnDataChanged(fn)
+	listeners[#listeners + 1] = fn
+end
+
+function ns.DataChanged(kind)
+	for _, fn in ipairs(listeners) do
+		fn(kind)
+	end
+end
+
+-- Löscht einen gespeicherten Charakter (nicht den eingeloggten); true bei Erfolg
+function ns.DeleteChar(realm, name)
+	local realmDB = qnInventoryDB.realms[realm]
+	if not (realmDB and realmDB[name]) or (realm == ns.realm and name == ns.player) then
+		return false
+	end
+	realmDB[name] = nil
+	if realm ~= ns.realm and not next(realmDB) then
+		qnInventoryDB.realms[realm] = nil
+	end
+	ns.DataChanged("chars")
+	return true
 end
 
 -- Zählt n Stück (Vorgabe 1) von id in t
@@ -141,8 +194,7 @@ local function DeleteChar(name)
 		ns.Print(L["%s ist auf %s nicht gespeichert."], name, ns.realm)
 	elseif stored == ns.player then
 		ns.Print(L["Der eingeloggte Charakter kann nicht gelöscht werden."])
-	else
-		ns.realmDB[stored] = nil
+	elseif ns.DeleteChar(ns.realm, stored) then
 		ns.Print(L["%s gelöscht."], stored)
 	end
 end
@@ -187,4 +239,6 @@ ns.events.Register("PLAYER_LOGIN", function()
 	ns.InitMail()
 	ns.InitTooltip()
 	ns.InitViews()
+	ns.InitOptions()
+	ns.InitTitan()
 end)

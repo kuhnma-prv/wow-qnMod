@@ -42,13 +42,18 @@ function ns.CharFromKey(key)
 	return realmDB and realmDB[name], name, realm
 end
 
--- Einträge der Charakterauswahl: dieser Realm, dann verbundene Realms mit "Name-Realm"
-function ns.CharEntries()
+-- Einträge der Charakterauswahl: dieser Realm, dann verbundene Realms mit "Name-Realm".
+-- Die andere Fraktion nur mit der Option viewsBothFactions; allFactions = immer alle (Optionsseite).
+function ns.CharEntries(allFactions)
 	local entries = {}
+	local both = allFactions == true or ns.options.viewsBothFactions
 	local function Add(realmDB, realm, suffix)
 		for _, name in ipairs(ns.SortedChars(realmDB)) do
-			local label = suffix and (name .. "-" .. realm) or name
-			entries[#entries + 1] = { ns.CharKey(realm, name), qnCore.ClassColoredName(label, realmDB[name].class) }
+			local char = realmDB[name]
+			if ns.FactionShown(char, both) then
+				local label = suffix and (name .. "-" .. realm) or name
+				entries[#entries + 1] = { ns.CharKey(realm, name), qnCore.ClassColoredName(label, char.class) }
+			end
 		end
 	end
 	Add(ns.realmDB, ns.realm)
@@ -148,7 +153,7 @@ function ns.AttachHeader(host, kind, live)
 		end
 	end
 
-	local dd = qnCore.UI.Dropdown(bar, DROPDOWN_WIDTH, ns.CharEntries, Key, function(key)
+	local dd = qnCore.UI.Dropdown(bar, DROPDOWN_WIDTH, function() return ns.CharEntries() end, Key, function(key)
 		ns.Show(kind, key)
 	end)
 	dd:SetPoint("RIGHT", right, "LEFT", -4, 0)
@@ -294,6 +299,13 @@ end
 ---------------------------------------------------------------------------
 
 function ns.InitViews()
+	ns.OnDataChanged(function(kind)
+		if kind == "chars" then
+			RefreshHeaders()
+		else
+			ns.ViewChanged(kind)
+		end
+	end)
 	ns.AttachHeader(ContainerFrameCombinedBags, "bags", true)
 	-- Blizzards Taschen ersetzen die Taschenansicht an derselben Stelle
 	ContainerFrameCombinedBags:HookScript("OnShow", function()

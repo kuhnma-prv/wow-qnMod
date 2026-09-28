@@ -93,6 +93,8 @@ for _, e in ipairs({ "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_DEAD", "MINIMAP_U
 	VALID[e] = true
 end
 VALID.SECURE_TRANSFER_CANCEL = true   -- SecureTransferDocumentation (qnInventory)
+VALID.ACCOUNT_MONEY = true   -- CurrencyInfoDocumentation (qnInventory)
+VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInventory)
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
 
 local Frame = {}
@@ -612,7 +614,11 @@ TIMESTAMP_FORMAT_HHMM_24HR, TIMESTAMP_FORMAT_HHMMSS_24HR = "%H:%M ", "%H:%M:%S "
 TimeUtil = { BetterDate = function(f, t) return os.date(f, t) end }
 C_Secrets = { ShouldAurasBeSecret = function() return QN_AURAS_SECRET or false end, ShouldUnitThreatValuesBeSecret = function() return false end, ShouldUnitThreatStateBeSecret = function() return false end }
 NUM_TOTAL_EQUIPPED_BAG_SLOTS = 5
-Enum.BankType = { Character = 0 }
+Enum.BankType = { Character = 0, Guild = 1, Account = 2 }
+-- Accountbank (BankDocumentation): Inhalt nur, wenn CanViewBank; Gold über FetchDepositedMoney
+QN_ACCOUNT_BANK = { view = false, money = 0 }
+C_Bank.CanViewBank = function(t) return t == Enum.BankType.Account and QN_ACCOUNT_BANK.view or t == Enum.BankType.Character end
+C_Bank.FetchDepositedMoney = function(t) return t == Enum.BankType.Account and QN_ACCOUNT_BANK.money or 0 end
 Enum.DamageMeterStyle = { Default = 0, Thin = 1, Bordered = 2, FullBackground = 3 }
 RaidWarningFrame = NewFrame("Frame", "RaidWarningFrame")
 ChatTypeInfo = setmetatable({}, { __index = function() return { r = 1, g = 1, b = 1 } end })
