@@ -1,0 +1,38 @@
+# Release bei einem Tag v*: ZIP mit allen qn*-Addon-Ordnern (ohne qn_DevEnv), je Ordner mit LICENSE
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Paket bauen
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $out = Join-Path $env:RUNNER_TEMP 'package'
+          New-Item -ItemType Directory -Force $out | Out-Null
+          # nur Addon-Ordner mit TOC; qn_DevEnv hat keine
+          $addons = Get-ChildItem -Directory -Filter 'qn*' | Where-Object { Test-Path (Join-Path $_ "$($_.Name).toc") }
+          foreach ($a in $addons) {
+            Copy-Item $a.FullName (Join-Path $out $a.Name) -Recurse
+            Copy-Item LICENSE (Join-Path $out $a.Name)
+          }
+          $zip = "qnMod-$tag.zip"
+          Compress-Archive -Path (Join-Path $out '*') -DestinationPath $zip
+          "ZIP=$zip" >> $env:GITHUB_ENV
+          Write-Host "Addons: $($addons.Name -join ', ')"
+
+      - name: GitHub-Release anlegen
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:GITHUB_REF_NAME $env:ZIP --title "qnMod $env:GITHUB_REF_NAME" --generate-notes

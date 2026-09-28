@@ -1,0 +1,31 @@
+# Testszenarien (deDE und enUS) und Prüfung der Übersetzungen bei jedem Push und Pull Request
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: qn_DevEnv/test/package-lock.json
+
+      - name: fengari installieren
+        working-directory: qn_DevEnv/test
+        run: npm ci --no-fund --no-audit
+
+      - name: Testszenarien
+        shell: pwsh
+        run: ./qn_DevEnv/test/Invoke-QnTests.ps1
+
+      - name: Übersetzungen
+        run: node qn_DevEnv/test/check-locale.mjs

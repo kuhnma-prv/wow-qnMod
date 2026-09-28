@@ -1,5 +1,9 @@
 # qnMod – addons for WoW Classic Forever
 
+[![Tests](https://github.com/kuhnma-prv/wow-qnMod/actions/workflows/test.yml/badge.svg)](https://github.com/kuhnma-prv/wow-qnMod/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/kuhnma-prv/wow-qnMod)](https://github.com/kuhnma-prv/wow-qnMod/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 A set of small, focused addons for **World of Warcraft Classic Forever**
 (client flavor `wow_classic_beta`, build 1.60.1, `## Interface: 16001`).
 All of them share one core library, **qnCore**, and are configured in Blizzard's own
@@ -28,10 +32,13 @@ Optional dependencies: [LibSharedMedia-3.0](https://www.curseforge.com/wow/addon
 
 ## Installation
 
-1. Download or clone this repository.
-2. Copy the `qn*` addon folders you want into
+1. Download `qnMod-<version>.zip` from the
+   [latest release](https://github.com/kuhnma-prv/wow-qnMod/releases/latest).
+2. Extract the `qn*` addon folders you want into
    `World of Warcraft\_classic_beta_\Interface\AddOns\`. **qnCore is always required.**
-   `qn_DevEnv` is the development environment and is not needed in the game (it has no TOC).
+
+When installing from a clone of the repository instead, skip `qn_DevEnv`: it is the development
+environment and is not needed in the game (it has no TOC).
 3. Start the game or `/reload`, then open *Options → AddOns*.
 
 Language: German and English. German clients get German texts, all other clients get English.
@@ -63,6 +70,9 @@ pwsh qn_DevEnv\test\Invoke-QnTests.ps1                     # all scenarios, deDE
 pwsh qn_DevEnv\test\Invoke-QnTests.ps1 -Filter qnBuffMod   # one addon
 node qn_DevEnv\test\check-locale.mjs                       # missing/unused translations
 ```
+
+The same checks run on GitHub Actions for every push and pull request. Pushing a tag `v*`
+builds the release ZIP (all addon folders, each with the license).
 
 Scenarios live in `qn_DevEnv\test\<Addon>\testN.lua`. Blizzard's UI source for Classic Forever:
 branch `forever` of [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source).

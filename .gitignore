@@ -1,6 +1,7 @@
 # Alle Unterordner ignorieren, außer denen, die mit "qn" beginnen
 /*/
 !/qn*/
+!/.github/
 # Entwicklungsumgebung: Node-Pakete (npm install), Blizzard-GlobalStrings (globalstrings.mjs)
 # und Bildschirmfotos werden bei Bedarf geholt bzw. erzeugt, nicht ins Repo
 /qn_DevEnv/test/node_modules/
