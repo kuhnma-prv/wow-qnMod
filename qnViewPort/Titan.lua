@@ -58,20 +58,6 @@ local function MonitorOf(bar)
 	end
 end
 
--- sichtbarer Bereich, in dem die Mitte des Rahmens liegt
-local function AreaAt(frame)
-	local a = qnCore.Visible.FrameAbs(frame)
-	if not a then
-		return nil
-	end
-	local x, y = (a.l + a.r) / 2, (a.t + a.b) / 2
-	for _, r in ipairs(Titan.Monitors()) do
-		if x >= r.l and x <= r.r and y >= r.b and y <= r.t then
-			return r
-		end
-	end
-end
-
 ---------------------------------------------------------------------------
 -- Anker der Leisten
 ---------------------------------------------------------------------------
@@ -244,72 +230,9 @@ end, 0.1)
 ---------------------------------------------------------------------------
 
 -- Legt tip neu an das Plugin button, wenn Titan ihn dort verankert hat und er über den Monitor
--- hinausragt. Titans Seite bleibt, wenn sie passt; sonst die andere Seite, und was dann noch
--- übersteht, wird hineingeschoben. Passt er, bleibt Titans Anker unverändert (Steuerfenster hängen
--- an der Mitte der Plugin-Kante, z. B. TOPLEFT an BOTTOM – neu an einer Ecke sprängen sie).
+-- hinausragt (gemeinsam mit den Taschenplätzen: ns.Layout.FitToMonitor).
 function Titan.FitToMonitor(tip, button)
-	if not (tip and button and tip:IsShown()) then
-		return
-	end
-	local point, rel, relPoint, ox, oy = tip:GetPoint(1)
-	if rel ~= button or type(point) ~= "string" then
-		return
-	end
-	local area, b = AreaAt(button), qnCore.Visible.FrameAbs(button)
-	local s = tip:GetEffectiveScale()
-	local w, h = (tip:GetWidth() or 0) * s, (tip:GetHeight() or 0) * s
-	if not (area and b and w > 0 and h > 0) then
-		return
-	end
-
-	-- Lage mit Titans Anker; ragt nichts hinaus, nichts ändern
-	relPoint = type(relPoint) == "string" and relPoint or point
-	local ax = (relPoint:find("LEFT$") and b.l) or (relPoint:find("RIGHT$") and b.r) or (b.l + b.r) / 2
-	local ay = (relPoint:find("^TOP") and b.t) or (relPoint:find("^BOTTOM") and b.b) or (b.t + b.b) / 2
-	ax, ay = ax + (tonumber(ox) or 0) * s, ay + (tonumber(oy) or 0) * s
-	local l0 = (point:find("LEFT$") and ax) or (point:find("RIGHT$") and ax - w) or ax - w / 2
-	local t0 = (point:find("^TOP") and ay) or (point:find("^BOTTOM") and ay + h) or ay + h / 2
-	local e = 0.5   -- Rundung
-	if l0 >= area.l - e and l0 + w <= area.r + e and t0 <= area.t + e and t0 - h >= area.b - e then
-		return
-	end
-
-	-- senkrecht: TOP = unter dem Plugin, BOTTOM = darüber
-	local v = point:find("^BOTTOM") and "BOTTOM" or "TOP"
-	local below, above = b.b - h >= area.b, b.t + h <= area.t
-	if v == "TOP" and not below and above then
-		v = "BOTTOM"
-	elseif v == "BOTTOM" and not above and below then
-		v = "TOP"
-	end
-	-- waagerecht: LEFT = reicht nach rechts, RIGHT = nach links
-	local hz = point:find("RIGHT$") and "RIGHT" or "LEFT"
-	local toRight, toLeft = b.l + w <= area.r, b.r - w >= area.l
-	if hz == "LEFT" and not toRight and toLeft then
-		hz = "RIGHT"
-	elseif hz == "RIGHT" and not toLeft and toRight then
-		hz = "LEFT"
-	end
-
-	-- was dann noch übersteht, in den Monitor schieben
-	local left = hz == "LEFT" and b.l or (b.r - w)
-	local top = v == "TOP" and b.b or (b.t + h)
-	local dx, dy = 0, 0
-	if left + w > area.r then
-		dx = area.r - (left + w)
-	end
-	if left + dx < area.l then
-		dx = area.l - left
-	end
-	if top - h < area.b then
-		dy = area.b - (top - h)
-	end
-	if top + dy > area.t then
-		dy = area.t - top
-	end
-
-	tip:ClearAllPoints()
-	tip:SetPoint(v .. hz, button, (v == "TOP" and "BOTTOM" or "TOP") .. hz, dx / s, dy / s)
+	ns.Layout.FitToMonitor(tip, button)
 end
 
 -- Rahmen, die Titan an ein Plugin hängt: eigener Tooltip, GameTooltip (ältere Plugins),

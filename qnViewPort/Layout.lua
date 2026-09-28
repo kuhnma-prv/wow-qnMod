@@ -313,6 +313,178 @@ function Layout.MoveFrame(f)
 end
 
 ---------------------------------------------------------------------------
+-- Tooltips am Monitorrand (Titan-Plugins in Titan.lua, Taschenplätze in SecondScreen.lua)
+-- Blizzard und Titan wählen die Seite eines Tooltips nach GetScreenWidth() bzw. UIParent, also
+-- nach dem ganzen Spielfenster. Am Rand eines Monitors ragt der Tooltip dann in einen Teil des
+-- Fensters, der auf keinem Monitor zu sehen ist, oder auf den Nachbarmonitor.
+---------------------------------------------------------------------------
+
+-- Monitor (abs-Rechteck), auf dem die Mitte von frame liegt; nil = auf keinem
+function Layout.MonitorAt(frame)
+	local a = Visible.FrameAbs(frame)
+	if not a then
+		return nil
+	end
+	local x, y = (a.l + a.r) / 2, (a.t + a.b) / 2
+	for _, r in ipairs(Layout.GetVisibleAbs()) do
+		if x >= r.l and x <= r.r and y >= r.b and y <= r.t then
+			return r
+		end
+	end
+end
+
+-- Legt tip neu an owner, wenn er dort verankert ist und über den Monitor von owner hinausragt.
+-- Die bisherige Seite bleibt, wenn sie passt; sonst die andere Seite, und was dann noch
+-- übersteht, wird hineingeschoben. Passt er, bleibt der Anker unverändert (Titans Steuerfenster
+-- hängen an der Mitte der Plugin-Kante, z. B. TOPLEFT an BOTTOM – neu an einer Ecke sprängen sie).
+function Layout.FitToMonitor(tip, owner)
+	if not (tip and owner and tip:IsShown()) then
+		return
+	end
+	local point, rel, relPoint, ox, oy = tip:GetPoint(1)
+	if rel ~= owner or type(point) ~= "string" then
+		return
+	end
+	local area, b = Layout.MonitorAt(owner), Visible.FrameAbs(owner)
+	local s = tip:GetEffectiveScale()
+	local w, h = (tip:GetWidth() or 0) * s, (tip:GetHeight() or 0) * s
+	if not (area and b and w > 0 and h > 0) then
+		return
+	end
+
+	-- Lage mit dem bisherigen Anker; ragt nichts hinaus, nichts ändern
+	relPoint = type(relPoint) == "string" and relPoint or point
+	local ax = (relPoint:find("LEFT$") and b.l) or (relPoint:find("RIGHT$") and b.r) or (b.l + b.r) / 2
+	local ay = (relPoint:find("^TOP") and b.t) or (relPoint:find("^BOTTOM") and b.b) or (b.t + b.b) / 2
+	ax, ay = ax + (tonumber(ox) or 0) * s, ay + (tonumber(oy) or 0) * s
+	local l0 = (point:find("LEFT$") and ax) or (point:find("RIGHT$") and ax - w) or ax - w / 2
+	local t0 = (point:find("^TOP") and ay) or (point:find("^BOTTOM") and ay + h) or ay + h / 2
+	local e = 0.5   -- Rundung
+	if l0 >= area.l - e and l0 + w <= area.r + e and t0 <= area.t + e and t0 - h >= area.b - e then
+		return
+	end
+
+	-- senkrecht: TOP = unter owner, BOTTOM = darüber
+	local v = point:find("^BOTTOM") and "BOTTOM" or "TOP"
+	local below, above = b.b - h >= area.b, b.t + h <= area.t
+	if v == "TOP" and not below and above then
+		v = "BOTTOM"
+	elseif v == "BOTTOM" and not above and below then
+		v = "TOP"
+	end
+	-- waagerecht: LEFT = reicht nach rechts, RIGHT = nach links
+	local hz = point:find("RIGHT$") and "RIGHT" or "LEFT"
+	local toRight, toLeft = b.l + w <= area.r, b.r - w >= area.l
+	if hz == "LEFT" and not toRight and toLeft then
+		hz = "RIGHT"
+	elseif hz == "RIGHT" and not toLeft and toRight then
+		hz = "LEFT"
+	end
+
+	-- was dann noch übersteht, in den Monitor schieben
+	local left = hz == "LEFT" and b.l or (b.r - w)
+	local top = v == "TOP" and b.b or (b.t + h)
+	local dx, dy = 0, 0
+	if left + w > area.r then
+		dx = area.r - (left + w)
+	end
+	if left + dx < area.l then
+		dx = area.l - left
+	end
+	if top - h < area.b then
+		dy = area.b - (top - h)
+	end
+	if top + dy > area.t then
+		dy = area.t - top
+	end
+
+	tip:ClearAllPoints()
+	tip:SetPoint(v .. hz, owner, (v == "TOP" and "BOTTOM" or "TOP") .. hz, dx / s, dy / s)
+end
+
+-- Seite, auf der die Vergleichs-Tooltips an tip hängen: true = rechts, false = links, nil = unbekannt.
+-- Blizzard: RIGHT an LEFT bzw. LEFT an RIGHT von tip; hier: TOPRIGHT an TOPLEFT bzw. TOPLEFT an TOPRIGHT.
+local function CompareSide(tip, shown)
+	for _, t in ipairs(shown) do
+		for i = 1, t:GetNumPoints() do
+			local _, rel, relPoint = t:GetPoint(i)
+			if rel == tip and type(relPoint) == "string" then
+				if relPoint:find("RIGHT$") then
+					return true
+				elseif relPoint:find("LEFT$") then
+					return false
+				end
+			end
+		end
+	end
+end
+
+-- Vergleichs-Tooltips (tip.shoppingTooltips) neben tip auf dessen Monitor.
+-- Blizzard (TooltipComparisonManager:AnchorShoppingTooltips) wählt die Seite nach GetScreenWidth()
+-- und hängt die Tooltips mit TOP an tip. Passt Blizzards Seite auf den Monitor, bleibt sie – sonst
+-- wechselten sich Blizzards und diese Wahl bei jeder Auffrischung ab (Flackern). Sonst die Seite
+-- mit genug Platz, notfalls die mit mehr Platz; ragen sie unten hinaus, werden sie hochgeschoben.
+function Layout.FitCompareToMonitor(tip)
+	local list = tip and tip.shoppingTooltips
+	local primary, secondary = list and list[1], list and list[2]
+	if not (primary and primary:IsShown()) then
+		return
+	end
+	local area, g = Layout.MonitorAt(tip), Visible.FrameAbs(tip)
+	if not (area and g) then
+		return
+	end
+	local shown = { primary }
+	if secondary and secondary:IsShown() then
+		shown[2] = secondary
+	end
+	local width, height = 0, 0
+	for _, t in ipairs(shown) do
+		local s = t:GetEffectiveScale()
+		width = width + (t:GetWidth() or 0) * s
+		height = math.max(height, (t:GetHeight() or 0) * s)
+	end
+	if width <= 0 then
+		return
+	end
+	local roomRight, roomLeft = area.r - g.r, g.l - area.l
+	local current = CompareSide(tip, shown)
+	local right
+	if current == true and roomRight >= width or current == false and roomLeft >= width then
+		right = current
+	elseif roomRight >= width then
+		right = true
+	elseif roomLeft >= width then
+		right = false
+	else
+		right = roomRight >= roomLeft
+	end
+	local dy = 0
+	if g.t - height < area.b then
+		dy = math.min(area.b - (g.t - height), area.t - g.t)
+	end
+	if right == current and dy == 0 then
+		return   -- Blizzards Lage passt
+	end
+
+	-- first hängt an tip, der zweite daneben (Reihenfolge wie bei Blizzard)
+	local s = primary:GetEffectiveScale()
+	primary:ClearAllPoints()
+	if secondary then
+		secondary:ClearAllPoints()
+	end
+	if #shown == 1 then
+		primary:SetPoint(right and "TOPLEFT" or "TOPRIGHT", tip, right and "TOPRIGHT" or "TOPLEFT", 0, dy / s)
+	elseif right then
+		secondary:SetPoint("TOPLEFT", tip, "TOPRIGHT", 0, dy / secondary:GetEffectiveScale())
+		primary:SetPoint("TOPLEFT", secondary, "TOPRIGHT")
+	else
+		primary:SetPoint("TOPRIGHT", tip, "TOPLEFT", 0, dy / s)
+		secondary:SetPoint("TOPRIGHT", primary, "TOPLEFT")
+	end
+end
+
+---------------------------------------------------------------------------
 -- Anordnung übernehmen (Start, Fenstergröße geändert)
 ---------------------------------------------------------------------------
 

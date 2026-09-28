@@ -306,6 +306,49 @@ function GameTooltip:SetUnitAura(unit, index, filter) TOOLTIP.aura = { unit, ind
 function GameTooltip:SetInventoryItem(unit, slot) TOOLTIP.item = { unit, slot } end
 function GameTooltip:SetMinimumWidth(w) TOOLTIP.minWidth = w end
 function GameTooltip:Hide() self._shown = false TOOLTIP.hidden = true end
+-- Taschenplatz (ContainerFrameItemButtonMixin:OnUpdate) und Vergleichs-Tooltips (GameTooltip.xml:
+-- shoppingTooltips; SharedXMLGame\Tooltip\TooltipComparisonManager.lua). EnableTooltips ersetzt die
+-- Tooltips durch vollständigere und setzt beides dort erneut.
+function GameTooltip:SetBagItem(bag, slot) TOOLTIP.bagItem = { bag, slot } self:Show() end
+function GameTooltip:SetAnchorType(anchor, x, y) TOOLTIP.anchorType = { anchor, x, y } end
+-- Blizzard_UIPanels_Game\Mainline\ContainerFrame.lua
+function ContainerFrameItemButton_CalculateItemTooltipAnchors(self, mainTooltip)
+	if self:GetRight() < GetScreenWidth() / 2 then
+		mainTooltip:SetAnchorType("ANCHOR_RIGHT", 0, 0)
+		mainTooltip:SetPoint("BOTTOMLEFT", self, "TOPRIGHT")
+	else
+		mainTooltip:SetAnchorType("ANCHOR_LEFT", 0, 0)
+		mainTooltip:SetPoint("BOTTOMRIGHT", self, "TOPLEFT")
+	end
+end
+ShoppingTooltip1 = NewFrame("GameTooltip", "ShoppingTooltip1")
+ShoppingTooltip2 = NewFrame("GameTooltip", "ShoppingTooltip2")
+GameTooltip.shoppingTooltips = { ShoppingTooltip1, ShoppingTooltip2 }
+TooltipComparisonManager = {}
+-- nur Anzeigen und Anker wie bei Blizzard; Seite aus TooltipComparisonManager.testSide
+-- ("left"/"right", Vorgabe "right"; Blizzard wählt sie nach GetScreenWidth())
+function TooltipComparisonManager:AnchorShoppingTooltips(primaryShown, secondaryShown)
+	local tip = self.tooltip
+	local p, s = tip.shoppingTooltips[1], tip.shoppingTooltips[2]
+	local a = self.anchorFrame
+	p:SetShown(primaryShown)
+	s:SetShown(secondaryShown)
+	p:SetPoint("TOP", a, 0, 0)
+	if secondaryShown then
+		s:SetPoint("TOP", a, 0, 0)
+		if self.testSide == "left" then
+			p:SetPoint("RIGHT", a, "LEFT")
+			s:SetPoint("TOPRIGHT", p, "TOPLEFT")
+		else
+			s:SetPoint("LEFT", a, "RIGHT")
+			p:SetPoint("TOPLEFT", s, "TOPRIGHT")
+		end
+	elseif self.testSide == "left" then
+		p:SetPoint("RIGHT", a, "LEFT")
+	else
+		p:SetPoint("LEFT", a, "RIGHT")
+	end
+end
 function print(...) local t = {} for i = 1, select("#", ...) do t[i] = tostring(select(i, ...)) end io.write(table.concat(t, " "), "\n") end
 
 -- Hooks -------------------------------------------------------------------------
@@ -1111,6 +1154,10 @@ function EnableTooltips()
 	for _, n in ipairs({ "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2" }) do
 		Tooltip(n)
 	end
+	-- Vergleichs-Tooltips (GameTooltip.xml: shoppingTooltips)
+	GameTooltip.shoppingTooltips = { ShoppingTooltip1, ShoppingTooltip2 }
+	ItemRefTooltip.shoppingTooltips = { ItemRefShoppingTooltip1, ItemRefShoppingTooltip2 }
+	function GameTooltip:SetBagItem(bag, slot) self._bagItem = { bag, slot } self:Show() end
 	-- Lebensbalken (GameTooltipUnitHealthBarMixin: Wert 0–1)
 	local bar = NewFrame("StatusBar", "GameTooltipStatusBar", GameTooltip)
 	bar._shown = false

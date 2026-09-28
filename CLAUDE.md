@@ -14,7 +14,7 @@ nicht anfassen, nicht als Vorlage oder Quelle verwenden, im Code nicht erwähnen
 | qnCore | Haupt-Addon + Bibliothek (global `qnCore`): Profile, Settings-Builder, Widgets, Taschen-Automatik, Minikarten-Verfolgung merken, Schrift der Questzielverfolgung unter 12 (je Profil, `QuestTracker.lua`), Seite „Profile“ | qnCoreDB (samt eigener `profiles`), qnCoreCharDB |
 | qnMeter | Bedrohungsanzeige | qnMeterDB |
 | qnNumKeyPad | Ziffernblock-Aktionsleiste | qnNumKeyPadProfiles (alt: qnNumKeyPadDB) |
-| qnViewPort | verkleinerter 3D-Bereich, Randfarbe/-muster, Zwei-Monitor-Betrieb; mit Titan (OptionalDeps) Titan-Leisten je Monitor und Tooltips am Monitorrand (`Titan.lua`) | qnViewPortDB |
+| qnViewPort | verkleinerter 3D-Bereich, Randfarbe/-muster, Zwei-Monitor-Betrieb; mit Titan (OptionalDeps) Titan-Leisten je Monitor und Tooltips am Monitorrand (`Titan.lua`); Tooltips auf Taschenplätzen ganz auf dem Monitor der Tasche (`Layout.FitToMonitor`, für fremde Taschenansichten `qnViewPort.BagTooltip(tip, owner)`, genutzt von qnInventory) | qnViewPortDB |
 | qnInventory | Bestand/Gold je Charakter, Tooltip-Zeilen | qnInventoryDB |
 | qnBuffMod | frei gestaltbare Aurenfenster | qnBuffModDB |
 | qnUnitFrames | Klickzauber (wie HealBot) auf Blizzards Gruppen-/Schlachtzugsrahmen über sichere Attribute; Belegung je Profil und Klasse | qnUnitFramesDB |

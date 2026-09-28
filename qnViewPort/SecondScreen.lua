@@ -193,6 +193,68 @@ function Dual.DockBags()
 end
 
 ---------------------------------------------------------------------------
+-- Tooltips auf Taschenplätzen: immer ganz auf dem Monitor des Platzes.
+-- Blizzard hängt den Tooltip mit BOTTOMLEFT an TOPRIGHT bzw. BOTTOMRIGHT an TOPLEFT des Platzes,
+-- je nachdem, ob der Platz links oder rechts der Mitte des ganzen Fensters liegt
+-- (ContainerFrameItemButton_CalculateItemTooltipAnchors, GetScreenWidth), und füllt ihn danach
+-- mit GameTooltip:SetBagItem – bei jeder Auffrischung (UpdateTooltip) wieder beides.
+-- Vergleichs-Tooltips: TooltipComparisonManager:AnchorShoppingTooltips, teils aus SetBagItem
+-- heraus, teils später über ein Ereignis.
+---------------------------------------------------------------------------
+
+local bagTipOwner   -- Taschenplatz, an dem GameTooltip zuletzt per SetBagItem hing
+
+-- withCompare: auch die Vergleichs-Tooltips – nur direkt nach Blizzards Anlegen (AnchorShoppingTooltips).
+-- Beim Auffrischen (SetBagItem) nicht: Blizzard legt sie danach ohnehin neu an, teils erst über das
+-- Ereignis TOOLTIP_SHOW_ITEM_COMPARISON; ein eigener Eingriff dazwischen ließ sie flackern.
+local function FitBagTooltip(tip, owner, withCompare)
+	if tip:GetOwner() ~= owner then
+		return
+	end
+	ns.Layout.FitToMonitor(tip, owner)
+	if withCompare then
+		ns.Layout.FitCompareToMonitor(tip)
+	end
+end
+
+local function OnSetBagItem(tip)
+	local owner = tip:GetOwner()
+	bagTipOwner = owner
+	if not owner then
+		return
+	end
+	FitBagTooltip(tip, owner)
+	-- im nächsten Frame noch einmal: dann hat der Tooltip seine endgültige Größe
+	C_Timer.After(0, function()
+		FitBagTooltip(tip, owner)
+	end)
+end
+
+-- Öffentlich für Taschenansichten anderer Addons (qnInventory), die ihre Tooltips nicht über
+-- SetBagItem füllen: nach dem Füllen aufrufen; tip muss an owner verankert sein.
+function ns.BagTooltip(tip, owner)
+	bagTipOwner = owner
+	if not owner then
+		return
+	end
+	-- Vergleichs-Tooltips hier gleich mit: Blizzard hat sie beim Füllen schon angelegt
+	FitBagTooltip(tip, owner, TooltipComparisonManager.tooltip == tip)
+	C_Timer.After(0, function()
+		FitBagTooltip(tip, owner)
+	end)
+end
+
+-- Blizzard kann den Tooltip beim Vergleich seitlich verschieben (SetAnchorType mit slide):
+-- dann beides neu an den Monitor.
+local function OnAnchorShoppingTooltips(manager)
+	local tip = manager.tooltip
+	if tip and manager.anchorFrame == tip
+		and bagTipOwner and tip:GetOwner() == bagTipOwner then
+		FitBagTooltip(tip, bagTipOwner, true)
+	end
+end
+
+---------------------------------------------------------------------------
 -- Zonenkarte (BattlefieldMapFrame aus Blizzard_BattlefieldMap, lädt bei Bedarf)
 -- Blizzard hängt die Karte mit TOPLEFT an BattlefieldMapTab BOTTOMLEFT (y -5) und merkt sich
 -- nur die Lage des Reiters. Deshalb wird der Reiter gesetzt; die Karte folgt.
@@ -1050,6 +1112,9 @@ function ns.InitSecondScreen()
 			dockLater()
 		end
 	end)
+	-- Tooltips auf Taschenplätzen
+	hooksecurefunc(GameTooltip, "SetBagItem", OnSetBagItem)
+	hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", OnAnchorShoppingTooltips)
 	-- Zonenkarte und Weltkarte: schon geladen oder später per ADDON_LOADED
 	HookZoneMap()
 	HookWorldMap()
