@@ -119,7 +119,8 @@ erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als �
   XML wird nicht geladen. Testfehler zuerst gegen Blizzards Quelltext prüfen – meist sind es Lücken der
   Attrappe; die dann in der Attrappe schließen, nicht im Addon.
 - Mehrmonitor-Skripte: `qnViewPort\scripts` (`Initialize-WowMonitors.ps1`, `Set-WowWindow.ps1`,
-  gemeinsam `qnMonitors.ps1`) schreiben `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`);
+  gemeinsam `qnMonitors.ps1`) schreiben `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`;
+  rechnerabhängig, optional, nicht im Repo; die Attrappe lädt sie nie, Szenarien setzen die Daten selbst);
   die Monitorauswahl liegt in `monitors.json` im WoW-Hauptordner (für alle Clients gemeinsam,
   außerhalb des Repos). WoW lädt nur Dateien aus der TOC.
 - Hilfen in `qn_DevEnv`: `Get-WowWindow.ps1` (Lage/Rahmen des WoW-Fensters, nur lesen),

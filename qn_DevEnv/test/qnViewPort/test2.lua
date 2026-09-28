@@ -13,6 +13,11 @@ WorldMapFrame = CreateFrame("Frame", "WorldMapFrame")
 WorldMapFrame:Hide()
 function WorldMapFrame:SetMapID(id) self.mapID = id end
 local winW, winH = 5760, 2160
+-- Monitordaten wie von scripts\Initialize-WowMonitors.ps1 erzeugt
+qnViewPortMonitors = { window = { x = 0, y = 0, width = 5760, height = 2160 }, monitors = {
+	{ x = 0, y = 0, width = 3840, height = 2160, main = true, selected = true },
+	{ x = 3840, y = 377, width = 1920, height = 1200, selected = true },
+} }
 C_VideoOptions.GetCurrentGameWindowSize = function() return { x = winW, y = winH } end
 local CHAT = {}
 function DEFAULT_CHAT_FRAME:AddMessage(msg) CHAT[#CHAT + 1] = tostring(msg) end

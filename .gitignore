@@ -6,3 +6,8 @@
 /qn_DevEnv/test/node_modules/
 /qn_DevEnv/test/GlobalStrings/*.lua
 /qn_DevEnv/screen.png
+# Monitordaten sind rechnerabhängig (erzeugt von qnViewPort\scripts), optional
+/qnViewPort/Monitors.lua
+# Pläne und Arbeitsnotizen
+Plan-*.md
+Plan.md

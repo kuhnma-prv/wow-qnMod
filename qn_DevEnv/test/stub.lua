@@ -660,9 +660,13 @@ function LoadAddon(name)
 		line = line:gsub("\r", "")
 		if line ~= "" and not line:match("^#") and not line:match("%.xml$") then
 			local path = ADDONS .. "/" .. name .. "/" .. line:gsub("\\", "/")
-			local chunk, err = loadfile(path)
-			assert(chunk, err)
-			chunk(name, ns)
+			-- fehlende Dateien überspringt WoW; qnViewPort\Monitors.lua ist rechnerabhängig (nicht im
+			-- Repo), die Szenarien setzen qnViewPortMonitors selbst
+			if line ~= "Monitors.lua" and READFILE(path) then
+				local chunk, err = loadfile(path)
+				assert(chunk, err)
+				chunk(name, ns)
+			end
 		end
 	end
 	FireEvent("ADDON_LOADED", name)
