@@ -298,6 +298,42 @@ function VALUES.reactionName(raw)
 end
 
 ---------------------------------------------------------------------------
+-- Beispielwerte für die Vorschau auf den Optionsseiten: der lesbare Wert der Einheit, sonst ein
+-- Beispiel (Blizzard-Texte), sonst der Name des Bausteins. raw darf nil sein.
+---------------------------------------------------------------------------
+
+local SAMPLES = {
+	friendIcon = function() return FRIEND_ICON end,
+	raidIcon = function() return ICON_LIST[8] .. "0|t" end,
+	roleIcon = function() return ROLE_ICON:format(ROLE_COORDS.TANK) end,
+	pvpIcon = function() return FFA_ICON end,
+	factionIcon = function() return FACTION_ICON.Alliance end,
+	classIcon = function() return VALUES.classIcon({ class = "WARRIOR" }) end,
+	questIcon = function() return QUEST_ICON end,
+	statusAFK = function() return AFK end,
+	statusDND = function() return DND end,
+	statusDC = function() return PLAYER_OFFLINE end,
+	isPlayer = function() return PLAYER end,
+	role = function() return TANK end,
+	gender = function() return MALE end,
+	levelValue = function() return 60 end,
+	moveSpeed = function() return 100 end,
+	classifBoss = function() return BOSS end,
+	classifElite = function() return ELITE end,
+	classifRare = function() return MAP_LEGEND_RARE end,
+	reactionName = function() return FACTION_STANDING_LABEL5 end,
+}
+
+function UD.Sample(key, raw, label)
+	local value = raw and Plain(VALUES[key](raw))
+	if value ~= nil and value ~= "" then
+		return value
+	end
+	local sample = SAMPLES[key]
+	return sample and sample() or label
+end
+
+---------------------------------------------------------------------------
 -- Farbfunktionen: liefern r, g, b oder nil
 ---------------------------------------------------------------------------
 
@@ -440,6 +476,20 @@ function UD.ValidFormat(fmt, kind)
 		end
 	end
 	return n == 1
+end
+
+-- Wert mit einem Format (nur lesbare Werte, für die Vorschau auf den Optionsseiten); nil = ungültig
+function UD.FormatValue(fmt, kind, value)
+	if not UD.ValidFormat(fmt, kind) then
+		return nil
+	end
+	if kind == "number" and not fmt:gsub("%%%%", ""):find("%%s") then
+		value = tonumber(value) or 0
+	else
+		value = tostring(value)
+	end
+	local ok, text = pcall(string.format, fmt, value)
+	return ok and text or nil
 end
 
 local function Format(cfg, default, kind)

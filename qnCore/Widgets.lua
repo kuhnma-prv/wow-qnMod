@@ -96,6 +96,101 @@ function UI.Label(parent, widget, text, gap)
 end
 
 ---------------------------------------------------------------------------
+-- Optionsseite (Canvas) im Aussehen von Blizzards senkrechten Seiten (SettingsListTemplate in
+-- Blizzard_Settings_Shared): Überschrift, optional Knopf „Standard“, Trennlinie, darunter der
+-- Inhalt mit Scrollbar (MinimalScrollBar, nur sichtbar, wenn der Inhalt nicht passt).
+-- Canvas-Seiten liegen in derselben Fläche wie Blizzards Liste, daher dieselben Abstände.
+--   title          Überschrift (Name der Seite wie in der Liste links)
+--   opts.desc      Beschreibung oben im Inhalt (optional), opts.descWidth ihre Breite
+--   opts.defaults  function(): Knopf „Standard“ rechts neben der Überschrift (optional)
+-- Liefert eine Tabelle:
+--   panel    Rahmen für Settings.RegisterCanvasLayout…; OnShow usw. hier setzen
+--   content  Eltern der Steuerelemente
+--   top      Anker für das erste Element (Beschreibung bzw. oberer Rand des Inhalts)
+--   Fit()    Höhe des Inhalts neu messen (nach dem Ein-/Ausblenden von Elementen)
+--   padLeft, padTop  Lage von top im Inhalt (für Elemente, die am Inhalt selbst hängen)
+---------------------------------------------------------------------------
+
+local PAGE_PAD_LEFT, PAGE_PAD_TOP = 40, 10   -- Inhalt bündig mit Blizzards Abschnittsüberschriften
+
+function UI.Page(title, opts)
+	opts = opts or {}
+	local page = { padLeft = PAGE_PAD_LEFT, padTop = PAGE_PAD_TOP }
+	local panel = CreateFrame("Frame")
+	panel:Hide()
+	page.panel = panel
+
+	local header = CreateFrame("Frame", nil, panel)
+	header:SetHeight(50)
+	header:SetPoint("TOPLEFT")
+	header:SetPoint("TOPRIGHT")
+	page.title = UI.Text(header, "GameFontHighlightHuge", title)
+	page.title:SetPoint("TOPLEFT", 7, -22)
+	local line = header:CreateTexture(nil, "ARTWORK")
+	line:SetAtlas("Options_HorizontalDivider", true)
+	line:SetPoint("TOP", 0, -50)
+	if opts.defaults then
+		page.defaults = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
+		page.defaults:SetSize(96, 22)
+		page.defaults:SetPoint("TOPRIGHT", -36, -16)
+		page.defaults:SetText(SETTINGS_DEFAULTS)
+		page.defaults:SetScript("OnClick", opts.defaults)
+	end
+
+	-- ScrollFrameTemplate (Blizzard_SharedXML) legt die Scrollbar samt Mausrad an
+	local scroll = CreateFrame("ScrollFrame", nil, panel, "ScrollFrameTemplate")
+	scroll:SetPoint("TOPLEFT", header, "BOTTOMLEFT", -15, -2)
+	scroll:SetPoint("BOTTOMRIGHT", -20, -2)
+	scroll.ScrollBar:ClearAllPoints()
+	scroll.ScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 0, -4)
+	scroll.ScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", -1, 7)
+	scroll.ScrollBar:SetHideIfUnscrollable(true)
+	local content = CreateFrame("Frame", nil, scroll)
+	content:SetSize(640, 1)
+	scroll:SetScrollChild(content)
+	page.scroll, page.content = scroll, content
+
+	if opts.desc then
+		page.top = UI.Text(content, "GameFontHighlightSmall", opts.desc)
+		page.top:SetWidth(opts.descWidth or 620)
+	else
+		page.top = CreateFrame("Frame", nil, content)
+		page.top:SetSize(1, 1)
+	end
+	page.top:SetPoint("TOPLEFT", PAGE_PAD_LEFT, -PAGE_PAD_TOP)
+
+	-- Unterste Kante aller sichtbaren Kinder und Texte des Inhalts
+	local function Lowest(bottom, ...)
+		for i = 1, select("#", ...) do
+			local obj = select(i, ...)
+			local b = obj:IsShown() and obj:GetBottom()
+			if b and (not bottom or b < bottom) then
+				bottom = b
+			end
+		end
+		return bottom
+	end
+	local function Measure()
+		local top = content:GetTop()
+		local bottom = Lowest(Lowest(nil, content:GetChildren()), content:GetRegions())
+		if top and bottom then
+			content:SetHeight(math.max(1, top - bottom + PAGE_PAD_TOP))
+		end
+	end
+	-- sofort und im nächsten Frame (dann stehen Lage und Textgrößen nach dem Auffrischen fest)
+	function page.Fit()
+		Measure()
+		C_Timer.After(0, Measure)
+	end
+	scroll:SetScript("OnSizeChanged", function(_, w)
+		content:SetWidth(w)
+		page.Fit()
+	end)
+	content:SetScript("OnShow", page.Fit)
+	return page
+end
+
+---------------------------------------------------------------------------
 -- Rückfragen (StaticPopupDialogs); angezeigt mit StaticPopup_Show(name, a1, a2, data),
 -- a1/a2 füllen %s im Text.
 ---------------------------------------------------------------------------

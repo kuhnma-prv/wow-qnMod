@@ -229,7 +229,8 @@ function Frame:GetFontString() return NewFrame("FontString") end
 function Frame:GetStatusBarTexture() return NewFrame("Texture") end
 function Frame:GetMinMaxValues() return 0, 1 end
 function Frame:GetValue() return 0 end
-function Frame:IsEnabled() return true end
+function Frame:IsEnabled() return self._enabled ~= false end
+function Frame:SetEnabled(on) self._enabled = on and true or false end
 function Frame:GetEditBox() return NewFrame("EditBox") end
 function Frame:CreateTexture() return NewFrame("Texture", nil, self) end
 function Frame:CreateFontString() return NewFrame("FontString", nil, self) end
@@ -259,6 +260,10 @@ function CreateFrame(kind, name, parent, template)
 	if template and template:find("Secure") then f._protected = true end
 	-- Vorlagen mit hidden="true" in qnBuffMod
 	if template and (template:find("Header") or template:find("Consolidated")) then f._shown = false end
+	-- ScrollFrameTemplate (SecureUIPanelTemplates.xml): ScrollFrame_OnLoad hängt die Scrollbar an
+	if template == "ScrollFrameTemplate" then
+		f.ScrollBar = NewFrame("EventFrame", nil, f)
+	end
 	if template == "MinimalSliderWithSteppersTemplate" then
 		function f:Init(v, mn, mx, steps, fmt) self._value, self._fmt = v, fmt end
 		function f:RegisterCallback(ev, fn, owner) self._cb, self._owner = fn, owner end
@@ -1287,7 +1292,9 @@ function EnableTooltips()
 	C_QuestLog = { GetQuestDifficultyLevel = function(id) return 12 end }
 	function ColorPickerFrame:SetupColorPickerAndShow(info) self._info = info end
 	function ColorPickerFrame:GetColorRGB() return unpack(self._rgb or { 1, 1, 1 }) end
-	function ColorPickerFrame:GetPreviousValues() local i = self._info return { r = i.r, g = i.g, b = i.b } end
+	-- wie ColorPickerFrameMixin: GetPreviousValues liefert Einzelwerte, OnCancel übergibt die Tabelle
+	function ColorPickerFrame:GetPreviousValues() local i = self._info return i.r, i.g, i.b, i.a end
+	function ColorPickerFrame:Cancel() local i = self._info if i.cancelFunc then i.cancelFunc({ r = i.r, g = i.g, b = i.b, a = i.a }) end end
 end
 
 -- Tooltipdaten einer Einheit wie in Forever: Name, (Gilde), (NSC-Titel), Stufe, (Fraktion, PvP)

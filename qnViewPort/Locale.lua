@@ -120,7 +120,6 @@ L["Rahmen des Bearbeitungsmodus: gilt bis /reload bzw. bis das Layout neu gelade
 L["Geschützter Rahmen: nicht im Kampf. Verschieben aus Addon-Code kann „Aktion blockiert“-Meldungen (Taint) auslösen."] = "Protected frame: not in combat. Moving it from addon code can cause \"action blocked\" messages (taint)."
 L["In sichtbaren Bereich holen"] = "Move into visible area"
 L["Alle eingeblendeten Oberflächenelemente liegen auf einem Monitor."] = "All shown interface elements are on a monitor."
-L["%d Element(e) ganz oder teilweise außerhalb der Monitore  –  Mausrad zum Blättern"] = "%d element(s) fully or partly outside the monitors  –  mouse wheel to scroll"
 L["%d Element(e) ganz oder teilweise außerhalb der Monitore"] = "%d element(s) fully or partly outside the monitors"
 L["Noch nicht geprüft – „Sichtbarkeit prüfen“ drücken."] = "Not checked yet – press \"Check visibility\"."
 L["Monitore"] = "Monitors"

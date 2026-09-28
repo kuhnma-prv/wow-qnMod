@@ -33,6 +33,7 @@ ns.defaults = {
 		zoneMapPoint = "TOPRIGHT",
 		zoneMapOffsetX = 20,
 		zoneMapOffsetY = 300,
+		zoneMapScale = 1,      -- Größe der Zonenkarte samt Reiter (1 = 100 %, dann fasst qnViewPort sie nicht an)
 		worldMap = false,      -- maximierte Weltkarte auf einen Monitor legen (statt über das ganze Fenster)
 		worldMapMonitor = 0,
 		questLog = false,      -- verkleinerte Weltkarte („Karte & Questlog“) auf einen Monitor legen

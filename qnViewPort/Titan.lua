@@ -263,7 +263,7 @@ end
 -- Optionsseite (Unterkategorie „Titan Panel“, nur mit Titan)
 ---------------------------------------------------------------------------
 
-local page
+local ui, page   -- qnCore.UI.Page und sein Inhalt (Eltern der Steuerelemente)
 local dropdowns = {}
 
 -- Einträge eines Dropdowns; ein gespeicherter, aber nicht mehr vorhandener Monitor bleibt sichtbar.
@@ -345,13 +345,11 @@ function Titan.RefreshOptions()
 		sliders[i]:Hide()
 		sliders[i].label:Hide()
 	end
+	ui.Fit()
 end
 
 local function BuildPage()
-	local desc = ns.Header(page, "qnViewPort – Titan Panel",
-		L["Legt die durchgehenden Titan-Leisten an die obere bzw. untere Kante eines Monitors. Ein- und ausgeschaltet werden sie weiter in Titan. Tooltips der Titan-Plugins bleiben auf dem Monitor des Plugins."])
-
-	local anchor = desc
+	local anchor = ui.top
 	for i, b in ipairs(Titan.BARS) do
 		local data = TitanBarData[FrameName(b.name)]
 		local dd = UI.Dropdown(page, 240, function() return Titan.Entries(b.name) end,
@@ -458,9 +456,10 @@ function ns.InitTitan()
 		ns.events.Register(event, ApplySoon)
 	end
 
-	page = CreateFrame("Frame")
-	page:Hide()
-	page:SetScript("OnShow", Titan.RefreshOptions)
+	ui = UI.Page("Titan Panel", { desc =
+		L["Legt die durchgehenden Titan-Leisten an die obere bzw. untere Kante eines Monitors. Ein- und ausgeschaltet werden sie weiter in Titan. Tooltips der Titan-Plugins bleiben auf dem Monitor des Plugins."] })
+	page = ui.content
+	ui.panel:SetScript("OnShow", Titan.RefreshOptions)
 	BuildPage()
-	Titan.category = Settings.RegisterCanvasLayoutSubcategory(ns.category, page, "Titan Panel")
+	Titan.category = Settings.RegisterCanvasLayoutSubcategory(ns.category, ui.panel, "Titan Panel")
 end

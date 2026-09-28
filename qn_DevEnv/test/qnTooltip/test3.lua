@@ -120,25 +120,129 @@ Check(GameTooltip._link == nil, "Spieler-Link ohne Tooltip")
 local p = tt.elementsUI.player
 p.page:Show()
 Check(#p.rows == #tt.ELEMENTS.player, "eine Zeile je Baustein")
-Check(p.rows[1].key == "friendIcon" and not p.rows[1].color:IsShown(), "Symbol ohne Farbauswahl")
+local ed = p.editor
+-- Dialog erst über den Stift; Symbol: nur Filter
+Check(not ed:IsShown() and not p.rows[1].sel:IsShown(), "Dialog anfangs geschlossen")
+p.rows[1].edit._scripts.OnClick(p.rows[1].edit)
+Check(ed:IsShown() and p.selected == "friendIcon" and p.rows[1].sel:IsShown(), "Stift öffnet den Dialog, Zeile markiert")
+Check(not ed.color:IsShown() and not ed.format:IsShown() and ed.iconNote:IsShown() and ed.filter:IsShown(),
+	"Symbol: nur Filter, Hinweis statt Farbe und Format")
+Check(p.rows[1].preview._text and p.rows[1].preview._text:find("|A:", 1, true), "Symbol: Vorschau zeigt ein Beispielsymbol")
+-- Pfeile: gesperrt am Anfang bzw. Ende einer Tooltip-Zeile
+local r1, r2 = p.rows[1], p.rows[2]
+Check(not r1.up:IsEnabled() and r1.down:IsEnabled() and r2.up:IsEnabled(), "Pfeile: erster Baustein nicht nach oben")
+local lastOfLine1
+for i, row in ipairs(p.rows) do
+	if tt.db.player.elements[row.key] and tt.db.player.elements[row.key].line == 1 then lastOfLine1 = row end
+end
+Check(lastOfLine1 and not lastOfLine1.down:IsEnabled(), "Pfeile: letzter Baustein der Zeile nicht nach unten")
+r1.down._scripts.OnClick(r1.down)
+Check(p.rows[2].key == "friendIcon", "Pfeil ab verschiebt den Baustein")
+p.rows[2].up._scripts.OnClick(p.rows[2].up)
+Check(p.rows[1].key == "friendIcon", "Pfeil auf verschiebt zurück")
+-- Stift einer anderen Zeile wechselt den Baustein im offenen Dialog
 local nameRow
 for _, row in ipairs(p.rows) do if row.key == "name" then nameRow = row end end
-Check(nameRow.color._text == L["Klassenfarbe"], "Farbauswahl zeigt Klassenfarbe")
+nameRow.edit._scripts.OnClick(nameRow.edit)
+Check(p.selected == "name" and nameRow.sel:IsShown() and not p.rows[1].sel:IsShown(), "Stift wechselt den Baustein")
+Check(ed.TitleContainer.TitleText._text == L["Baustein: %s"]:format(NAME) and ed.color:IsShown() and not ed.iconNote:IsShown(), "Dialog für Text")
+Check(ed.color._text == L["Klassenfarbe"], "Farbauswahl zeigt Klassenfarbe")
 -- eigene Farbe über den Farbwähler
-for i, r in ipairs(nameRow.color._radios) do
-	if r.text == L["Eigene Farbe …"] then nameRow.color:PickRadio(i) end
+for i, r in ipairs(ed.color._radios) do
+	if r.text == L["Eigene Farbe …"] then ed.color:PickRadio(i) end
 end
 ColorPickerFrame._rgb = { 1, 0, 0 }
 ColorPickerFrame._info.swatchFunc()
 Check(tt.db.player.elements.name.color == "ff0000", "eigene Farbe gespeichert")
-Check(nameRow.color._text == L["Eigene Farbe …"] and nameRow.swatch._color[1] == 1, "Anzeige der eigenen Farbe")
--- Format über das Eingabefenster
-nameRow.format._scripts.OnClick(nameRow.format)
-Check(LAST_POPUP.which == "QNTOOLTIP_FORMAT", "Formatfenster geöffnet")
-StaticPopupDialogs.QNTOOLTIP_FORMAT.OnAccept({ GetEditBox = function() return { GetText = function() return "«%s»" end } end })
+Check(ed.color._text == L["Eigene Farbe …"] and ed.swatch._color[1] == 1, "Anzeige der eigenen Farbe")
+Check(nameRow.preview._text:find("|cffff0000", 1, true), "Vorschau der Zeile in der eigenen Farbe")
+-- Abbrechen im Farbwähler: vorheriger Wert zurück, auch eine Farbfunktion
+for i, r in ipairs(ed.color._radios) do
+	if r.text == L["Klassenfarbe"] then ed.color:PickRadio(i) end
+end
+for i, r in ipairs(ed.color._radios) do
+	if r.text == L["Eigene Farbe …"] then ed.color:PickRadio(i) end
+end
+ColorPickerFrame._rgb = { 0, 1, 0 }
+ColorPickerFrame._info.swatchFunc()
+Check(tt.db.player.elements.name.color == "00ff00", "Farbwähler: Farbe beim Ziehen übernommen")
+ColorPickerFrame:Cancel()
+Check(tt.db.player.elements.name.color == "class" and ed.color._text == L["Klassenfarbe"], "Abbrechen: Klassenfarbe zurück")
+for i, r in ipairs(ed.color._radios) do
+	if r.text == L["Eigene Farbe …"] then ed.color:PickRadio(i) end
+end
+ColorPickerFrame._rgb = { 1, 0, 0 }
+ColorPickerFrame._info.swatchFunc()
+-- Format im Bearbeiten-Bereich: Vorschau beim Tippen, Übernehmen mit Enter
+ed.format:SetText("«%s»")
+ed.format._scripts.OnTextChanged(ed.format)
+Check(ed.result._text:find("«", 1, true) and tt.db.player.elements.name.format == "%s", "Vorschau beim Tippen, noch nicht gespeichert")
+ed.format._scripts.OnEnterPressed(ed.format)
 Check(tt.db.player.elements.name.format == "«%s»", "Format übernommen")
-StaticPopupDialogs.QNTOOLTIP_FORMAT.OnAccept({ GetEditBox = function() return { GetText = function() return "%s%s" end } end })
-Check(tt.db.player.elements.name.format == "«%s»", "ungültiges Format abgelehnt")
+Check(nameRow.preview._text:find("«", 1, true), "Vorschau der Zeile mit neuem Format")
+ed.format:SetText("%s%s")
+ed.format._scripts.OnTextChanged(ed.format)
+Check(ed.result._text:find("|cffff4040", 1, true), "ungültiges Format rot markiert")
+ed.format._scripts.OnEnterPressed(ed.format)
+Check(tt.db.player.elements.name.format == "«%s»" and ed.format:GetText() == "«%s»", "ungültiges Format abgelehnt, Eingabe zurückgesetzt")
+-- Beispiel anklicken
+Check(ed.examples[2].fmt == "<%s>" and ed.examples[2]._text == "<%s>" and ed.examples[2].result._text:find("<", 1, true),
+	"Beispiel: Knopf mit Format, dahinter das Ergebnis")
+ed.examples[2]._scripts.OnClick(ed.examples[2])
+Check(tt.db.player.elements.name.format == "<%s>", "Beispiel übernommen")
+-- Zahlenbaustein: eigene Hilfe und Beispiele mit %d
+local speedRow
+for _, row in ipairs(p.rows) do if row.key == "moveSpeed" then speedRow = row end end
+speedRow.edit._scripts.OnClick(speedRow.edit)
+Check(ed.examples[2].fmt == "%d%%" and ed.examples[2].result._text:find("100%", 1, true), "Zahl: Beispiel %d%% mit Beispielwert")
+Check(ed.help._text:find("%d", 1, true), "Zahl: Hilfe nennt %d")
+Check(tt.db.player.elements.name.format == "<%s>", "Wechsel auf anderen Baustein: bisheriger mit OK übernommen")
+-- Abbrechen: offene Eingabe verworfen, Markierung weg
+ed.format:SetText("%d km/h")
+ed.cancel._scripts.OnClick(ed.cancel)
+Check(not ed:IsShown() and tt.db.player.elements.moveSpeed.format == "%d%%" and not speedRow.sel:IsShown(), "Abbrechen: Eingabe verworfen, Dialog zu")
+-- OK: offene Eingabe übernommen
+speedRow.edit._scripts.OnClick(speedRow.edit)
+ed.format:SetText("%d km/h")
+ed.ok._scripts.OnClick(ed.ok)
+Check(not ed:IsShown() and tt.db.player.elements.moveSpeed.format == "%d km/h", "OK: Eingabe übernommen")
+-- Abbrechen stellt alles wieder her, auch schon übernommene Änderungen (Farbe, Format, Filter)
+nameRow.edit._scripts.OnClick(nameRow.edit)
+for i, r in ipairs(ed.color._radios) do
+	if r.text == L["Farbe der Fraktion"] then ed.color:PickRadio(i) end
+end
+ed.format:SetText("[%s]")
+ed.format._scripts.OnEnterPressed(ed.format)
+ed.filter:PickRadio(2)
+Check(tt.db.player.elements.name.color == "faction" and tt.db.player.elements.name.format == "[%s]"
+	and tt.db.player.elements.name.filter ~= "none" and nameRow.preview._text:find("[", 1, true), "Änderungen wirken schon auf die Vorschau")
+ed.cancel._scripts.OnClick(ed.cancel)
+local n = tt.db.player.elements.name
+Check(n.color == "ff0000" and n.format == "<%s>" and n.filter == "none" and nameRow.preview._text:find("<", 1, true),
+	"Abbrechen: Farbe, Format und Filter wie vor dem Öffnen")
+-- Schließen auf anderem Weg (X, Einstellungsfenster zu) = Abbrechen
+nameRow.edit._scripts.OnClick(nameRow.edit)
+ed.format:SetText("[%s]")
+ed.format._scripts.OnEnterPressed(ed.format)
+ed:Hide()
+Check(tt.db.player.elements.name.format == "<%s>", "Schließen ohne OK: wie Abbrechen")
+
+-- dieselbe Seite für NSC
+local pn = tt.elementsUI.npc
+pn.page:Show()
+local npcName
+for _, row in ipairs(pn.rows) do if row.key == "name" then npcName = row end end
+Check(npcName and npcName.edit and pn.editor ~= ed, "NSC: Zeilen mit Stift, eigener Dialog")
+npcName.edit._scripts.OnClick(npcName.edit)
+Check(pn.editor:IsShown() and pn.editor.ok and pn.editor.cancel, "NSC: Dialog mit OK und Abbrechen")
+pn.editor.format:SetText("«%s»")
+pn.editor.ok._scripts.OnClick(pn.editor.ok)
+Check(tt.db.npc.elements.name.format == "«%s»" and tt.db.player.elements.name.format == "<%s>", "NSC: OK übernimmt nur für NSC")
+npcName.edit._scripts.OnClick(npcName.edit)
+pn.editor.format:SetText("%s!")
+pn.editor.cancel._scripts.OnClick(pn.editor.cancel)
+Check(tt.db.npc.elements.name.format == "«%s»", "NSC: Abbrechen verwirft")
+pn.page:Hide()
 -- Zeile über das Dropdown
 nameRow.line:PickRadio(3)
 Check(tt.db.player.elements.name.line == 3, "Zeile gewechselt")

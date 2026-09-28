@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fTooltip|r] |cff00aa000.1.0|r
+## Title: qnMod [|cffeda55fTooltip|r] |cff00aa000.1.2|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
 ## Notes: Customizable tooltips: look, position, unit lines built from elements, health bar, target, item level and IDs.
 ## Notes-deDE: Anpassbare Tooltips: Aussehen, Position, Einheiten-Zeilen aus Bausteinen, Lebensbalken, Ziel, Gegenstandsstufe und IDs.
 ## Author: qn
-## Version: 0.1.0
+## Version: 0.1.2
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface

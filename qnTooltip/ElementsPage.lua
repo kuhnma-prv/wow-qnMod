@@ -1,6 +1,7 @@
 -- qnTooltip: Optionsseiten "Zeilen: Spieler" und "Zeilen: NSC" (Canvas-Layout).
--- Je Baustein eine Zeile: an/aus, Zeile im Tooltip (Dropdown), Reihenfolge (Auf/Ab),
--- Farbe (Dropdown mit Farbfunktionen oder eigener Farbe), Format und Filter (Dropdown).
+-- Je Baustein eine Zeile: an/aus, Zeile im Tooltip (Dropdown), Reihenfolge (Auf/Ab), eine Vorschau
+-- mit Beispielwert und ein Stift, der den Bearbeiten-Dialog öffnet: Farbe, Filter, Format (mit Hilfe,
+-- Beispielen und Vorschau).
 -- Die Liste zeigt die Bausteine in der Reihenfolge, in der sie im Tooltip stehen.
 
 local _, ns = ...
@@ -13,7 +14,7 @@ local ROW_HEIGHT = 30
 local MAX_LINES = 8
 local CUSTOM = "custom"
 
-local pages = {}   -- [kind] = { page, sub, rows, content, … }
+local pages = {}   -- [kind] = { ui (qnCore.UI.Page), page (= ui.panel), sub, rows, content, … }
 ns.elementsUI = pages   -- für die Tests
 
 local function Elements(kind)
@@ -89,34 +90,50 @@ function ns.SetElementLine(kind, key, line)
 end
 
 ---------------------------------------------------------------------------
--- Eingaben
+-- Vorschau mit Beispielwerten
 ---------------------------------------------------------------------------
 
-local editing   -- { kind, key } des Formats im Eingabefenster
-
-local function FormatKind(kind, key)
-	return ns.Element(kind, key)[3]
+-- Einheit für die Beispielwerte: eigener Charakter bzw. anvisierter NSC; sonst nil (nur Beispiele)
+local function SampleRaw(kind)
+	if kind == "player" then
+		return UD.Collect("player")
+	elseif ns.Plain(UnitExists("target"), false) and not ns.Plain(UnitIsPlayer("target"), true) then
+		return UD.Collect("target")
+	end
 end
 
-lib.Popup.EditText("QNTOOLTIP_FORMAT", L["Format für %s (genau ein %%s, bei Zahlen auch %%d; %%%% für ein Prozentzeichen):"], function()
-	return editing and Config(editing.kind, editing.key).format or ""
-end, function(text)
-	if not editing then
-		return
+-- Beispielwert eines Bausteins mit Format (fmt, sonst das eingestellte) in seiner Farbe;
+-- nil = ungültiges Format. Farbfunktionen brauchen eine Einheit, ohne raw nur feste Farben.
+local function PreviewText(e, c, raw, fmt)
+	local value = UD.Sample(e[1], raw, e[2])
+	if e[3] == "icon" then
+		return value
 	end
-	local kind, key = editing.kind, editing.key
-	if UD.ValidFormat(text, FormatKind(kind, key)) then
-		Config(kind, key).format = text
-	else
-		ns.Print(L["Ungültiges Format: %s"], text)
+	local text = UD.FormatValue(fmt or c.format, e[3], value)
+	if not text then
+		return nil
 	end
-	ns.RefreshElementsPages()
-end, 60)
-
-local function EditFormat(kind, key)
-	editing = { kind = kind, key = key }
-	StaticPopup_Show("QNTOOLTIP_FORMAT", ns.Element(kind, key)[2])
+	local r, g, b
+	if raw or not UD.COLORS[c.color] then
+		r, g, b = UD.Color(c.color, raw)
+	end
+	return r and ("|cff" .. ns.Hex(r, g, b) .. text .. "|r") or text
 end
+
+local INVALID = "|cffff4040%s|r"
+
+-- Beispiele für den Format-Editor (anklickbar); der Name des Bausteins als vorangestellte Beschriftung
+local function Examples(e)
+	local label = e[2]:gsub("%%", "%%%%")
+	if e[3] == "number" then
+		return { "%d", "%d%%", "(%d%%)", label .. ": %d" }
+	end
+	return { "%s", "<%s>", "(%s)", label .. ": %s" }
+end
+
+---------------------------------------------------------------------------
+-- Farbe
+---------------------------------------------------------------------------
 
 local function PickColor(kind, key)
 	local c = Config(kind, key)
@@ -124,18 +141,20 @@ local function PickColor(kind, key)
 	if not r then
 		r, g, b = 1, 1, 1
 	end
-	local function Set(nr, ng, nb)
-		Config(kind, key).color = ns.Hex(nr, ng, nb)
+	local old = c.color   -- Hexwert oder Farbfunktion („class“ …), beim Abbrechen unverändert zurück
+	local function Set(color)
+		Config(kind, key).color = color
 		ns.RefreshElementsPages()
 	end
 	ColorPickerFrame:SetupColorPickerAndShow({
 		r = r, g = g, b = b,
 		swatchFunc = function()
-			Set(ColorPickerFrame:GetColorRGB())
+			Set(ns.Hex(ColorPickerFrame:GetColorRGB()))
 		end,
+		-- Blizzard übergibt die vorherigen Werte als Tabelle (ColorPickerFrameMixin:OnCancel);
+		-- gebraucht wird aber der gespeicherte Wert, der auch eine Farbfunktion sein kann
 		cancelFunc = function()
-			local prev = ColorPickerFrame:GetPreviousValues()
-			Set(prev.r, prev.g, prev.b)
+			Set(old)
 		end,
 	})
 end
@@ -155,8 +174,26 @@ local function LineEntries()
 end
 
 ---------------------------------------------------------------------------
--- Zeilen der Liste
+-- Zeilen der Liste: an/aus, Name, Zeile, Auf/Ab, Vorschau, Stift (öffnet den Bearbeiten-Dialog)
 ---------------------------------------------------------------------------
+
+local OpenEditor   -- unten (Dialog)
+
+-- Knopf (UIPanelButtonTemplate) mit einem Symbol statt Text; gesperrt entsättigt.
+-- atlas: z. B. minimal-scrollbar-arrow-top (Blizzards schmale Scrollbar), Pencil-Icon (Stift)
+local function IconButton(parent, atlas, width, onClick, size)
+	local b = UI.Button(parent, "", width, onClick)
+	b:SetHeight(22)
+	b.icon = b:CreateTexture(nil, "OVERLAY")
+	b.icon:SetAtlas(atlas, not size)
+	if size then
+		b.icon:SetSize(size, size)
+	end
+	b.icon:SetPoint("CENTER")
+	b:HookScript("OnEnable", function() b.icon:SetDesaturated(false) b.icon:SetAlpha(1) end)
+	b:HookScript("OnDisable", function() b.icon:SetDesaturated(true) b.icon:SetAlpha(0.5) end)
+	return b
+end
 
 local function CreateRow(p, i)
 	local kind = p.kind
@@ -169,12 +206,18 @@ local function CreateRow(p, i)
 		bg:SetAllPoints()
 		bg:SetColorTexture(1, 1, 1, 0.04)
 	end
+	-- Baustein, der gerade im Dialog bearbeitet wird
+	row.sel = row:CreateTexture(nil, "BORDER")
+	row.sel:SetAllPoints()
+	row.sel:SetColorTexture(1, 0.82, 0, 0.15)
+	row.sel:Hide()
 
 	row.enable = CreateFrame("CheckButton", nil, row, "UICheckButtonTemplate")
 	row.enable:SetSize(26, 26)
 	row.enable:SetPoint("LEFT", 2, 0)
 	row.enable:SetScript("OnClick", function(self)
 		Config(kind, row.key).enable = self:GetChecked() and true or false
+		ns.RefreshElementsPages()
 	end)
 
 	row.label = UI.Text(row, "GameFontHighlight")
@@ -190,84 +233,299 @@ local function CreateRow(p, i)
 	end)
 	row.line:SetPoint("LEFT", row.label, "RIGHT", 4, 0)
 
-	row.up = UI.Button(row, L["Auf"], 44, function()
+	row.up = IconButton(row, "minimal-scrollbar-arrow-top", 30, function()
 		if ns.MoveElement(kind, row.key, -1) then
 			ns.RefreshElementsPages()
 		end
 	end)
-	row.up:SetHeight(22)
 	row.up:SetPoint("LEFT", row.line, "RIGHT", 6, 0)
-	row.down = UI.Button(row, L["Ab"], 44, function()
+	row.down = IconButton(row, "minimal-scrollbar-arrow-bottom", 30, function()
 		if ns.MoveElement(kind, row.key, 1) then
 			ns.RefreshElementsPages()
 		end
 	end)
-	row.down:SetHeight(22)
 	row.down:SetPoint("LEFT", row.up, "RIGHT", 2, 0)
 
-	row.color = UI.Dropdown(row, 140, ColorEntries, function()
-		if not row.key then return nil end
-		local color = Config(kind, row.key).color
-		return UD.COLORS[color] and color or (color == "default" and "default" or CUSTOM)
-	end, function(v)
-		if v == CUSTOM then
-			PickColor(kind, row.key)
-		else
-			Config(kind, row.key).color = v
-			ns.RefreshElementsPages()
-		end
-	end)
-	row.color:SetPoint("LEFT", row.down, "RIGHT", 8, 0)
-	row.swatch = row:CreateTexture(nil, "ARTWORK")
-	row.swatch:SetSize(14, 14)
-	row.swatch:SetPoint("LEFT", row.color, "RIGHT", 4, 0)
+	row.edit = IconButton(row, "Pencil-Icon", 30, function()
+		OpenEditor(p, row.key)
+	end, 16)
+	row.edit:SetPoint("RIGHT", -4, 0)
+	UI.Tooltip(row.edit, EDIT)
 
-	row.format = UI.Button(row, "", 70, function()
-		EditFormat(kind, row.key)
-	end)
-	row.format:SetHeight(22)
-	row.format:SetPoint("LEFT", row.swatch, "RIGHT", 6, 0)
-
-	row.filter = UI.Dropdown(row, 170, UD.FilterEntries, function()
-		return row.key and Config(kind, row.key).filter or "none"
-	end, function(v)
-		Config(kind, row.key).filter = v
-		ns.RefreshElementsPages()
-	end)
-	row.filter:SetPoint("LEFT", row.format, "RIGHT", 6, 0)
+	row.preview = UI.Text(row, "GameFontHighlight")
+	row.preview:SetPoint("LEFT", row.down, "RIGHT", 12, 0)
+	row.preview:SetPoint("RIGHT", row.edit, "LEFT", -6, 0)
+	row.preview:SetWordWrap(false)
 
 	p.rows[i] = row
 	return row
 end
 
-local function RefreshRow(row, item)
+-- before/after: Nachbarn in der Liste (für die Pfeile: nur innerhalb derselben Tooltip-Zeile)
+local function RefreshRow(p, row, item, before, after)
 	local e, c = item.e, item.c
-	local ekind = e[3]
 	row.key = e[1]
 	row.enable:SetChecked(c.enable)
 	row.label:SetText(e[2])
-	local placed = ekind ~= "fixed"
+	local placed = e[3] ~= "fixed"
 	row.line:SetShown(placed)
 	row.up:SetShown(placed)
 	row.down:SetShown(placed)
 	if placed then
 		row.line:Refresh()
+		row.up:SetEnabled(before ~= nil and before.e[3] ~= "fixed" and before.c.line == c.line)
+		row.down:SetEnabled(after ~= nil and after.e[3] ~= "fixed" and after.c.line == c.line)
 	end
-	local text = ekind ~= "icon"
-	row.color:SetShown(text)
-	row.swatch:SetShown(text)
-	row.format:SetShown(text)
-	if text then
-		row.color:Refresh()
-		local r, g, b = ns.RGB(c.color)
-		if r then
-			row.swatch:SetColorTexture(r, g, b)
+	row.preview:SetText(PreviewText(e, c, p.raw) or INVALID:format(L["(ungültiges Format)"]))
+	row.preview:SetAlpha(c.enable and 1 or 0.4)
+	row.sel:SetShown(p.editor:IsShown() and row.key == p.selected)
+end
+
+---------------------------------------------------------------------------
+-- Bearbeiten-Dialog eines Bausteins (je Seite einer; DefaultPanelTemplate aus Blizzard_SharedXML):
+-- Farbe, Filter, Format mit Vorschau, Hilfe und Beispielen (Knopf mit dem Format, dahinter das
+-- Ergebnis). Hängt an der Seite, schließt also mit ihr.
+---------------------------------------------------------------------------
+
+local EDITOR_WIDTH, EDITOR_HEIGHT = 470, 380
+local PAD = 18
+
+local function Selected(p)
+	return p.selected and ns.Element(p.kind, p.selected), p.selected and Config(p.kind, p.selected)
+end
+
+-- Vorschau zum Text im Formatfeld (auch während der Eingabe)
+local function UpdateResult(p)
+	local ed = p.editor
+	local e, c = Selected(p)
+	if not e or e[3] == "icon" then
+		return
+	end
+	local text = PreviewText(e, c, p.raw, ed.format:GetText())
+	ed.result:SetText(text and L["Vorschau: %s"]:format(text)
+		or INVALID:format(L["Ungültig – genau ein Platzhalter (%s, bei Zahlen auch %d), Prozentzeichen als %%."]))
+end
+
+-- Eingabe übernehmen, wenn gültig; sonst den gespeicherten Wert zurück
+local function CommitFormat(p)
+	local e, c = Selected(p)
+	if not e or e[3] == "icon" then
+		return
+	end
+	local text = p.editor.format:GetText()
+	if text == (c.format or "") then
+		return
+	end
+	if UD.ValidFormat(text, e[3]) then
+		c.format = text
+		ns.RefreshElementsPages()
+	else
+		ns.Print(L["Ungültiges Format: %s"], text)
+		p.editor.format:SetText(c.format or "")
+		UpdateResult(p)
+	end
+end
+
+local function CreateEditor(p)
+	local kind = p.kind
+	local ed = CreateFrame("Frame", nil, p.page, "DefaultPanelTemplate")
+	ed:SetSize(EDITOR_WIDTH, EDITOR_HEIGHT)
+	ed:SetPoint("CENTER", p.page, "CENTER", 0, 20)
+	ed:SetFrameStrata("DIALOG")
+	ed:SetToplevel(true)
+	ed:EnableMouse(true)
+	ed:SetMovable(true)
+	ed:SetClampedToScreen(true)
+	ed:RegisterForDrag("LeftButton")
+	ed:SetScript("OnDragStart", ed.StartMoving)
+	ed:SetScript("OnDragStop", ed.StopMovingOrSizing)
+	ed:Hide()
+	ed.text = {}   -- nur bei Text- und Zahlenbausteinen sichtbar
+	p.editor = ed
+
+	-- OK übernimmt (samt offener Eingabe), Abbrechen, das X und jedes andere Schließen (z. B. mit
+	-- dem Einstellungsfenster) stellen die Werte beim Öffnen wieder her. Änderungen wirken bis dahin
+	-- schon auf die Vorschau in der Liste.
+	ed.cancel = UI.Button(ed, CANCEL, 110, function() ns.CloseElementEditor(p, false) end)
+	ed.cancel:SetPoint("BOTTOMRIGHT", -PAD, 14)
+	ed.ok = UI.Button(ed, OKAY, 110, function() ns.CloseElementEditor(p, true) end)
+	ed.ok:SetPoint("RIGHT", ed.cancel, "LEFT", -8, 0)
+	local close = CreateFrame("Button", nil, ed, "UIPanelCloseButtonDefaultAnchors")
+	close:SetScript("OnClick", function() ns.CloseElementEditor(p, false) end)
+	ed:SetScript("OnHide", function()
+		ns.CloseElementEditor(p, false)
+	end)
+
+	ed.color = UI.Dropdown(ed, 180, ColorEntries, function()
+		local _, c = Selected(p)
+		if not c then return nil end
+		return UD.COLORS[c.color] and c.color or (c.color == "default" and "default" or CUSTOM)
+	end, function(v)
+		if v == CUSTOM then
+			PickColor(kind, p.selected)
 		else
-			row.swatch:SetColorTexture(0, 0, 0, 0)
+			Config(kind, p.selected).color = v
+			ns.RefreshElementsPages()
 		end
-		row.format:SetText(c.format or "")
+	end)
+	ed.color:SetPoint("TOPLEFT", 90, -40)
+	ed.colorLabel = UI.Label(ed, ed.color, COLOR)
+	ed.swatch = ed:CreateTexture(nil, "ARTWORK")
+	ed.swatch:SetSize(14, 14)
+	ed.swatch:SetPoint("LEFT", ed.color, "RIGHT", 6, 0)
+
+	ed.filter = UI.Dropdown(ed, 180, UD.FilterEntries, function()
+		local _, c = Selected(p)
+		return c and c.filter or "none"
+	end, function(v)
+		Config(kind, p.selected).filter = v
+		ns.RefreshElementsPages()
+	end)
+	ed.filter:SetPoint("TOPLEFT", ed.color, "BOTTOMLEFT", 0, -10)
+	UI.Label(ed, ed.filter, FILTER)
+
+	ed.iconNote = UI.Text(ed, "GameFontHighlightSmall", L["Symbole haben weder Farbe noch Format – für sie gilt nur der Filter."])
+	ed.iconNote:SetPoint("TOPLEFT", PAD, -116)
+	ed.iconNote:SetWidth(EDITOR_WIDTH - 2 * PAD)
+
+	ed.format = CreateFrame("EditBox", nil, ed, "InputBoxTemplate")
+	ed.format:SetSize(174, 22)
+	ed.format:SetAutoFocus(false)
+	ed.format:SetMaxLetters(60)
+	ed.format:SetPoint("TOPLEFT", ed.filter, "BOTTOMLEFT", 6, -12)
+	ed.formatLabel = UI.Label(ed, ed.format, L["Format"], 16)
+	ed.format:SetScript("OnTextChanged", function()
+		UpdateResult(p)
+	end)
+	ed.format:SetScript("OnEnterPressed", function(self)
+		CommitFormat(p)
+		self:ClearFocus()
+	end)
+	ed.format:SetScript("OnEditFocusLost", function()
+		CommitFormat(p)
+	end)
+	ed.format:SetScript("OnEscapePressed", function(self)
+		local _, c = Selected(p)
+		self:SetText(c and c.format or "")
+		self:ClearFocus()
+	end)
+	ed.result = UI.Text(ed, "GameFontHighlight")
+	ed.result:SetPoint("LEFT", ed.format, "RIGHT", 14, 0)
+	ed.result:SetPoint("RIGHT", -PAD, 0)
+	ed.result:SetWordWrap(false)
+
+	-- Hilfe: Texte ohne Formatierung angezeigt (%s, %% stehen so da, || zeigt einen Strich)
+	ed.help = UI.Text(ed, "GameFontHighlightSmall")
+	ed.help:SetPoint("TOPLEFT", PAD, -150)
+	ed.help:SetWidth(EDITOR_WIDTH - 2 * PAD)
+	ed.exHead = UI.Text(ed, "GameFontNormalSmall", L["Beispiele – anklicken zum Übernehmen:"])
+	ed.exHead:SetPoint("TOPLEFT", ed.help, "BOTTOMLEFT", 0, -10)
+	-- je Beispiel eine Zeile: Knopf mit dem Format, dahinter das Ergebnis
+	ed.examples = {}
+	for i = 1, 4 do
+		local b = UI.Button(ed, "", 150, function(self)
+			ed.format:SetText(self.fmt)
+			CommitFormat(p)
+		end)
+		b:SetHeight(22)
+		b:SetPoint("TOPLEFT", i == 1 and ed.exHead or ed.examples[i - 1], "BOTTOMLEFT", 0, i == 1 and -6 or -4)
+		b.result = UI.Text(ed, "GameFontHighlight")
+		b.result:SetPoint("LEFT", b, "RIGHT", 12, 0)
+		b.result:SetPoint("RIGHT", -PAD, 0)
+		b.result:SetWordWrap(false)
+		ed.examples[i] = b
+		ed.text[#ed.text + 1] = b
+		ed.text[#ed.text + 1] = b.result
 	end
-	row.filter:Refresh()
+
+	for _, w in ipairs({ ed.color, ed.colorLabel, ed.swatch, ed.format, ed.formatLabel, ed.result, ed.help, ed.exHead }) do
+		ed.text[#ed.text + 1] = w
+	end
+end
+
+local function RefreshEditor(p)
+	local ed = p.editor
+	local e, c = Selected(p)
+	if not (e and ed:IsShown()) then
+		return
+	end
+	ed.TitleContainer.TitleText:SetText(L["Baustein: %s"]:format(e[2]))
+	local text = e[3] ~= "icon"
+	for _, w in ipairs(ed.text) do
+		w:SetShown(text)
+	end
+	ed.iconNote:SetShown(not text)
+	ed.filter:Refresh()
+	if not text then
+		return
+	end
+	ed.color:Refresh()
+	local r, g, b = ns.RGB(c.color)
+	if r then
+		ed.swatch:SetColorTexture(r, g, b)
+	else
+		ed.swatch:SetColorTexture(0, 0, 0, 0)
+	end
+	if not ed.format:HasFocus() then
+		ed.format:SetText(c.format or "")
+	end
+	UpdateResult(p)
+	ed.help:SetText(e[3] == "number"
+		and L["%d oder %s steht für die Zahl, alles andere erscheint so, wie es dasteht. Genau ein Platzhalter ist erlaubt. Ein Prozentzeichen schreibst du als %%, z. B. %d%% für 120%. Farbcodes färben einen Teil: ||cffff0000rot||r (die Farbe oben gilt für den ganzen Baustein)."]
+		or L["%s steht für den Wert, alles andere erscheint so, wie es dasteht. Genau ein %s ist erlaubt. Ein Prozentzeichen schreibst du als %%. Farbcodes färben einen Teil: ||cffff0000rot||r (die Farbe oben gilt für den ganzen Baustein)."])
+	for i, fmt in ipairs(Examples(e)) do
+		local b = ed.examples[i]
+		b.fmt = fmt
+		b:SetText(fmt)
+		b.result:SetText(PreviewText(e, c, p.raw, fmt) or "?")
+	end
+end
+
+local EDITED = { "color", "format", "filter" }   -- Werte, die der Dialog ändert
+
+-- Dialog schließen: ok = übernehmen, sonst die Werte beim Öffnen zurück (p.saved)
+function ns.CloseElementEditor(p, ok)
+	local ed, saved = p.editor, p.saved
+	if not saved then
+		return   -- schon geschlossen (OnHide nach OK/Abbrechen)
+	end
+	p.saved = nil
+	if ColorPickerFrame:IsShown() then
+		ColorPickerFrame:Hide()   -- sonst änderte ein späteres OK im Farbwähler die Farbe noch
+	end
+	if ok then
+		ed.format:ClearFocus()
+		CommitFormat(p)
+	else
+		ed.format:SetText(saved.format or "")   -- ClearFocus übernimmt sonst die Eingabe
+		ed.format:ClearFocus()
+		local c = Config(p.kind, p.selected)
+		for _, k in ipairs(EDITED) do
+			c[k] = saved[k]
+		end
+	end
+	ed:Hide()
+	ns.RefreshElementsPages()
+end
+
+-- Dialog für einen Baustein öffnen und dessen Werte sichern; ein offener Dialog für einen anderen
+-- Baustein wird vorher mit OK geschlossen.
+function OpenEditor(p, key)
+	local ed = p.editor
+	if p.saved and p.selected ~= key then
+		ns.CloseElementEditor(p, true)
+	end
+	if not p.saved then
+		local c = Config(p.kind, key)
+		p.saved = {}
+		for _, k in ipairs(EDITED) do
+			p.saved[k] = c[k]
+		end
+	end
+	p.selected = key
+	ed:Show()
+	ed:Raise()
+	ns.RefreshElementsPage(p.kind)
 end
 
 function ns.RefreshElementsPage(kind)
@@ -275,10 +533,14 @@ function ns.RefreshElementsPage(kind)
 	if not (p and p.page:IsVisible()) then
 		return
 	end
-	for i, item in ipairs(Sorted(kind)) do
-		RefreshRow(p.rows[i] or CreateRow(p, i), item)
+	p.raw = SampleRaw(kind)
+	local sorted = Sorted(kind)
+	for i, item in ipairs(sorted) do
+		RefreshRow(p, p.rows[i] or CreateRow(p, i), item, sorted[i - 1], sorted[i + 1])
 	end
 	p.content:SetHeight(#ns.ELEMENTS[kind] * ROW_HEIGHT)
+	RefreshEditor(p)
+	p.ui.Fit()
 end
 
 function ns.RefreshElementsPages()
@@ -304,51 +566,43 @@ local function Preview(kind)
 end
 
 local function Build(p, title)
-	local page, kind = p.page, p.kind
-	local head = UI.Text(page, "GameFontNormalLarge", "qnTooltip – " .. title)
-	head:SetPoint("TOPLEFT", 16, -16)
-	local desc = UI.Text(page, "GameFontHighlightSmall",
-		L["Die Kopfzeilen des Tooltips bestehen aus diesen Bausteinen. Zeile und Reihenfolge bestimmen ihre Lage; Farbe, Format und Filter gelten je Baustein. Symbole haben weder Farbe noch Format. Die Werte liegen im aktiven Profil."])
-	desc:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6)
-	desc:SetWidth(640)
+	local kind = p.kind
+	p.ui = UI.Page(title, {
+		desc = L["Die Kopfzeilen des Tooltips bestehen aus diesen Bausteinen. Zeile und Reihenfolge bestimmen ihre Lage; Farbe, Format und Filter gelten je Baustein. Symbole haben weder Farbe noch Format. Die Werte liegen im aktiven Profil."],
+		descWidth = 600,
+		defaults = function()
+			StaticPopup_Show("QNTOOLTIP_ELEMENTS_RESET", title, nil, kind)
+		end,
+	})
+	p.page = p.ui.panel
+	local parent = p.ui.content
 
-	p.preview = UI.Button(page, PREVIEW, 120, function() Preview(kind) end,
+	p.preview = UI.Button(parent, PREVIEW, 120, function() Preview(kind) end,
 		kind == "player" and L["Zeigt den Tooltip des eigenen Charakters."] or L["Zeigt den Tooltip des anvisierten NSC."])
-	p.preview:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -10)
+	p.preview:SetPoint("TOPLEFT", p.ui.top, "BOTTOMLEFT", 0, -10)
 	p.preview:SetScript("OnLeave", GameTooltip_Hide)
-	local reset = UI.Button(page, L["Standard wiederherstellen"], 200, function()
-		StaticPopup_Show("QNTOOLTIP_ELEMENTS_RESET", title, nil, kind)
-	end)
-	reset:SetPoint("LEFT", p.preview, "RIGHT", 10, 0)
 
-	local header = CreateFrame("Frame", nil, page)
+	local header = CreateFrame("Frame", nil, parent)
 	header:SetHeight(18)
 	header:SetPoint("TOPLEFT", p.preview, "BOTTOMLEFT", 0, -12)
-	header:SetPoint("RIGHT", page, "RIGHT", -16, 0)
+	header:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
 	local x = 30
-	for _, h in ipairs({ { L["Baustein"], 154 }, { L["Zeile"], 62 }, { L["Reihenfolge"], 104 }, { COLOR, 164 }, { L["Format"], 76 }, { FILTER, 170 } }) do
+	for _, h in ipairs({ { L["Baustein"], 154 }, { L["Zeile"], 62 }, { L["Reihenfolge"], 76 }, { PREVIEW, 0 } }) do
 		local fs = UI.Text(header, "GameFontNormalSmall", h[1])
 		fs:SetPoint("LEFT", x, 0)
 		x = x + h[2]
 	end
 
-	local scroll = CreateFrame("ScrollFrame", nil, page)
-	scroll:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
-	scroll:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", -16, 12)
-	scroll:EnableMouseWheel(true)
-	scroll:SetScript("OnMouseWheel", function(self, delta)
-		local v = self:GetVerticalScroll() - delta * ROW_HEIGHT * 2
-		self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), v)))
-	end)
-	local content = CreateFrame("Frame", nil, scroll)
-	content:SetSize(760, 1)
-	scroll:SetScrollChild(content)
-	scroll:SetScript("OnSizeChanged", function(_, w)
-		content:SetWidth(w)
-	end)
+	-- Zeilen im Inhalt der Seite (blättern mit der Seite)
+	local content = CreateFrame("Frame", nil, parent)
+	content:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
+	content:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
+	content:SetHeight(1)
 	p.content = content
 
-	page:SetScript("OnShow", function()
+	CreateEditor(p)
+
+	p.page:SetScript("OnShow", function()
 		ns.RefreshElementsPage(kind)
 	end)
 end
@@ -360,8 +614,6 @@ end)
 
 function ns.InitElementsPage(category, kind, title)
 	local p = { kind = kind, rows = {} }
-	p.page = CreateFrame("Frame")
-	p.page:Hide()
 	pages[kind] = p
 	Build(p, title)
 	p.sub = Settings.RegisterCanvasLayoutSubcategory(category, p.page, title)

@@ -7,7 +7,8 @@ local _, ns = ...
 local L = ns.L
 local UI = qnCore.UI
 
-local panel
+local page                       -- qnCore.UI.Page
+local panel, content             -- page.panel (Anmeldung, Skripte), page.content (Steuerelemente)
 local pending = { 0, 0, 0, 0 }   -- in der Vorschau bearbeitete Werte
 local boxes = {}                 -- Eingabefelder links, rechts, oben, unten
 local preview, inner, ratioScreen, ratioView
@@ -16,7 +17,7 @@ local patternDropdown, alphaSlider
 local dragging                   -- { l, r, t, b } = welche Ränder gezogen werden
 
 local PREVIEW_WIDTH = 320
-local PREVIEW_TOP = 140          -- Abstand der Vorschau vom oberen Rand der Seite
+local PREVIEW_TOP = 104          -- Abstand der Vorschau vom oberen Rand des Inhalts (unter der Kopfzeile)
 local PAD = 4
 local KEEP_SECONDS = 20
 
@@ -42,16 +43,6 @@ end
 ---------------------------------------------------------------------------
 -- Bausteine (auch für SecondScreen.lua)
 ---------------------------------------------------------------------------
-
--- Überschrift und Beschreibung oben auf einer Optionsseite; liefert die Beschreibung (zum Verankern).
-function ns.Header(parent, title, desc, width)
-	local head = UI.Text(parent, "GameFontNormalLarge", title)
-	head:SetPoint("TOPLEFT", 16, -16)
-	local text = UI.Text(parent, "GameFontHighlightSmall", desc)
-	text:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6)
-	text:SetWidth(width or 600)
-	return text
-end
 
 -- Zahlenfeld (nur Ziffern). get() liefert den angezeigten Wert, set(v) übernimmt eine Eingabe
 -- (Enter oder Fokusverlust; v = nil bei leerem Feld). Escape stellt den Wert wieder her.
@@ -244,7 +235,7 @@ end
 local TAB_ORDER = { 3, 2, 4, 1 }   -- oben, rechts, unten, links
 
 local function Box(index, tooltip)
-	local box = ns.NumBox(panel, 50, function() return pending[index] end, function(value)
+	local box = ns.NumBox(content, 50, function() return pending[index] end, function(value)
 		local v = CopyTable(pending)
 		v[index] = value or 0
 		SetPending(v, index)
@@ -299,21 +290,21 @@ end
 -- Vorschau + Eingabefeld unten (8 + 22) + Knopf (10 + 26) + 14 Abstand.
 local function PlaceLower()
 	ratioScreen:ClearAllPoints()
-	ratioScreen:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -(PREVIEW_TOP + preview:GetHeight() + 80))
+	ratioScreen:SetPoint("TOPLEFT", content, "TOPLEFT", page.padLeft, -(PREVIEW_TOP + preview:GetHeight() + 80))
+	page.Fit()
 end
 
 local function Build()
-	local desc = ns.Header(panel, "qnViewPort",
-		L["Verkleinert den Bereich, in dem die 3D-Welt gezeichnet wird. Die Oberfläche bleibt, wo sie ist – so lassen sich Leisten und Fenster neben die Spielwelt legen."], 560)
+	local desc = page.top
 
-	local tips = UI.Text(panel, "GameFontHighlightSmall",
+	local tips = UI.Text(content, "GameFontHighlightSmall",
 		L["|cffffffff/qnvp|r  Optionen öffnen     |cffffffff/qnvp 0 0 0 0|r  zurücksetzen     |cffffffff/qnvp 5 20 15 0|r  links, rechts, oben, unten setzen"])
 	tips:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -8)
 
 	local w, h = ns.screen[1], ns.screen[2]
-	preview = CreateFrame("Frame", nil, panel, "BackdropTemplate")
+	preview = CreateFrame("Frame", nil, content, "BackdropTemplate")
 	preview:SetSize(PREVIEW_WIDTH, PREVIEW_WIDTH * h / w)
-	preview:SetPoint("TOP", panel, "TOP", 0, -PREVIEW_TOP)
+	preview:SetPoint("TOP", content, "TOP", 0, -PREVIEW_TOP)
 	preview:SetBackdrop({ edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 2 })
 	preview:SetBackdropBorderColor(1, 0, 0, 1)
 
@@ -332,38 +323,38 @@ local function Build()
 	Box(1, HUD_EDIT_MODE_SETTING_ENCOUNTER_EVENTS_ICON_DIRECTION_LEFT):SetPoint("RIGHT", preview, "LEFT", -12, 0)
 	Box(2, HUD_EDIT_MODE_SETTING_ENCOUNTER_EVENTS_ICON_DIRECTION_RIGHT):SetPoint("LEFT", preview, "RIGHT", 14, 0)
 
-	applyButton = UI.Button(panel, APPLY, 130, function()
+	applyButton = UI.Button(content, APPLY, 130, function()
 		ClearFocusAll()
 		ns.ApplyWithConfirm(pending)
 	end, L["Ohne Bestätigung wird die Einstellung nach %d Sekunden zurückgenommen."]:format(KEEP_SECONDS))
 	applyButton:SetPoint("TOPRIGHT", boxes[4], "BOTTOM", -6, -10)
 
-	resetButton = UI.Button(panel, RESET, 130, function()
+	resetButton = UI.Button(content, RESET, 130, function()
 		ClearFocusAll()
 		EndKeep()
 		ns.ApplyViewport({ 0, 0, 0, 0 })
 	end, L["Ganze Bildschirmfläche für die Spielwelt (/qnvp 0 0 0 0)."])
 	resetButton:SetPoint("TOPLEFT", boxes[4], "BOTTOM", 6, -10)
 
-	keepButton = UI.Button(panel, L["Einstellung behalten?"], 280, EndKeep)
+	keepButton = UI.Button(content, L["Einstellung behalten?"], 280, EndKeep)
 	keepButton:SetPoint("TOP", boxes[4], "BOTTOM", 0, -10)
 	keepButton:Hide()
 
-	ratioScreen = UI.Text(panel, "GameFontHighlight")
+	ratioScreen = UI.Text(content, "GameFontHighlight")
 	PlaceLower()
-	ratioView = UI.Text(panel, "GameFontHighlight")
+	ratioView = UI.Text(content, "GameFontHighlight")
 	ratioView:SetPoint("TOPLEFT", ratioScreen, "BOTTOMLEFT", 0, -6)
 
-	local check = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+	local check = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
 	check:SetPoint("TOPLEFT", ratioView, "BOTTOMLEFT", -4, -16)
 	check:SetChecked(ns.db.suppressMessage)
 	check:SetScript("OnClick", function(self)
 		ns.db.suppressMessage = self:GetChecked() and true or false
 	end)
-	local checkText = UI.Text(panel, "GameFontHighlight", L["Hinweis beim Einloggen unterdrücken"])
+	local checkText = UI.Text(content, "GameFontHighlight", L["Hinweis beim Einloggen unterdrücken"])
 	checkText:SetPoint("LEFT", check, "RIGHT", 2, 0)
 
-	colorSwatch = CreateFrame("Button", nil, panel)
+	colorSwatch = CreateFrame("Button", nil, content)
 	colorSwatch:SetSize(20, 20)
 	colorSwatch:SetPoint("TOPLEFT", check, "BOTTOMLEFT", 6, -10)
 	local swatchBorder = colorSwatch:CreateTexture(nil, "BACKGROUND")
@@ -374,13 +365,13 @@ local function Build()
 	colorSwatch.tex:SetPoint("BOTTOMRIGHT", -2, 2)
 	UpdateSwatch()
 	colorSwatch:SetScript("OnClick", OpenColorPicker)
-	local colorText = UI.Text(panel, "GameFontHighlight", L["Farbe der Fläche außerhalb der Welt"])
+	local colorText = UI.Text(content, "GameFontHighlight", L["Farbe der Fläche außerhalb der Welt"])
 	colorText:SetPoint("LEFT", colorSwatch, "RIGHT", 8, 0)
 
 	-- Hintergrundmuster über der Farbe
-	local patternText = UI.Text(panel, "GameFontHighlight", L["Hintergrundmuster"])
+	local patternText = UI.Text(content, "GameFontHighlight", L["Hintergrundmuster"])
 	patternText:SetPoint("TOPLEFT", colorSwatch, "BOTTOMLEFT", 0, -16)
-	patternDropdown = UI.Dropdown(panel, 220, ns.PatternChoices, function()
+	patternDropdown = UI.Dropdown(content, 220, ns.PatternChoices, function()
 		return ns.db.pattern
 	end, function(value)
 		ns.db.pattern = value
@@ -391,9 +382,9 @@ local function Build()
 	UI.Tooltip(patternDropdown, L["Hintergrundmuster"],
 		L["Gekacheltes Muster über der Farbe der Fläche außerhalb der Welt. Die Farbe bleibt darunter sichtbar, soweit das Muster durchscheint."])
 
-	local alphaText = UI.Text(panel, "GameFontHighlight", L["Deckkraft des Musters"])
+	local alphaText = UI.Text(content, "GameFontHighlight", L["Deckkraft des Musters"])
 	alphaText:SetPoint("TOPLEFT", patternText, "BOTTOMLEFT", 0, -22)
-	alphaSlider = CreateFrame("Frame", nil, panel, "MinimalSliderWithSteppersTemplate")
+	alphaSlider = CreateFrame("Frame", nil, content, "MinimalSliderWithSteppersTemplate")
 	alphaSlider:SetSize(220, 20)
 	alphaSlider:SetPoint("LEFT", alphaText, "LEFT", 170, 0)
 	alphaSlider:Init(ns.db.patternAlpha * 100, 0, 100, 20, {
@@ -435,7 +426,8 @@ end
 
 -- setzt ns.category und ns.OpenOptions
 function ns.InitOptions()
-	panel = CreateFrame("Frame")
-	panel:Hide()
+	page = UI.Page("qnViewPort", { descWidth = 560, desc =
+		L["Verkleinert den Bereich, in dem die 3D-Welt gezeichnet wird. Die Oberfläche bleibt, wo sie ist – so lassen sich Leisten und Fenster neben die Spielwelt legen."] })
+	panel, content = page.panel, page.content
 	qnCore.Settings.NewCategory(ns, "qnViewPort", Build, panel)
 end

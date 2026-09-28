@@ -299,6 +299,48 @@ function Dual.PlaceZoneMap()
 	end
 end
 
+-- Gewählte Größe, auf 5 % gerundet und begrenzt wie der Regler (50–200 %)
+local function ZoneMapScale()
+	local s = tonumber(DB().zoneMapScale) or 1
+	return math.max(0.5, math.min(2, math.floor(s * 20 + 0.5) / 20))
+end
+
+-- Größe von Reiter + Karte (Blizzard selbst bietet keine). Bei 100 % fasst qnViewPort die Größe
+-- nicht an, außer um eine eigene Änderung zurückzunehmen.
+-- Blizzard verankert den Reiter mit CENTER an UIParent BOTTOMLEFT und merkt sich die Mitte in
+-- Einheiten des Reiters (BattlefieldMapOptions.position) – beim Laden passt sie also zur gleichen
+-- Größe. keepCenter (Regler, Profilwechsel): Reiter behält seine Mitte auf dem Bildschirm, die
+-- gemerkte Lage wird wie nach Blizzards Ziehen nachgeführt. Mit Platzierung legt PlaceZoneMap ihn.
+local zoneMapScaled = false
+function Dual.ScaleZoneMap(keepCenter)
+	local f, tab = _G.BattlefieldMapFrame, _G.BattlefieldMapTab
+	local s = ZoneMapScale()
+	if not (f and tab) or (s == 1 and not zoneMapScaled) or math.abs(tab:GetScale() - s) < 0.001 then
+		return
+	end
+	zoneMapScaled = s ~= 1
+	local cx, cy = tab:GetCenter()
+	local es = tab:GetEffectiveScale()
+	tab:SetScale(s)
+	f:SetScale(s)
+	if keepCenter and cx and not DB().zoneMap then
+		local ts, us = tab:GetEffectiveScale(), UIParent:GetEffectiveScale()
+		tab:ClearAllPoints()
+		tab:SetPoint("CENTER", UIParent, "BOTTOMLEFT",
+			(cx * es - UIParent:GetLeft() * us) / ts, (cy * es - UIParent:GetBottom() * us) / ts)
+		if BattlefieldMapOptions then
+			BattlefieldMapOptions.position = BattlefieldMapOptions.position or {}
+			BattlefieldMapOptions.position.x, BattlefieldMapOptions.position.y = tab:GetCenter()
+		end
+	end
+end
+
+function Dual.SetZoneMapScale(percent)
+	DB().zoneMapScale = math.floor(percent / 5 + 0.5) * 5 / 100
+	Dual.ScaleZoneMap(true)
+	Dual.PlaceZoneMap()
+end
+
 function Dual.IsZoneMapShown()
 	return ZoneMapLoaded() and _G.BattlefieldMapFrame:IsShown() or false
 end
@@ -329,6 +371,7 @@ local function HookZoneMap()
 		return
 	end
 	zoneMapHooked = true
+	Dual.ScaleZoneMap()
 	-- im nächsten Frame (nach Blizzards eigener Anordnung), Zeigen und Verbergen zusammengefasst
 	local Changed = qnCore.Debounce(function()
 		Dual.PlaceZoneMap()
@@ -494,6 +537,7 @@ end
 function Dual.ApplyAll()
 	Dual.UpdateArea()
 	Dual.DockBags()
+	Dual.ScaleZoneMap(true)
 	Dual.PlaceZoneMap()
 	Dual.PlaceWorldMap()
 end
@@ -689,14 +733,16 @@ local function ApplyButton(anchor, withViewport)
 	return b
 end
 
--- Unterseite anlegen: build() baut auf „page“, danach Anmeldung im Einstellungsfenster.
-local function NewPage(name, build)
-	page = CreateFrame("Frame")
-	page:Hide()
-	page:SetScript("OnShow", Dual.RefreshOptions)
-	pages[#pages + 1] = page
-	build()
-	return Settings.RegisterCanvasLayoutSubcategory(ns.category, page, name)
+-- Unterseite anlegen (qnCore.UI.Page: Überschrift, Trennlinie, Inhalt mit Scrollbar):
+-- build(top) baut auf „page“ (= Inhalt) unter top (Beschreibung), danach Anmeldung im
+-- Einstellungsfenster. Liefert Kategorie und Seite (für Fit nach dem Ein-/Ausblenden).
+local function NewPage(name, desc, build)
+	local ui = UI.Page(name, { desc = desc })
+	ui.panel:SetScript("OnShow", Dual.RefreshOptions)
+	pages[#pages + 1] = ui.panel
+	page = ui.content
+	build(ui.top, ui)
+	return Settings.RegisterCanvasLayoutSubcategory(ns.category, ui.panel, name), ui
 end
 
 local info, monInfo
@@ -749,10 +795,7 @@ end
 -- Optionsseite (Unterkategorie „Zweiter Monitor“)
 ---------------------------------------------------------------------------
 
-local function BuildPage()
-	local desc = ns.Header(page, "qnViewPort – " .. L["Zweiter Monitor"],
-		L["Das Spielfenster muss über mehrere Monitore gezogen sein (Fenstermodus, z. B. 5760 × 2160). Dann liegt die 3D-Welt auf dem Hauptmonitor. Oberflächenelemente verschiebst du im Bearbeitungsmodus von Blizzard; Elemente außerhalb der Monitore findest du auf der Seite „Monitore“, Taschen, Zonenkarte und Weltkarte auf der Seite „Platzierung“."])
-
+local function BuildPage(desc)
 	local enable = Check(L["Zwei-Monitor-Modus aktiv (3D-Welt nur auf dem Hauptmonitor)"], nil, nil, nil,
 		function() return DB().enabled end, Dual.SetEnabled)
 	enable:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", -4, -14)
@@ -813,7 +856,8 @@ local function MonitorEntries()
 	return list
 end
 
--- Abschnitt „Monitor, Ecke, Abstände“ für eine Platzierung; liefert den Monitor-Knopf (zum Verankern).
+-- Abschnitt „Monitor, Ecke, Abstände“ für eine Platzierung; liefert den Monitor-Knopf und das Feld
+-- „Abstand waagerecht“ (zum Verankern).
 -- monitorTitle/cornerTitle: Tooltip-Überschriften der beiden Auswahlknöpfe.
 local function PlacementControls(prefix, anchor, monitorTitle, cornerTitle)
 	local monitor = Choice(PRIMARY_MONITOR, 240, MonitorEntries,
@@ -832,13 +876,34 @@ local function PlacementControls(prefix, anchor, monitorTitle, cornerTitle)
 	offsetX:SetPoint("TOPLEFT", monitor, "BOTTOMLEFT", 80, -14)
 	local offsetY = NumBox(L["senkrecht"], prefix .. "OffsetY", Dual.ApplyAll)
 	offsetY:SetPoint("LEFT", offsetX, "RIGHT", 90, 0)
-	return monitor
+	return monitor, offsetX
 end
 
-local function BuildPlacementPage()
-	local desc = ns.Header(page, "qnViewPort – " .. L["Platzierung"],
-		L["Legt Taschen und Zonenkarte an eine Ecke eines Monitors und die Weltkarte auf einen Monitor. Die Abstände zählen in Pixeln vom Rand der Ecke nach innen. Ohne Haken fasst qnViewPort das jeweilige Fenster nicht an."])
+-- Regler für die Größe der Zonenkarte (50–200 % in 5-%-Schritten, wie die Titan-Skalierung)
+local function ZoneMapScaleSlider()
+	local s = CreateFrame("Frame", nil, page, "MinimalSliderWithSteppersTemplate")
+	s:SetSize(220, 20)
+	s.label = UI.Label(page, s, HUD_EDIT_MODE_SETTING_MINIMAP_SIZE)
+	s:Init(ZoneMapScale() * 100, 50, 200, 30, {
+		[MinimalSliderWithSteppersMixin.Label.Right] = function(v)
+			return ("%d %%"):format(v + 0.5)
+		end,
+	})
+	s:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
+		if not s.quiet then
+			Dual.SetZoneMapScale(value)
+		end
+	end, s)
+	function s:Refresh()
+		self.quiet = true
+		self:SetValue(ZoneMapScale() * 100)
+		self.quiet = false
+	end
+	widgets[#widgets + 1] = s
+	return s
+end
 
+local function BuildPlacementPage(desc)
 	-- Taschen
 	local bagHead = UI.Text(page, "GameFontNormal", HUD_EDIT_MODE_BAGS_LABEL)
 	bagHead:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -16)
@@ -859,11 +924,14 @@ local function BuildPlacementPage()
 		L["Legt die Zonenkarte samt Reiter bei jedem Einblenden an die gewählte Ecke. Ziehen am Reiter wirkt dann nur bis zum nächsten Einblenden."],
 		Dual.ApplyAll)
 	cPlace:SetPoint("TOPLEFT", cShow, "BOTTOMLEFT", 0, -2)
-	local mapMonitor = PlacementControls("zoneMap", cPlace, L["Monitor für die Zonenkarte"], L["Ecke für die Zonenkarte"])
+	local mapMonitor, mapOffsetX = PlacementControls("zoneMap", cPlace, L["Monitor für die Zonenkarte"], L["Ecke für die Zonenkarte"])
+	-- Größe gilt auch ohne Platzierung; linksbündig mit dem Monitor-Knopf
+	local mapScale = ZoneMapScaleSlider()
+	mapScale:SetPoint("TOPLEFT", mapOffsetX, "BOTTOMLEFT", -80, -14)
 
 	-- Weltkarte: maximiert und verkleinert („Karte & Questlog“) je auf einen ganzen Monitor
 	local worldHead = UI.Text(page, "GameFontNormal", WORLDMAP_BUTTON)
-	worldHead:SetPoint("TOPLEFT", mapMonitor, "BOTTOMLEFT", -90, -52)
+	worldHead:SetPoint("TOPLEFT", mapScale, "BOTTOMLEFT", -90, -20)
 	local cWorld = Check(L["Maximierte Weltkarte auf"], "worldMap",
 		L["Blizzard legt die maximierte Weltkarte über das ganze Spielfenster, bei mehreren Monitoren also über alle. An: Karte und schwarze Fläche nur auf dem gewählten Monitor."],
 		Dual.ApplyAll)
@@ -908,7 +976,7 @@ end
 ---------------------------------------------------------------------------
 
 local ROW_HEIGHT = 26
-local listScroll, listContent, listHeader, listChecked
+local listPage, listContent, listHeader, listChecked   -- listPage: UI.Page der Seite „Monitore“
 local rows = {}
 
 -- Markiert das Element, über dessen Knopf die Maus steht
@@ -1006,38 +1074,28 @@ function Dual.CheckVisible()
 		rows[i]:Hide()
 	end
 	listContent:SetHeight(math.max(1, #list * ROW_HEIGHT))
-	listScroll:SetVerticalScroll(0)
+	listContent:SetShown(#list > 0)
 	if #list == 0 then
 		listHeader:SetText("|cff80ff80" .. L["Alle eingeblendeten Oberflächenelemente liegen auf einem Monitor."] .. "|r")
-	elseif #list * ROW_HEIGHT > listScroll:GetHeight() then
-		listHeader:SetText(L["%d Element(e) ganz oder teilweise außerhalb der Monitore  –  Mausrad zum Blättern"]:format(#list))
 	else
 		listHeader:SetText(L["%d Element(e) ganz oder teilweise außerhalb der Monitore"]:format(#list))
 	end
+	listPage.Fit()
 end
 
+-- Liste im Inhalt der Seite (blättert mit der Seite)
 local function BuildVisibleList(parent, anchor)
 	listHeader = UI.Text(parent, "GameFontNormal", L["Noch nicht geprüft – „Sichtbarkeit prüfen“ drücken."])
 	listHeader:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -14)
 
-	listScroll = CreateFrame("ScrollFrame", nil, parent)
-	listScroll:SetPoint("TOPLEFT", listHeader, "BOTTOMLEFT", 0, -6)
-	listScroll:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -16, 12)
-	listScroll:EnableMouseWheel(true)
-	listScroll:SetScript("OnMouseWheel", function(self, delta)
-		local v = self:GetVerticalScroll() - delta * ROW_HEIGHT * 2
-		self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), v)))
-	end)
-	local bg = listScroll:CreateTexture(nil, "BACKGROUND")
+	listContent = CreateFrame("Frame", nil, parent)
+	listContent:SetPoint("TOPLEFT", listHeader, "BOTTOMLEFT", 0, -6)
+	listContent:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
+	listContent:SetHeight(1)
+	listContent:Hide()
+	local bg = listContent:CreateTexture(nil, "BACKGROUND")
 	bg:SetAllPoints()
 	bg:SetColorTexture(0, 0, 0, 0.25)
-
-	listContent = CreateFrame("Frame", nil, listScroll)
-	listContent:SetSize(620, 1)
-	listScroll:SetScrollChild(listContent)
-	listScroll:SetScript("OnSizeChanged", function(_, w)
-		listContent:SetWidth(w)
-	end)
 	parent:HookScript("OnHide", RowLeave)
 end
 
@@ -1045,10 +1103,8 @@ end
 -- Optionsseite (Unterkategorie „Monitore“)
 ---------------------------------------------------------------------------
 
-local function BuildMonitorPage()
-	local desc = ns.Header(page, "qnViewPort – " .. L["Monitore"],
-		L["Die Monitordaten (Monitors.lua) schreibt qnViewPort\\scripts\\Initialize-WowMonitors.ps1: einmalig Monitore auswählen und den Hauptmonitor festlegen. Set-WowWindow.ps1 zieht das Spielfenster dann über die ausgewählten Monitore und gleicht die Daten ab. Nach einer Änderung /reload."])
-
+local function BuildMonitorPage(desc, ui)
+	listPage = ui
 	local cData = Check(L["Monitordaten verwenden"], "useMonitorData",
 		L["Aus: Lage und Größe des 2. Monitors kommen von der Seite „Zweiter Monitor“."], function()
 			if DB().enabled then
@@ -1083,7 +1139,7 @@ local function BuildMonitorPage()
 
 	BuildVisibleList(page, monInfo)
 
-	page:HookScript("OnShow", function()
+	ui.panel:HookScript("OnShow", function()
 		if listChecked then
 			Dual.CheckVisible()   -- Lage kann sich seit der letzten Prüfung geändert haben
 		end
@@ -1099,9 +1155,15 @@ end
 ---------------------------------------------------------------------------
 
 function ns.InitSecondScreen()
-	NewPage(L["Monitore"], BuildMonitorPage)
-	sub = NewPage(L["Zweiter Monitor"], BuildPage)
-	NewPage(L["Platzierung"], BuildPlacementPage)
+	NewPage(L["Monitore"],
+		L["Die Monitordaten (Monitors.lua) schreibt qnViewPort\\scripts\\Initialize-WowMonitors.ps1: einmalig Monitore auswählen und den Hauptmonitor festlegen. Set-WowWindow.ps1 zieht das Spielfenster dann über die ausgewählten Monitore und gleicht die Daten ab. Nach einer Änderung /reload."],
+		BuildMonitorPage)
+	sub = NewPage(L["Zweiter Monitor"],
+		L["Das Spielfenster muss über mehrere Monitore gezogen sein (Fenstermodus, z. B. 5760 × 2160). Dann liegt die 3D-Welt auf dem Hauptmonitor. Oberflächenelemente verschiebst du im Bearbeitungsmodus von Blizzard; Elemente außerhalb der Monitore findest du auf der Seite „Monitore“, Taschen, Zonenkarte und Weltkarte auf der Seite „Platzierung“."],
+		BuildPage)
+	NewPage(L["Platzierung"],
+		L["Legt Taschen und Zonenkarte an eine Ecke eines Monitors und die Weltkarte auf einen Monitor. Die Abstände zählen in Pixeln vom Rand der Ecke nach innen. Ohne Haken fasst qnViewPort das jeweilige Fenster nicht an."],
+		BuildPlacementPage)
 
 	-- Taschen: Blizzard setzt die Anker in UpdateContainerFrameAnchors – beim Öffnen und Schließen
 	-- jeder Tasche und der kombinierten Tasche (ContainerFrame.lua). Unser Hook läuft danach,

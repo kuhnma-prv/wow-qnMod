@@ -80,7 +80,6 @@ L["Einstellungen aus %s in das aktive Profil %s übernehmen (%s)?\nDie bisherige
 L["Vorhanden bei: %s"] = "Used by: %s"
 L["Aktives Profil:"] = "Active profile:"
 L["(aktiv)"] = "(active)"
-L["qnCore – Profile"] = "qnCore – Profiles"
 L["Alle qn-Addons speichern ihre Einstellungen je Layout des Bearbeitungsmodus (Esc → Bearbeitungsmodus). Wechselst du dort das Layout, wechselt auch das Profil. Charakterspezifische Layouts haben eigene Profile, die nur dieser Charakter benutzt. Ein neues Layout startet mit einer Kopie des bisher aktiven Profils."] = "All qn addons store their settings per Edit Mode layout (Esc → Edit Mode). Switching the layout there switches the profile as well. Character-specific layouts have their own profiles, used only by that character. A new layout starts with a copy of the previously active profile."
 L["Gilt für:"] = "Applies to:"
 L["Aktives Profil zurücksetzen"] = "Reset active profile"

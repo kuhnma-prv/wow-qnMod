@@ -29,7 +29,7 @@ Alle außer qnCore: `## Dependencies: qnCore`, `## IconTexture: Interface\AddOns
 Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCore.Settings.NewCategory`/`SetIn`,
 `store:Set`/`SetValues`, `qnCore.DeferInCombat`, `qnCore.Debounce`, `qnCore.ClassColor(classFile)`,
 `qnCore.Popup.Confirm`/`EditText`, `qnCore.AnchorFactors`/`PointOffset`/`NearestCorner`, `qnCore.PointEntries(cornersOnly)` (Ankerpunkte fürs Dropdown), `qnCore.Visible`
-(Rahmen in den sichtbaren Bereich holen; qnViewPort liefert die Monitore), `qnCore.UI.*` (Canvas-Bausteine),
+(Rahmen in den sichtbaren Bereich holen; qnViewPort liefert die Monitore), `qnCore.UI.*` (Canvas-Bausteine, `UI.Page` für jede Canvas-Seite),
 `qnCore.Patterns` (eigene Kachelmuster `{ Schlüssel, Name, Datei, LSM-Name }` in `qnCore\Media\Patterns`,
 erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als „qn …“ angemeldet).
 
@@ -40,6 +40,20 @@ erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als �
 - **Auswahl aus mehreren Möglichkeiten immer als Dropdown-Knopf**, der die aktive Auswahl anzeigt
   (`qnCore.UI.Dropdown` auf Canvas-Seiten, `Settings.CreateDropdown` auf Proxy-Seiten). Keine Cycle-Knöpfe.
 - **Optionen im Blizzard-Einstellungsfenster** (Settings-API), nicht als eigene Optionsfenster.
+- **Einheitliches Aussehen aller Optionsseiten** wie Blizzards senkrechte Seiten: oben die Überschrift
+  = Name der Seite (wie in der Liste links, ohne Addon-Präfix), optional rechts daneben der Knopf „Standard“,
+  darunter die Trennlinie, darunter der Inhalt mit Scrollbar (nur sichtbar, wenn er nicht passt).
+  - Wo es geht, senkrechte Seiten (`Settings.RegisterVerticalLayout…`, `qnCore.Settings`) – die bringen das mit.
+  - Frei gestaltete Seiten (Canvas) **immer über `qnCore.UI.Page(title, { desc, descWidth, defaults })`**
+    (`Widgets.lua`, Nachbau von Blizzards `SettingsListTemplate`): liefert `panel` (anmelden, OnShow usw.),
+    `content` (Eltern aller Steuerelemente), `top` (Anker für das erste Element: die Beschreibung),
+    `Fit()` (nach dem Ein-/Ausblenden von Elementen aufrufen), `padLeft`/`padTop`. Keine eigenen Überschriften,
+    Trennlinien oder Bildlaufbereiche bauen.
+  - Beschreibung der Seite über `desc` (unter der Linie), nicht in die Überschrift.
+  - „Standard“ (`defaults`) nur, wenn es ein echtes Zurücksetzen auf die Vorgaben dieser Seite gibt; dann
+    kein eigener Zurücksetzen-Knopf im Inhalt.
+  - Listen (Zeilen) liegen direkt im Inhalt und blättern mit der Seite – keine zweite, innere Liste mit
+    eigenem Mausrad-Bildlauf.
 - **Profile:** aktives Profil = aktives Edit-Mode-Layout (`preset:<n>`, `account:<Name>`,
   `char:<Name-Realm>:<Name>`), charakterspezifische Layouts berücksichtigen. Neues Layout = Kopie des
   bisher aktiven Profils. Registrierung über `qnCore.Profiles.Register{ ns, sv, defaults, upgrade, obsolete,

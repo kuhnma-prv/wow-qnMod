@@ -8,7 +8,8 @@ local lib = qnCore
 local L = ns.L
 local UI = lib.UI
 
-local page, sub
+local page, sub   -- page: qnCore.UI.Page
+local parent       -- Inhalt der Seite (Eltern der Steuerelemente)
 local infoText, buttonDropdown
 local rows = {}
 ns.clicksUI = { rows = rows }   -- für die Tests (dazu .button = Dropdown der Maustaste, .macro = Makro-Editor)
@@ -95,6 +96,7 @@ local function CloseMacro()
 	macroKey = nil
 	editor.box:ClearFocus()
 	editor:Hide()
+	page.Fit()
 end
 
 local function EditMacro(key)
@@ -104,6 +106,7 @@ local function EditMacro(key)
 	editor.box:SetText(entry and entry.value or "")
 	editor:Show()
 	editor.box:SetFocus()
+	page.Fit()
 end
 
 local function AcceptMacro()
@@ -118,7 +121,7 @@ local function AcceptMacro()
 end
 
 local function CreateMacroEditor(anchor)
-	editor = CreateFrame("Frame", nil, page)
+	editor = CreateFrame("Frame", nil, parent)
 	editor:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -16)
 	editor:SetSize(620, 130)
 	editor:Hide()
@@ -170,11 +173,11 @@ local function SetKind(row, kind)
 end
 
 local function CreateRow(i, prefix, anchor)
-	local row = CreateFrame("Frame", nil, page)
+	local row = CreateFrame("Frame", nil, parent)
 	row.prefix = prefix
 	row:SetHeight(ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, i == 1 and -12 or 0)
-	row:SetPoint("RIGHT", page, "RIGHT", -16, 0)
+	row:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
 	if i % 2 == 0 then
 		local bg = row:CreateTexture(nil, "BACKGROUND")
 		bg:SetAllPoints()
@@ -241,7 +244,7 @@ local function RefreshRow(row)
 end
 
 function ns.RefreshClicksPage()
-	if not (page and page:IsVisible()) then
+	if not (page and page.panel:IsVisible()) then
 		return
 	end
 	infoText:SetText(L["Belegung für %s im Profil %s"]:format(UnitClass("player"), lib.Profiles.GetLabel(lib.Profiles.GetActiveKey())))
@@ -264,30 +267,27 @@ end
 ---------------------------------------------------------------------------
 
 local function Build()
-	local title = UI.Text(page, "GameFontNormalLarge", L["qnUnitFrames – Klickbelegung"])
-	title:SetPoint("TOPLEFT", 16, -16)
-	local desc = UI.Text(page, "GameFontHighlightSmall",
-		L["Klicks auf Blizzards Gruppen- und Schlachtzugsrahmen wirken Zauber oder Makros auf das angeklickte Mitglied. Die Belegung gilt je Klasse und liegt im aktiven Profil (Layout des Bearbeitungsmodus). Im Kampf lässt sie sich nicht ändern; Änderungen folgen nach dem Kampf."])
-	desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
-	desc:SetWidth(620)
+	page = UI.Page(L["Klickbelegung"], { desc =
+		L["Klicks auf Blizzards Gruppen- und Schlachtzugsrahmen wirken Zauber oder Makros auf das angeklickte Mitglied. Die Belegung gilt je Klasse und liegt im aktiven Profil (Layout des Bearbeitungsmodus). Im Kampf lässt sie sich nicht ändern; Änderungen folgen nach dem Kampf."] })
+	parent = page.content
 
-	infoText = UI.Text(page, "GameFontNormal")
-	infoText:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -14)
+	infoText = UI.Text(parent, "GameFontNormal")
+	infoText:SetPoint("TOPLEFT", page.top, "BOTTOMLEFT", 0, -14)
 
-	buttonDropdown = UI.Dropdown(page, 200, ns.BUTTONS, function() return button end, function(v)
+	buttonDropdown = UI.Dropdown(parent, 200, ns.BUTTONS, function() return button end, function(v)
 		button = v
 		ns.RefreshClicksPage()
 	end)
 	buttonDropdown:SetPoint("TOPLEFT", infoText, "BOTTOMLEFT", 110, -12)
 	ns.clicksUI.button = buttonDropdown
-	UI.Label(page, buttonDropdown, L["Maustaste:"])
+	UI.Label(parent, buttonDropdown, L["Maustaste:"])
 
-	local clear = UI.Button(page, L["Alle löschen"], 140, function()
+	local clear = UI.Button(parent, L["Alle löschen"], 140, function()
 		StaticPopup_Show("QNUNITFRAMES_CLEAR", UnitClass("player"))
 	end, L["Löscht alle Klickbelegungen der eigenen Klasse im aktiven Profil (alle Maustasten)."])
 	clear:SetPoint("LEFT", buttonDropdown, "RIGHT", 20, 0)
 
-	local anchor = CreateFrame("Frame", nil, page)
+	local anchor = CreateFrame("Frame", nil, parent)
 	anchor:SetSize(1, 1)
 	anchor:SetPoint("TOPLEFT", infoText, "BOTTOMLEFT", 0, -44)
 	local last = anchor
@@ -295,21 +295,19 @@ local function Build()
 		last = CreateRow(i, prefix, last)
 	end
 
-	local hint = UI.Text(page, "GameFontHighlightSmall",
+	local hint = UI.Text(parent, "GameFontHighlightSmall",
 		L["'Blizzard-Standard' lässt den Klick unverändert (Linksklick: Ziel auswählen, Rechtsklick: Menü). Belegst du Linksklick ohne Zusatztaste mit einem Zauber, wählst du mit ihm kein Ziel mehr aus."])
 	hint:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -14)
 	hint:SetWidth(620)
 
 	CreateMacroEditor(hint)
 
-	page:SetScript("OnShow", ns.RefreshClicksPage)
+	page.panel:SetScript("OnShow", ns.RefreshClicksPage)
 end
 
 function ns.InitClicksPage(category)
-	page = CreateFrame("Frame")
-	page:Hide()
 	Build()
-	sub = Settings.RegisterCanvasLayoutSubcategory(category, page, L["Klickbelegung"])
+	sub = Settings.RegisterCanvasLayoutSubcategory(category, page.panel, L["Klickbelegung"])
 end
 
 function ns.OpenClicksPage()

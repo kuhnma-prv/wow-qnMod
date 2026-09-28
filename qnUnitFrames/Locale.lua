@@ -42,7 +42,6 @@ L["Alle Klickbelegungen für %s im aktiven Profil löschen?"] = "Delete all clic
 L["Zauber wählen …"] = "Choose spell …"
 L["(leer)"] = "(empty)"
 L["Belegung für %s im Profil %s"] = "Bindings for %s in profile %s"
-L["qnUnitFrames – Klickbelegung"] = "qnUnitFrames – Click Bindings"
 L["Klicks auf Blizzards Gruppen- und Schlachtzugsrahmen wirken Zauber oder Makros auf das angeklickte Mitglied. Die Belegung gilt je Klasse und liegt im aktiven Profil (Layout des Bearbeitungsmodus). Im Kampf lässt sie sich nicht ändern; Änderungen folgen nach dem Kampf."] = "Clicks on Blizzard's party and raid frames cast spells or macros on the clicked member. The bindings apply per class and are stored in the active profile (Edit Mode layout). They cannot change in combat; changes follow after combat."
 L["Maustaste:"] = "Mouse button:"
 L["Alle löschen"] = "Delete all"
