@@ -1,8 +1,8 @@
--- qnInventory: Postansicht, nachgebaut wie Blizzards Posteingang (Blizzard_MailFrame: MailFrame mit
--- InboxFrame, 7 Briefe je Seite aus MailItemTemplate). Ein Klick auf einen Brief öffnet daneben
--- die Anhänge (vereinfachtes OpenMailFrame: Absender, Betreff, Anhänge, Gold bzw. Nachnahme; den
--- Brieftext liest das Addon nicht, das würde den Brief als gelesen markieren).
--- Die Restlaufzeit wird aus dem gespeicherten Ablaufzeitpunkt berechnet.
+-- qnInventory: mail view, recreated like Blizzard's inbox (Blizzard_MailFrame: MailFrame with
+-- InboxFrame, 7 letters per page from MailItemTemplate). A click on a letter opens its
+-- attachments next to it (simplified OpenMailFrame: sender, subject, attachments, gold or C.O.D.; the
+-- addon does not read the letter text, that would mark the letter as read).
+-- The remaining time is calculated from the stored expiry time.
 
 local _, ns = ...
 
@@ -17,10 +17,10 @@ ns.RegisterView("mail", view)
 local frame, inbox, notice, pageText, prevButton, nextButton
 local rows = {}
 local page = 1
-local openLetter   -- im Lesefenster gezeigter Brief
+local openLetter   -- letter shown in the reading window
 
 ---------------------------------------------------------------------------
--- Lesefenster
+-- Reading window
 ---------------------------------------------------------------------------
 
 local reader, readerSender, readerSubject, readerMoney, readerMoneyLabel
@@ -87,7 +87,7 @@ local function ShowLetter(letter)
 end
 
 ---------------------------------------------------------------------------
--- Posteingang
+-- Inbox
 ---------------------------------------------------------------------------
 
 local function LetterOnEnter(self)
@@ -130,7 +130,7 @@ local function CreateRow(i)
 		row:SetPoint("TOPLEFT", rows[i - 1], "BOTTOMLEFT")
 	end
 	row.name = name
-	-- Skripte des Knopfs gehören zu Blizzards Posteingang (InboxFrame, GetInboxItem)
+	-- the button's scripts belong to Blizzard's inbox (InboxFrame, GetInboxItem)
 	local b = row.Button
 	b:UnregisterAllEvents()
 	b:SetScript("OnEvent", nil)
@@ -142,7 +142,7 @@ local function CreateRow(i)
 	return row
 end
 
--- Seitenknopf wie Blizzards PrevPageButton/NextPageButton
+-- Page button like Blizzard's PrevPageButton/NextPageButton
 local function PageButton(prefix, text, point, x, textPoint, textRel)
 	local b = CreateFrame("Button", nil, inbox)
 	b:SetSize(32, 32)
@@ -201,7 +201,7 @@ local function Create()
 	ns.AttachHeader(frame, "mail")
 end
 
--- Restlaufzeit wie InboxMixin:Update
+-- Remaining time like InboxMixin:Update
 local function ExpireText(expires)
 	local daysLeft = ((expires or 0) - time()) / DAY
 	if daysLeft >= 1 then
@@ -210,7 +210,7 @@ local function ExpireText(expires)
 	return RED_FONT_COLOR_CODE .. SecondsToTime(math.max(0, floor(daysLeft * DAY))) .. FONT_COLOR_CODE_CLOSE
 end
 
--- Eine Zeile wie InboxMixin:Update; letter = nil leert sie
+-- One row like InboxMixin:Update; letter = nil clears it
 local function FillRow(row, letter)
 	local name = row.name
 	local b = row.Button

@@ -1,7 +1,7 @@
-// Nachschlagen in den Blizzard-GlobalStrings von Forever (GlobalStrings/deDE.lua, enUS.lua).
-//   node gs.mjs "Bank" "Händler"     GlobalStrings, deren deutscher Text genau so lautet
-//   node gs.mjs -k DELETE CANCEL     deutscher und englischer Text zu Schlüsseln
-//   node gs.mjs -s "Zeitstempel"     deutscher Text enthält den Suchtext (höchstens 25 Treffer)
+// Look up the Blizzard GlobalStrings of Forever (GlobalStrings/deDE.lua, enUS.lua).
+//   node gs.mjs "Bank" "Händler"     GlobalStrings whose German text is exactly this
+//   node gs.mjs -k DELETE CANCEL     German and English text for keys
+//   node gs.mjs -s "Zeitstempel"     German text contains the search text (at most 25 hits)
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -34,7 +34,7 @@ if (args[0] === '-k') {
   for (const q of args) {
     const hits = [...de].filter(([k, v]) => v === q && en.has(k)).map(([k]) => k)
       .sort((a, b) => a.length - b.length);
-    console.log(`${JSON.stringify(q)}: ${hits.length ? '' : 'kein GlobalString'}`);
+    console.log(`${JSON.stringify(q)}: ${hits.length ? '' : 'no GlobalString'}`);
     for (const k of hits.slice(0, 8)) show(k);
   }
 }

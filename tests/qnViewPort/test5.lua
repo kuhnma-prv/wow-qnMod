@@ -1,5 +1,5 @@
--- Szenario 5: qnViewPort ohne Titan – keine Unterseite „Titan Panel“, keine Hooks, Profilwechsel
--- und Anwenden laufen ohne Fehler.
+-- Scenario 5: qnViewPort without Titan – no "Titan Panel" subpage, no hooks, profile switch
+-- and apply run without errors.
 
 qnCoreCharDB = { layout = "account:Raid" }
 qnViewPortDB = { global = {}, profiles = {
@@ -13,15 +13,15 @@ FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
 
 local tt = vp.Titan
-Check(not tt.active and tt.category == nil, "ohne Titan: nicht aktiv, keine Unterseite")
-Check(_G.qnViewPortTitanAnchorBar == nil, "ohne Titan: keine Anker")
-Check(TitanPanelButton_OnEnter == nil and TitanPanelBarButton_Show == nil, "ohne Titan: keine Titan-Globals angelegt")
+Check(not tt.active and tt.category == nil, "without Titan: not active, no subpage")
+Check(_G.qnViewPortTitanAnchorBar == nil, "without Titan: no anchors")
+Check(TitanPanelButton_OnEnter == nil and TitanPanelBarButton_Show == nil, "without Titan: no Titan globals created")
 local ok, err = pcall(function()
 	tt.Apply()
 	SetEditModeLayout(1)
 	SetEditModeLayout(3)
 end)
-Check(ok, "Anwenden und Profilwechsel ohne Titan: " .. tostring(err))
-Check(qnViewPortDB.profiles["account:Raid"].titan.Bar == 2, "gespeicherte Titan-Auswahl bleibt erhalten")
+Check(ok, "apply and profile switch without Titan: " .. tostring(err))
+Check(qnViewPortDB.profiles["account:Raid"].titan.Bar == 2, "saved Titan selection is kept")
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

@@ -1,15 +1,15 @@
--- qnViewPort: Titan Panel auf den Monitoren (nur wenn Titan geladen ist, ## OptionalDeps: Titan).
---   * Die durchgehenden Titan-Leisten (oben: Bar, Bar2; unten: AuxBar, AuxBar2) liegen auf einem
---     wählbaren Monitor statt über dem ganzen Spielfenster.
---   * Tooltips und Steuerfenster der Titan-Plugins bleiben auf dem Monitor des Plugins.
---   * Je Monitor ein Skalierungsfaktor für Leisten, Plugins und Titans Tooltip (zusätzlich zu Titans
---     eigener Skalierung), z. B. für Monitore mit unterschiedlicher Pixeldichte.
--- Titan hängt die Leisten mit zwei Ankern an UIParent. Hier wird in Titans statischer Tabelle
--- TitanBarData der Bezugsrahmen (show.rel_fr, bott.rel_fr) durch einen eigenen Ankerrahmen je Leiste
--- ersetzt. Der liegt über dem gewählten Monitor oder – ohne Auswahl – genau über UIParent, dann
--- bleibt alles wie bei Titan. Titan selbst wird nicht verändert; nachgezogen werden nur die Breite
--- der Auto-Hide-Leiste, die Lage verborgener Leisten sowie Tooltips und Steuerfenster.
--- Einstellungen: ns.db.titan (je Profil), Monitornummern wie auf der Seite „Monitore“.
+-- qnViewPort: Titan Panel on the monitors (only if Titan is loaded, ## OptionalDeps: Titan).
+--   * The full-width Titan bars (top: Bar, Bar2; bottom: AuxBar, AuxBar2) lie on a
+--     selectable monitor instead of across the whole game window.
+--   * Tooltips and control frames of Titan plugins stay on the plugin's monitor.
+--   * A scale factor per monitor for bars, plugins and Titan's tooltip (in addition to Titan's
+--     own scale), e.g. for monitors with different pixel density.
+-- Titan attaches the bars to UIParent with two anchors. Here, in Titan's static table
+-- TitanBarData, the reference frame (show.rel_fr, bott.rel_fr) is replaced by an anchor frame of our own
+-- per bar. It lies over the chosen monitor or – without a selection – exactly over UIParent, then
+-- everything stays as with Titan. Titan itself is not modified; only the width of the
+-- auto-hide bar, the position of hidden bars, and tooltips and control frames are adjusted.
+-- Settings: ns.db.titan (per profile), monitor numbers as on the "Monitors" page.
 
 local _, ns = ...
 local L = ns.L
@@ -18,9 +18,9 @@ local UI = qnCore.UI
 local Titan = {}
 ns.Titan = Titan
 
--- Die zweite Leiste liegt bei Titan eine Leistenhöhe weiter innen als die erste (Titan-Vorgabe
--- off_y). Steht die erste nicht an derselben Kante, rückt die zweite an den Rand
--- (dir: +1 nach oben, -1 nach unten).
+-- In Titan the second bar lies one bar height further inside than the first (Titan default
+-- off_y). If the first is not at the same edge, the second moves to the edge
+-- (dir: +1 upward, -1 downward).
 Titan.BARS = {
 	{ name = "Bar" },
 	{ name = "Bar2", partner = "Bar", dir = 1 },
@@ -41,15 +41,15 @@ local function FrameName(bar)
 end
 
 ---------------------------------------------------------------------------
--- Monitore (dieselben Nummern wie ns.Layout.GetVisible)
+-- Monitors (same numbers as ns.Layout.GetVisible)
 ---------------------------------------------------------------------------
 
--- Rechtecke { l, r, t, b } bei Skalierung 1, Ursprung unten links
+-- Rectangles { l, r, t, b } at scale 1, origin bottom left
 function Titan.Monitors()
 	return ns.Layout.GetVisibleAbs()
 end
 
--- gewählter Monitor einer Leiste: Rechteck, Nummer; nil = wie Titan (auch wenn der Monitor fehlt)
+-- chosen monitor of a bar: rectangle, number; nil = as Titan (also if the monitor is missing)
 local function MonitorOf(bar)
 	local i = tonumber(DB()[bar]) or 0
 	local r = i > 0 and Titan.Monitors()[i]
@@ -59,22 +59,22 @@ local function MonitorOf(bar)
 end
 
 ---------------------------------------------------------------------------
--- Anker der Leisten
+-- Bar anchors
 ---------------------------------------------------------------------------
 
--- vom Spieler eingeschaltete Leiste (Titan-Einstellung, auch bei Auto-Hide)
+-- bar turned on by the player (Titan setting, also with auto-hide)
 local function BarShown(bar)
 	local vars = TitanBarDataVars and TitanBarDataVars[FrameName(bar)]
 	return vars and vars.show
 end
 
--- Bereich, an dem eine Leiste ausgerichtet wird
+-- Area a bar is aligned to
 local function AreaOf(bar)
 	return MonitorOf(bar) or qnCore.Visible.FrameAbs(UIParent)
 end
 
--- Versatz der zweiten Leiste (Einheiten bei Skalierung 1): 0, wenn die erste Leiste eingeschaltet
--- ist und an derselben Kante desselben Bereichs liegt, sonst eine Leistenhöhe zum Rand hin.
+-- Offset of the second bar (units at scale 1): 0 if the first bar is turned on
+-- and lies at the same edge of the same area, otherwise one bar height towards the edge.
 local function Shift(b, r)
 	if not b.partner then
 		return 0
@@ -108,8 +108,8 @@ function Titan.UpdateAnchors()
 	end
 end
 
--- Auto-Hide-Leiste: Titan setzt sie einmal auf die Breite von UIParent und die Höhe einer Leiste
--- ohne Skalierung. Hier: Breite des Bereichs, Höhe der (skalierten) Leiste.
+-- Auto-hide bar: Titan sets it once to the width of UIParent and the height of a bar
+-- without scaling. Here: width of the area, height of the (scaled) bar.
 local function FixHider(b)
 	local data = TitanBarData[FrameName(b.name)]
 	local hider = data and data.hider and _G[data.hider]
@@ -121,8 +121,8 @@ local function FixHider(b)
 	end
 end
 
--- Verborgene Leiste: Titan schiebt sie um hide_y über bzw. unter ihren Bezugsrahmen. Bei einem
--- Monitor kann dort ein anderer Monitor liegen – deshalb über das Spielfenster hinaus.
+-- Hidden bar: Titan moves it by hide_y above or below its reference frame. With a
+-- monitor, another monitor may be there – hence beyond the game window.
 local function ParkHidden(b)
 	local display = _G[FrameName(b.name)]
 	if not display then
@@ -139,10 +139,10 @@ local function TitanReady()
 end
 
 ---------------------------------------------------------------------------
--- Skalierung je Monitor
--- Titan setzt die Skalierung jeder Leiste und jedes Plugins selbst (SetScale mit seinem Wert
--- „Scale“, Plugins sind keine Kinder der Leisten). Die Methode dieser Rahmen wird deshalb so
--- ersetzt, dass der Faktor des Monitors dazukommt.
+-- Scale per monitor
+-- Titan sets the scale of each bar and each plugin itself (SetScale with its value
+-- "Scale"; plugins are not children of the bars). The method of these frames is therefore
+-- replaced so that the monitor's factor is added.
 ---------------------------------------------------------------------------
 
 local fullBars = {}
@@ -150,7 +150,7 @@ for _, b in ipairs(Titan.BARS) do
 	fullBars[b.name] = true
 end
 
--- Faktor eines Monitors (Nummer wie auf der Seite „Monitore“); ohne Monitor 1
+-- Factor of a monitor (number as on the "Monitors" page); without a monitor 1
 function Titan.MonitorScale(i)
 	local t = DB().scale
 	local v = i and type(t) == "table" and tonumber(t[i])
@@ -162,7 +162,7 @@ local function BarFactor(bar)
 	return Titan.MonitorScale(i)
 end
 
--- Faktor eines Plugins: der seiner Leiste, wenn es auf einer durchgehenden Leiste liegt
+-- Factor of a plugin: that of its bar if it lies on a full-width bar
 local function PluginFactor(button)
 	local id = button and TitanUtils_GetButtonID(button:GetName())
 	local bar = id and TitanUtils_GetWhichBar(id)
@@ -180,8 +180,8 @@ local function WrapScale(frame, factor)
 	end
 end
 
--- Nach Titans Auffrischen eines Plugins. Titan skaliert nur Plugins mit Text selbst; bei Faktor 1
--- bleibt es dabei, sonst (oder nach einer Änderung des Faktors) wird hier gesetzt.
+-- After Titan refreshes a plugin. Titan itself only scales plugins with text; with factor 1
+-- that is left alone, otherwise (or after the factor changed) it is set here.
 local function ScalePlugin(id)
 	local button = TitanUtils_GetButton(id)
 	if not button then
@@ -195,7 +195,7 @@ local function ScalePlugin(id)
 	end
 end
 
--- Titans eigener Tooltip am Plugin: Titans Größe mal Faktor des Plugins
+-- Titan's own tooltip on the plugin: Titan's size times the plugin's factor
 local function ScaleTooltip(button)
 	local _, rel = TitanPanelTooltip:GetPoint(1)
 	if rel ~= button then
@@ -205,8 +205,8 @@ local function ScaleTooltip(button)
 	TitanPanelTooltip:SetScale(base * PluginFactor(button))
 end
 
--- Anker setzen und Titan Leisten und Plugins neu anordnen und skalieren lassen
--- (Profilwechsel, neue Anordnung, Optionen)
+-- Set the anchors and let Titan re-arrange and rescale bars and plugins
+-- (profile switch, new layout, options)
 function Titan.Apply()
 	if not Titan.active then
 		return
@@ -223,20 +223,20 @@ local ApplySoon = qnCore.Debounce(function()
 end, 0.1)
 
 ---------------------------------------------------------------------------
--- Tooltips und Steuerfenster
--- Titan wählt die Seite eines Tooltips nach GetScreenWidth() bzw. UIParent (TitanTemplate.lua,
--- SetPanelTooltip; TitanUtils_GetOffscreen), also nach dem ganzen Spielfenster. Am Rand eines
--- Monitors ragt der Tooltip dann in einen Teil des Fensters, der auf keinem Monitor zu sehen ist.
+-- Tooltips and control frames
+-- Titan chooses a tooltip's side by GetScreenWidth() or UIParent (TitanTemplate.lua,
+-- SetPanelTooltip; TitanUtils_GetOffscreen), i.e. by the whole game window. At the edge of a
+-- monitor the tooltip then reaches into a part of the window that is not visible on any monitor.
 ---------------------------------------------------------------------------
 
--- Legt tip neu an das Plugin button, wenn Titan ihn dort verankert hat und er über den Monitor
--- hinausragt (gemeinsam mit den Taschenplätzen: ns.Layout.FitToMonitor).
+-- Re-anchors tip to the plugin button if Titan anchored it there and it extends beyond the monitor
+-- (shared with the bag slots: ns.Layout.FitToMonitor).
 function Titan.FitToMonitor(tip, button)
 	ns.Layout.FitToMonitor(tip, button)
 end
 
--- Rahmen, die Titan an ein Plugin hängt: eigener Tooltip, GameTooltip (ältere Plugins),
--- Tooltip-Rahmen eines LDB-Objekts (.tooltip)
+-- Frames Titan attaches to a plugin: its own tooltip, GameTooltip (older plugins),
+-- tooltip frame of an LDB object (.tooltip)
 local function Fit(button)
 	if not button then
 		return
@@ -251,7 +251,7 @@ local function Fit(button)
 	end
 end
 
--- sofort und noch einmal im nächsten Frame (dann hat der Tooltip seine endgültige Größe)
+-- immediately and once more in the next frame (then the tooltip has its final size)
 local function FitNowAndLater(button)
 	Fit(button)
 	C_Timer.After(0, function()
@@ -260,13 +260,13 @@ local function FitNowAndLater(button)
 end
 
 ---------------------------------------------------------------------------
--- Optionsseite (Unterkategorie „Titan Panel“, nur mit Titan)
+-- Options page (subcategory "Titan Panel", only with Titan)
 ---------------------------------------------------------------------------
 
-local ui, page   -- qnCore.UI.Page und sein Inhalt (Eltern der Steuerelemente)
+local ui, page   -- qnCore.UI.Page and its content (parent of the controls)
 local dropdowns = {}
 
--- Einträge eines Dropdowns; ein gespeicherter, aber nicht mehr vorhandener Monitor bleibt sichtbar.
+-- Entries of a dropdown; a saved monitor that no longer exists stays visible.
 function Titan.Entries(bar)
 	local list = { { 0, L["As Titan (entire UI)"] } }
 	local monitors = ns.Layout.GetVisible()
@@ -280,7 +280,7 @@ function Titan.Entries(bar)
 	return list
 end
 
--- Regler „Skalierung“ je Monitor; angelegt, sobald der Monitor zum ersten Mal da ist
+-- "Scale" slider per monitor; created as soon as the monitor is present for the first time
 local sliders = {}
 local scaleText
 
@@ -378,10 +378,10 @@ local function BuildPage()
 end
 
 ---------------------------------------------------------------------------
--- Start (aus Core.lua nach ADDON_LOADED)
+-- Start (from Core.lua after ADDON_LOADED)
 ---------------------------------------------------------------------------
 
--- Ohne Titan: keine Anker, keine Hooks, keine Optionsseite.
+-- Without Titan: no anchors, no hooks, no options page.
 function ns.InitTitan()
 	if not (C_AddOns.IsAddOnLoaded("Titan") and TitanBarData and TITAN_PANEL_DISPLAY_PREFIX) then
 		return
@@ -399,7 +399,7 @@ function ns.InitTitan()
 			data.bott.rel_fr = a
 		end
 	end
-	-- Titan legt die Leisten erst beim Betreten der Welt an (SetupTitan → TitanPanelButton_CreateBar)
+	-- Titan creates the bars only when entering the world (SetupTitan → TitanPanelButton_CreateBar)
 	local function WrapBar(frame)
 		local b = byFrame[frame]
 		if b then
@@ -415,7 +415,7 @@ function ns.InitTitan()
 	Titan.UpdateAnchors()
 	hooksecurefunc("TitanPanelButton_UpdateButton", ScalePlugin)
 
-	-- Nach Titans Anzeigen: Anker nachziehen (die zweite Leiste hängt vom Zustand der ersten ab).
+	-- After Titan shows a bar: update the anchors (the second bar depends on the state of the first).
 	hooksecurefunc("TitanPanelBarButton_Show", function(frame)
 		local b = byFrame[frame]
 		if b then
@@ -436,13 +436,13 @@ function ns.InitTitan()
 	end)
 
 	hooksecurefunc("TitanPanelButton_OnEnter", FitNowAndLater)
-	-- Titan legt den Tooltip beim Auffrischen neu an (z. B. die Uhr jede Sekunde)
+	-- Titan recreates the tooltip on refresh (e.g. the clock every second)
 	hooksecurefunc("TitanPanelButton_UpdateTooltip", Fit)
 	hooksecurefunc("TitanPanelPluginHandle_OnUpdate", function(t)
 		local id = type(t) == "table" and t[1] or t
 		Fit(type(id) == "string" and _G[TitanUtils_ButtonName(id)] or nil)
 	end)
-	-- Steuerfenster (Linksklick, z. B. Lautstärke, Uhr-Versatz): Titan prüft nur gegen UIParent.
+	-- Control frames (left click, e.g. volume, clock offset): Titan only checks against UIParent.
 	hooksecurefunc("TitanPanelButton_OnClick", function(button)
 		local id = button and button.registry and button.registry.id
 		local frame = id and TitanUtils_GetControlFrame(id)

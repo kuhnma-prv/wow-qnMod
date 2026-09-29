@@ -1,7 +1,7 @@
-// Blizzard-GlobalStrings von WoW Classic Forever (deDE, enUS) bei Bedarf herunterladen.
-// Die Dateien liegen nicht im Repo; run.mjs und gs.mjs holen fehlende automatisch.
-// Quelle: https://github.com/Ketho/BlizzardInterfaceResources, Zweig forever, Resources/GlobalStrings.
-// Aufruf: node globalstrings.mjs [--update]   (--update: vorhandene Dateien neu laden)
+// Download the Blizzard GlobalStrings of WoW Classic Forever (deDE, enUS) on demand.
+// The files are not in the repo; run.mjs and gs.mjs fetch missing ones automatically.
+// Source: https://github.com/Ketho/BlizzardInterfaceResources, branch forever, Resources/GlobalStrings.
+// Usage: node globalstrings.mjs [--update]   (--update: reload existing files)
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,10 +16,10 @@ export async function ensureGlobalStrings(locales = LOCALES, update = false) {
   for (const loc of locales) {
     const file = path.join(DIR, loc + '.lua');
     if (!update && fs.existsSync(file)) continue;
-    console.error(`GlobalStrings ${loc}: lade von ${SOURCE}`);
+    console.error(`GlobalStrings ${loc}: loading from ${SOURCE}`);
     const res = await fetch(SOURCE + loc + '.lua');
     if (!res.ok) throw new Error(`GlobalStrings ${loc}: HTTP ${res.status}`);
-    // erst vollständig laden, dann schreiben: kein halber Stand bei Abbruch
+    // load completely first, then write: no half-written file on abort
     fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
   }
 }

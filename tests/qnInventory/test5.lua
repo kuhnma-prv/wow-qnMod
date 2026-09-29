@@ -1,12 +1,12 @@
--- Szenario 5: qnInventory mit Titan – Plugins Bank/Taschen und Gold, Fraktionsfilter, Optionsseite
---   * Titan wird nachgebildet (nur, was Titan.lua anfasst); Farben/Beträge als lesbare Marken
---   * Leiste: "Bank: ?" solange die Bank nie offen war, "Taschen: belegt/vorhanden"
---   * Tooltips: je Fraktion ein Block mit Summe; nur die eigene Fraktion (und unbekannte), mit Option beide
---   * Accountbank: Gold jederzeit, Inhalt beim Bankier mit Sichtrecht; in Titan- und Item-Tooltip
---   * Charakterauswahl der Ansichten: andere Fraktion nur mit Option
---   * Löschen über die Optionsseite (Rückfrage)
+-- Scenario 5: qnInventory with Titan - bank/bags and gold plugins, faction filter, options page
+--   * Titan is emulated (only what Titan.lua touches); colors/amounts as readable markers
+--   * bar: "Bank: ?" as long as the bank was never open, "Taschen: used/available"
+--   * tooltips: one block with total per faction; only the own faction (and unknown), with option both
+--   * account bank: gold any time, contents at the banker with view permission; in Titan and item tooltip
+--   * character selection of the views: other faction only with option
+--   * deletion via the options page (confirmation)
 
--- Titan-Nachbau ------------------------------------------------------------------
+-- Titan emulation ------------------------------------------------------------------
 ORANGE_FONT_COLOR = ORANGE_FONT_COLOR or CreateColor(1, 0.5, 0)
 HIGHLIGHT_FONT_COLOR = HIGHLIGHT_FONT_COLOR or CreateColor(1, 1, 1)
 RED_FONT_COLOR = RED_FONT_COLOR or CreateColor(1, 0.1, 0.1)
@@ -51,9 +51,9 @@ Titan_Menu = {
 	AddDivider = function() end,
 }
 
--- Laden ----------------------------------------------------------------------------
+-- Loading ----------------------------------------------------------------------------
 C_AddOns.IsAddOnLoaded = function(name) return name == "Titan" end
--- Taschen des eingeloggten Charakters: Rucksack Platz 1 und Tasche 1 Platz 2 belegt, je 16 Plätze
+-- Bags of the logged-in character: backpack slot 1 and bag 1 slot 2 used, 16 slots each
 local CONTENT = { [0] = { [1] = { itemID = 100, stackCount = 5 } }, [1] = { [2] = { itemID = 200 } } }
 C_Container.GetContainerItemInfo = function(bag, slot) return CONTENT[bag] and CONTENT[bag][slot] end
 local itemTooltip
@@ -64,9 +64,9 @@ local inv = LoadAddon("qnInventory")
 function LibStub(name) if name == "AceLocale-3.0" then return { GetLocale = function() return TLOC end } end end
 
 local bankBtn, goldBtn = _G.TitanPanelqnInvBankButton, _G.TitanPanelqnInvGoldButton
-Check(bankBtn and goldBtn, "Plugin-Knöpfe nach Titans Namensschema angelegt")
+Check(bankBtn and goldBtn, "plugin buttons created per Titan's naming scheme")
 Check(bankBtn._template == "TitanPanelComboTemplate" and bankBtn.registry.id == "qnInvBank" and goldBtn.registry.id == "qnInvGold",
-	"Vorlage und registry.id")
+	"template and registry.id")
 for _, b in ipairs({ bankBtn, goldBtn }) do
 	VARS[b.registry.id] = CopyTable(b.registry.savedVariables)
 end
@@ -76,28 +76,28 @@ qnInventoryDB = { realms = { Realm = {
 	Alli = { class = "MAGE", faction = "Alliance", money = 100, containers = { [0] = Tank({ [1] = {} }) },
 		bankTabs = { Tank({ [1] = {}, [2] = {} }), Tank() } },
 	Hordi = { class = "ROGUE", faction = "Horde", money = 500 },
-	Alt = { class = "PRIEST", money = 7 },   -- Fraktion unbekannt (vor 0.3.0 gespeichert)
+	Alt = { class = "PRIEST", money = 7 },   -- faction unknown (saved before 0.3.0)
 } } }
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 local me = qnInventoryDB.realms.Realm.Tester
-Check(me.faction == "Alliance", "Fraktion des eingeloggten Charakters gespeichert")
-Check(inv.options.bothFactions == false and inv.options.viewsBothFactions == false, "Optionen: andere Fraktion aus (Opt-in)")
+Check(me.faction == "Alliance", "faction of the logged-in character saved")
+Check(inv.options.bothFactions == false and inv.options.viewsBothFactions == false, "options: other faction off (opt-in)")
 
--- Leiste ---------------------------------------------------------------------------
+-- Bar ---------------------------------------------------------------------------
 local l1, v1, l2, v2 = bankBtn.registry.buttonTextFunction("qnInvBank")
 local slots = 16 * (NUM_TOTAL_EQUIPPED_BAG_SLOTS + 1)
 Check(l1 == inv.L["Bank: "] and v1 == "<grau>?" and l2 == "Taschen: " and v2 == "<weiß>2/" .. slots,
-	"Leiste Bank/Taschen: " .. tostring(l1) .. tostring(v1) .. tostring(l2) .. tostring(v2))
+	"bar bank/bags: " .. tostring(l1) .. tostring(v1) .. tostring(l2) .. tostring(v2))
 local used, total = inv.Titan.BankSlots(qnInventoryDB.realms.Realm.Alli)
-Check(used == 2 and total == 32, "Bankplätze aus den Fächern gezählt")
+Check(used == 2 and total == 32, "bank slots counted from the tabs")
 Check(inv.Titan.SlotText(10, 16, true) == "<gelb>10/16" and inv.Titan.SlotText(15, 16, true) == "<rot>15/16"
-	and inv.Titan.SlotText(5, 16, false) == "<hell>5/16", "Farben nach Füllstand wie TitanBag")
+	and inv.Titan.SlotText(5, 16, false) == "<hell>5/16", "colors by fill level like TitanBag")
 local gl, gv = goldBtn.registry.buttonTextFunction("qnInvGold")
-Check(gl == "Gold: " and gv == "$" .. (12345 + 100 + 7) .. "c", "Leiste Gold: alle gezeigten Charaktere: " .. tostring(gv))
+Check(gl == "Gold: " and gv == "$" .. (12345 + 100 + 7) .. "c", "bar gold: all shown characters: " .. tostring(gv))
 VARS.qnInvGold.ViewAll = false
 _, gv = goldBtn.registry.buttonTextFunction("qnInvGold")
-Check(gv == "$12345c", "Leiste Gold: nur dieser Charakter")
+Check(gv == "$12345c", "bar gold: only this character")
 VARS.qnInvGold.ViewAll = true
 
 -- Tooltips -------------------------------------------------------------------------
@@ -116,84 +116,84 @@ local SPACER = "-------------------------|----------------------"
 local gold = TipText(goldBtn.registry.tooltipTemplateFunction)
 local allyBlock = table.concat({ "<gold>Gesamtes Gold auf:|" .. ALLY, SPACER, "|cffffffffAlli|r|$100c", "|cffffffffTester|r|$12345c",
 	SPACER, "Gesamtes Gold:|$12445c" }, "\n")
-Check(gold:find(allyBlock, 1, true), "Gold: Block der eigenen Fraktion mit Summe:\n" .. gold)
+Check(gold:find(allyBlock, 1, true), "gold: block of the own faction with total:\n" .. gold)
 Check(gold:find("<gold>Gesamtes Gold auf:|<grau>" .. UNKNOWN, 1, true) and gold:find("Gesamtes Gold:|$7c", 1, true),
-	"Gold: eigener Block für unbekannte Fraktion")
-Check(not gold:find("Hordi", 1, true), "Gold: andere Fraktion ohne Option nicht gezeigt")
+	"gold: separate block for unknown faction")
+Check(not gold:find("Hordi", 1, true), "gold: other faction not shown without option")
 Check(gold:find("<gold>" .. TOTAL .. ":|$12452c", 1, true) and gold:find("Sitzungsstatistik", 1, true),
-	"Gold: Summe über alle Blöcke, Sitzung")
-Check(not gold:find(ACCOUNT_BANK_PANEL_TITLE, 1, true), "Gold: leere Accountbank ohne Zeile")
+	"gold: total over all blocks, session")
+Check(not gold:find(ACCOUNT_BANK_PANEL_TITLE, 1, true), "gold: empty account bank without line")
 local bank = TipText(bankBtn.registry.tooltipTemplateFunction)
 local bankBlock = table.concat({ "<gold>" .. inv.L["Used slots on"] .. ":|" .. ALLY, SPACER,
 	"|cffffffffAlli|r|<grau>" .. BANK .. " <weiß>2/32   <grau>" .. HUD_EDIT_MODE_BAGS_LABEL .. " <weiß>1/16" }, "\n")
 Check(bank:find(bankBlock, 1, true) and bank:find("<grau>" .. UNKNOWN, 1, true) and not bank:find("Hordi", 1, true),
-	"Bank/Taschen: Blöcke je Fraktion:\n" .. bank)
+	"bank/bags: blocks per faction:\n" .. bank)
 
 inv.options.bothFactions = true
 gold = TipText(goldBtn.registry.tooltipTemplateFunction)
 Check(gold:find("<gold>Gesamtes Gold auf:|" .. HORDE .. "\n" .. SPACER .. "\n|cffffffffHordi|r|$500c\n" .. SPACER .. "\nGesamtes Gold:|$500c", 1, true),
-	"Option: eigener Horde-Block")
+	"option: separate Horde block")
 local pA, pH = gold:find(ALLY, 1, true), gold:find(HORDE, 1, true)
-Check(pA and pH and pA < pH, "eigene Fraktion zuerst")
+Check(pA and pH and pA < pH, "own faction first")
 bank = TipText(bankBtn.registry.tooltipTemplateFunction)
-Check(bank:find(HORDE, 1, true) and bank:find("Hordi", 1, true), "Option: Horde-Block im Bank-Tooltip")
+Check(bank:find(HORDE, 1, true) and bank:find("Hordi", 1, true), "option: Horde block in the bank tooltip")
 inv.options.bothFactions = false
 
--- Accountbank ------------------------------------------------------------------------
+-- Account bank ------------------------------------------------------------------------
 QN_ACCOUNT_BANK.money = 1000
 FireEvent("ACCOUNT_MONEY")
-Check(qnInventoryDB.account.money == 1000, "Gold der Accountbank gespeichert")
+Check(qnInventoryDB.account.money == 1000, "account bank gold saved")
 gold = TipText(goldBtn.registry.tooltipTemplateFunction)
 Check(gold:find("<gold>" .. ACCOUNT_BANK_PANEL_TITLE .. ":|$1000c", 1, true) and gold:find("<gold>" .. TOTAL .. ":|$13452c", 1, true),
-	"Gold: Accountbank und Summe samt Accountbank")
+	"gold: account bank and total including account bank")
 _, gv = goldBtn.registry.buttonTextFunction("qnInvGold")
-Check(gv == "$13452c", "Leiste Gold: alle samt Accountbank")
+Check(gv == "$13452c", "bar gold: all including account bank")
 C_Bank.FetchPurchasedBankTabData = function(t) return t == Enum.BankType.Account and { { ID = 12 } } or {} end
 CONTENT[12] = { [1] = { itemID = 100, stackCount = 3 } }
 FireEvent("BANKFRAME_OPENED")
-Check(qnInventoryDB.account.bank == nil, "Accountbank ohne Sichtrecht nicht gelesen")
+Check(qnInventoryDB.account.bank == nil, "account bank not read without view permission")
 QN_ACCOUNT_BANK.view = true
 FireEvent("BANK_TABS_CHANGED")
 FireEvent("BANKFRAME_CLOSED")
 local acc = qnInventoryDB.account
-Check(acc.bank and acc.bank[100] == 3 and acc.bankTabs[1].id == 12 and acc.bankTabs[1].size == 16, "Accountbank gelesen")
+Check(acc.bank and acc.bank[100] == 3 and acc.bankTabs[1].id == 12 and acc.bankTabs[1].size == 16, "account bank read")
 bank = TipText(bankBtn.registry.tooltipTemplateFunction)
-Check(bank:find("<gold>" .. ACCOUNT_BANK_PANEL_TITLE .. ":|<weiß>1/16", 1, true), "Bank-Tooltip: Plätze der Accountbank")
+Check(bank:find("<gold>" .. ACCOUNT_BANK_PANEL_TITLE .. ":|<weiß>1/16", 1, true), "bank tooltip: account bank slots")
 local lines = {}
 GameTooltip.AddLine = function(_, t) lines[#lines + 1] = t end
 GameTooltip.AddDoubleLine = function(_, a, b) lines[#lines + 1] = a .. "|" .. tostring(b) end
 itemTooltip(GameTooltip, { id = 100 })
 local itemText = table.concat(lines, ";")
 Check(itemText:find(ACCOUNT_BANK_PANEL_TITLE .. "|3", 1, true) and itemText:find(TOTAL .. "|8", 1, true),
-	"Item-Tooltip: Accountbank mitgezählt: " .. itemText)
+	"item tooltip: account bank included: " .. itemText)
 
--- Menü -------------------------------------------------------------------------------
+-- Menu -------------------------------------------------------------------------------
 menu = {}
 goldBtn.registry.menuContextFunction(goldBtn, {})
-Check(menu[1].label == "Liste:ViewAll" and menu[#menu].label == OPTIONS, "Gold-Menü: Anzeige, Sitzung, Optionen")
+Check(menu[1].label == "Liste:ViewAll" and menu[#menu].label == OPTIONS, "gold menu: display, session, options")
 
--- Aktualisierung nach Datenänderung ------------------------------------------------
+-- Refresh after data change ------------------------------------------------
 updated = {}
 FireEvent("PLAYER_MONEY")
-Check(updated.qnInvBank and updated.qnInvGold, "Leiste nach Geldänderung aufgefrischt")
+Check(updated.qnInvBank and updated.qnInvGold, "bar refreshed after money change")
 
--- Charakterauswahl der Ansichten -------------------------------------------------------
+-- Character selection of the views -------------------------------------------------------
 local function Keys(list)
 	local keys = {}
 	for i, e in ipairs(list) do keys[i] = e[1]:gsub("^.-\t", "") end
 	return table.concat(keys, ",")
 end
-Check(Keys(inv.CharEntries()) == "Alli,Alt,Tester", "Ansichten: ohne andere Fraktion: " .. Keys(inv.CharEntries()))
+Check(Keys(inv.CharEntries()) == "Alli,Alt,Tester", "views: without other faction: " .. Keys(inv.CharEntries()))
 SETTINGS.QNINVENTORY_VIEWSBOTHFACTIONS:SetValue(true)
-Check(Keys(inv.CharEntries()) == "Alli,Alt,Hordi,Tester", "Ansichten: Option schließt die andere Fraktion ein")
+Check(Keys(inv.CharEntries()) == "Alli,Alt,Hordi,Tester", "views: option includes the other faction")
 
--- Löschen über die Optionsseite ----------------------------------------------------
+-- Deletion via the options page ----------------------------------------------------
 local pick = SETTINGS.QNINVENTORY_DELETECHAR
-Check(pick and pick:GetValue() == "", "Auswahl zum Löschen anfangs leer")
+Check(pick and pick:GetValue() == "", "deletion selection initially empty")
 pick:SetValue(inv.CharKey("Realm", "Hordi"))
 StaticPopupDialogs.QNINVENTORY_DELETE_CHAR.OnAccept(nil, pick:GetValue())
-Check(qnInventoryDB.realms.Realm.Hordi == nil and pick:GetValue() == "", "Charakter gelöscht, Auswahl zurückgesetzt")
+Check(qnInventoryDB.realms.Realm.Hordi == nil and pick:GetValue() == "", "character deleted, selection reset")
 StaticPopupDialogs.QNINVENTORY_DELETE_CHAR.OnAccept(nil, inv.PlayerKey())
-Check(qnInventoryDB.realms.Realm.Tester ~= nil, "eingeloggter Charakter bleibt")
+Check(qnInventoryDB.realms.Realm.Tester ~= nil, "logged-in character stays")
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

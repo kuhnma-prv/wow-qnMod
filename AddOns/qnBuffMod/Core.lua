@@ -1,20 +1,20 @@
--- qnBuffMod: Fensterverwaltung, allgemeine Einstellungen, Blizzards Aurenfenster, Ereignisse,
--- Profilwechsel, Slash-Befehle und die schmale Abfrage-API für Tests.
+-- qnBuffMod: window management, general settings, Blizzard's aura frames, events,
+-- profile switching, slash commands and the narrow query API for tests.
 
 local _, ns = ...
 local lib = qnCore
 local L = ns.L
 
-local windows = {}     -- [Fenster-ID] = Window (auch abgeschaltete)
+local windows = {}     -- [window ID] = Window (including disabled ones)
 ns.windows = windows
-local selected = 1     -- in den Optionen gewähltes Fenster
-local scratch = {}     -- Einstellungsquelle, solange es das gewählte Fenster nicht gibt
+local selected = 1     -- window selected in the options
+local scratch = {}     -- settings source while the selected window does not exist
 
 ---------------------------------------------------------------------------
--- Fensterliste
+-- Window list
 ---------------------------------------------------------------------------
 
--- Fenster-IDs des aktiven Profils, aufsteigend
+-- Window IDs of the active profile, ascending
 function ns.WindowIDs()
 	local ids = {}
 	for id in pairs(ns.db and ns.db.windows or {}) do
@@ -32,7 +32,7 @@ function ns.SelectedID()
 	return selected
 end
 
--- Einstellungstabelle des gewählten Fensters (vor dem Einloggen: Vorgaben)
+-- Settings table of the selected window (before login: defaults)
 function ns.SelectedSettings()
 	local t = ns.db and ns.db.windows and ns.db.windows[selected]
 	if type(t) == "table" then
@@ -41,7 +41,7 @@ function ns.SelectedSettings()
 	return scratch
 end
 
--- Auswahl auf ein vorhandenes Fenster korrigieren
+-- Correct the selection to an existing window
 local function FixSelection()
 	local ids = ns.WindowIDs()
 	if #ids > 0 and not (ns.db.windows[selected]) then
@@ -58,7 +58,7 @@ function ns.SelectWindow(id, fromSetting)
 	end
 end
 
--- Alt-Klick: Fenster wählen und die Seite "Fenster" öffnen
+-- Alt-click: select the window and open the "Window" page
 function ns.EditWindow(id)
 	if not windows[id] then
 		return
@@ -68,7 +68,7 @@ function ns.EditWindow(id)
 	ns.OpenWindowPage()
 end
 
--- Beobachtete Einheiten aus den angezeigten Fenstern (der Spieler immer)
+-- Watched units from the displayed windows (always the player)
 function ns.UpdateWatched()
 	local set = { player = true }
 	for _, win in pairs(windows) do
@@ -91,7 +91,7 @@ local function Count()
 	return #ns.WindowIDs()
 end
 
--- Fenster zur ID aufbauen (Rahmen nur, wenn es nicht abgeschaltet ist)
+-- Build the window for the ID (frame only if it is not disabled)
 local function Build(id)
 	local win = ns.Window.New(id)
 	windows[id] = win
@@ -101,7 +101,7 @@ local function Build(id)
 	return win
 end
 
--- Neues Fenster mit der Einstellungstabelle settings unter der kleinsten freien ID
+-- New window with the settings table settings under the lowest free ID
 local function Create(settings)
 	local id = FreeID()
 	ns.db.windows[id] = settings
@@ -117,7 +117,7 @@ local function CombatBlocked()
 	return false
 end
 
--- Neues Fenster mit Vorgaben bzw. mit den Einstellungen von copyFrom; erscheint in der Bildschirmmitte
+-- New window with defaults or with the settings of copyFrom; appears in the center of the screen
 function ns.AddWindow(copyFrom)
 	if CombatBlocked() then
 		return nil
@@ -171,10 +171,10 @@ function ns.DeleteWindow(id)
 end
 
 ---------------------------------------------------------------------------
--- Änderungen an Einheiten und Einstellungen
+-- Changes to units and settings
 ---------------------------------------------------------------------------
 
--- Auren einer Einheit wurden neu gelesen (nil = alle)
+-- Auras of a unit were re-read (nil = all)
 function ns.UnitChanged(unit)
 	for _, win in pairs(windows) do
 		if win.frame and (unit == nil or win.unit == unit) then
@@ -186,7 +186,7 @@ function ns.UnitChanged(unit)
 	end
 end
 
--- Waffenverzauberungen gelesen; slotsChanged = andere Plätze verzaubert als vorher
+-- Weapon enchants read; slotsChanged = different slots enchanted than before
 function ns.WeaponsChanged(slotsChanged)
 	for _, win in pairs(windows) do
 		if win.frame and win.unit == "player" then
@@ -199,7 +199,7 @@ function ns.WeaponsChanged(slotsChanged)
 	end
 end
 
--- Fenster eingeblendet (Sichtbarkeitstreiber): Einheit neu lesen und anordnen
+-- Window shown (visibility driver): re-read the unit and arrange
 function ns.RefreshWindowUnit(win)
 	if not win.frame or not win.o then
 		return
@@ -208,7 +208,7 @@ function ns.RefreshWindowUnit(win)
 	win:Arrange()
 end
 
--- Fahrzeug betreten/verlassen: Spielerfenster mit vehicleBuffs zeigen dessen Auren
+-- Entering/leaving a vehicle: player windows with vehicleBuffs show its auras
 function ns.SetVehicle(inside)
 	ns.inVehicle = inside
 	local changed = {}
@@ -224,13 +224,13 @@ function ns.SetVehicle(inside)
 	end
 end
 
--- Eine Fenstereinstellung des gewählten Fensters wurde geändert (Optionen)
+-- A window setting of the selected window was changed (options)
 function ns.ApplyWindowSetting(key, value)
 	local t = ns.SelectedSettings()
 	if t == scratch then
 		return
 	end
-	-- dünn speichern: Vorgabewerte entfallen
+	-- store sparsely: default values are dropped
 	local default = ns.windowDefaults[key]
 	if type(default) ~= "table" and value == default then
 		t[key] = nil
@@ -254,7 +254,7 @@ function ns.ApplyWindowSetting(key, value)
 	win:Apply()
 end
 
--- Alle Fenster nach ihrer Einstellung disableWindow auf- bzw. abbauen und anwenden
+-- Build up or tear down all windows according to their disableWindow setting and apply them
 function ns.ApplyAllWindows()
 	for id, win in pairs(windows) do
 		local off = ns.WindowValue(ns.db.windows[id], "disableWindow")
@@ -270,12 +270,12 @@ function ns.ApplyAllWindows()
 end
 
 ---------------------------------------------------------------------------
--- Blizzards Aurenfenster
+-- Blizzard's aura frames
 ---------------------------------------------------------------------------
 
 local hiddenByUs, hooked = {}, {}
 
--- Ausblenden, auch wenn Hide des Rahmens überschrieben wurde: die Methode des Widgets aufrufen
+-- Hide even if the frame's Hide was overridden: call the widget's method
 local function RawHide(frame)
 	local mt = getmetatable(frame)
 	local index = mt and mt.__index
@@ -299,7 +299,7 @@ local function ApplyBlizzardFrames()
 	for _, frame in ipairs({ BuffFrame, DebuffFrame }) do
 		if not hooked[frame] then
 			hooked[frame] = true
-			-- blendet Blizzard sie wieder ein (z. B. nach dem Edit Mode), sofort wieder ausblenden
+			-- if Blizzard shows them again (e.g. after Edit Mode), hide them again immediately
 			frame:HookScript("OnShow", function(self)
 				if ns.db and ns.db.hideBlizzardBuffs then
 					Suppress(self)
@@ -315,7 +315,7 @@ local function ApplyBlizzardFrames()
 	end
 end
 
--- Allgemeine Einstellungen anwenden (Hauptseite)
+-- Apply general settings (main page)
 function ns.ApplyGeneral()
 	ApplyBlizzardFrames()
 	for _, win in pairs(windows) do
@@ -327,7 +327,7 @@ function ns.ApplyGeneral()
 end
 
 ---------------------------------------------------------------------------
--- Aufbau und Profilwechsel
+-- Setup and profile switching
 ---------------------------------------------------------------------------
 
 local function BuildAll()
@@ -341,7 +341,7 @@ local function BuildAll()
 	ns.UpdateWatched()
 end
 
--- Alle Fenster abbauen, ohne die Daten des Profils zu verändern
+-- Tear down all windows without changing the profile data
 local function TearDown()
 	for id, win in pairs(windows) do
 		win:Disable()
@@ -397,7 +397,7 @@ ns.events.Register("PLAYER_ENTERING_WORLD", function()
 end)
 
 ---------------------------------------------------------------------------
--- Slash-Befehle (ohne Argumente: Optionen öffnen)
+-- Slash commands (without arguments: open options)
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNBUFFMOD", { "/qnbuff", "/qnbuffmod", "/qnaura" }, function()
@@ -405,10 +405,10 @@ lib.RegisterSlash("QNBUFFMOD", { "/qnbuff", "/qnbuffmod", "/qnaura" }, function(
 end)
 
 ---------------------------------------------------------------------------
--- Abfrage für Tests: angezeigte Einträge eines Fensters
+-- Query for tests: displayed entries of a window
 ---------------------------------------------------------------------------
 
--- { kind, name, count, time, nameText, flashing, weapon, slot, x, y, entry } je Eintrag in Reihenfolge
+-- { kind, name, count, time, nameText, flashing, weapon, slot, x, y, entry } per entry in order
 function ns.GetEntries(id)
 	local win = windows[id]
 	local out = {}

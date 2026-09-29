@@ -1,14 +1,14 @@
--- Szenario 3: qnNumKeyPad – Tastenbelegung im sicheren Umfeld: folgt dem Sichtbarkeitstreiber
--- auch im Kampf (Fahrzeug, eigene Bedingung), Ein/Aus, Umschalttaste, Zusatztasten;
--- Stellvertreter beachtet „Aktion beim Drücken“ (CVar ActionButtonUseKeyDown); Haltungswechsel.
+-- Scenario 3: qnNumKeyPad - key bindings in the restricted environment: follow the visibility driver
+-- also in combat (vehicle, custom condition), on/off, Shift key, extra keys;
+-- proxy respects "cast on key down" (CVar ActionButtonUseKeyDown); stance change.
 
 EnableRestrictedEnvironment()
 SpellFlyout = CreateFrame("Frame", "SpellFlyout")
 SpellFlyout:Hide()
 
--- Tasten wie ActionBarButtonTemplate: geschützt, RegisterForClicks("AnyUp", "LeftButtonDown",
--- "RightButtonDown"); OnClick behandelt jeden Klick als Mausklick (TriggerSecureClick mit
--- isSecureAction) und handelt nur beim Loslassen (SecureActionButton_OnClick).
+-- Keys like ActionBarButtonTemplate: protected, RegisterForClicks("AnyUp", "LeftButtonDown",
+-- "RightButtonDown"); OnClick treats every click as a mouse click (TriggerSecureClick with
+-- isSecureAction) and acts only on release (SecureActionButton_OnClick).
 local used = {}
 local create = CreateFrame
 CreateFrame = function(kind, name, parent, template, ...)
@@ -48,102 +48,102 @@ local function Press(key)
 end
 
 ---------------------------------------------------------------------------
--- Belegung
+-- Bindings
 ---------------------------------------------------------------------------
 Check(Count() == 30 and BINDINGS[bar].NUMPAD1 == "qnNumKeyPadKey1:LeftButton" and BINDINGS[bar]["SHIFT-NUMPAD1"] == "qnNumKeyPadKey1:LeftButton",
-	"Windows: 15 Tasten, je mit Umschalttaste, auf die Stellvertreter: " .. Count())
+	"Windows: 15 keys, each with Shift, bound to the proxies: " .. Count())
 Check(qnNumKeyPadKey1:GetAttribute("type") == "click" and qnNumKeyPadKey1:GetAttribute("clickbutton") == qnNumKeyPadButton1,
-	"Stellvertreter klickt die Taste")
-Check(not qnNumKeyPadKey1:IsMouseEnabled(), "Stellvertreter fängt keine Maus ab")
+	"proxy clicks the key")
+Check(not qnNumKeyPadKey1:IsMouseEnabled(), "proxy does not catch the mouse")
 Set("bindShift", false)
-Check(Count() == 15 and BINDINGS[bar]["SHIFT-NUMPAD1"] == nil, "ohne Umschalttaste")
+Check(Count() == 15 and BINDINGS[bar]["SHIFT-NUMPAD1"] == nil, "without Shift")
 Set("bindShift", true)
 Set("showArrow", true)
-Check(Count() == 38 and BINDINGS[bar].RIGHT == "qnNumKeyPadKey26:LeftButton", "Pfeiltasten belegt")
+Check(Count() == 38 and BINDINGS[bar].RIGHT == "qnNumKeyPadKey26:LeftButton", "arrow keys bound")
 Set("showArrow", false)
-Check(Count() == 30 and BINDINGS[bar].RIGHT == nil, "Pfeiltasten wieder frei")
+Check(Count() == 30 and BINDINGS[bar].RIGHT == nil, "arrow keys free again")
 
 ---------------------------------------------------------------------------
--- Befund 2: Aktion beim Loslassen bzw. beim Drücken
+-- Finding 2: action on release or on key down
 ---------------------------------------------------------------------------
 local down, up, name = Press("NUMPAD5")
-Check(down == 0 and up == 1 and name == "qnNumKeyPadButton5", "CVar aus: Aktion beim Loslassen, einmal")
+Check(down == 0 and up == 1 and name == "qnNumKeyPadButton5", "CVar off: action on release, once")
 C_CVar._v.ActionButtonUseKeyDown = "1"
 down, up, name = Press("NUMPAD5")
-Check(down == 1 and up == 0 and name == "qnNumKeyPadButton5", "CVar an: Aktion beim Drücken, einmal")
+Check(down == 1 and up == 0 and name == "qnNumKeyPadButton5", "CVar on: action on key down, once")
 down, up = Press("SHIFT-NUMPAD5")
-Check(down == 1 and up == 0, "Umschalt+Taste ebenso")
+Check(down == 1 and up == 0, "Shift+key likewise")
 C_CVar._v.ActionButtonUseKeyDown = "0"
 
 ---------------------------------------------------------------------------
--- Befund 5: Belegung folgt der Sichtbarkeit, auch im Kampf
+-- Finding 5: bindings follow visibility, also in combat
 ---------------------------------------------------------------------------
-Set("locked", true)   -- Treiber mit Bedingungen (hideVehicle ist Vorgabe)
-Check(bar:IsShown() and Count() == 30, "gesperrt, kein Fahrzeug: sichtbar und belegt")
+Set("locked", true)   -- driver with conditions (hideVehicle is default)
+Check(bar:IsShown() and Count() == 30, "locked, no vehicle: visible and bound")
 QN_COMBAT = true
 FireEvent("PLAYER_REGEN_DISABLED")
 QN_CONDITIONS.vehicleui = true
 UpdateStateDrivers()
-Check(not bar:IsShown() and Count() == 0 and not PressBinding("NUMPAD1", false), "im Kampf ins Fahrzeug: verborgen, Belegung aufgehoben")
+Check(not bar:IsShown() and Count() == 0 and not PressBinding("NUMPAD1", false), "into vehicle in combat: hidden, bindings cleared")
 QN_CONDITIONS.vehicleui = nil
 UpdateStateDrivers()
-Check(bar:IsShown() and Count() == 30, "im Kampf aus dem Fahrzeug: wieder belegt")
+Check(bar:IsShown() and Count() == 30, "out of vehicle in combat: bound again")
 down, up = Press("NUMPAD2")
-Check(up == 1, "Taste wirkt wieder")
+Check(up == 1, "key works again")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
 
 Set("useCustom", true)
 Set("custom", "[combat] show; hide")
-Check(not bar:IsShown() and Count() == 0, "eigene Bedingung außerhalb des Kampfes: verborgen, keine Belegung")
+Check(not bar:IsShown() and Count() == 0, "custom condition out of combat: hidden, no bindings")
 QN_COMBAT = true
 FireEvent("PLAYER_REGEN_DISABLED")
 QN_CONDITIONS.combat = true
 UpdateStateDrivers()
-Check(bar:IsShown() and Count() == 30, "eigene Bedingung im Kampf: gezeigt und belegt")
+Check(bar:IsShown() and Count() == 30, "custom condition in combat: shown and bound")
 QN_CONDITIONS.combat = nil
 UpdateStateDrivers()
-Check(not bar:IsShown() and Count() == 0, "Kampfende laut Bedingung: wieder aufgehoben")
+Check(not bar:IsShown() and Count() == 0, "end of combat per condition: cleared again")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
 Set("useCustom", false)
-Check(bar:IsShown() and Count() == 30, "zurück zu den Schaltern: belegt")
+Check(bar:IsShown() and Count() == 30, "back to the switches: bound")
 
--- Änderung am Layout im Kampf: aufgeschoben, Belegung bleibt bis dahin
+-- Layout change in combat: deferred, bindings stay until then
 QN_COMBAT = true
 FireEvent("PLAYER_REGEN_DISABLED")
 Set("showNav", true)
-Check(Count() == 30, "im Kampf: Belegung unverändert (aufgeschoben)")
+Check(Count() == 30, "in combat: bindings unchanged (deferred)")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
-Check(Count() == 42 and BINDINGS[bar].HOME == "qnNumKeyPadKey18:LeftButton", "nach dem Kampf mit Navigationstasten")
+Check(Count() == 42 and BINDINGS[bar].HOME == "qnNumKeyPadKey18:LeftButton", "after combat with navigation keys")
 Set("showNav", false)
 
--- Aus/Ein
+-- Off/on
 Set("enabled", false)
-Check(not bar:IsShown() and Count() == 0, "aus: verborgen, keine Belegung")
+Check(not bar:IsShown() and Count() == 0, "off: hidden, no bindings")
 QN_CONDITIONS.vehicleui = true
 UpdateStateDrivers()
 QN_CONDITIONS.vehicleui = nil
 UpdateStateDrivers()
-Check(Count() == 0, "aus: Treiber belegt nicht neu")
+Check(Count() == 0, "off: driver does not rebind")
 Set("enabled", true)
-Check(bar:IsShown() and Count() == 30, "ein: gezeigt und belegt")
+Check(bar:IsShown() and Count() == 30, "on: shown and bound")
 
 ---------------------------------------------------------------------------
--- Haltungswechsel über _onstate-page (unverändert, jetzt im Nachbau ausgeführt)
+-- Stance change via _onstate-page (unchanged, now executed in the emulation)
 ---------------------------------------------------------------------------
-Check(qnNumKeyPadButton1:GetAttribute("action") == 145, "eigener Platz: " .. tostring(qnNumKeyPadButton1:GetAttribute("action")))
+Check(qnNumKeyPadButton1:GetAttribute("action") == 145, "own slot: " .. tostring(qnNumKeyPadButton1:GetAttribute("action")))
 Set("stance", true)
 QN_COMBAT = true
 FireEvent("PLAYER_REGEN_DISABLED")
 QN_CONDITIONS["bonusbar:1"] = true
 UpdateStateDrivers()
 Check(qnNumKeyPadButton1:GetAttribute("action") == 73 and qnNumKeyPadButton13:GetAttribute("action") == 157,
-	"Haltung 1 im Kampf: Tasten 1-12 auf Seite 7, 13-24 eigene Plätze")
+	"stance 1 in combat: keys 1-12 on page 7, 13-24 own slots")
 QN_CONDITIONS["bonusbar:1"] = nil
 UpdateStateDrivers()
-Check(qnNumKeyPadButton1:GetAttribute("action") == 145, "ohne Haltung: eigener Platz")
+Check(qnNumKeyPadButton1:GetAttribute("action") == 145, "without stance: own slot")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
 

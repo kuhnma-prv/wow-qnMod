@@ -1,4 +1,4 @@
--- qnTooltip: 3D-Modell der Einheit unter der Maus über dem Tooltip; dreht sich mit Strg oder Alt.
+-- qnTooltip: 3D model of the unit under the mouse above the tooltip; rotates with Ctrl or Alt.
 
 local _, ns = ...
 

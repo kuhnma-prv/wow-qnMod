@@ -1,7 +1,7 @@
--- qnBuffMod: Auren der beobachteten Einheiten lesen.
--- Je Einheit werden die vier Filter (Schwächungszauber, aufhebbare, nicht aufhebbare, alle
--- Stärkungszauber) gelesen; ein Eintrag (Record) je Aura und Filter. Der Zustand einer Aura
--- (Warnung, Erneuerung, Reichweite) hängt am Schlüssel der Aura und ist für alle Filter derselbe.
+-- qnBuffMod: read the auras of the watched units.
+-- Per unit the four filters (debuffs, cancelable, uncancelable, all
+-- buffs) are read; one record per aura and filter. The state of an aura
+-- (warning, renewal, range) is tied to the aura's key and is the same for all filters.
 --
 -- Record: { key, name, icon, count, duration, expiration, dispel, caster, spellId, index, filter,
 --           group, kind, placeholder, outOfRange, state }
@@ -16,29 +16,29 @@ local IsSecret = lib.IsSecret
 local Auras = {}
 ns.Auras = Auras
 
-local MAX_AURAS = 100       -- Schutz gegen Endlosschleifen je Filter
-local MAX_ERRORS = 5        -- so viele Abbrüche hintereinander beenden das Lesen eines Filters
+local MAX_AURAS = 100       -- guard against endless loops per filter
+local MAX_ERRORS = 5        -- this many consecutive failures stop reading a filter
 local READ_ORDER = { E.group.ALLBUFFS, E.group.CANCELABLE, E.group.UNCANCELABLE, E.group.DEBUFF }
 local EMPTY = {}
 
--- units[Einheit] = { lists = { [Gruppe] = { Records } }, states = { [Schlüssel] = Zustand } }
+-- units[unit] = { lists = { [group] = { records } }, states = { [key] = state } }
 local units = {}
 Auras.units = units
 local watched = { player = true }
 
-local stale = false          -- während der globalen Sperre wurde nicht gelesen
+local stale = false          -- not read during the global restriction
 local notedField, notedLock = false, false
 
 ---------------------------------------------------------------------------
--- Sperren und Meldungen
+-- Restrictions and messages
 ---------------------------------------------------------------------------
 
--- Globale Sperre der Aurendaten (z. B. im Kampf, in Begegnungen)
+-- Global restriction of aura data (e.g. in combat, in encounters)
 function Auras.Restricted()
 	return C_Secrets.ShouldAurasBeSecret() and true or false
 end
 
--- Listen eingefroren: Sperre aktiv oder nach ihrem Ende noch nicht neu gelesen
+-- Lists frozen: restriction active or not yet re-read after it ended
 function Auras.Frozen()
 	return stale or Auras.Restricted()
 end
@@ -58,7 +58,7 @@ local function NoteLock()
 end
 
 ---------------------------------------------------------------------------
--- Eine Aura lesen
+-- Read one aura
 ---------------------------------------------------------------------------
 
 local function Placeholder(index, filter, group)
@@ -77,7 +77,7 @@ local function Placeholder(index, filter, group)
 	}
 end
 
--- Feld einer Aura; secret = nil und merkt es in secret (ReadAura setzt secret vorher zurück)
+-- Field of an aura; secret = nil and notes it in secret (ReadAura resets secret beforehand)
 local secret = false
 local function Get(data, field)
 	local v = data[field]
@@ -88,11 +88,11 @@ local function Get(data, field)
 	return v
 end
 
--- Liefert einen Record, false (Aura gilt als nicht vorhanden) oder nil (keine weitere Aura)
+-- Returns a record, false (aura counts as absent) or nil (no further aura)
 local function ReadAura(unit, index, filter, group)
 	local ok, data = pcall(C_UnitAuras.GetAuraDataByIndex, unit, index, filter)
 	if not ok then
-		-- Abfrage genau dieser Aura abgebrochen: Platzhalter
+		-- query of exactly this aura failed: placeholder
 		NoteField()
 		return Placeholder(index, filter, group), true
 	end
@@ -111,7 +111,7 @@ local function ReadAura(unit, index, filter, group)
 
 	local rec
 	if secret then
-		-- einzelne Felder secret: Platzhalter mit den lesbaren Feldern
+		-- individual fields secret: placeholder with the readable fields
 		NoteField()
 		rec = Placeholder(index, filter, group)
 		if type(name) == "string" then
@@ -159,7 +159,7 @@ local function ReadFilter(unit, group)
 		end
 		errors = failed and errors + 1 or 0
 		if rec then
-			-- gleicher Schlüssel zweimal im selben Filter (z. B. mehrfach gestapelt): eindeutig machen
+			-- same key twice in the same filter (e.g. stacked multiple times): make it unique
 			local n = keys[rec.key]
 			keys[rec.key] = (n or 0) + 1
 			if n then
@@ -175,20 +175,20 @@ local function ReadFilter(unit, group)
 end
 
 ---------------------------------------------------------------------------
--- Zustand einer Aura (je Einheit und Schlüssel)
+-- State of an aura (per unit and key)
 ---------------------------------------------------------------------------
 
 function Auras.HasExpiry(rec)
 	return rec.duration > 0 and rec.expiration > 0
 end
 
--- Gewarnte Anwendungen einheitenübergreifend: [GUID .. "|" .. Schlüssel] = Ablaufzeitpunkt bei der
--- Warnung. Der Zustand hängt am Token (z. B. target) und geht beim Zielwechsel verloren; kehrt die
--- Einheit zurück, gilt dieselbe Anwendung weiter als gewarnt.
+-- Warned applications across units: [GUID .. "|" .. key] = expiration time at the
+-- warning. The state is tied to the token (e.g. target) and is lost on target change; if the
+-- unit returns, the same application still counts as warned.
 local warnedApps = {}
 
--- Geänderter Ablauf gilt nur als Erneuerung, wenn die neue Restzeit höchstens 60 s unter der vollen
--- Dauer liegt (bzw. Dauer 0 und Ablauf ≠ 0)
+-- A changed expiration only counts as renewal if the new time remaining is at most 60 s below the full
+-- duration (or duration 0 and expiration ≠ 0)
 local function Renewed(rec, oldExpiration, now)
 	if rec.expiration == oldExpiration then
 		return false
@@ -199,7 +199,7 @@ local function Renewed(rec, oldExpiration, now)
 	return rec.expiration ~= 0
 end
 
--- Warnung für die Anwendung von rec vermerken (am Zustand und einheitenübergreifend)
+-- Record the warning for the application of rec (on the state and across units)
 function Auras.SetWarned(rec)
 	local st = rec.state
 	st.warned = true
@@ -208,7 +208,7 @@ function Auras.SetWarned(rec)
 	end
 end
 
--- Abgelaufene Anwendungen vergessen
+-- Forget expired applications
 local function PruneWarned(now)
 	for app, expiration in pairs(warnedApps) do
 		if expiration <= now then
@@ -217,11 +217,11 @@ local function PruneWarned(now)
 	end
 end
 
--- Vergleicht mit dem bisherigen Stand: neue Aura, Erneuerung, außer Reichweite.
+-- Compares with the previous state: new aura, renewal, out of range.
 local function Track(unit, data, rec, now, seen)
 	local st = data.states[rec.key]
 	if seen[rec.key] then
-		-- dieselbe Aura in einem weiteren Filter: Ergebnis übernehmen
+		-- same aura in another filter: take over the result
 		rec.state = st
 		rec.outOfRange = st.outOfRange
 		if st.outOfRange then
@@ -240,15 +240,15 @@ local function Track(unit, data, rec, now, seen)
 				if Renewed(rec, warnedAt, now) then
 					warnedApps[st.app] = nil
 				else
-					st.warned = true   -- dieselbe Anwendung wurde schon gewarnt
+					st.warned = true   -- the same application was already warned
 				end
 			end
 		end
 		if unit == "player" and not rec.placeholder then
-			ns.Recast.Forget(rec.name)   -- neu erschienen
+			ns.Recast.Forget(rec.name)   -- newly appeared
 		end
 	elseif not rec.placeholder and rec.duration == 0 and rec.expiration == 0 and st.duration > 0 then
-		-- außer Reichweite meldet das Spiel Dauer und Ablauf 0: wie ohne Ablauf, Typ bleibt
+		-- out of range the game reports duration and expiration 0: treated as non-expiring, type stays
 		rec.outOfRange = true
 		rec.kind = st.kind
 	else
@@ -270,18 +270,18 @@ local function Track(unit, data, rec, now, seen)
 end
 
 ---------------------------------------------------------------------------
--- Einheiten
+-- Units
 ---------------------------------------------------------------------------
 
--- Liest alle Filter der Einheit (ohne Prüfung der Sperre)
+-- Reads all filters of the unit (without checking the restriction)
 function Auras.Read(unit)
 	local data = units[unit]
 	if not data then
 		data = { states = {} }
 		units[unit] = data
 	end
-	-- andere Einheit hinter dem Token (Zielwechsel): Zustände gehören nicht mehr zu ihr.
-	-- Unlesbare (secret) GUID: keine einheitenübergreifende Warnmerkung für neue Zustände.
+	-- different unit behind the token (target change): the states no longer belong to it.
+	-- Unreadable (secret) GUID: no cross-unit warning record for new states.
 	local guid = lib.Plain(UnitGUID(unit), nil)
 	if type(guid) ~= "string" then
 		guid = nil
@@ -310,7 +310,7 @@ function Auras.Read(unit)
 	data.lists = lists
 end
 
--- Neu lesen, wenn die Einheit beobachtet wird und die Daten lesbar sind. true = gelesen.
+-- Re-read if the unit is watched and the data is readable. true = read.
 function Auras.Update(unit)
 	if not watched[unit] then
 		return false
@@ -324,7 +324,7 @@ function Auras.Update(unit)
 	return true
 end
 
--- Liste der Records einer Gruppe (leer, solange nichts gelesen ist)
+-- List of the records of a group (empty until something has been read)
 function Auras.List(unit, group)
 	local data = units[unit]
 	return data and data.lists and data.lists[group] or EMPTY
@@ -334,8 +334,8 @@ function Auras.IsWatched(unit)
 	return watched[unit] or false
 end
 
--- Beobachtete Einheiten festlegen (der Spieler immer). Nicht mehr beobachtete verlieren ihre
--- Daten, neu beobachtete werden sofort gelesen.
+-- Set the watched units (always the player). Units no longer watched lose their
+-- data, newly watched ones are read immediately.
 function Auras.SetWatched(set)
 	set.player = true
 	local added = {}
@@ -356,12 +356,12 @@ function Auras.SetWatched(set)
 end
 
 ---------------------------------------------------------------------------
--- Ereignisse
+-- Events
 ---------------------------------------------------------------------------
 
 local dirty = {}
 
--- Geänderte Einheiten im nächsten Frame lesen (mehrere UNIT_AURA zusammengefasst)
+-- Read changed units in the next frame (several UNIT_AURA combined)
 local Flush = lib.Debounce(function()
 	local list = dirty
 	dirty = {}
@@ -379,15 +379,15 @@ function Auras.MarkDirty(unit)
 	end
 end
 
--- Nach dem Verlassen eines Fahrzeugs meldet das Spiel für vehicle/pet kein UNIT_AURA mehr:
--- 20 s lang alle 2 s neu lesen.
+-- After leaving a vehicle the game no longer sends UNIT_AURA for vehicle/pet:
+-- re-read every 2 s for 20 s.
 local pollLeft = 0
 
 function Auras.StartPoll()
 	pollLeft = 20
 end
 
--- Sekundentakt (Core)
+-- One-second tick (Core)
 function Auras.Tick()
 	if pollLeft <= 0 then
 		return
@@ -402,7 +402,7 @@ function Auras.Tick()
 	end
 end
 
--- Nach Ende der Sperre (erst im nächsten Frame prüfen): alles neu lesen und anordnen
+-- After the restriction ends (checked only in the next frame): re-read and arrange everything
 local function CheckUnlock()
 	if not stale or Auras.Restricted() then
 		return
@@ -414,7 +414,7 @@ local function CheckUnlock()
 	ns.UnitChanged(nil)
 end
 
--- im nächsten Frame; mehrere Ereignisse im selben Frame zählen einmal
+-- in the next frame; several events in the same frame count once
 local Later = lib.Debounce(CheckUnlock)
 
 function Auras.Init()

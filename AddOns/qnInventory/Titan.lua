@@ -1,13 +1,13 @@
--- qnInventory: Titan-Plugins (nur wenn Titan geladen ist, ## OptionalDeps: Titan).
---   qnInvBank  [Bank-Symbol] Bank: 30/40  Taschen: 20/26   belegte/vorhandene Plätze des eingeloggten
---              Charakters, Farbe nach Füllstand wie TitanBag. Tooltip: je Fraktion ein Block mit
---              Summe, danach die Accountbank. Linksklick: Taschen-Ansicht, Umschalt-Linksklick: Bank.
---   qnInvGold  [Gold-Symbol] Gold: 2G 20S 53K   Tooltip wie TitanGold, aber je Fraktion ein Block
---              (Charaktere, Gesamtes Gold), danach Accountbank und Summe über alles, Sitzungsstatistik.
--- Zwei Plugins, weil Titan je Plugin genau einen Tooltip zeigt; nebeneinander wirken sie wie eines.
--- Gezeigt werden dieser und die verbundenen Realms; die andere Fraktion nur mit der Option
--- bothFactions (Options.lua). Titans eigene Texte (TitanGold, TitanBag) kommen aus Titans Lokalisierung.
--- Titan meldet Plugins beim Betreten der Welt an; die Knöpfe entstehen deshalb schon beim Laden.
+-- qnInventory: Titan plugins (only if Titan is loaded, ## OptionalDeps: Titan).
+--   qnInvBank  [bank icon] Bank: 30/40  Bags: 20/26   used/available slots of the logged-in
+--              character, color by fill level like TitanBag. Tooltip: one block with total per
+--              faction, then the account bank. Left-click: bags view, Shift-left-click: bank.
+--   qnInvGold  [gold icon] Gold: 2G 20S 53K   tooltip like TitanGold, but one block per faction
+--              (characters, total gold), then account bank and grand total, session statistics.
+-- Two plugins because Titan shows exactly one tooltip per plugin; side by side they look like one.
+-- Shown are this and the connected realms; the other faction only with the option
+-- bothFactions (Options.lua). Titan's own texts (TitanGold, TitanBag) come from Titan's localization.
+-- Titan registers plugins on entering the world; the buttons are therefore created at load time.
 
 local _, ns = ...
 local L = ns.L
@@ -22,26 +22,26 @@ local FACTION_ICON = {
 	Alliance = "Interface\\FriendsFrame\\PlusManz-Alliance",
 	Horde = "Interface\\FriendsFrame\\PlusManz-Horde",
 }
-local SPACER_LEFT, SPACER_RIGHT = "-------------------------", "----------------------"   -- wie TitanGold
+local SPACER_LEFT, SPACER_RIGHT = "-------------------------", "----------------------"   -- like TitanGold
 
--- Anteil belegter Plätze wie TitanBag: unter 50 % weiß, unter 75 % gelb, unter 90 % orange, sonst rot
+-- Share of used slots like TitanBag: below 50 % white, below 75 % yellow, below 90 % orange, otherwise red
 local THRESHOLDS = {
 	Values = { 0.5, 0.75, 0.9 },
 	Colors = { HIGHLIGHT_FONT_COLOR, NORMAL_FONT_COLOR, ORANGE_FONT_COLOR, RED_FONT_COLOR },
 }
 
-local session = {}   -- money, time: Stand beim Einloggen bzw. nach „Sitzung zurücksetzen“
+local session = {}   -- money, time: state at login or after "Reset Session"
 
--- Titans Texte (AceLocale, dieselben wie TitanGold/TitanBag)
+-- Titan's texts (AceLocale, the same as TitanGold/TitanBag)
 local function TL()
 	return LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)
 end
 
 ---------------------------------------------------------------------------
--- Daten
+-- Data
 ---------------------------------------------------------------------------
 
--- belegte und vorhandene Plätze einer Liste von Behältern; nil, solange nichts erfasst ist
+-- used and available slots of a list of containers; nil as long as nothing is recorded
 local function Count(list)
 	if not list then return end
 	local used, total = 0, 0
@@ -54,7 +54,7 @@ local function Count(list)
 	return used, total
 end
 
--- Taschen: Rucksack und Taschen 1-4 samt Reagenzientasche, ohne Schlüsselbund
+-- Bags: backpack and bags 1-4 including the reagent bag, without the keyring
 function Titan.BagSlots(char)
 	if not char.containers then return end
 	local list = {}
@@ -64,19 +64,19 @@ function Titan.BagSlots(char)
 	return Count(list)
 end
 
--- Bank: gekaufte Fächer; nil, solange die Bank mit dem Charakter nie offen war
+-- Bank: purchased tabs; nil as long as the bank was never opened with the character
 function Titan.BankSlots(char)
 	return Count(char.bankTabs)
 end
 
--- Rang der Fraktion in der Reihenfolge: eigene, andere, unbekannte
+-- Rank of the faction in the order: own, other, unknown
 local function Rank(faction)
 	if faction == ns.char.faction then return 1 end
 	return faction == "?" and 3 or 2
 end
 
--- Gezeigte Charaktere nach Fraktion: { { faction, chars = { { char, label }, … } }, … }
--- faction "?" = unbekannt. Je Fraktion erst dieser Realm, dann verbundene ("Name-Realm").
+-- Shown characters by faction: { { faction, chars = { { char, label }, ... } }, ... }
+-- faction "?" = unknown. Per faction first this realm, then connected ones ("Name-Realm").
 function Titan.Groups()
 	local both = ns.options.bothFactions
 	local groups, byFaction = {}, {}
@@ -112,7 +112,7 @@ local function GroupMoney(g)
 	return total
 end
 
--- Gold aller gezeigten Charaktere samt Accountbank
+-- Gold of all shown characters including the account bank
 local function TotalMoney()
 	local total = ns.account.money or 0
 	for _, g in ipairs(Titan.Groups()) do
@@ -121,7 +121,7 @@ local function TotalMoney()
 	return total
 end
 
--- Plätze der Accountbank; nil, solange sie nie gesehen wurde oder kein Fach gekauft ist
+-- Slots of the account bank; nil as long as it was never seen or no tab is purchased
 function Titan.AccountSlots()
 	local tabs = ns.account.bankTabs
 	if tabs and #tabs > 0 then
@@ -130,14 +130,14 @@ function Titan.AccountSlots()
 end
 
 ---------------------------------------------------------------------------
--- Texte
+-- Texts
 ---------------------------------------------------------------------------
 
 local function Colored(id)
 	return TitanGetVar(id, "ShowColoredText")
 end
 
--- "30/40" in der Farbe des Füllstands, "?" wenn unbekannt
+-- "30/40" in the fill level color, "?" if unknown
 function Titan.SlotText(used, total, colored)
 	if not used or total == 0 then
 		return TitanUtils_GetGrayText("?")
@@ -150,7 +150,7 @@ function Titan.SlotText(used, total, colored)
 	return TitanUtils_GetColoredText(text, color)
 end
 
--- Betrag wie TitanGold: "2G 20S 53K", Münzfarben je nach „Farbigen Text anzeigen“
+-- Amount like TitanGold: "2G 20S 53K", coin colors depending on "Show Colored Text"
 function Titan.Cash(copper, colored)
 	return (TitanUtils_CashToString(copper or 0, LARGE_NUMBER_SEPERATOR, DECIMAL_SEPERATOR, false, true, false, colored))
 end
@@ -171,14 +171,14 @@ local function FactionIcon(faction)
 	return (" |T%s:%d:%d:2:0|t"):format(tex, size, size)
 end
 
--- Kopf eines Fraktionsblocks: "<Titel>:"  "<Fraktion> <Symbol>", darunter die Trennlinie
+-- Header of a faction block: "<title>:"  "<faction> <icon>", below it the separator line
 local function GroupHeader(tip, title, faction)
 	tip:AddDoubleLine(TitanUtils_GetGoldText(title .. ":"), FactionName(faction) .. FactionIcon(faction))
 	tip:AddDoubleLine(SPACER_LEFT, SPACER_RIGHT)
 end
 
 ---------------------------------------------------------------------------
--- Plugin Bank/Taschen
+-- Plugin bank/bags
 ---------------------------------------------------------------------------
 
 local function BankButtonText()
@@ -190,7 +190,7 @@ local function BankButtonText()
 		TL()["TITAN_BAG_BUTTON_LABEL"], Titan.SlotText(bagUsed, bagTotal, colored)
 end
 
--- "Bank 30/40   Taschen 20/26"
+-- "Bank 30/40   Bags 20/26"
 local function SlotsLine(bankUsed, bankTotal, bagUsed, bagTotal, colored)
 	return ("%s %s   %s %s"):format(TitanUtils_GetGrayText(BANK), Titan.SlotText(bankUsed, bankTotal, colored),
 		TitanUtils_GetGrayText(HUD_EDIT_MODE_BAGS_LABEL), Titan.SlotText(bagUsed, bagTotal, colored))
@@ -199,7 +199,7 @@ end
 function Titan.BankTooltip(tip)
 	local colored = Colored(BANK_ID)
 	tip:AddLine(L["Bank and Bags"], 1, 1, 1)
-	-- je Fraktion ein Block mit eigener Summe
+	-- one block per faction with its own total
 	for _, g in ipairs(Titan.Groups()) do
 		tip:AddLine(" ")
 		GroupHeader(tip, L["Used slots on"], g.faction)
@@ -249,7 +249,7 @@ function Titan.GoldTooltip(tip)
 	local T = TL()
 	local colored = Colored(GOLD_ID)
 	tip:AddLine(T["TITAN_GOLD_TOOLTIP"], 1, 1, 1)
-	-- je Fraktion ein Block wie TitanGold mit eigener Summe
+	-- one block per faction like TitanGold with its own total
 	local groups = Titan.Groups()
 	for _, g in ipairs(groups) do
 		tip:AddLine(" ")
@@ -260,8 +260,8 @@ function Titan.GoldTooltip(tip)
 		tip:AddDoubleLine(SPACER_LEFT, SPACER_RIGHT)
 		tip:AddDoubleLine(T["TITAN_GOLD_TTL_GOLD"] .. ":", Titan.Cash(GroupMoney(g), colored))
 	end
-	-- Accountbank und Summe über alles, sobald es mehr als einen Block gibt
-	local account = (ns.account.money or 0) > 0 and ns.account.money   -- leere Accountbank: keine Zeile
+	-- account bank and grand total as soon as there is more than one block
+	local account = (ns.account.money or 0) > 0 and ns.account.money   -- empty account bank: no line
 	if account or #groups > 1 then
 		tip:AddLine(" ")
 		if account then
@@ -270,7 +270,7 @@ function Titan.GoldTooltip(tip)
 		tip:AddDoubleLine(TitanUtils_GetGoldText(TOTAL .. ":"), Titan.Cash(TotalMoney(), colored))
 	end
 
-	-- Sitzungsstatistik
+	-- session statistics
 	local now = GetMoney()
 	local diff = now - (session.money or now)
 	local hours = math.max(GetTime() - (session.time or GetTime()), 1) / 3600
@@ -300,7 +300,7 @@ local function GoldMenu(_, root)
 end
 
 ---------------------------------------------------------------------------
--- Anlegen
+-- Creation
 ---------------------------------------------------------------------------
 
 local CONTROLS = { ShowIcon = true, ShowLabelText = true, ShowColoredText = true, DisplayOnRightSide = true }
@@ -334,7 +334,7 @@ function Titan.Update()
 	end
 end
 
--- Ohne Titan: keine Plugins
+-- Without Titan: no plugins
 Titan.active = C_AddOns.IsAddOnLoaded("Titan") and type(TitanUtils_PluginToRegister) == "function"
 if Titan.active then
 	Create(BANK_ID, {
@@ -358,7 +358,7 @@ if Titan.active then
 	})
 end
 
--- aus Core.lua nach PLAYER_LOGIN
+-- from Core.lua after PLAYER_LOGIN
 function ns.InitTitan()
 	if not Titan.active then return end
 	ResetSession()

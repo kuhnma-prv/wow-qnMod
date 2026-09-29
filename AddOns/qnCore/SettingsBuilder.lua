@@ -1,15 +1,15 @@
--- qnCore: Baukasten für Optionsseiten im Blizzard-Einstellungsfenster (Settings-API).
+-- qnCore: builder for options pages in Blizzard's settings window (Settings API).
 --
--- Die Einstellungen sind Proxy-Einstellungen: sie lesen und schreiben immer in
--- die Tabelle des aktiven Profils. Nach einem Profilwechsel liest Refresh() alle
--- Steuerelemente neu ein, ohne die Rückrufe auszulösen – das Anwenden übernimmt
--- onSwitch des Profils.
+-- The settings are proxy settings: they always read from and write to
+-- the table of the active profile. After a profile switch, Refresh() re-reads all
+-- controls without triggering the callbacks - applying is done by the
+-- profile's onSwitch.
 --
 --   local B = qnCore.Settings.New({ store = ns.store, prefix = "QNMETER_", apply = Apply })
---   B:Checkbox(category, "shown", "Fenster anzeigen")
+--   B:Checkbox(category, "shown", "Show window")
 --
--- Auswahl aus mehreren Möglichkeiten immer über B:Dropdown: ein Knopf mit
--- Aufklappliste, der die aktive Auswahl anzeigt.
+-- A choice among several options always goes through B:Dropdown: a button with
+-- a drop-down list that shows the active choice.
 
 local _, ns = ...
 local lib = qnCore
@@ -20,11 +20,11 @@ lib.Settings = S
 local Builder = {}
 Builder.__index = Builder
 
--- opts.store     Profilobjekt (qnCore.Profiles.Register)
--- opts.prefix    eindeutiges Präfix für die Variablennamen, z. B. "QNMETER_"
--- opts.apply     Standard-Rückruf nach einer Änderung (optional)
--- opts.source    function() -> Tabelle; Standard: store.db (optional)
--- opts.defaults  Vorgaben für diese Tabelle; Standard: store.defaults (optional)
+-- opts.store     profile object (qnCore.Profiles.Register)
+-- opts.prefix    unique prefix for the variable names, e.g. "QNMETER_"
+-- opts.apply     default callback after a change (optional)
+-- opts.source    function() -> table; default: store.db (optional)
+-- opts.defaults  defaults for this table; default: store.defaults (optional)
 function S.New(opts)
 	local b = setmetatable({
 		store = opts.store,
@@ -41,10 +41,10 @@ function S.New(opts)
 	return b
 end
 
--- Hauptseite eines Addons im Einstellungsfenster. Ohne canvas eine senkrechte Liste:
--- build(category, layout); mit canvas (Rahmen) eine frei gestaltete Seite: build(category, canvas).
--- Unterseiten legt build an. Setzt addonNS.category und addonNS.OpenOptions; die Anmeldung im
--- Einstellungsfenster (RegisterAddOnCategory) folgt nach build.
+-- Main page of an addon in the settings window. Without canvas a vertical list:
+-- build(category, layout); with canvas (frame) a freely designed page: build(category, canvas).
+-- Subpages are created by build. Sets addonNS.category and addonNS.OpenOptions; registration in the
+-- settings window (RegisterAddOnCategory) follows after build.
 function S.NewCategory(addonNS, title, build, canvas)
 	local category, layout
 	if canvas then
@@ -83,7 +83,7 @@ local function VarTypeOf(v)
 	return Settings.VarType.String
 end
 
--- Legt die Einstellung für key an. callback(setting, value) ersetzt opts.apply.
+-- Creates the setting for key. callback(setting, value) replaces opts.apply.
 function Builder:Register(cat, key, name, varType, callback)
 	local default = self:Default(key)
 	varType = varType or VarTypeOf(default)
@@ -103,7 +103,7 @@ function Builder:Register(cat, key, name, varType, callback)
 	return setting
 end
 
--- Rückruf anhängen (nicht während Refresh) und die Einstellung merken.
+-- Attach the callback (not during Refresh) and remember the setting.
 function Builder:Wire(key, setting, callback)
 	local b = self
 	callback = callback or self.apply
@@ -118,7 +118,7 @@ function Builder:Wire(key, setting, callback)
 	self.list[#self.list + 1] = setting
 end
 
--- Steuerelemente neu einlesen (nach Profilwechsel oder Tausch der Quelltabelle).
+-- Re-read the controls (after a profile switch or swapping the source table).
 function Builder:Refresh()
 	self.quiet = true
 	local ok, err = pcall(function()
@@ -126,14 +126,14 @@ function Builder:Refresh()
 			setting:NotifyUpdate()
 		end
 	end)
-	self.quiet = false   -- auch nach einem Fehler, sonst blieben alle Rückrufe stumm
+	self.quiet = false   -- also after an error, otherwise all callbacks would stay silent
 	if not ok then
 		geterrorhandler()(err)
 	end
 end
 
--- Setzt einen Wert so, dass auch das Einstellungsfenster ihn anzeigt. Ohne Steuerelement
--- wird direkt geschrieben und opts.apply wie ein Rückruf aufgerufen: apply(nil, value).
+-- Sets a value so that the settings window shows it too. Without a control
+-- it is written directly and opts.apply is called like a callback: apply(nil, value).
 function Builder:Set(key, value)
 	local setting = self.settings[key]
 	if setting then
@@ -146,8 +146,8 @@ function Builder:Set(key, value)
 	end
 end
 
--- Setzt key über den ersten Baukasten der Liste, der dafür ein Steuerelement hat; true, wenn einer
--- es hatte (sonst bleibt alles unverändert).
+-- Sets key via the first builder in the list that has a control for it; true if one
+-- had it (otherwise everything stays unchanged).
 function S.SetIn(builders, key, value)
 	for _, b in ipairs(builders) do
 		if b.settings[key] then
@@ -159,9 +159,9 @@ function S.SetIn(builders, key, value)
 end
 
 ---------------------------------------------------------------------------
--- Steuerelemente
--- Checkbox, Slider und Dropdown liefern den Initializer (für S.Depends); die Einstellung
--- steht in B.settings[key].
+-- Controls
+-- Checkbox, Slider and Dropdown return the initializer (for S.Depends); the setting
+-- is in B.settings[key].
 ---------------------------------------------------------------------------
 
 function Builder:Checkbox(cat, key, name, tooltip, callback)
@@ -201,9 +201,9 @@ function Builder:Slider(cat, key, name, minV, maxV, step, formatter, tooltip, ca
 	return Settings.CreateSlider(cat, setting, options, tooltip)
 end
 
--- Dropdown zu einer vorhandenen Einstellung (auch eine, die auf mehreren Seiten erscheint).
--- entries: { { Wert, Text[, Tooltip] }, … } oder eine Funktion, die diese Liste liefert
--- (wird bei jedem Aufklappen neu gelesen).
+-- Dropdown for an existing setting (also one that appears on several pages).
+-- entries: { { value, text[, tooltip] }, ... } or a function that returns this list
+-- (re-read every time the list opens).
 function S.Dropdown(cat, setting, entries, tooltip)
 	local function GetOptions()
 		local container = Settings.CreateControlTextContainer()
@@ -215,15 +215,15 @@ function S.Dropdown(cat, setting, entries, tooltip)
 	return Settings.CreateDropdown(cat, setting, GetOptions, tooltip)
 end
 
--- entries wie bei S.Dropdown
+-- entries as for S.Dropdown
 function Builder:Dropdown(cat, key, name, entries, tooltip, varType, callback)
 	local setting = self:Register(cat, key, name, varType, callback)
 	return S.Dropdown(cat, setting, entries, tooltip)
 end
 
--- Farbe als Liste { r, g, b, a } (Werte 0–1). Blizzards Farbfeld kennt keine Deckkraft;
--- mit alphaName gibt es dafür einen eigenen Regler darunter (Einstellung key .. "_alpha").
--- Liefert die Initializer des Farbfelds und des Reglers (ohne alphaName nil).
+-- Color as a list { r, g, b, a } (values 0-1). Blizzard's color swatch has no opacity;
+-- with alphaName there is a separate slider for it below (setting key .. "_alpha").
+-- Returns the initializers of the color swatch and of the slider (nil without alphaName).
 function Builder:Color(cat, key, name, tooltip, callback, alphaName)
 	local default = self:Default(key)
 	local b = self
@@ -276,7 +276,7 @@ function S.Button(layout, name, buttonText, onClick, tooltip)
 	return init
 end
 
--- Steuerelement nur bedienbar, wenn predicate() wahr ist (eingerückt unter parent).
+-- Control only usable if predicate() is true (indented under parent).
 function S.Depends(initializer, parent, predicate)
 	initializer:SetParentInitializer(parent, predicate)
 	return initializer

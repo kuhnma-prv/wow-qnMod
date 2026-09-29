@@ -1,13 +1,13 @@
--- qnMeter: Bedrohungsfenster (Datensammlung, Berechnung, Anzeige, Warnungen).
+-- qnMeter: threat window (data collection, calculation, display, warnings).
 --
--- Zwei Betriebsarten, abhängig davon, was der Client gerade herausgibt:
---   * normal:        Werte sind lesbar. Sortierung, Ränge, Prozent nach Option
---                    (relativ zum Tank oder skaliert), TPS, "Aggro ziehen"-Balken
---                    und Warnungen.
---   * eingeschränkt: Werte sind secret. Balken und Texte werden trotzdem
---                    gefüllt (die Widgets nehmen secret-Werte an), aber es
---                    wird nicht sortiert und nicht gerechnet. Prozent ist
---                    dann immer der skalierte Wert des Clients, Ränge gibt es nicht.
+-- Two operating modes, depending on what the client currently provides:
+--   * normal:        values are readable. Sorting, ranks, percent per option
+--                    (relative to the tank or scaled), TPS, "Pull Aggro" bar
+--                    and warnings.
+--   * restricted:    values are secret. Bars and texts are still
+--                    filled (the widgets accept secret values), but there
+--                    is no sorting and no calculation. Percent is then
+--                    always the client's scaled value, there are no ranks.
 
 local _, ns = ...
 
@@ -25,13 +25,13 @@ local playerGUID
 local TITLE = L["Threat"]
 local AGGRO_MELEE = 1.1
 local AGGRO_RANGED = 1.3
-local RANGE_ITEM = 8149 -- Voodoo-Talisman, 5 Meter (Nahkampfentfernung)
+local RANGE_ITEM = 8149 -- Voodoo Charm, 5 yards (melee range)
 local MELEE_CLASSES = { WARRIOR = true, ROGUE = true, PALADIN = true }
 
 local Interp = Enum.StatusBarInterpolation.ExponentialEaseOut
 
 ---------------------------------------------------------------------------
--- Zielauswahl
+-- Target selection
 ---------------------------------------------------------------------------
 
 local function IsValidMob(unit)
@@ -53,14 +53,14 @@ function T.FindMob()
 end
 
 ---------------------------------------------------------------------------
--- Datensammlung
+-- Data collection
 ---------------------------------------------------------------------------
 
 local entries, numEntries = {}, 0
 local order = {}
 local seen = {}
 local secretMode = false
-local me, meIndex   -- eigener Eintrag und seine Stelle in entries
+local me, meIndex   -- own entry and its position in entries
 
 local function NewEntry()
 	numEntries = numEntries + 1
@@ -86,22 +86,22 @@ local function Collect(unit, mob, isExtra)
 		end
 		seen[guid] = true
 	elseif isExtra then
-		-- Ohne lesbare GUID lässt sich ein Zusatz-Unit nicht gegen die
-		-- Gruppe abgleichen; lieber weglassen als doppelt anzeigen.
+		-- Without a readable GUID an extra unit cannot be matched against the
+		-- group; better to leave it out than to show it twice.
 		return
 	end
 
 	local isTanking, _, scaled, _, value = UnitDetailedThreatSituation(unit, mob)
 	local secret = ns.AnySecret(value, scaled, isTanking)
 	if not secret and value == nil then
-		return -- nicht auf der Bedrohungsliste
+		return -- not on the threat list
 	end
 
 	local e = NewEntry()
 	e.unit = unit
 	e.key = guid or unit
 	e.secret = secret
-	-- Im Raid heißt man selbst raidN; ohne lesbare GUID hilft UnitIsUnit.
+	-- In a raid you yourself are raidN; without a readable GUID UnitIsUnit helps.
 	e.isMe = unit == "player" or (guid ~= nil and guid == playerGUID) or Plain(UnitIsUnit(unit, "player"), false)
 	e.isPet = unit:find("pet", 1, true) ~= nil
 	e.name = UnitName(unit)
@@ -142,7 +142,7 @@ local function CollectGroup(mob)
 			end
 		end
 	end
-	-- Tank außerhalb der Gruppe (z. B. NPC) sowie eigenes Ziel und dessen Ziel.
+	-- tank outside the group (e.g. NPC) as well as own target and its target.
 	Collect(mob .. "target", mob, true)
 	Collect("target", mob, true)
 	Collect("targettarget", mob, true)
@@ -179,22 +179,22 @@ local function CollectTest()
 end
 
 ---------------------------------------------------------------------------
--- Bedrohung pro Sekunde: Zuwachs über ein gleitendes Zeitfenster.
--- Nur im normalen Modus; mit secret-Werten lässt sich nicht rechnen.
+-- Threat per second: gain over a sliding time window.
+-- Only in normal mode; secret values cannot be calculated with.
 ---------------------------------------------------------------------------
 
--- Verlauf je Gegner, damit ein Zielwechsel (z. B. kurz auf einen anderen Gegner) ihn nicht löscht.
--- Gegner ohne lesbare GUID teilen sich einen Verlauf. Nach dem Kampf wird alles geleert.
+-- History per enemy, so that a target switch (e.g. briefly to another enemy) does not clear it.
+-- Enemies without a readable GUID share one history. Everything is cleared after combat.
 local MAX_MOBS = 5
-local history = {}    -- Gegner -> Einheit (e.key) -> { t = { Zeitpunkte }, v = { Werte } }
-local mobOrder = {}   -- Gegner nach letzter Verwendung, der neueste zuletzt
+local history = {}    -- enemy -> unit (e.key) -> { t = { timestamps }, v = { values } }
+local mobOrder = {}   -- enemies by last use, the newest last
 
 local function ResetTPS()
 	wipe(history)
 	wipe(mobOrder)
 end
 
--- Verlauf des Gegners; der am längsten nicht verwendete fällt über MAX_MOBS heraus.
+-- History of the enemy; beyond MAX_MOBS the least recently used one drops out.
 local function MobHistory(mob)
 	local key = Plain(UnitGUID(mob), nil) or "?"
 	local h = history[key]
@@ -226,7 +226,7 @@ local function UpdateTPS(mobHistory, e, now)
 	local t, v = h.t, h.v
 	local n = #t
 
-	-- Bedrohung gesunken (Wegstoßen, Unsichtbarkeit): neu beginnen.
+	-- threat dropped (knockback, invisibility): start over.
 	if n > 0 and e.value < v[n] then
 		wipe(t)
 		wipe(v)
@@ -235,8 +235,8 @@ local function UpdateTPS(mobHistory, e, now)
 	n = n + 1
 	t[n], v[n] = now, e.value
 
-	-- Werte außerhalb des Zeitfensters verwerfen; der letzte davor bleibt
-	-- als Bezugspunkt erhalten.
+	-- discard values outside the time window; the last one before it is kept
+	-- as a reference point.
 	local cutoff = now - db.tpsWindow
 	local first = 1
 	while first < n - 1 and t[first + 1] <= cutoff do
@@ -266,7 +266,7 @@ local function UpdateAllTPS(mob)
 end
 
 ---------------------------------------------------------------------------
--- Aggro-Schwelle
+-- Aggro threshold
 ---------------------------------------------------------------------------
 
 local function IsMelee(mob)
@@ -275,8 +275,8 @@ local function IsMelee(mob)
 	elseif db.aggroMode == 3 then
 		return false
 	end
-	-- Entfernung nur außerhalb des Kampfes: im Kampf ist die Abfrage auf Gegner
-	-- für Addons gesperrt; dann entscheidet die Klasse.
+	-- range only out of combat: in combat the query on enemies is
+	-- blocked for addons; then the class decides.
 	if mob and not InCombatLockdown() then
 		local ok, inRange = pcall(C_Item.IsItemInRange, RANGE_ITEM, mob)
 		if ok then
@@ -291,7 +291,7 @@ local function IsMelee(mob)
 end
 
 ---------------------------------------------------------------------------
--- Warnungen (nur im normalen Modus möglich)
+-- Warnings (only possible in normal mode)
 ---------------------------------------------------------------------------
 
 local warnArmed = true
@@ -341,19 +341,19 @@ local function InCombat()
 	return InCombatLockdown() or UnitAffectingCombat("player")
 end
 
--- Warnungen möglich (Option an, kein Testmodus, in Gruppe oder auch allein erlaubt)
+-- Warnings possible (option on, no test mode, in a group or allowed solo too)
 local function WarnActive()
 	return db.warnEnabled and not T.testMode and (db.warnSolo or IsInGroup())
 end
 
--- Daten nur sammeln, wenn das Fenster sie zeigt oder eine Warnung sie braucht. Verborgen nur im
--- Kampf: außerhalb steht man auf keiner Bedrohungsliste.
+-- Collect data only if the window shows it or a warning needs it. When hidden only in
+-- combat: out of combat you are on no threat list.
 local function NeedsData()
 	return frame:IsShown() or (WarnActive() and InCombat()) or false
 end
 
--- Nur im normalen Modus aufgerufen: me ist dann nie secret. Ohne echten Tank-Eintrag keine Warnung:
--- der Ersatzbezug (höchster Wert) wäre sonst oft man selbst mit 100 %.
+-- Only called in normal mode: me is then never secret. No warning without a real tank entry:
+-- the fallback reference (highest value) would otherwise often be yourself at 100 %.
 local function CheckWarning(tankValue, hasTank)
 	if not WarnActive() or not me then
 		return
@@ -375,7 +375,7 @@ local function CheckWarning(tankValue, hasTank)
 end
 
 ---------------------------------------------------------------------------
--- Anzeige
+-- Display
 ---------------------------------------------------------------------------
 
 local function SetBarColor(bar, e)
@@ -395,7 +395,7 @@ local function SetBarColor(bar, e)
 	bar:SetClassIcon(not e.isPet and not e.isAggro and e.class or nil)
 end
 
--- Name wie beim Damage Meter mit vorangestelltem Rang ("1. Name"); ohne Rang nur der Name.
+-- Name as in the Damage Meter with the rank in front ("1. Name"); without rank only the name.
 local function SetName(bar, e, rank)
 	local name = e.name
 	if not IsSecret(name) and name == nil then
@@ -408,9 +408,9 @@ local function SetName(bar, e, rank)
 	end
 end
 
-local FormatValue = AbbreviateLargeNumbers   -- auch für secret-Werte
+local FormatValue = AbbreviateLargeNumbers   -- also for secret values
 
--- Normaler Modus: lesbare Zahlen.
+-- Normal mode: readable numbers.
 local function ShowPlainBar(bar, e, top, tankValue)
 	bar:SetMinMaxValues(0, top)
 	bar:SetValue(e.value, Interp)
@@ -422,7 +422,7 @@ local function ShowPlainBar(bar, e, top, tankValue)
 		pct = tankValue > 0 and (e.value / tankValue * 100) or 0
 	end
 
-	-- Wie das Damage Meter: "Wert (pro Sekunde) Prozent".
+	-- like the Damage Meter: "value (per second) percent".
 	local showTPS = db.showTPS and e.tps ~= nil
 	local text = db.showValue and FormatValue(e.value) or ""
 	if showTPS then
@@ -441,7 +441,7 @@ local function ShowPlainBar(bar, e, top, tankValue)
 	bar.right:SetText(text)
 end
 
--- Eingeschränkter Modus: Werte nur durchreichen, nie anfassen.
+-- Restricted mode: only pass values through, never touch them.
 local function ShowSecretBar(bar, e)
 	bar:SetMinMaxValues(0, 100)
 	bar:SetValue(e.scaled, Interp)
@@ -461,9 +461,9 @@ local function SortByValue(a, b)
 	return a.value > b.value
 end
 
--- Zeichnet die ersten count Einträge aus order. top/tankValue nur im normalen Modus;
--- im eingeschränkten Modus laufen auch lesbare Einträge über den skalierten Wert,
--- damit alle Balken dieselbe Skala haben.
+-- Draws the first count entries from order. top/tankValue only in normal mode;
+-- in restricted mode readable entries also use the scaled value,
+-- so that all bars have the same scale.
 local function Draw(count, top, tankValue)
 	for i = 1, count do
 		local bar = Window.GetBar(frame, i)
@@ -480,8 +480,8 @@ local function Draw(count, top, tankValue)
 	Window.HideBarsFrom(frame, count + 1)
 end
 
--- Einträge neu sammeln (Testgegner bzw. Gruppe gegen das Ziel) und den Info-Text setzen.
--- TPS nur, wenn das Fenster sichtbar ist. Liefert den Gegner (nil im Testmodus und ohne Ziel).
+-- Collect entries anew (test enemy or group against the target) and set the info text.
+-- TPS only if the window is visible. Returns the enemy (nil in test mode and without a target).
 local function CollectEntries(visible)
 	numEntries = 0
 	secretMode = false
@@ -500,8 +500,8 @@ local function CollectEntries(visible)
 			if visible and not secretMode then
 				UpdateAllTPS(mob)
 			end
-			-- Rechts wie der Sitzungsname beim Damage Meter: das Ziel.
-			-- Orange = eingeschränkter Modus (secret-Werte).
+			-- on the right like the session name in the Damage Meter: the target.
+			-- Orange = restricted mode (secret values).
 			frame.infoText:SetFormattedText(secretMode and "|cffffaa00%s|r" or "%s", UnitName(mob))
 		else
 			frame.infoText:SetText("")
@@ -510,8 +510,8 @@ local function CollectEntries(visible)
 	return mob
 end
 
--- Eingeschränkter Modus: keine Vergleiche möglich, Gruppenreihenfolge ohne Ränge, eigener Balken
--- zuerst. Liefert die Zahl der Zeilen.
+-- Restricted mode: no comparisons possible, group order without ranks, own bar
+-- first. Returns the number of rows.
 local function RankSecret(capacity)
 	if me and db.alwaysShowSelf then
 		table.remove(order, meIndex)
@@ -520,8 +520,8 @@ local function RankSecret(capacity)
 	return math.min(capacity, #order)
 end
 
--- Normaler Modus: Bezugswert für Prozent und Aggro-Balken = Tank, ohne Tank-Eintrag der höchste Wert.
--- Liefert Bezugswert und ob ein echter Tank-Eintrag dabei ist.
+-- Normal mode: reference value for percent and aggro bar = tank, without a tank entry the highest value.
+-- Returns the reference value and whether a real tank entry is present.
 local function TankValue()
 	local tankValue, topValue, hasTank = 0, 0, false
 	for i = 1, numEntries do
@@ -539,8 +539,8 @@ local function TankValue()
 	return tankValue, hasTank
 end
 
--- Normaler Modus: Aggro-Balken, Ränge, eigener Balken notfalls in der letzten Zeile.
--- Liefert Zeilen und Skala.
+-- Normal mode: aggro bar, ranks, own bar in the last row if necessary.
+-- Returns rows and scale.
 local function RankNormal(mob, capacity, tankValue)
 	if db.showAggroBar and tankValue > 0 then
 		local e = NewEntry()
@@ -567,7 +567,7 @@ local function RankNormal(mob, capacity, tankValue)
 		top = 1
 	end
 
-	-- Eigenen Balken notfalls in die letzte Zeile ziehen.
+	-- pull own bar into the last row if necessary.
 	local shown = math.min(capacity, #order)
 	if db.alwaysShowSelf and myIndex and shown > 0 and myIndex > shown then
 		order[shown] = me
@@ -582,7 +582,7 @@ local function FillOrder()
 	end
 end
 
--- Verborgenes Fenster: nur sammeln und warnen, nicht zeichnen.
+-- Hidden window: only collect and warn, do not draw.
 function T.Refresh()
 	if not NeedsData() then
 		return
@@ -613,7 +613,7 @@ function T.Refresh()
 end
 
 ---------------------------------------------------------------------------
--- Sichtbarkeit, Menü, Testmodus
+-- Visibility, menu, test mode
 ---------------------------------------------------------------------------
 
 local function ShouldShow()
@@ -631,9 +631,9 @@ local function ShouldShow()
 	return true
 end
 
--- Taktgeber läuft unabhängig vom Fenster (Warnung auch bei verborgenem Fenster), aber nur, solange
--- Daten gebraucht werden. Alle Bedingungen von NeedsData ändern sich nur über Ereignisse und
--- Einstellungen, die hier ankommen.
+-- The ticker runs independently of the window (warning even with a hidden window), but only as long
+-- as data is needed. All conditions of NeedsData change only through events and
+-- settings that arrive here.
 function T.UpdateVisibility()
 	frame:SetShown(ShouldShow())
 	T.driver:SetShown(NeedsData())
@@ -661,14 +661,14 @@ function T.ApplySettings()
 	T.UpdateVisibility()
 end
 
--- Fenster in den sichtbaren Bereich holen (Slash-Befehl, Knopf); mit qnViewPort auf einen Monitor.
+-- Move the window into the visible area (slash command, button); with qnViewPort onto a monitor.
 function T.MoveIntoVisible()
 	if qnCore.Visible.MoveAndReport(frame, L["Window"], ns.Print) then
 		Window.SavePosition(frame)
 	end
 end
 
--- Umschalter über ns.store:Set, damit das Einstellungsfenster den Wert mitbekommt.
+-- Toggles via ns.store:Set so that the settings window picks up the value.
 local function OpenMenu(owner)
 	MenuUtil.CreateContextMenu(owner, function(_, root)
 		root:CreateTitle("qnMeter")
@@ -691,9 +691,9 @@ local function OpenMenu(owner)
 end
 
 ---------------------------------------------------------------------------
--- Kopplung an den eingebauten Damage Meter (Blizzard_DamageMeter, für camelot
--- beim Start geladen). Die Setter werden vom Bearbeitungsmodus aufgerufen.
--- hooksecurefunc hängt sich nur hinten an und verändert Blizzards Code nicht (kein Taint).
+-- Coupling to the built-in Damage Meter (Blizzard_DamageMeter, loaded at startup
+-- for camelot). The setters are called by Edit Mode.
+-- hooksecurefunc only appends itself and does not change Blizzard's code (no taint).
 ---------------------------------------------------------------------------
 
 local DM_SETTERS = {
@@ -701,7 +701,7 @@ local DM_SETTERS = {
 	"SetUseClassColor", "SetTextScale", "SetBackgroundAlpha", "SetWindowAlpha",
 }
 
--- Mehrere Setter hintereinander nur einmal anwenden.
+-- Apply several setters in a row only once.
 local applyLater = qnCore.Debounce(function()
 	T.ApplySettings()
 end)
@@ -713,7 +713,7 @@ local function OnDamageMeterChanged()
 end
 
 ---------------------------------------------------------------------------
--- Initialisierung
+-- Initialization
 ---------------------------------------------------------------------------
 
 function T.Init()
@@ -722,7 +722,7 @@ function T.Init()
 	T.frame = frame
 	frame.titleText:SetText(TITLE)
 	frame.OnMenu = function(_, owner) OpenMenu(owner) end
-	-- Option autoVisible: nach dem Laden, bei neuer Fenstergröße und Monitoranordnung (qnCore)
+	-- option autoVisible: after loading, on new window size and monitor arrangement (qnCore)
 	frame.checkVisible = qnCore.Visible.Keep(frame, function() return db.autoVisible end, function()
 		Window.SavePosition(frame)
 	end)

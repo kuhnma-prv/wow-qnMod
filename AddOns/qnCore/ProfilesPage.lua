@@ -1,7 +1,7 @@
--- qnCore: Optionsseite "Profile" (Canvas-Layout).
--- Zeigt das aktive Profil (= Layout des Bearbeitungsmodus) und alle gespeicherten
--- Profile. Kopieren in das aktive Profil, Löschen und Zurücksetzen wahlweise für
--- alle qn-Addons oder nur für eines.
+-- qnCore: options page "Profiles" (canvas layout).
+-- Shows the active profile (= Edit Mode layout) and all saved
+-- profiles. Copying into the active profile, deleting and resetting either for
+-- all qn addons or only for one.
 
 local _, ns = ...
 local lib = qnCore
@@ -12,7 +12,7 @@ local UI = lib.UI
 local page, sub   -- page: UI.Page
 local activeText, scopeDropdown, listContent, emptyText
 local rows = {}
-local scope = "*"          -- "*" = alle qn-Addons, sonst Addon-Name
+local scope = "*"          -- "*" = all qn addons, otherwise addon name
 
 local ROW_HEIGHT = 28
 
@@ -37,10 +37,10 @@ local function ScopeEntries()
 end
 
 ---------------------------------------------------------------------------
--- Rückfragen
+-- Confirmations
 ---------------------------------------------------------------------------
 
--- Rückfrage mit fertigem Text (%s); onAccept(data) führt aus, danach wird die Liste neu gezeichnet.
+-- Confirmation with finished text (%s); onAccept(data) executes, then the list is redrawn.
 local function Confirm(name, button1, onAccept)
 	lib.Popup.Confirm(name, "%s", button1, function(data)
 		onAccept(data)
@@ -70,7 +70,7 @@ Confirm("QNCORE_PROFILE_RESET", ACCEPT, function(data)
 end)
 
 ---------------------------------------------------------------------------
--- Liste
+-- List
 ---------------------------------------------------------------------------
 
 local function UsedBy(key)
@@ -92,7 +92,7 @@ local function Row(i)
 	row:SetHeight(ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
 	row:SetPoint("RIGHT", listContent, "RIGHT")
-	row:EnableMouse(true)   -- für den Tooltip; die Knöpfe sind Kindrahmen und liegen darüber
+	row:EnableMouse(true)   -- for the tooltip; the buttons are child frames and lie above it
 	if i % 2 == 0 then
 		local bg = row:CreateTexture(nil, "BACKGROUND")
 		bg:SetAllPoints()
@@ -155,7 +155,7 @@ function ns.RefreshProfilesPage()
 end
 
 ---------------------------------------------------------------------------
--- Aufbau
+-- Construction
 ---------------------------------------------------------------------------
 
 local function Build()
@@ -184,7 +184,7 @@ local function Build()
 	local header = UI.Text(parent, "GameFontNormal", L["Saved profiles"])
 	header:SetPoint("TOPLEFT", activeText, "BOTTOMLEFT", 0, -56)
 
-	-- Liste im Inhalt der Seite (blättert mit der Seite)
+	-- list in the page content (scrolls with the page)
 	listContent = CreateFrame("Frame", nil, parent)
 	listContent:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -6)
 	listContent:SetPoint("RIGHT", parent, "RIGHT", -16, 0)

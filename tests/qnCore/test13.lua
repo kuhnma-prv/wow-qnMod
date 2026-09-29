@@ -1,6 +1,6 @@
--- Szenario 13: Schrift der Questzielverfolgung unter Blizzards Minimum, je Profil (Layout)
+-- Scenario 13: objective tracker font below Blizzard's minimum, per profile (layout)
 
--- früherer Stand: qnCoreDB ohne eigene Profile
+-- earlier state: qnCoreDB without own profiles
 qnCoreDB = { global = { tracking = true }, layouts = {} }
 
 local core = LoadAddon("qnCore")
@@ -10,43 +10,43 @@ SetEditModeLayout(3)
 
 local line, header, M = ObjectiveTrackerLineFont, ObjectiveTrackerHeaderFont, ObjectiveTrackerManager
 local raid = "account:Raid"
-Check(qnCoreDB.ownProfiles == true and qnCoreDB.global.tracking == true, "qnCoreDB: eigene Profile angelegt, kontoweite Werte bleiben")
-Check(core.store and core.db == qnCoreDB.profiles[raid] and core.db.questTextSize == 0, "qnCore hat ein Profil je Layout, Vorgabe 0")
-Check(qnCore.Profiles.stores.qnCore == core.store, "qnCore erscheint unter den Profilen")
-Check(M.updates == 0 and select(2, line:GetFont()) == 12, "Vorgabe: Blizzards Schrift unverändert, kein Neuaufbau")
+Check(qnCoreDB.ownProfiles == true and qnCoreDB.global.tracking == true, "qnCoreDB: own profiles created, account-wide values stay")
+Check(core.store and core.db == qnCoreDB.profiles[raid] and core.db.questTextSize == 0, "qnCore has one profile per layout, default 0")
+Check(qnCore.Profiles.stores.qnCore == core.store, "qnCore appears among the profiles")
+Check(M.updates == 0 and select(2, line:GetFont()) == 12, "default: Blizzard's font unchanged, no rebuild")
 
--- Auswahl 10 über das Einstellungsfenster
+-- selection 10 via the settings window
 SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(10)
-Check(select(2, line:GetFont()) == 10 and select(2, header:GetFont()) == 12, "10: Zeilen 10, Überschrift 12: " .. select(2, line:GetFont()) .. "/" .. select(2, header:GetFont()))
-Check(M.updates == 0, "kein Neuaufbau aus Addon-Code (Taint): " .. M.updates)
+Check(select(2, line:GetFont()) == 10 and select(2, header:GetFont()) == 12, "10: lines 10, header 12: " .. select(2, line:GetFont()) .. "/" .. select(2, header:GetFont()))
+Check(M.updates == 0, "no rebuild from addon code (taint): " .. M.updates)
 
--- Blizzard setzt die Schrift neu (Layout, Regler): eigene Größe bleibt, vor Blizzards Neuaufbau
+-- Blizzard resets the font (layout, slider): own size stays, before Blizzard's rebuild
 M:SetTextSize(15)
-Check(select(2, line:GetFont()) == 10 and select(2, header:GetFont()) == 12, "nach SetTextSize(15) wieder 10/12")
-local blizzUpdates = M.updates   -- Blizzards eigener Neuaufbau in SetTextSize
+Check(select(2, line:GetFont()) == 10 and select(2, header:GetFont()) == 12, "after SetTextSize(15) back to 10/12")
+local blizzUpdates = M.updates   -- Blizzard's own rebuild in SetTextSize
 
--- zweites Layout: Kopie (10), dann auf Blizzard zurück
+-- second layout: copy (10), then back to Blizzard
 SetEditModeLayout(4)
-Check(core.db ~= qnCoreDB.profiles[raid] and core.db.questTextSize == 10, "neues Layout übernimmt 10")
+Check(core.db ~= qnCoreDB.profiles[raid] and core.db.questTextSize == 10, "new layout takes over 10")
 SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(0)
-Check(select(2, line:GetFont()) == 15 and select(2, header:GetFont()) == 17, "0: Blizzards zuletzt gesetzte Schrift (15/17): " .. select(2, line:GetFont()))
+Check(select(2, line:GetFont()) == 15 and select(2, header:GetFont()) == 17, "0: Blizzard's last set font (15/17): " .. select(2, line:GetFont()))
 
--- Profilwechsel wendet an
+-- profile switch applies
 SetEditModeLayout(3)
-Check(select(2, line:GetFont()) == 10 and SETTINGS.QNCORE_QUESTTEXTSIZE:GetValue() == 10, "zurück auf Raid: 10")
+Check(select(2, line:GetFont()) == 10 and SETTINGS.QNCORE_QUESTTEXTSIZE:GetValue() == 10, "back to Raid: 10")
 
--- im Kampf: Schrift sofort (Schriftobjekte sind nicht geschützt)
+-- in combat: font immediately (font objects are not protected)
 QN_COMBAT = true
 SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(8)
-Check(select(2, line:GetFont()) == 8, "im Kampf: Schrift 8")
+Check(select(2, line:GetFont()) == 8, "in combat: font 8")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED") RunTimers()
-Check(M.updates == blizzUpdates, "nie ein Neuaufbau aus Addon-Code")
+Check(M.updates == blizzUpdates, "never a rebuild from addon code")
 
--- andere Alphabete: Höhe im Verhältnis der Vorlage (z. B. Chinesisch 15 bei 12)
+-- other scripts: height in proportion to the template (e.g. Chinese 15 at 12)
 ObjectiveTrackerFont12:SetFont("Fonts\\ARKai_T.ttf", 15, "")
 SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(10)
 local path, h = line:GetFont()
-Check(path == "Fonts\\ARKai_T.ttf" and h == 12.5, "Datei und Verhältnis der Vorlage: " .. tostring(path) .. " " .. tostring(h))
+Check(path == "Fonts\\ARKai_T.ttf" and h == 12.5, "file and proportion of the template: " .. tostring(path) .. " " .. tostring(h))
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

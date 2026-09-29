@@ -1,27 +1,27 @@
--- qnInventory: gemeinsame Teile der Ansichten Taschen, Bank und Post (ViewBags/ViewBank/ViewMail).
--- Die Ansichten bilden Blizzards Fenster mit deren Vorlagen und Grafiken nach, zeigen aber die
--- gespeicherten Daten eines beliebigen eigenen Charakters (dieser oder ein verbundener Realm).
--- Blizzards Fenster selbst lassen sich dafür nicht nutzen: sie lesen ausschließlich die Container
--- bzw. den Briefkasten des eingeloggten Charakters, die Bank nur beim Bankier.
+-- qnInventory: shared parts of the bags, bank and mail views (ViewBags/ViewBank/ViewMail).
+-- The views recreate Blizzard's windows with their templates and graphics, but show the
+-- stored data of any of our own characters (this or a connected realm).
+-- Blizzard's windows themselves cannot be used for this: they only read the containers
+-- or the mailbox of the logged-in character, the bank only at the banker.
 --
--- Über jedem Fenster (auch über Blizzards Taschen, Bank und Briefkasten) hängt eine Leiste mit der
--- Charakterauswahl und Knöpfen für die jeweils anderen Ansichten. Taschen des eingeloggten
--- Charakters zeigt immer Blizzards Fenster; Bank und Post zeigt die Ansicht, damit sie auch
--- fern von Bank und Briefkasten erreichbar sind.
+-- Above every window (also above Blizzard's bags, bank and mailbox) hangs a bar with the
+-- character selection and buttons for the respective other views. The logged-in character's
+-- bags are always shown in Blizzard's window; bank and mail are shown in the view so they are
+-- reachable away from the bank and mailbox too.
 
 local _, ns = ...
 
-local SEP = "\t"   -- trennt Realm und Name im Auswahlschlüssel (kommt in keinem Namen vor)
+local SEP = "\t"   -- separates realm and name in the selection key (occurs in no name)
 
-local views = {}     -- kind ("bags", "bank", "mail") -> Ansicht
-local headers = {}   -- alle Kopfleisten, zum Auffrischen nach einem Wechsel
+local views = {}     -- kind ("bags", "bank", "mail") -> view
+local headers = {}   -- all header bars, for refreshing after a change
 
--- Reihenfolge der Knöpfe in der Kopfleiste
+-- Order of the buttons in the header bar
 local KINDS = { "bags", "bank", "mail" }
 local KIND_TEXT = { bags = HUD_EDIT_MODE_BAGS_LABEL, bank = BANK, mail = MAIL_LABEL }
 
 ---------------------------------------------------------------------------
--- Auswahl
+-- Selection
 ---------------------------------------------------------------------------
 
 function ns.CharKey(realm, name)
@@ -32,18 +32,18 @@ function ns.PlayerKey()
 	return ns.CharKey(ns.realm, ns.player)
 end
 
--- Gewählter Charakter der Ansichten (Vorgabe: der eingeloggte)
+-- Selected character of the views (default: the logged-in one)
 local selected
 
--- Daten, Name und Realm zu einem Schlüssel (Vorgabe: gewählter Charakter); Daten nil, wenn gelöscht
+-- Data, name and realm for a key (default: selected character); data nil if deleted
 function ns.CharFromKey(key)
 	local realm, name = strsplit(SEP, key or selected or ns.PlayerKey())
 	local realmDB = qnInventoryDB.realms[realm]
 	return realmDB and realmDB[name], name, realm
 end
 
--- Einträge der Charakterauswahl: dieser Realm, dann verbundene Realms mit "Name-Realm".
--- Die andere Fraktion nur mit der Option viewsBothFactions; allFactions = immer alle (Optionsseite).
+-- Entries of the character selection: this realm, then connected realms with "Name-Realm".
+-- The other faction only with the option viewsBothFactions; allFactions = always all (options page).
 function ns.CharEntries(allFactions)
 	local entries = {}
 	local both = allFactions == true or ns.options.viewsBothFactions
@@ -64,9 +64,9 @@ function ns.CharEntries(allFactions)
 end
 
 ---------------------------------------------------------------------------
--- Ansichten
--- Eine Ansicht hat frame, Show(self, key) (füllt und zeigt) und Refresh(self); key = gezeigter
--- Charakter.
+-- Views
+-- A view has frame, Show(self, key) (fills and shows) and Refresh(self); key = shown
+-- character.
 ---------------------------------------------------------------------------
 
 function ns.RegisterView(kind, view)
@@ -79,8 +79,8 @@ local function RefreshHeaders()
 	end
 end
 
--- Zeigt die Ansicht kind für key (Vorgabe: gewählter Charakter). Taschen des eingeloggten
--- Charakters: Blizzards Fenster.
+-- Shows the view kind for key (default: selected character). Bags of the logged-in
+-- character: Blizzard's window.
 function ns.Show(kind, key)
 	selected = key or selected or ns.PlayerKey()
 	local view = views[kind]
@@ -93,7 +93,7 @@ function ns.Show(kind, key)
 	RefreshHeaders()
 end
 
--- Wie Show, blendet eine schon gezeigte Ansicht desselben Charakters aber aus
+-- Like Show, but hides a view of the same character that is already shown
 function ns.Toggle(kind, key)
 	local view = views[kind]
 	key = key or selected or ns.PlayerKey()
@@ -109,7 +109,7 @@ function ns.Toggle(kind, key)
 	end
 end
 
--- Gespeicherte Daten des eingeloggten Charakters haben sich geändert (Scan.lua, Mail.lua)
+-- Stored data of the logged-in character have changed (Scan.lua, Mail.lua)
 function ns.ViewChanged(kind)
 	local view = views[kind]
 	if view and view.frame and view.frame:IsShown() and view.key == ns.PlayerKey() then
@@ -118,8 +118,8 @@ function ns.ViewChanged(kind)
 end
 
 ---------------------------------------------------------------------------
--- Kopfleiste: Charakterauswahl und Knöpfe für die anderen Ansichten
--- live = Blizzards Fenster: zeigt immer den eingeloggten Charakter.
+-- Header bar: character selection and buttons for the other views
+-- live = Blizzard's window: always shows the logged-in character.
 ---------------------------------------------------------------------------
 
 local BUTTON_WIDTH, DROPDOWN_WIDTH, BAR_HEIGHT = 70, 170, 24
@@ -167,10 +167,10 @@ function ns.AttachHeader(host, kind, live)
 end
 
 ---------------------------------------------------------------------------
--- Fenster
+-- Window
 ---------------------------------------------------------------------------
 
--- Verschiebbar über die Fensterfläche, Escape schließt (Name nötig für UISpecialFrames)
+-- Movable by dragging the window area, Escape closes (name required for UISpecialFrames)
 function ns.SetupWindow(frame)
 	frame:SetMovable(true)
 	frame:EnableMouse(true)
@@ -183,8 +183,8 @@ function ns.SetupWindow(frame)
 	frame:Hide()
 end
 
--- Beim Öffnen: neben Blizzards offenes Fenster (Bank beim Bankier, Briefkasten), sonst an den
--- Platz eines linken Blizzard-Fensters. gap = Abstand (Seitenreiter der Bank liegen rechts außen).
+-- On opening: next to Blizzard's open window (bank at the banker, mailbox), otherwise at the
+-- position of a left Blizzard window. gap = spacing (the bank's side tabs sit on the outer right).
 function ns.PlaceBeside(frame, live, gap)
 	frame:ClearAllPoints()
 	if live and live:IsShown() then
@@ -194,7 +194,7 @@ function ns.PlaceBeside(frame, live, gap)
 	end
 end
 
--- Hinweis mitten im Fenster, solange nichts gespeichert ist
+-- Notice in the middle of the window as long as nothing is stored
 function ns.CreateNotice(frame)
 	local fs = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	fs:SetPoint("CENTER")
@@ -204,19 +204,19 @@ function ns.CreateNotice(frame)
 end
 
 ---------------------------------------------------------------------------
--- Item-Knöpfe: Link statt Container-Platz, Tooltip über den Link, Klick mit Umschalt/Strg wie
--- gewohnt (Chat-Link, Anprobe).
+-- Item buttons: link instead of container slot, tooltip via the link, click with Shift/Ctrl as
+-- usual (chat link, dressing room).
 ---------------------------------------------------------------------------
 
--- Anker wie bei Blizzards Taschenplätzen (ContainerFrameItemButton_CalculateItemTooltipAnchors);
--- mit qnViewPort danach ganz auf den Monitor der Tasche.
+-- Anchor as for Blizzard's bag slots (ContainerFrameItemButton_CalculateItemTooltipAnchors);
+-- with qnViewPort then fully onto the bag's monitor.
 local function ItemOnEnter(self)
 	if not self.link then return end
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
 	ContainerFrameItemButton_CalculateItemTooltipAnchors(self, GameTooltip)
 	GameTooltip:SetHyperlink(self.link)
 	GameTooltip:Show()
-	local vp = _G.qnViewPort   -- optionales Addon
+	local vp = _G.qnViewPort   -- optional addon
 	if vp and vp.BagTooltip then
 		vp.BagTooltip(GameTooltip, self)
 	end
@@ -242,7 +242,7 @@ local function SetQuality(b, link)
 		SetItemButtonQuality(b, quality, link)
 		return
 	end
-	-- Item noch nicht im Cache: Rahmen nachtragen, sobald die Daten da sind
+	-- item not cached yet: add the border once the data is available
 	SetItemButtonQuality(b, nil)
 	local itemID = C_Item.GetItemInfoInstant(link)
 	if not itemID then return end
@@ -253,7 +253,7 @@ local function SetQuality(b, link)
 	end)
 end
 
--- entry = { Link, Anzahl } oder nil (leerer Platz)
+-- entry = { link, count } or nil (empty slot)
 function ns.SetItem(b, entry)
 	local link = entry and entry[1]
 	b.link = link
@@ -272,7 +272,7 @@ function ns.SetItem(b, entry)
 end
 
 ---------------------------------------------------------------------------
--- Suche: Knöpfe, deren Item nicht zum Suchtext passt, werden abgedunkelt (wie Blizzards Suche)
+-- Search: buttons whose item does not match the search text are dimmed (like Blizzard's search)
 ---------------------------------------------------------------------------
 
 local function Matches(link, text)
@@ -280,7 +280,7 @@ local function Matches(link, text)
 	return name and name:lower():find(text, 1, true) ~= nil
 end
 
--- buttons() liefert die gezeigten Item-Knöpfe
+-- buttons() returns the shown item buttons
 function ns.CreateSearchBox(frame, buttons)
 	local box = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
 	box:SetHeight(20)
@@ -295,7 +295,7 @@ function ns.CreateSearchBox(frame, buttons)
 end
 
 ---------------------------------------------------------------------------
--- Start: Kopfleisten an Blizzards Fenstern
+-- Start: header bars on Blizzard's windows
 ---------------------------------------------------------------------------
 
 function ns.InitViews()
@@ -307,7 +307,7 @@ function ns.InitViews()
 		end
 	end)
 	ns.AttachHeader(ContainerFrameCombinedBags, "bags", true)
-	-- Blizzards Taschen ersetzen die Taschenansicht an derselben Stelle
+	-- Blizzard's bags replace the bags view at the same position
 	ContainerFrameCombinedBags:HookScript("OnShow", function()
 		local frame = views.bags.frame
 		if frame then frame:Hide() end

@@ -1,11 +1,11 @@
 -- qnInventory: German texts (deDE clients only). Key = English text in the code.
--- Blizzard-Texte im Code: TOTAL (Gesamt), MAIL_LABEL (Post), CHARACTER (Charakter),
--- HUD_EDIT_MODE_BAGS_LABEL (Taschen), BANK, INBOX (Posteingang), COMBINED_BAG_TITLE, PAGE_NUMBER,
+-- Blizzard texts in the code: TOTAL (Total), MAIL_LABEL (Mail), CHARACTER (Character),
+-- HUD_EDIT_MODE_BAGS_LABEL (Bags), BANK, INBOX (Inbox), COMBINED_BAG_TITLE, PAGE_NUMBER,
 -- BAGSLOTTEXT_COLON, BANK_BAG, BANK_BAG_PURCHASE, FROM, MAIL_SUBJECT_LABEL, COD_AMOUNT,
 -- ENCLOSED_MONEY, MAIL_MULTIPLE_ITEMS, PREV, NEXT, DAYS_ABBR, UNKNOWN, NONE, DELETE, OPTIONS, ALL,
--- FACTION_ALLIANCE, FACTION_HORDE, NARRATION_DELETE_CHARACTER_BUTTON (Charakter löschen),
--- ACCOUNT_BANK_PANEL_TITLE (Accountbank).
--- Titan.lua nimmt die Texte von TitanGold/TitanBag aus Titans Lokalisierung (TITAN_GOLD_*, TITAN_BAG_*).
+-- FACTION_ALLIANCE, FACTION_HORDE, NARRATION_DELETE_CHARACTER_BUTTON (Delete character),
+-- ACCOUNT_BANK_PANEL_TITLE (Account bank).
+-- Titan.lua takes the TitanGold/TitanBag texts from Titan's localization (TITAN_GOLD_*, TITAN_BAG_*).
 
 local ADDON, ns = ...
 local L = qnCore.NewLocale(ns, ADDON)

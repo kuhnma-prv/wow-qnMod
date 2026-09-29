@@ -1,9 +1,9 @@
--- qnInventory: Bestand aller Charaktere im Item-Tooltip.
--- Kopfzeile "Charakter  Taschen/Bank/Post", dann je Charakter:  <Name in Klassenfarbe>  x/y/z
--- Erst dieser Realm, dann verbundene Realms mit "Name-Realm", zuletzt die Accountbank.
--- "?" heißt: Bank bzw. Briefkasten war mit diesem Charakter noch nie offen.
--- "+" hinter der Post: Briefkasten nur teilweise bekannt (mehr als 50 Briefe oder nur die
--- eigenen Sendungen an einen Charakter, dessen Briefkasten noch nie offen war).
+-- qnInventory: inventory of all characters in the item tooltip.
+-- Header line "Character  Bags/Bank/Mail", then per character:  <name in class color>  x/y/z
+-- First this realm, then connected realms with "Name-Realm", finally the account bank.
+-- "?" means: bank or mailbox was never opened with this character.
+-- "+" after the mail: mailbox only partially known (more than 50 letters or only our
+-- own mails to a character whose mailbox was never opened).
 
 local _, ns = ...
 
@@ -12,7 +12,7 @@ local IsSecret = ns.IsSecret
 
 local function AddLines(tooltip, itemID)
 	local total, lines = 0, {}
-	-- realm = nil: dieser Realm (Name ohne Realm), sonst verbundener Realm ("Name-Realm")
+	-- realm = nil: this realm (name without realm), otherwise connected realm ("Name-Realm")
 	local function AddRealm(realmDB, realm)
 		for _, name in ipairs(ns.SortedChars(realmDB)) do
 			local char = realmDB[name]
@@ -35,7 +35,7 @@ local function AddLines(tooltip, itemID)
 	for _, r in ipairs(ns.ConnectedRealms()) do
 		AddRealm(r.db, r.realm)
 	end
-	-- Accountbank (alle Charaktere gemeinsam)
+	-- account bank (shared by all characters)
 	local account = ns.account.bank and ns.account.bank[itemID] or 0
 	if account > 0 then
 		total = total + account

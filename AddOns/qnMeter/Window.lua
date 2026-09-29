@@ -1,10 +1,10 @@
--- qnMeter: Fenster und Balken in der Optik des eingebauten Damage Meters
+-- qnMeter: window and bars in the look of the built-in Damage Meter
 -- (Blizzard_DamageMeter: DamageMeterSessionWindow.xml, DamageMeterEntry.xml).
 
 local _, ns = ...
 
 local HEADER_HEIGHT = 32
-local CONTENT_LEFT, CONTENT_TOP = 5, -2      -- wie ScrollBox-Anker unter dem Header
+local CONTENT_LEFT, CONTENT_TOP = 5, -2      -- like the ScrollBox anchor below the header
 local CONTENT_RIGHT, CONTENT_BOTTOM = -1, 6
 local NO_HEADER_TOP = 6
 
@@ -21,7 +21,7 @@ end
 
 
 ---------------------------------------------------------------------------
--- Balken (entspricht DamageMeterEntryTemplate)
+-- Bars (corresponds to DamageMeterEntryTemplate)
 ---------------------------------------------------------------------------
 
 local RowMixin = {}
@@ -38,7 +38,7 @@ function RowMixin:SetBarColor(r, g, b)
 	self.status:GetStatusBarTexture():SetVertexColor(r, g, b)
 end
 
--- class: Klassenname für den Klassen-Atlas; nil blendet das Symbol aus.
+-- class: class name for the class atlas; nil hides the icon.
 function RowMixin:SetClassIcon(class)
 	if class == self.iconClass then
 		return
@@ -68,7 +68,7 @@ local function CreateRow(parent)
 	status:SetValue(0)
 	row.status = status
 
-	-- Hintergrund und Rand; Atlas und Anker hängen vom Stil ab (StyleBar).
+	-- background and edge; atlas and anchors depend on the style (StyleBar).
 	row.bg = status:CreateTexture(nil, "BACKGROUND")
 	row.edge = status:CreateTexture(nil, "OVERLAY")
 	row.edge:SetAtlas("ui-damagemeters-bar-shadowedge")
@@ -87,13 +87,13 @@ local function CreateRow(parent)
 end
 
 ---------------------------------------------------------------------------
--- Stile wie DamageMeterEntryMixin (Default, Thin, Bordered, FullBackground)
+-- Styles like DamageMeterEntryMixin (Default, Thin, Bordered, FullBackground)
 ---------------------------------------------------------------------------
 
 local STYLE_THIN = Enum.DamageMeterStyle.Thin
 local STYLE_BORDERED = Enum.DamageMeterStyle.Bordered
 
--- Wie GetBackgroundAtlasForStyle/GetBackgroundInsetsForStyle/GetBackgroundEdgeVisibilityForStyle.
+-- Like GetBackgroundAtlasForStyle/GetBackgroundInsetsForStyle/GetBackgroundEdgeVisibilityForStyle.
 local function SetupBackground(row, style)
 	local bordered = style == STYLE_BORDERED
 	local bg = row.bg
@@ -110,7 +110,7 @@ local function SetupAnchors(row, style, showIcons)
 	name:ClearAllPoints()
 	value:ClearAllPoints()
 
-	-- Anker am Symbol bzw. am Zeilenrand (GetIconAttachmentAnchor).
+	-- anchor at the icon or at the row edge (GetIconAttachmentAnchor).
 	local relTo, relPoint, x = row, "LEFT", 0
 	if showIcons then
 		relTo, relPoint = row.icon, "RIGHT"
@@ -120,7 +120,7 @@ local function SetupAnchors(row, style, showIcons)
 	end
 
 	if style == STYLE_THIN then
-		-- Text oben, schmaler Balken darunter.
+		-- text on top, narrow bar below.
 		name:SetPoint("TOP", row, "TOP", 0, 0)
 		name:SetPoint("LEFT", relTo, relPoint, x, 0)
 		name:SetPoint("RIGHT", value, "LEFT", -25, 0)
@@ -140,7 +140,7 @@ local function SetupAnchors(row, style, showIcons)
 end
 
 ---------------------------------------------------------------------------
--- Wirksame Darstellungswerte: eigene Optionen oder vom Damage Meter.
+-- Effective appearance values: own options or from the Damage Meter.
 ---------------------------------------------------------------------------
 
 function Window.GetEffective(db)
@@ -166,7 +166,7 @@ function Window.GetEffective(db)
 		e.fontSize = 0
 		e.bgAlpha = dm:GetBackgroundAlpha()
 		e.windowAlpha = dm:GetWindowAlpha()
-		-- Vor dem Laden des Bearbeitungsmodus sind diese noch nil.
+		-- before Edit Mode has loaded these are still nil.
 		local icons = dm:ShouldShowBarIcons()
 		if icons ~= nil then
 			e.showIcons = icons
@@ -180,7 +180,7 @@ function Window.GetEffective(db)
 end
 
 ---------------------------------------------------------------------------
--- Fenster
+-- Window
 ---------------------------------------------------------------------------
 
 local SETTINGS_ATLAS = {
@@ -211,8 +211,8 @@ local function CreateSettingsButton(f)
 	return b
 end
 
--- Nach Verschieben oder Größenänderung: Lage merken, ggf. in den sichtbaren Bereich holen
--- (f.checkVisible aus qnCore.Visible.Keep, Threat.lua).
+-- After moving or resizing: remember the position, move into the visible area if needed
+-- (f.checkVisible from qnCore.Visible.Keep, Threat.lua).
 local function FinishMove(f)
 	f:StopMovingOrSizing()
 	Window.SavePosition(f)
@@ -237,7 +237,7 @@ local function CreateResizeButton(f)
 	pushed:SetAtlas("damagemeters-scalehandle-pressed")
 	b:SetPushedTexture(pushed)
 
-	-- Gesperrt ist der Anfasser ausgeblendet (ApplyStyle).
+	-- when locked the handle is hidden (ApplyStyle).
 	b:SetScript("OnMouseDown", function()
 		f.isSizing = true
 		f:StartSizing("BOTTOMRIGHT")
@@ -245,7 +245,7 @@ local function CreateResizeButton(f)
 	b:SetScript("OnMouseUp", function()
 		f.isSizing = false
 		FinishMove(f)
-		f.UpdateHover()   -- Maus kann jetzt außerhalb stehen
+		f.UpdateHover()   -- the mouse may now be outside
 	end)
 	return b
 end
@@ -260,12 +260,12 @@ function Window.Create(name, db)
 	f:SetResizable(true)
 	f:SetResizeBounds(150, 60, 800, 900)
 
-	-- Hintergrund über das ganze Fenster, Deckkraft einstellbar.
+	-- background over the whole window, adjustable opacity.
 	f.background = f:CreateTexture(nil, "BACKGROUND", nil, -8)
 	f.background:SetAllPoints()
 	f.background:SetAtlas("damagemeters-background")
 
-	-- Kopfleiste
+	-- header bar
 	f.header = f:CreateTexture(nil, "BACKGROUND", nil, 0)
 	f.header:SetHeight(HEADER_HEIGHT)
 	f.header:SetPoint("TOPLEFT")
@@ -286,7 +286,7 @@ function Window.Create(name, db)
 
 	f.resizeButton = CreateResizeButton(f)
 
-	-- Verschieben über das ganze Fenster, Rechtsklick öffnet das Menü.
+	-- move by dragging the whole window, right-click opens the menu.
 	f:EnableMouse(true)
 	f:RegisterForDrag("LeftButton")
 	f:SetScript("OnDragStart", function(self)
@@ -305,9 +305,9 @@ function Window.Create(name, db)
 		Window.Layout(f)
 	end)
 
-	-- Größenanfasser wie bei Blizzard nur bei Mausberührung einblenden. Überblenden nur nach
-	-- Betreten/Verlassen (Fenster und die Knöpfe, die die Maus selbst abfangen) und nach dem Ziehen;
-	-- danach hält der Überblender an.
+	-- like Blizzard, show the resize handle only on mouseover. Fade only after
+	-- enter/leave (window and the buttons that capture the mouse themselves) and after dragging;
+	-- afterwards the fader stops.
 	local fade = CreateFrame("Frame", nil, f)
 	fade:Hide()
 	fade:SetScript("OnUpdate", function(self, dt)
@@ -334,9 +334,9 @@ function Window.Create(name, db)
 	return f
 end
 
--- Speichert die Lage relativ zu UIParent, in Einheiten von UIParent (unabhängig von der Skalierung
--- des Fensters). Nicht über GetPoint: nach dem Ziehen kann der Anker am Bildschirm statt an
--- UIParent hängen, und UIParent liegt mit qnViewPort evtl. nicht bei 0,0.
+-- Stores the position relative to UIParent, in units of UIParent (independent of the window's
+-- scale). Not via GetPoint: after dragging the anchor may be attached to the screen instead of
+-- UIParent, and with qnViewPort UIParent may not be at 0,0.
 function Window.SavePosition(f)
 	local x, y = qnCore.PointOffset(f, "TOPLEFT", "BOTTOMLEFT", true)
 	if x then
@@ -346,8 +346,8 @@ function Window.SavePosition(f)
 	f.db.height = math.floor(f:GetHeight() + 0.5)
 end
 
--- Versätze in Einheiten von UIParent: beim Setzen durch die Skalierung des Fensters teilen, damit
--- es beim Ändern der Skalierung an seiner Ecke stehen bleibt.
+-- Offsets in units of UIParent: divide by the window's scale when setting, so that
+-- it stays at its corner when the scale changes.
 function Window.RestorePosition(f)
 	local p = f.db.point
 	local s = f.db.scale or 1
@@ -363,7 +363,7 @@ local function Eff(f)
 	return f.eff
 end
 
--- Übernimmt Darstellungsoptionen auf Fenster und alle Balken.
+-- Applies appearance options to the window and all bars.
 function Window.ApplyStyle(f)
 	local db = f.db
 	f.eff = Window.GetEffective(db)
@@ -392,7 +392,7 @@ function Window.StyleBar(f, row)
 	local h = e.barHeight
 	row:SetHeight(h)
 
-	-- Balkentextur: Atlas oder Dateipfad (SetStatusBarTexture nimmt beides).
+	-- bar texture: atlas or file path (SetStatusBarTexture accepts both).
 	row.status:SetStatusBarTexture(ns.GetTexturePath(db.texture))
 
 	row.icon:SetSize(h, h)
@@ -404,21 +404,21 @@ function Window.StyleBar(f, row)
 		ApplyFont(fs, e.fontSize)
 		fs:SetTextScale(e.textScale)
 	end
-	row.iconClass = false -- Symbol beim nächsten Setzen neu laden
+	row.iconClass = false -- reload the icon on the next set
 end
 
 local function ContentTop(db)
 	return db.showTitle and (-HEADER_HEIGHT + CONTENT_TOP) or -NO_HEADER_TOP
 end
 
--- Anzahl der Balken, die in die aktuelle Fensterhöhe passen.
+-- Number of bars that fit into the current window height.
 function Window.GetCapacity(f)
 	local e = Eff(f)
 	local h = f:GetHeight() + ContentTop(f.db) - CONTENT_BOTTOM
 	return math.max(0, math.floor((h + e.barSpacing) / (e.barHeight + e.barSpacing)))
 end
 
--- Verankert die i-te Zeile unter der Kopfleiste.
+-- Anchors the i-th row below the header bar.
 local function AnchorRow(f, row, i)
 	local e = Eff(f)
 	row:ClearAllPoints()

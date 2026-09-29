@@ -1,7 +1,7 @@
 -- qnUnitFrames: German texts (deDE clients only). Key = English text in the code.
--- Blizzard-Texte im Code: KEY_BUTTON1–5 (Maustasten), ALT_KEY_TEXT/CTRL_KEY_TEXT/SHIFT_KEY_TEXT,
--- MACRO (Makro), TARGET (Ziel), FRAME_ACTION_MENU (Menü), SET_FOCUS (Fokus setzen), GENERAL,
--- HUD_EDIT_MODE_SETTINGS_CATEGORY_TITLE_FRAMES (Rahmen), DELETE, ACCEPT, CANCEL.
+-- Blizzard texts in the code: KEY_BUTTON1–5 (mouse buttons), ALT_KEY_TEXT/CTRL_KEY_TEXT/SHIFT_KEY_TEXT,
+-- MACRO (Macro), TARGET (Target), FRAME_ACTION_MENU (Menu), SET_FOCUS (Set Focus), GENERAL,
+-- HUD_EDIT_MODE_SETTINGS_CATEGORY_TITLE_FRAMES (Frames), DELETE, ACCEPT, CANCEL.
 
 local ADDON, ns = ...
 local L = qnCore.NewLocale(ns, ADDON)

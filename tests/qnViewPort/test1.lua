@@ -1,4 +1,4 @@
--- Szenario 1: qnViewPort-Hintergrundmuster (Dropdown, Deckkraft, Profilwechsel, LSM)
+-- Scenario 1: qnViewPort background patterns (dropdown, opacity, profile switch, LSM)
 local textures, sliders, dropdowns = {}, {}, {}
 local origCreateFrame = CreateFrame
 function CreateFrame(kind, name, parent, template)
@@ -16,8 +16,8 @@ function CreateFrame(kind, name, parent, template)
 	return f
 end
 
--- LibSharedMedia-Ersatz: ein eigenes Muster, eine Kopie eines Blizzard-Musters (andere Schreibweise),
--- eine Vollbild-Überlagerung und reines Weiß; erst nach qnCore geladen (wie mit Titan)
+-- LibSharedMedia stand-in: an own pattern, a copy of a Blizzard pattern (different spelling),
+-- a full-screen overlay and pure white; loaded only after qnCore (as with Titan)
 local lsmNames, lsmData = {}, {}
 local lsm = {
 	Register = function(_, kind, n, file)
@@ -40,16 +40,16 @@ end
 
 local core = LoadAddon("qnCore")
 local qnCount = #qnCore.Patterns
-Check(qnCount == 10 and lsmData["qn Stripes"] == nil, "qnCore: 10 eigene Muster, LSM noch nicht da")
+Check(qnCount == 10 and lsmData["qn Stripes"] == nil, "qnCore: 10 own patterns, LSM not there yet")
 lsmReady = true
 local vp = LoadAddon("qnViewPort")
 Check(lsmData["qn Stripes"] == "Interface\\AddOns\\qnCore\\Media\\Patterns\\Stripes"
-	and lsmData["qn Grain"] ~= nil, "qnCore-Muster bei LSM angemeldet (ADDON_LOADED)")
-Check(#vp.PATTERNS == 8 + qnCount, "qnViewPort: 8 Blizzard- + qnCore-Muster")
--- Dateien der eigenen Muster vorhanden
+	and lsmData["qn Grain"] ~= nil, "qnCore patterns registered with LSM (ADDON_LOADED)")
+Check(#vp.PATTERNS == 8 + qnCount, "qnViewPort: 8 Blizzard + qnCore patterns")
+-- files of the own patterns present
 for _, p in ipairs(qnCore.Patterns) do
 	local path = ADDONS .. "/" .. p[3]:gsub("^Interface\\AddOns\\", ""):gsub("\\", "/") .. ".tga"
-	if not READFILE(path) then Check(false, "Datei fehlt: " .. path) end
+	if not READFILE(path) then Check(false, "file missing: " .. path) end
 end
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
@@ -62,44 +62,44 @@ local function Patterns()
 	return list
 end
 
-Check(vp.db.pattern == "none" and vp.db.patternAlpha == 0.5, "Vorgaben: kein Muster, 50 %")
+Check(vp.db.pattern == "none" and vp.db.patternAlpha == 0.5, "defaults: no pattern, 50 %")
 local L = vp.L
 local dd, slider
 for _, d in ipairs(dropdowns) do if d._text == L["No pattern (color only)"] then dd = d end end
 for _, s in ipairs(sliders) do if s._value == 50 then slider = s end end
-print("Dropdowns/Regler:", #dropdowns, #sliders)
-Check(dd and slider, "Dropdown und Regler angelegt")
--- Einträge: kein Muster + eigene Liste + 1 LSM (None, Kopien von Fels und qnCore-Mustern,
--- Vollbild und Weiß ausgelassen)
+print("Dropdowns/sliders:", #dropdowns, #sliders)
+Check(dd and slider, "dropdown and slider created")
+-- entries: no pattern + own list + 1 LSM (None, copies of Rock and qnCore patterns,
+-- full-screen and white left out)
 local lsmIndex = 1 + #vp.PATTERNS + 1
-Check(#dd._radios == lsmIndex, lsmIndex .. " Einträge im Dropdown (" .. #dd._radios .. ")")
-Check(dd._text == L["No pattern (color only)"], "Anzeige: kein Muster")
+Check(#dd._radios == lsmIndex, lsmIndex .. " entries in the dropdown (" .. #dd._radios .. ")")
+Check(dd._text == L["No pattern (color only)"], "display: no pattern")
 dd:PickRadio(2)
-Check(vp.db.pattern == "rock", "Fels gewählt")
-Check(dd._text == L["Rock"], "Anzeige: Fels")
+Check(vp.db.pattern == "rock", "Rock selected")
+Check(dd._text == L["Rock"], "display: Rock")
 local p = Patterns()
-Check(#p == 4 and p[1]._file == "Interface\\FrameGeneral\\UI-Background-Rock" and p[1]._wrap == "REPEAT", "vier Randflächen gekachelt mit Fels")
-Check(slider._enabled == true, "Regler aktiv")
+Check(#p == 4 and p[1]._file == "Interface\\FrameGeneral\\UI-Background-Rock" and p[1]._wrap == "REPEAT", "four border areas tiled with Rock")
+Check(slider._enabled == true, "slider enabled")
 slider:SetValue(30)
-Check(vp.db.patternAlpha == 0.3 and p[1]._alpha == 0.3, "Deckkraft 30 %")
+Check(vp.db.patternAlpha == 0.3 and p[1]._alpha == 0.3, "opacity 30 %")
 dd:PickRadio(10)
-Check(vp.db.pattern == "qnStripes" and p[1]._file == qnCore.Patterns[1][3], "qnCore-Muster Schraffur")
-Check(dd._text == qnCore.Patterns[1][2], "Anzeige: Schraffur")
+Check(vp.db.pattern == "qnStripes" and p[1]._file == qnCore.Patterns[1][3], "qnCore pattern Stripes")
+Check(dd._text == qnCore.Patterns[1][2], "display: Stripes")
 dd:PickRadio(lsmIndex)
-Check(vp.db.pattern == "lsm:Mein Muster" and p[1]._file == "Interface\\AddOns\\X\\muster", "LSM-Muster")
--- Profilwechsel: neues Layout = Kopie; zurück zeigt alte Werte
+Check(vp.db.pattern == "lsm:Mein Muster" and p[1]._file == "Interface\\AddOns\\X\\muster", "LSM pattern")
+-- profile switch: new layout = copy; switching back shows old values
 SetEditModeLayout(4)
-Check(vp.db.pattern == "lsm:Mein Muster", "Kopie übernimmt Muster")
+Check(vp.db.pattern == "lsm:Mein Muster", "copy takes over the pattern")
 dd:PickRadio(1)
-Check(vp.db.pattern == "none" and slider._enabled == false, "kein Muster: Regler aus")
+Check(vp.db.pattern == "none" and slider._enabled == false, "no pattern: slider disabled")
 SetEditModeLayout(3)
 vp.RefreshOptions()
-Check(vp.db.pattern == "lsm:Mein Muster" and vp.db.patternAlpha == 0.3, "zurück: Muster des Profils")
--- unbekanntes Muster (LSM-Addon fehlt): kein Fehler, Muster verborgen
+Check(vp.db.pattern == "lsm:Mein Muster" and vp.db.patternAlpha == 0.3, "back: the profile's pattern")
+-- unknown pattern (LSM addon missing): no error, pattern hidden
 vp.db.pattern = "lsm:Gibt es nicht"
 vp.UpdateBorderLook()
-Check(true, "fehlendes Muster ohne Fehler")
--- früher gewählte LSM-Kopien werden zum eigenen Eintrag (im Dropdown sonst nicht auffindbar)
+Check(true, "missing pattern without error")
+-- previously selected LSM copies become the own entry (otherwise not findable in the dropdown)
 vp.db.pattern = "lsm:Blizzard Rock"
 vp.UpdateBorderLook()
 Check(vp.db.pattern == "rock", "lsm:Blizzard Rock -> rock")

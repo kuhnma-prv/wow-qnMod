@@ -1,8 +1,8 @@
--- qnTooltip: Optionsseiten "Zeilen: Spieler" und "Zeilen: NSC" (Canvas-Layout).
--- Je Baustein eine Zeile: an/aus, Zeile im Tooltip (Dropdown), Reihenfolge (Auf/Ab), eine Vorschau
--- mit Beispielwert und ein Stift, der den Bearbeiten-Dialog öffnet: Farbe, Filter, Format (mit Hilfe,
--- Beispielen und Vorschau).
--- Die Liste zeigt die Bausteine in der Reihenfolge, in der sie im Tooltip stehen.
+-- qnTooltip: options pages "Lines: Player" and "Lines: NPC" (canvas layout).
+-- One row per element: on/off, line in the tooltip (dropdown), order (up/down), a preview
+-- with a sample value and a pencil that opens the edit dialog: color, filter, format (with help,
+-- examples and preview).
+-- The list shows the elements in the order in which they appear in the tooltip.
 
 local _, ns = ...
 local lib = qnCore
@@ -14,8 +14,8 @@ local ROW_HEIGHT = 30
 local MAX_LINES = 8
 local CUSTOM = "custom"
 
-local pages = {}   -- [kind] = { ui (qnCore.UI.Page), page (= ui.panel), sub, rows, content, … }
-ns.elementsUI = pages   -- für die Tests
+local pages = {}   -- [kind] = { ui (qnCore.UI.Page), page (= ui.panel), sub, rows, content, ... }
+ns.elementsUI = pages   -- for the tests
 
 local function Elements(kind)
 	return ns.db[kind].elements
@@ -29,7 +29,7 @@ local function Config(kind, key)
 	return elements[key]
 end
 
--- Bausteine in Tooltip-Reihenfolge; "fixed" am Ende
+-- elements in tooltip order; "fixed" at the end
 local function Sorted(kind)
 	local list = {}
 	for index, e in ipairs(ns.ELEMENTS[kind]) do
@@ -50,7 +50,7 @@ local function Sorted(kind)
 	return list
 end
 
--- Reihenfolge einer Zeile lückenlos 1, 2, 3 … nummerieren
+-- renumber the order of a line without gaps 1, 2, 3, ...
 local function Renumber(kind, line)
 	local n = 0
 	for _, item in ipairs(Sorted(kind)) do
@@ -62,7 +62,7 @@ local function Renumber(kind, line)
 	return n
 end
 
--- Baustein in seiner Zeile um dir (-1 auf, +1 ab) verschieben
+-- move an element within its line by dir (-1 up, +1 down)
 function ns.MoveElement(kind, key, dir)
 	local c = Config(kind, key)
 	Renumber(kind, c.line)
@@ -76,7 +76,7 @@ function ns.MoveElement(kind, key, dir)
 	return false
 end
 
--- Baustein ans Ende einer anderen Zeile setzen
+-- put an element at the end of another line
 function ns.SetElementLine(kind, key, line)
 	local c = Config(kind, key)
 	if c.line == line then
@@ -90,10 +90,10 @@ function ns.SetElementLine(kind, key, line)
 end
 
 ---------------------------------------------------------------------------
--- Vorschau mit Beispielwerten
+-- Preview with sample values
 ---------------------------------------------------------------------------
 
--- Einheit für die Beispielwerte: eigener Charakter bzw. anvisierter NSC; sonst nil (nur Beispiele)
+-- unit for the sample values: own character or targeted NPC; otherwise nil (samples only)
 local function SampleRaw(kind)
 	if kind == "player" then
 		return UD.Collect("player")
@@ -102,8 +102,8 @@ local function SampleRaw(kind)
 	end
 end
 
--- Beispielwert eines Bausteins mit Format (fmt, sonst das eingestellte) in seiner Farbe;
--- nil = ungültiges Format. Farbfunktionen brauchen eine Einheit, ohne raw nur feste Farben.
+-- sample value of an element with format (fmt, otherwise the configured one) in its color;
+-- nil = invalid format. Color functions need a unit, without raw only fixed colors.
 local function PreviewText(e, c, raw, fmt)
 	local value = UD.Sample(e[1], raw, e[2])
 	if e[3] == "icon" then
@@ -122,7 +122,7 @@ end
 
 local INVALID = "|cffff4040%s|r"
 
--- Beispiele für den Format-Editor (anklickbar); der Name des Bausteins als vorangestellte Beschriftung
+-- examples for the format editor (clickable); the element's name as a leading label
 local function Examples(e)
 	local label = e[2]:gsub("%%", "%%%%")
 	if e[3] == "number" then
@@ -132,7 +132,7 @@ local function Examples(e)
 end
 
 ---------------------------------------------------------------------------
--- Farbe
+-- Color
 ---------------------------------------------------------------------------
 
 local function PickColor(kind, key)
@@ -141,7 +141,7 @@ local function PickColor(kind, key)
 	if not r then
 		r, g, b = 1, 1, 1
 	end
-	local old = c.color   -- Hexwert oder Farbfunktion („class“ …), beim Abbrechen unverändert zurück
+	local old = c.color   -- hex value or color function ("class", ...), restored unchanged on cancel
 	local function Set(color)
 		Config(kind, key).color = color
 		ns.RefreshElementsPages()
@@ -151,8 +151,8 @@ local function PickColor(kind, key)
 		swatchFunc = function()
 			Set(ns.Hex(ColorPickerFrame:GetColorRGB()))
 		end,
-		-- Blizzard übergibt die vorherigen Werte als Tabelle (ColorPickerFrameMixin:OnCancel);
-		-- gebraucht wird aber der gespeicherte Wert, der auch eine Farbfunktion sein kann
+		-- Blizzard passes the previous values as a table (ColorPickerFrameMixin:OnCancel);
+		-- but we need the saved value, which may also be a color function
 		cancelFunc = function()
 			Set(old)
 		end,
@@ -174,13 +174,13 @@ local function LineEntries()
 end
 
 ---------------------------------------------------------------------------
--- Zeilen der Liste: an/aus, Name, Zeile, Auf/Ab, Vorschau, Stift (öffnet den Bearbeiten-Dialog)
+-- List rows: on/off, name, line, up/down, preview, pencil (opens the edit dialog)
 ---------------------------------------------------------------------------
 
-local OpenEditor   -- unten (Dialog)
+local OpenEditor   -- below (dialog)
 
--- Knopf (UIPanelButtonTemplate) mit einem Symbol statt Text; gesperrt entsättigt.
--- atlas: z. B. minimal-scrollbar-arrow-top (Blizzards schmale Scrollbar), Pencil-Icon (Stift)
+-- button (UIPanelButtonTemplate) with an icon instead of text; desaturated when disabled.
+-- atlas: e.g. minimal-scrollbar-arrow-top (Blizzard's slim scrollbar), Pencil-Icon (pencil)
 local function IconButton(parent, atlas, width, onClick, size)
 	local b = UI.Button(parent, "", width, onClick)
 	b:SetHeight(22)
@@ -206,7 +206,7 @@ local function CreateRow(p, i)
 		bg:SetAllPoints()
 		bg:SetColorTexture(1, 1, 1, 0.04)
 	end
-	-- Baustein, der gerade im Dialog bearbeitet wird
+	-- element currently being edited in the dialog
 	row.sel = row:CreateTexture(nil, "BORDER")
 	row.sel:SetAllPoints()
 	row.sel:SetColorTexture(1, 0.82, 0, 0.15)
@@ -261,7 +261,7 @@ local function CreateRow(p, i)
 	return row
 end
 
--- before/after: Nachbarn in der Liste (für die Pfeile: nur innerhalb derselben Tooltip-Zeile)
+-- before/after: neighbors in the list (for the arrows: only within the same tooltip line)
 local function RefreshRow(p, row, item, before, after)
 	local e, c = item.e, item.c
 	row.key = e[1]
@@ -282,9 +282,9 @@ local function RefreshRow(p, row, item, before, after)
 end
 
 ---------------------------------------------------------------------------
--- Bearbeiten-Dialog eines Bausteins (je Seite einer; DefaultPanelTemplate aus Blizzard_SharedXML):
--- Farbe, Filter, Format mit Vorschau, Hilfe und Beispielen (Knopf mit dem Format, dahinter das
--- Ergebnis). Hängt an der Seite, schließt also mit ihr.
+-- Edit dialog of an element (one per page; DefaultPanelTemplate from Blizzard_SharedXML):
+-- color, filter, format with preview, help and examples (button with the format, followed by the
+-- result). Attached to the page, so it closes with it.
 ---------------------------------------------------------------------------
 
 local EDITOR_WIDTH, EDITOR_HEIGHT = 470, 380
@@ -294,7 +294,7 @@ local function Selected(p)
 	return p.selected and ns.Element(p.kind, p.selected), p.selected and Config(p.kind, p.selected)
 end
 
--- Vorschau zum Text im Formatfeld (auch während der Eingabe)
+-- preview for the text in the format field (also while typing)
 local function UpdateResult(p)
 	local ed = p.editor
 	local e, c = Selected(p)
@@ -306,7 +306,7 @@ local function UpdateResult(p)
 		or INVALID:format(L["Invalid – exactly one placeholder (%s, for numbers also %d), percent sign as %%."]))
 end
 
--- Eingabe übernehmen, wenn gültig; sonst den gespeicherten Wert zurück
+-- accept the input if valid; otherwise restore the saved value
 local function CommitFormat(p)
 	local e, c = Selected(p)
 	if not e or e[3] == "icon" then
@@ -340,12 +340,12 @@ local function CreateEditor(p)
 	ed:SetScript("OnDragStart", ed.StartMoving)
 	ed:SetScript("OnDragStop", ed.StopMovingOrSizing)
 	ed:Hide()
-	ed.text = {}   -- nur bei Text- und Zahlenbausteinen sichtbar
+	ed.text = {}   -- visible only for text and number elements
 	p.editor = ed
 
-	-- OK übernimmt (samt offener Eingabe), Abbrechen, das X und jedes andere Schließen (z. B. mit
-	-- dem Einstellungsfenster) stellen die Werte beim Öffnen wieder her. Änderungen wirken bis dahin
-	-- schon auf die Vorschau in der Liste.
+	-- OK applies (including pending input); Cancel, the X and any other closing (e.g. with
+	-- the settings window) restore the values from when it was opened. Until then changes already
+	-- affect the preview in the list.
 	ed.cancel = UI.Button(ed, CANCEL, 110, function() ns.CloseElementEditor(p, false) end)
 	ed.cancel:SetPoint("BOTTOMRIGHT", -PAD, 14)
 	ed.ok = UI.Button(ed, OKAY, 110, function() ns.CloseElementEditor(p, true) end)
@@ -414,13 +414,13 @@ local function CreateEditor(p)
 	ed.result:SetPoint("RIGHT", -PAD, 0)
 	ed.result:SetWordWrap(false)
 
-	-- Hilfe: Texte ohne Formatierung angezeigt (%s, %% stehen so da, || zeigt einen Strich)
+	-- help: texts shown without formatting (%s, %% appear as written, || shows a bar)
 	ed.help = UI.Text(ed, "GameFontHighlightSmall")
 	ed.help:SetPoint("TOPLEFT", PAD, -150)
 	ed.help:SetWidth(EDITOR_WIDTH - 2 * PAD)
 	ed.exHead = UI.Text(ed, "GameFontNormalSmall", L["Examples – click to use:"])
 	ed.exHead:SetPoint("TOPLEFT", ed.help, "BOTTOMLEFT", 0, -10)
-	-- je Beispiel eine Zeile: Knopf mit dem Format, dahinter das Ergebnis
+	-- one row per example: button with the format, followed by the result
 	ed.examples = {}
 	for i = 1, 4 do
 		local b = UI.Button(ed, "", 150, function(self)
@@ -481,23 +481,23 @@ local function RefreshEditor(p)
 	end
 end
 
-local EDITED = { "color", "format", "filter" }   -- Werte, die der Dialog ändert
+local EDITED = { "color", "format", "filter" }   -- values changed by the dialog
 
--- Dialog schließen: ok = übernehmen, sonst die Werte beim Öffnen zurück (p.saved)
+-- close the dialog: ok = apply, otherwise restore the values from when it was opened (p.saved)
 function ns.CloseElementEditor(p, ok)
 	local ed, saved = p.editor, p.saved
 	if not saved then
-		return   -- schon geschlossen (OnHide nach OK/Abbrechen)
+		return   -- already closed (OnHide after OK/Cancel)
 	end
 	p.saved = nil
 	if ColorPickerFrame:IsShown() then
-		ColorPickerFrame:Hide()   -- sonst änderte ein späteres OK im Farbwähler die Farbe noch
+		ColorPickerFrame:Hide()   -- otherwise a later OK in the color picker would still change the color
 	end
 	if ok then
 		ed.format:ClearFocus()
 		CommitFormat(p)
 	else
-		ed.format:SetText(saved.format or "")   -- ClearFocus übernimmt sonst die Eingabe
+		ed.format:SetText(saved.format or "")   -- otherwise ClearFocus would apply the input
 		ed.format:ClearFocus()
 		local c = Config(p.kind, p.selected)
 		for _, k in ipairs(EDITED) do
@@ -508,8 +508,8 @@ function ns.CloseElementEditor(p, ok)
 	ns.RefreshElementsPages()
 end
 
--- Dialog für einen Baustein öffnen und dessen Werte sichern; ein offener Dialog für einen anderen
--- Baustein wird vorher mit OK geschlossen.
+-- open the dialog for an element and save its values; an open dialog for another
+-- element is closed with OK first.
 function OpenEditor(p, key)
 	local ed = p.editor
 	if p.saved and p.selected ~= key then
@@ -550,7 +550,7 @@ function ns.RefreshElementsPages()
 end
 
 ---------------------------------------------------------------------------
--- Aufbau
+-- Setup
 ---------------------------------------------------------------------------
 
 local function Preview(kind)
@@ -593,7 +593,7 @@ local function Build(p, title)
 		x = x + h[2]
 	end
 
-	-- Zeilen im Inhalt der Seite (blättern mit der Seite)
+	-- rows in the page content (scroll with the page)
 	local content = CreateFrame("Frame", nil, parent)
 	content:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
 	content:SetPoint("RIGHT", parent, "RIGHT", -16, 0)

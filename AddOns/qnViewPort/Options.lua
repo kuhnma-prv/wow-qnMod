@@ -1,32 +1,32 @@
--- qnViewPort: Optionsseite im Blizzard-Einstellungsfenster (Canvas-Layout).
--- Vorschau mit ziehbaren Rändern, vier Eingabefelder, Übernehmen mit 20 Sekunden
--- Bestätigungsfrist, Farbe und Muster der Fläche außerhalb der Welt.
--- Alle Werte gehören zum aktiven Profil (qnCore).
+-- qnViewPort: options page in the Blizzard settings window (canvas layout).
+-- Preview with draggable edges, four input fields, apply with a 20 second
+-- confirmation period, color and pattern of the area outside the world.
+-- All values belong to the active profile (qnCore).
 
 local _, ns = ...
 local L = ns.L
 local UI = qnCore.UI
 
 local page                       -- qnCore.UI.Page
-local panel, content             -- page.panel (Anmeldung, Skripte), page.content (Steuerelemente)
-local pending = { 0, 0, 0, 0 }   -- in der Vorschau bearbeitete Werte
-local boxes = {}                 -- Eingabefelder links, rechts, oben, unten
+local panel, content             -- page.panel (registration, scripts), page.content (controls)
+local pending = { 0, 0, 0, 0 }   -- values being edited in the preview
+local boxes = {}                 -- input fields left, right, top, bottom
 local preview, inner, ratioScreen, ratioView
 local applyButton, resetButton, keepButton, colorSwatch
 local patternDropdown, alphaSlider
-local dragging                   -- { l, r, t, b } = welche Ränder gezogen werden
+local dragging                   -- { l, r, t, b } = which edges are being dragged
 
 local PREVIEW_WIDTH = 320
-local PREVIEW_TOP = 104          -- Abstand der Vorschau vom oberen Rand des Inhalts (unter der Kopfzeile)
+local PREVIEW_TOP = 104          -- distance of the preview from the top of the content (below the header)
 local PAD = 4
 local KEEP_SECONDS = 20
 
 ---------------------------------------------------------------------------
--- Seitenverhältnis als Dezimalzahl und Bruch (z. B. 1.78 (16/9))
+-- Aspect ratio as decimal and fraction (e.g. 1.78 (16/9))
 ---------------------------------------------------------------------------
 
--- Kleinster Nenner a (bis 100), zu dem ein Zähler b (bis 100) auf zwei Stellen denselben Wert ergibt.
--- Passende Zähler liegen höchstens 1 neben value * a.
+-- Smallest denominator a (up to 100) for which a numerator b (up to 100) gives the same value to two decimals.
+-- Matching numerators are at most 1 away from value * a.
 local function Quotient(value)
 	local s = ("%.2f"):format(value)
 	for a = 1, 100 do
@@ -41,11 +41,11 @@ local function Quotient(value)
 end
 
 ---------------------------------------------------------------------------
--- Bausteine (auch für SecondScreen.lua)
+-- Building blocks (also for SecondScreen.lua)
 ---------------------------------------------------------------------------
 
--- Zahlenfeld (nur Ziffern). get() liefert den angezeigten Wert, set(v) übernimmt eine Eingabe
--- (Enter oder Fokusverlust; v = nil bei leerem Feld). Escape stellt den Wert wieder her.
+-- Number field (digits only). get() returns the displayed value, set(v) takes an input
+-- (Enter or focus loss; v = nil for an empty field). Escape restores the value.
 function ns.NumBox(parent, width, get, set)
 	local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
 	box:SetSize(width, 22)
@@ -74,7 +74,7 @@ function ns.NumBox(parent, width, get, set)
 end
 
 ---------------------------------------------------------------------------
--- Anzeige aktualisieren
+-- Update display
 ---------------------------------------------------------------------------
 
 local function Refresh()
@@ -104,7 +104,7 @@ local function SetPending(v, changed)
 	Refresh()
 end
 
--- Nach außen: Versätze angewendet (Slash-Befehl, Rücksetzen, Auflösungs- oder Profilwechsel)
+-- For outside callers: offsets applied (slash command, reset, resolution or profile switch)
 function ns.OnViewportChanged(v)
 	if not dragging then
 		pending = CopyTable(v)
@@ -112,7 +112,7 @@ function ns.OnViewportChanged(v)
 	end
 end
 
--- Eingaben in den Feldern übernehmen, bevor ein Knopf wirkt
+-- Commit the input fields before a button acts
 local function ClearFocusAll()
 	for _, box in ipairs(boxes) do
 		box:ClearFocus()
@@ -120,7 +120,7 @@ local function ClearFocusAll()
 end
 
 ---------------------------------------------------------------------------
--- Übernehmen mit Bestätigungsfrist
+-- Apply with confirmation period
 ---------------------------------------------------------------------------
 
 local keepTicker, keepStart, keepPrevious
@@ -141,7 +141,7 @@ ns.EndKeep = EndKeep
 local function KeepTick()
 	local left = KEEP_SECONDS - (GetTime() - keepStart)
 	if left <= 0 then
-		-- gespeicherten Wert von vorher unverändert zurückschreiben
+		-- write back the previously saved value unchanged
 		local previous = keepPrevious
 		EndKeep()
 		ns.db.viewport = previous
@@ -166,7 +166,7 @@ function ns.ApplyWithConfirm(v)
 end
 
 ---------------------------------------------------------------------------
--- Ränder in der Vorschau ziehen
+-- Drag edges in the preview
 ---------------------------------------------------------------------------
 
 local function OnUpdate()
@@ -229,10 +229,10 @@ local function CreateHandles()
 end
 
 ---------------------------------------------------------------------------
--- Eingabefelder und Farbe
+-- Input fields and color
 ---------------------------------------------------------------------------
 
-local TAB_ORDER = { 3, 2, 4, 1 }   -- oben, rechts, unten, links
+local TAB_ORDER = { 3, 2, 4, 1 }   -- top, right, bottom, left
 
 local function Box(index, tooltip)
 	local box = ns.NumBox(content, 50, function() return pending[index] end, function(value)
@@ -266,7 +266,7 @@ local function OpenColorPicker()
 		ns.UpdateBorderLook()
 		UpdateSwatch()
 	end
-	-- Farbe oder Deckkraft im Farbwähler geändert
+	-- color or opacity changed in the color picker
 	local function Picked()
 		local r, g, b = ColorPickerFrame:GetColorRGB()
 		Set(r, g, b, ColorPickerFrame:GetColorAlpha() or ns.db.color[4])
@@ -282,12 +282,12 @@ local function OpenColorPicker()
 end
 
 ---------------------------------------------------------------------------
--- Aufbau
+-- Layout
 ---------------------------------------------------------------------------
 
--- Der Bereich unter den Knöpfen folgt der Höhe der Vorschau (hängt vom Seitenverhältnis ab).
--- Die Knöpfe stehen mittig, die Texte darunter links; deshalb Versatz statt Anker am Knopf:
--- Vorschau + Eingabefeld unten (8 + 22) + Knopf (10 + 26) + 14 Abstand.
+-- The area below the buttons follows the height of the preview (depends on the aspect ratio).
+-- The buttons are centered, the texts below them left-aligned; hence an offset instead of an anchor on the button:
+-- preview + bottom input field (8 + 22) + button (10 + 26) + 14 spacing.
 local function PlaceLower()
 	ratioScreen:ClearAllPoints()
 	ratioScreen:SetPoint("TOPLEFT", content, "TOPLEFT", page.padLeft, -(PREVIEW_TOP + preview:GetHeight() + 80))
@@ -368,7 +368,7 @@ local function Build()
 	local colorText = UI.Text(content, "GameFontHighlight", L["Color of the area outside the world"])
 	colorText:SetPoint("LEFT", colorSwatch, "RIGHT", 8, 0)
 
-	-- Hintergrundmuster über der Farbe
+	-- Background pattern over the color
 	local patternText = UI.Text(content, "GameFontHighlight", L["Background pattern"])
 	patternText:SetPoint("TOPLEFT", colorSwatch, "BOTTOMLEFT", 0, -16)
 	patternDropdown = UI.Dropdown(content, 220, ns.PatternChoices, function()
@@ -413,7 +413,7 @@ local function Build()
 	panel:SetScript("OnUpdate", OnUpdate)
 	panel:SetScript("OnShow", OnShow)
 
-	-- nach einem Profilwechsel (qnCore)
+	-- after a profile switch (qnCore)
 	function ns.RefreshOptions()
 		if panel:IsVisible() then
 			OnShow()
@@ -424,7 +424,7 @@ local function Build()
 	end)
 end
 
--- setzt ns.category und ns.OpenOptions
+-- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
 	page = UI.Page("qnViewPort", { descWidth = 560, desc =
 		L["Shrinks the area in which the 3D world is rendered. The interface stays where it is – so bars and windows can be placed next to the game world."] })

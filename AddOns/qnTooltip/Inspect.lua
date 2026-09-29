@@ -1,7 +1,7 @@
--- qnTooltip: Gegenstandsstufe anderer Spieler über Betrachten (NotifyInspect, INSPECT_READY,
--- C_PaperDollInfo.GetInspectItemLevel), zwischengespeichert je GUID. Die eigene Stufe kommt aus
--- GetAverageItemLevel (angelegte Ausrüstung). Solange nichts bekannt ist, steht "??" im Tooltip.
--- Nur außerhalb des Kampfes und nicht, während Blizzards Betrachten-Fenster offen ist.
+-- qnTooltip: item level of other players via inspect (NotifyInspect, INSPECT_READY,
+-- C_PaperDollInfo.GetInspectItemLevel), cached per GUID. The player's own level comes from
+-- GetAverageItemLevel (equipped gear). As long as nothing is known, the tooltip shows "??".
+-- Only out of combat and not while Blizzard's inspect window is open.
 
 local _, ns = ...
 local IsSecret = ns.IsSecret
@@ -9,11 +9,11 @@ local IsSecret = ns.IsSecret
 local Inspect = {}
 ns.Inspect = Inspect
 
-local CACHE_TIME = 600   -- Sekunden, die eine Stufe gilt
-local THROTTLE = 1.5     -- Sekunden zwischen zwei Anfragen
+local CACHE_TIME = 600   -- seconds a level stays valid
+local THROTTLE = 1.5     -- seconds between two requests
 
 local cache = {}         -- [GUID] = { level, time }
-local pending            -- { guid, unit } der laufenden Anfrage
+local pending            -- { guid, unit } of the running request
 local lastRequest = 0
 
 local UNKNOWN = "|cff999999??|r"
@@ -37,7 +37,7 @@ local function Request(unit, guid)
 	NotifyInspect(unit)
 end
 
--- Stufe als Zahl oder UNKNOWN; nil, wenn sie sich nicht ermitteln lässt (secret GUID)
+-- level as a number or UNKNOWN; nil if it cannot be determined (secret GUID)
 function Inspect.ItemLevel(unit, guid)
 	if IsSecret(guid) or not guid then
 		return nil
@@ -71,7 +71,7 @@ local function OnReady(_, guid)
 	if not InspectFrameOpen() then
 		ClearInspectPlayer()
 	end
-	-- Tooltip mit der neuen Stufe aufbauen, wenn er noch diese Einheit zeigt
+	-- rebuild the tooltip with the new level if it still shows this unit
 	if GameTooltip:IsShown() and GameTooltip.qnUnit == p.unit then
 		GameTooltip:SetUnit(p.unit)
 	end

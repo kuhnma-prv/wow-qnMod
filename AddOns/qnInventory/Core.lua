@@ -1,41 +1,41 @@
--- qnInventory: Bestand und Gold aller Charaktere.
--- Core: Namensraum, gespeicherte Daten, Hilfsfunktionen, Slash-Befehle.
+-- qnInventory: inventory and gold of all characters.
+-- Core: namespace, saved data, helper functions, slash commands.
 
 local ADDON, ns = ...
 
--- Version, Print, Ereignisse und die Secret-Helfer kommen aus qnCore. Secret-Values werden
--- nicht gespeichert, sondern übersprungen. Bestandsdaten sind keine Einstellungen
--- und hängen deshalb an keinem Profil.
+-- Version, Print, events and the secret helpers come from qnCore. Secret values are
+-- not stored but skipped. Inventory data are not settings
+-- and therefore are not tied to any profile.
 qnCore.NewAddon(ns, ADDON)
 local L = ns.L
 
 ---------------------------------------------------------------------------
--- Datenbank
--- qnInventoryDB.options = { bothFactions, viewsBothFactions }   kontoweit (Options.lua)
--- qnInventoryDB.account = { money, bank = { [itemID] = Anzahl }, bankTabs = { Behälter mit id, … } }
---     Accountbank (ab 0.3.0), gemeinsam für alle Charaktere; bank/bankTabs erst nach dem Bankier
+-- Database
+-- qnInventoryDB.options = { bothFactions, viewsBothFactions }   account-wide (Options.lua)
+-- qnInventoryDB.account = { money, bank = { [itemID] = count }, bankTabs = { container with id, ... } }
+--     account bank (since 0.3.0), shared by all characters; bank/bankTabs only after visiting the banker
 -- qnInventoryDB.realms[realm][name] = {
 --     class, money,
---     faction = "Alliance"/"Horde"/"Neutral" (ab 0.3.0; fehlt, bis erneut eingeloggt)
---     bags = { [itemID] = Anzahl },
---     bank = { [itemID] = Anzahl } oder nil, solange die Bank nie offen war
---     mail = { [itemID] = Anzahl } oder nil, solange nichts bekannt ist
+--     faction = "Alliance"/"Horde"/"Neutral" (since 0.3.0; missing until logged in again)
+--     bags = { [itemID] = count },
+--     bank = { [itemID] = count } or nil as long as the bank was never opened
+--     mail = { [itemID] = count } or nil as long as nothing is known
 --     mailMoney, mailIncomplete
---   Inhalt je Platz bzw. Brief für die Ansichten (ab 0.2.0; fehlt, bis erneut erfasst):
---     containers = { [Container-ID] = Behälter }   Taschen samt Schlüsselbund
---     bankTabs = { Behälter mit id, … }            Bankfächer in der Reihenfolge des Bankfensters
---     bankMaxTabs                                  Anzahl möglicher Bankfächer
---     bankTabCost                                  Preis des nächsten Fachs, nil wenn alle gekauft
---     Behälter = { size, link = Link der Tasche, items = { [Platz] = { Link, Anzahl } } }
+--   Content per slot or letter for the views (since 0.2.0; missing until recorded again):
+--     containers = { [container ID] = container }  bags including the keyring
+--     bankTabs = { container with id, ... }        bank tabs in the order of the bank window
+--     bankMaxTabs                                  number of possible bank tabs
+--     bankTabCost                                  price of the next tab, nil if all are purchased
+--     container = { size, link = link of the bag, items = { [slot] = { link, count } } }
 --     mailList = { { sender, subject, money, cod, expires = time(), read, icon,
---                    items = { { Link, Anzahl }, … } }, … }
+--                    items = { { link, count }, ... } }, ... }
 -- }
 ---------------------------------------------------------------------------
 
--- Vorgaben der Optionen: andere Fraktion nur auf Wunsch (Opt-in)
+-- Option defaults: other faction only on request (opt-in)
 ns.OPTION_DEFAULTS = {
-	bothFactions = false,        -- Tooltips der Titan-Plugins: Allianz und Horde
-	viewsBothFactions = false,   -- Charakterauswahl der Ansichten: auch die andere Fraktion
+	bothFactions = false,        -- tooltips of the Titan plugins: Alliance and Horde
+	viewsBothFactions = false,   -- character selection of the views: include the other faction
 }
 
 local function InitDB()
@@ -53,28 +53,28 @@ local function InitDB()
 	qnInventoryDB.realms[ns.realm] = realmDB
 	ns.realmDB = realmDB
 
-	-- Eintrag aus Version 0.1.0, als der Name zu früh abgefragt wurde
+	-- entry from version 0.1.0, when the name was queried too early
 	realmDB[UNKNOWNOBJECT] = nil
 
 	local char = realmDB[ns.player] or {}
 	realmDB[ns.player] = char
 	ns.char = char
 	local _, class = UnitClass("player")
-	char.class = qnCore.Plain(class, char.class)   -- secret: bisherige Klasse behalten
+	char.class = qnCore.Plain(class, char.class)   -- secret: keep the previous class
 	char.faction = qnCore.Plain(UnitFactionGroup("player"), char.faction)
-	qnCore.RemoveKeys(char, { "updated" })   -- früher gespeichert, nie gelesen
+	qnCore.RemoveKeys(char, { "updated" })   -- stored formerly, never read
 end
 
--- Gehört ein gespeicherter Charakter zur Auswahl? both = andere Fraktion einschließen.
--- Unbekannte Fraktion (seit 0.3.0 nicht eingeloggt) zählt immer dazu.
+-- Does a stored character belong to the selection? both = include the other faction.
+-- Unknown faction (not logged in since 0.3.0) always counts.
 function ns.FactionShown(char, both)
 	return both or not char.faction or char.faction == ns.char.faction
 end
 
 ---------------------------------------------------------------------------
--- Änderungen der gespeicherten Daten
--- kind = "bags" (Taschen und Gold), "bank", "mail", "account" (Accountbank) oder "chars"
--- (Charakter gelöscht, Fraktionsoption geändert)
+-- Changes to the saved data
+-- kind = "bags" (bags and gold), "bank", "mail", "account" (account bank) or "chars"
+-- (character deleted, faction option changed)
 ---------------------------------------------------------------------------
 
 local listeners = {}
@@ -89,7 +89,7 @@ function ns.DataChanged(kind)
 	end
 end
 
--- Löscht einen gespeicherten Charakter (nicht den eingeloggten); true bei Erfolg
+-- Deletes a stored character (not the logged-in one); true on success
 function ns.DeleteChar(realm, name)
 	local realmDB = qnInventoryDB.realms[realm]
 	if not (realmDB and realmDB[name]) or (realm == ns.realm and name == ns.player) then
@@ -103,12 +103,12 @@ function ns.DeleteChar(realm, name)
 	return true
 end
 
--- Zählt n Stück (Vorgabe 1) von id in t
+-- Counts n pieces (default 1) of id in t
 function ns.AddCount(t, id, n)
 	t[id] = (t[id] or 0) + (n or 1)
 end
 
--- Gespeicherter Charakter zum Namen (Groß-/Kleinschreibung egal, auch Umlaute), Vorgabe: dieser Realm
+-- Stored character for the name (case-insensitive, umlauts too), default: this realm
 function ns.FindChar(name, realmDB)
 	for stored in pairs(realmDB or ns.realmDB) do
 		if strcmputf8i(stored, name) == 0 then
@@ -117,13 +117,13 @@ function ns.FindChar(name, realmDB)
 	end
 end
 
--- Realmname wie in "Name-Realm" (ohne Leerzeichen und Bindestriche, klein)
+-- Realm name as in "Name-Realm" (without spaces and hyphens, lowercase)
 local function RealmKey(realm)
 	return (realm:gsub("[%s%-]", ""):lower())
 end
 
--- Gespeicherte Realms, die mit diesem verbunden sind (ohne den eigenen): { { realm, db }, … },
--- alphabetisch. Die Liste der verbundenen Realms liefert der Client (C_AutoComplete).
+-- Stored realms connected to this one (excluding our own): { { realm, db }, ... },
+-- alphabetical. The client provides the list of connected realms (C_AutoComplete).
 function ns.ConnectedRealms()
 	local connected = {}
 	for _, realm in ipairs(C_AutoComplete.GetAutoCompleteRealms()) do
@@ -139,8 +139,8 @@ function ns.ConnectedRealms()
 	return list
 end
 
--- Gespeicherter Realm (Name und Daten) zu einer Realm-Angabe aus "Name-Realm": dieser oder ein
--- verbundener, sonst nil.
+-- Stored realm (name and data) for the realm part of "Name-Realm": this one or a
+-- connected one, otherwise nil.
 function ns.FindRealm(realm)
 	local key = RealmKey(realm)
 	if key == RealmKey(ns.realm) or key == RealmKey(GetNormalizedRealmName()) then
@@ -157,7 +157,7 @@ function ns.MoneyText(copper)
 	return GetMoneyString(copper or 0, true)
 end
 
--- Charaktere eines Realms (Vorgabe: dieser), alphabetisch
+-- Characters of a realm (default: this one), alphabetical
 function ns.SortedChars(realmDB)
 	local list = {}
 	for name in pairs(realmDB or ns.realmDB) do
@@ -168,7 +168,7 @@ function ns.SortedChars(realmDB)
 end
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
 local function ShowGold()
@@ -199,7 +199,7 @@ local function DeleteChar(name)
 	end
 end
 
--- Ansicht kind für den Charakter name (dieser Realm; Vorgabe: der zuletzt gewählte)
+-- View kind for the character name (this realm; default: the last selected one)
 local function ShowView(kind, name)
 	if not name or name == "" then
 		ns.Toggle(kind)
@@ -215,7 +215,7 @@ end
 
 local VIEWS = { bags = true, bank = true, mail = true }
 
--- rest in der eingegebenen Schreibweise (Charaktername)
+-- rest in the spelling as typed (character name)
 qnCore.RegisterSlash("QNINVENTORY", { "/qninv", "/qninventory" }, function(cmd, rest)
 	if cmd == "" or cmd == "gold" then
 		ShowGold()
@@ -232,7 +232,7 @@ end)
 -- Start
 ---------------------------------------------------------------------------
 
--- Erst bei PLAYER_LOGIN: bei ADDON_LOADED liefert UnitName("player") noch UNKNOWNOBJECT
+-- Only at PLAYER_LOGIN: at ADDON_LOADED UnitName("player") still returns UNKNOWNOBJECT
 ns.events.Register("PLAYER_LOGIN", function()
 	InitDB()
 	ns.InitScan()

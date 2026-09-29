@@ -1,174 +1,180 @@
-# qn-Addons für WoW Classic Forever
+# qn addons for WoW Classic Forever
 
-Repo `D:\Games\dev\wow-qnMod` für **WoW Classic Forever** (Flavor wow_classic_beta,
-Build 1.60.1, `## Interface: 16001`, Spieltyp **camelot**, Midnight-Engine).
-Gilt für die qn*-Addons. **Auctionator und Titan* sind Fremd-Addons: nicht anfassen, nicht einbeziehen**
-(Titan nur als Schnittstelle für qnViewPort/qnInventory lesen).
+Repository `D:\Games\dev\wow-qnMod` for **WoW Classic Forever** (flavor wow_classic_beta,
+build 1.60.1, `## Interface: 16001`, game type **camelot**, Midnight engine).
+Applies to the qn* addons. **Auctionator and Titan* are third-party addons: do not touch, do not include**
+(read Titan only as the interface for qnViewPort/qnInventory).
 
-## Aufbau
+Development language is **English** (code, comments, commit messages, keys of the localization).
+Replies to the user are in German.
+
+## Layout
 
 ```
-AddOns\        alle Addons des Clients; im Repo nur qn* (Rest per .gitignore ausgenommen)
-tests\         Testumgebung (fengari, stub.lua, Szenarien je Addon)
-tools\         Entwicklerwerkzeuge (Get-Screen, Get-WowWindow, New-QnPatterns)
-docs\plans\    Pläne und Arbeitsnotizen – Pläne immer hier ablegen; Inhalt nicht im Repo
-.github\       Actions: test.yml (Tests + Übersetzungen), release.yml (ZIP bei Tag v*)
+AddOns\        all addons of the client; only qn* are in the repository (the rest is excluded via .gitignore)
+tests\         test environment (fengari, stub.lua, scenarios per addon)
+tools\         developer tools (Get-Screen, Get-WowWindow, New-QnPatterns)
+docs\plans\    plans and working notes – always put plans here; content is not in the repository
+.github\       Actions: test.yml (tests + translations), release.yml (ZIP on tag v*)
 ```
 
-WoW lädt die Addons über eine Junction: `…\World of Warcraft\_classic_beta_\Interface\AddOns` →
-`D:\Games\dev\wow-qnMod\AddOns`. Pfade in Addons (TOC, Texturen) bleiben `Interface\AddOns\…`.
+WoW loads the addons through a junction: `…\World of Warcraft\_classic_beta_\Interface\AddOns` →
+`D:\Games\dev\wow-qnMod\AddOns`. Paths inside addons (TOC, textures) stay `Interface\AddOns\…`.
 
-Addons in `_retail_`, `_classic_`, `_anniversary_`, `_classic_era_` gehören nicht zu diesem Projekt:
-nicht anfassen, nicht als Vorlage oder Quelle verwenden, im Code nicht erwähnen.
+Addons in `_retail_`, `_classic_`, `_anniversary_`, `_classic_era_` do not belong to this project:
+do not touch them, do not use them as template or source, do not mention them in code.
 
 ## Addons
 
-| Addon | Zweck | SavedVariables |
+| Addon | Purpose | SavedVariables |
 |---|---|---|
-| qnCore | Haupt-Addon + Bibliothek (global `qnCore`): Profile, Settings-Builder, Widgets, Taschen-Automatik, Minikarten-Verfolgung merken, Schrift der Questzielverfolgung unter 12 (je Profil, `QuestTracker.lua`), Seite „Profile“ | qnCoreDB (samt eigener `profiles`), qnCoreCharDB |
-| qnMeter | Bedrohungsanzeige | qnMeterDB |
-| qnNumKeyPad | Ziffernblock-Aktionsleiste | qnNumKeyPadProfiles (alt: qnNumKeyPadDB) |
-| qnViewPort | verkleinerter 3D-Bereich, Randfarbe/-muster, Zwei-Monitor-Betrieb; mit Titan (OptionalDeps) Titan-Leisten je Monitor und Tooltips am Monitorrand (`Titan.lua`); Tooltips auf Taschenplätzen ganz auf dem Monitor der Tasche (`Layout.FitToMonitor`, für fremde Taschenansichten `qnViewPort.BagTooltip(tip, owner)`, genutzt von qnInventory) | qnViewPortDB |
-| qnInventory | Bestand/Gold je Charakter, Tooltip-Zeilen; Ansichten Taschen/Bank/Post jedes Charakters (Nachbauten von Blizzards Fenstern mit Charakterauswahl, `View*.lua`); mit Titan (OptionalDeps) Plugins `qnInvBank`/`qnInvGold` (`Titan.lua`, Texte aus Titans Lokalisierung); Accountbank in `qnInventoryDB.account` (Gold immer, Inhalt beim Bankier); Optionen kontoweit (`qnInventoryDB.options`: andere Fraktion in Tooltips/Ansichten, Opt-in), Charakter löschen | qnInventoryDB |
-| qnBuffMod | frei gestaltbare Aurenfenster | qnBuffModDB |
-| qnUnitFrames | Klickzauber (wie HealBot) auf Blizzards Gruppen-/Schlachtzugsrahmen über sichere Attribute; Belegung je Profil und Klasse | qnUnitFramesDB |
-| qnTooltip | Tooltips: Aussehen (eigener Backdrop statt NineSlice), Position nur auf Wunsch, Einheiten-Kopfzeilen aus Bausteinen (Seiten „Zeilen“), Lebensbalken, Ziel, Gegenstandsstufe, IDs | qnTooltipDB |
+| qnCore | main addon + library (global `qnCore`): profiles, settings builder, widgets, automatic bag handling, remembering minimap tracking, objective tracker font below 12 (per profile, `QuestTracker.lua`), page "Profiles" | qnCoreDB (with its own `profiles`), qnCoreCharDB |
+| qnMeter | threat meter | qnMeterDB |
+| qnNumKeyPad | numpad action bar | qnNumKeyPadProfiles (old: qnNumKeyPadDB) |
+| qnViewPort | smaller 3D area, border color/pattern, dual-monitor mode; with Titan (OptionalDeps) Titan bars per monitor and tooltips at the monitor edge (`Titan.lua`); bag slot tooltips entirely on the bag's monitor (`Layout.FitToMonitor`, for other bag views `qnViewPort.BagTooltip(tip, owner)`, used by qnInventory) | qnViewPortDB |
+| qnInventory | items/gold per character, tooltip lines; bags/bank/mail views of every character (replicas of Blizzard's windows with character selection, `View*.lua`); with Titan (OptionalDeps) plugins `qnInvBank`/`qnInvGold` (`Titan.lua`, texts from Titan's localization); account bank in `qnInventoryDB.account` (gold always, content at the banker); account-wide options (`qnInventoryDB.options`: other faction in tooltips/views, opt-in), delete character | qnInventoryDB |
+| qnBuffMod | freely configurable aura windows | qnBuffModDB |
+| qnUnitFrames | click casting (like HealBot) on Blizzard's party/raid frames via secure attributes; bindings per profile and class | qnUnitFramesDB |
+| qnTooltip | tooltips: appearance (own backdrop instead of NineSlice), position only on request, unit header lines built from elements (pages "Lines"), health bar, target, item level, IDs | qnTooltipDB |
 
-Alle außer qnCore: `## Dependencies: qnCore`, `## IconTexture: Interface\AddOns\qnCore\Media\qnIcon`,
-`## Category-<Sprache>:` wie Titan (Benutzerinterface/User Interface), `## Title: qnMod [|cffeda55f<Kurzname>|r] |cff00aa00<Version>|r` (wie Titan; Version bei jeder Änderung von
-`## Version` im Titel mitziehen). Beim Laden `qnCore.NewAddon(ns, ADDON)` (setzt version, Print, IsSecret, Plain, AnySecret,
-`ns.events` = Ereignisverteiler, `ns.OnLoad(fn)` für das eigene ADDON_LOADED).
+All except qnCore: `## Dependencies: qnCore`, `## IconTexture: Interface\AddOns\qnCore\Media\qnIcon`,
+`## Category-<language>:` like Titan (Benutzerinterface/User Interface), `## Title: qnMod [|cffeda55f<short name>|r] |cff00aa00<version>|r` (like Titan; update the version in the title with every change of
+`## Version`). On load `qnCore.NewAddon(ns, ADDON)` (sets version, Print, IsSecret, Plain, AnySecret,
+`ns.events` = event hub, `ns.OnLoad(fn)` for the addon's own ADDON_LOADED).
 
-**Gemeinsamer Code gehört nach qnCore**, sobald er in mindestens 3 Addons vorkommt; die Addons nutzen dann die
-Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCore.Settings.NewCategory`/`SetIn`,
+**Shared code belongs in qnCore** as soon as it occurs in at least 3 addons; the addons then use the
+library instead of own copies. Available among others: `qnCore.RegisterSlash`, `qnCore.Settings.NewCategory`/`SetIn`,
 `store:Set`/`SetValues`, `qnCore.DeferInCombat`, `qnCore.Debounce`, `qnCore.ClassColor(classFile)`,
-`qnCore.Popup.Confirm`/`EditText`, `qnCore.AnchorFactors`/`PointOffset`/`NearestCorner`, `qnCore.PointEntries(cornersOnly)` (Ankerpunkte fürs Dropdown), `qnCore.Visible`
-(Rahmen in den sichtbaren Bereich holen; qnViewPort liefert die Monitore), `qnCore.UI.*` (Canvas-Bausteine, `UI.Page` für jede Canvas-Seite),
-`qnCore.Patterns` (eigene Kachelmuster `{ Schlüssel, Name, Datei, LSM-Name }` in `qnCore\Media\Patterns`,
-erzeugt mit `tools\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als „qn …“ angemeldet).
+`qnCore.Popup.Confirm`/`EditText`, `qnCore.AnchorFactors`/`PointOffset`/`NearestCorner`, `qnCore.PointEntries(cornersOnly)` (anchor points for a dropdown), `qnCore.Visible`
+(bring frames into the visible area; qnViewPort provides the monitors), `qnCore.UI.*` (canvas building blocks, `UI.Page` for every canvas page),
+`qnCore.Patterns` (own tile patterns `{ key, name, file, LSM name }` in `qnCore\Media\Patterns`,
+generated with `tools\New-QnPatterns.ps1`, additionally registered with LibSharedMedia as "qn …").
 
-## Vorgaben des Nutzers
+## User requirements
 
-- **Keine Kompatibilitätsschichten** für andere WoW-Versionen. Nur Forever-APIs direkt nutzen, vorher im
-  Forever-Quelltext prüfen. Guards nur für unprüfbare C-/Widget-Funktionen.
-- **Auswahl aus mehreren Möglichkeiten immer als Dropdown-Knopf**, der die aktive Auswahl anzeigt
-  (`qnCore.UI.Dropdown` auf Canvas-Seiten, `Settings.CreateDropdown` auf Proxy-Seiten). Keine Cycle-Knöpfe.
-- **Optionen im Blizzard-Einstellungsfenster** (Settings-API), nicht als eigene Optionsfenster.
-- **Einheitliches Aussehen aller Optionsseiten** wie Blizzards senkrechte Seiten: oben die Überschrift
-  = Name der Seite (wie in der Liste links, ohne Addon-Präfix), optional rechts daneben der Knopf „Standard“,
-  darunter die Trennlinie, darunter der Inhalt mit Scrollbar (nur sichtbar, wenn er nicht passt).
-  - Wo es geht, senkrechte Seiten (`Settings.RegisterVerticalLayout…`, `qnCore.Settings`) – die bringen das mit.
-  - Frei gestaltete Seiten (Canvas) **immer über `qnCore.UI.Page(title, { desc, descWidth, defaults })`**
-    (`Widgets.lua`, Nachbau von Blizzards `SettingsListTemplate`): liefert `panel` (anmelden, OnShow usw.),
-    `content` (Eltern aller Steuerelemente), `top` (Anker für das erste Element: die Beschreibung),
-    `Fit()` (nach dem Ein-/Ausblenden von Elementen aufrufen), `padLeft`/`padTop`. Keine eigenen Überschriften,
-    Trennlinien oder Bildlaufbereiche bauen.
-  - Beschreibung der Seite über `desc` (unter der Linie), nicht in die Überschrift.
-  - „Standard“ (`defaults`) nur, wenn es ein echtes Zurücksetzen auf die Vorgaben dieser Seite gibt; dann
-    kein eigener Zurücksetzen-Knopf im Inhalt.
-  - Listen (Zeilen) liegen direkt im Inhalt und blättern mit der Seite – keine zweite, innere Liste mit
-    eigenem Mausrad-Bildlauf.
-- **Profile:** aktives Profil = aktives Edit-Mode-Layout (`preset:<n>`, `account:<Name>`,
-  `char:<Name-Realm>:<Name>`), charakterspezifische Layouts berücksichtigen. Neues Layout = Kopie des
-  bisher aktiven Profils. Registrierung über `qnCore.Profiles.Register{ ns, sv, defaults, upgrade, obsolete,
-  legacy, onSwitch }` (name kommt aus NewAddon, `obsolete` = veraltete Schlüssel); `ns.db` ist immer das aktive Profil.
-- **Taschen- und Verfolgungs-Optionen von qnCore immer kontoweit** (`qnCoreDB.global`), nie je Profil/Charakter (die gemerkte Verfolgungsauswahl selbst liegt je Charakter).
-- **Blizzard-Rahmen nie automatisch verschieben** (nicht an Ereignisse/Hooks hängen), nur über eine
-  ausdrückliche Aktion im Optionsmenü. Ausnahmen nur als Opt-in (Taschen, Zonenkarte in qnViewPort).
-- Beim Umbau von Einstellungen: bisherige Werte migrieren (Upgrade-Funktion bzw. `legacy`).
-- Kommentare auf Deutsch. Anzeigetexte werden auf Deutsch geschrieben und **immer lokalisiert**
-  (Deutsch + Englisch, siehe „Lokalisierung“).
+- **No compatibility layers** for other WoW versions. Use Forever APIs directly, check them in the
+  Forever source first. Guards only for C/widget functions that cannot be verified.
+- **A choice among several options is always a dropdown button** that shows the active selection
+  (`qnCore.UI.Dropdown` on canvas pages, `Settings.CreateDropdown` on proxy pages). No cycle buttons.
+- **Options in Blizzard's settings window** (Settings API), not in own option windows.
+- **Uniform look of all options pages** like Blizzard's vertical pages: at the top the title
+  = name of the page (as in the list on the left, without addon prefix), optionally the "Defaults" button to the right,
+  below it the divider, below that the content with a scroll bar (only visible if it does not fit).
+  - Where possible, vertical pages (`Settings.RegisterVerticalLayout…`, `qnCore.Settings`) – they provide this.
+  - Free-form pages (canvas) **always via `qnCore.UI.Page(title, { desc, descWidth, defaults })`**
+    (`Widgets.lua`, replica of Blizzard's `SettingsListTemplate`): returns `panel` (register, OnShow etc.),
+    `content` (parent of all controls), `top` (anchor for the first element: the description),
+    `Fit()` (call after showing/hiding elements), `padLeft`/`padTop`. Do not build own titles,
+    dividers or scroll areas.
+  - Page description via `desc` (below the divider), not in the title.
+  - "Defaults" (`defaults`) only if there is a real reset to this page's defaults; then
+    no own reset button in the content.
+  - Lists (rows) live directly in the content and scroll with the page – no second, inner list with
+    its own mouse wheel scrolling.
+- **Profiles:** active profile = active Edit Mode layout (`preset:<n>`, `account:<name>`,
+  `char:<name-realm>:<name>`), take character-specific layouts into account. New layout = copy of the
+  previously active profile. Register via `qnCore.Profiles.Register{ ns, sv, defaults, upgrade, obsolete,
+  legacy, onSwitch }` (name comes from NewAddon, `obsolete` = outdated keys); `ns.db` is always the active profile.
+- **qnCore's bag and tracking options are always account-wide** (`qnCoreDB.global`), never per profile/character (the remembered tracking selection itself is per character).
+- **Never move Blizzard frames automatically** (do not hook into events/hooks), only through an
+  explicit action in the options. Exceptions only as opt-in (bags, zone map in qnViewPort).
+- When restructuring settings: migrate previous values (upgrade function or `legacy`).
+- Comments in English. Display texts are written in English and **always localized**
+  (English + German, see "Localization").
 
-## Lokalisierung
+## Localization
 
-- **Deutsch ist die Quellsprache, Englisch gilt für alle anderen Clients.** Mechanismus in qnCore
-  (`Library.lua`): Schlüssel = deutscher Text; `ns.L["Deutscher Text"]` liefert auf deDE den Schlüssel
-  selbst, sonst die englische Übersetzung. Fehlt sie, erscheint Deutsch und `/qncore locale` listet sie.
-- Jedes Addon hat eine `Locale.lua` (in der TOC vor allen Dateien mit Texten; bei qnCore direkt nach
+- **English is the source language; German clients get the German translation.** Behavior in the
+  game: German client → German texts, every other client → English texts. Mechanism in qnCore
+  (`Library.lua`): key = English text; `ns.L["English text"]` returns the key itself on non-German
+  clients and the German translation on deDE. If it is missing, English appears on deDE and
+  `/qncore locale` lists it there.
+- Every addon has a `Locale.lua` (in the TOC before all files with texts; for qnCore directly after
   `Library.lua`):
-  `local ADDON, ns = ...` / `local L = qnCore.NewLocale(ns, ADDON)` / `if qnCore.GERMAN then return end` /
-  `L["Deutscher Text"] = "English text"`. In den übrigen Dateien `local L = ns.L`.
-- **Reihenfolge bei der Wahl des englischen Textes:**
-  1. **Blizzard-GlobalString**, wenn es einen gibt, dessen **deutscher Text genau dem bisherigen deutschen
-     Text entspricht** und dessen Bedeutung passt: dann direkt die Blizzard-Variable im Code
-     (`BANK`, `DELETE`, `CANCEL`, `DEFAULT`, `GENERAL` …), kein eigener Schlüssel. Nachschlagen:
-     `node tests\gs.mjs "Text"` (Forever-GlobalStrings deDE/enUS in `tests\GlobalStrings`).
-  2. Sonst eigene englische Übersetzung (Blizzard-Begriffe verwenden: Edit Mode, Action Bar, Bags …).
-- Keine Texte zusammenstückeln: ganze Sätze als ein Schlüssel, Werte über `%s`/`%d`
-  (`L["%s: beim Öffnen"]:format(name)`). Mehrzeilige Hilfetexte als ein Schlüssel.
-- Nicht übersetzt werden: Slash-Befehle, Addon-Namen, Einstellungs-Schlüssel, Ereignisnamen, reine
-  Entwicklerhinweise (mit `-- nicht übersetzen` am Zeilenende kennzeichnen).
-- TOC: `## Notes:` Englisch, `## Notes-deDE:` Deutsch.
-- Prüfen: `node tests\check-locale.mjs [Addon]` (fehlende/unbenutzte Übersetzungen, vergessene
-  deutsche Texte, TOC) und `Invoke-QnTests.ps1` (läuft auf deDE **und** enUS; auf enUS scheitert ein
-  Szenario, wenn ein Text ohne Übersetzung angezeigt wurde). Tests nie auf deutsche Anzeigetexte
-  festlegen, sondern `ns.L[...]`/`qnCore.GERMAN` verwenden.
+  `local ADDON, ns = ...` / `local L = qnCore.NewLocale(ns, ADDON)` / `if not qnCore.GERMAN then return end` /
+  `L["English text"] = "Deutscher Text"`. In all other files `local L = ns.L`.
+- **Order when choosing a text:**
+  1. **Blizzard GlobalString** if there is one whose **English text exactly matches** the intended
+     English text and whose meaning fits: then use the Blizzard variable directly in the code
+     (`BANK`, `DELETE`, `CANCEL`, `DEFAULT`, `GENERAL` …), no own key; the German text then comes from
+     Blizzard. Look it up: `node tests\gs.mjs "Text"` (Forever GlobalStrings deDE/enUS in `tests\GlobalStrings`).
+  2. Otherwise an own English key with German translation (use Blizzard terms: Edit Mode, Action Bar,
+     Bags … and their German Blizzard equivalents: Bearbeitungsmodus, Aktionsleiste, Taschen …).
+- Do not piece texts together: whole sentences as one key, values via `%s`/`%d`
+  (`L["%s: on open"]:format(name)`). Multi-line help texts as one key.
+- Not translated: slash commands, addon names, setting keys, event names, pure developer hints
+  (mark with `-- do not translate` at the end of the line).
+- TOC: `## Notes:` English, `## Notes-deDE:` German.
+- Check: `node tests\check-locale.mjs [Addon]` (missing/unused translations, leftover German texts
+  outside `L[…]`, TOC) and `Invoke-QnTests.ps1` (runs on deDE **and** enUS; on deDE a scenario fails
+  if a text was shown without translation). Never pin tests to displayed texts of one language, use
+  `ns.L[...]`/`qnCore.GERMAN` instead.
 
-## Forever-Besonderheiten (im Quelltext geprüft)
+## Forever specifics (verified in the source)
 
-- **Secret-Values:** API-Rückgaben können secret sein (`issecretvalue`). Damit nicht rechnen, vergleichen
-  oder auf Wahrheit prüfen; nur an SetText/SetFormattedText/StatusBar:SetValue/AbbreviateLargeNumbers
-  geben. Hilfen: `qnCore.IsSecret`, `qnCore.Plain(v, fallback)`. Aura-Daten
-  (`SecretWhenUnitAuraRestricted`), Bedrohung und Damage-Meter-Werte im Kampf können secret sein.
-- **Taint + Secret-Values:** Blizzard-Code, der Auren liest, scheitert, sobald seine Ausführung tainted
-  ist („Auras cannot be accessed when secret while tainted“). Deshalb nie Blizzards Aktualisierungen
-  aus Addon-Code anstoßen (z. B. `ObjectiveTrackerManager:UpdateAll` – das Szenario-Modul liest Auren
-  über `ShouldShowMawBuffs`) und keine Felder in Blizzards Tabellen schreiben; nur `hooksecurefunc`.
-- Combat Log für Addons gesperrt. Eingebauter Damage Meter (`C_DamageMeter`) vorhanden.
-- **Ladebedingungen beachten:** Forever lädt Blizzard-Dateien nur gemäß `[AllowLoadGameType …]` in den
-  Blizzard-TOCs. Beispiel: `SecureAuraHeaderTemplate` gibt es nicht (nur Spieltyp classic) → qnBuffMod
-  nutzt nur unsichere Fenster. Bei Vorlagen/Dateien immer die TOC-Bedingung prüfen, nicht nur ob die
-  Datei existiert.
-- **Nachnamen:** `UnitName` liefert Vor- und **Nachname** (nicht den Realm; `NameUtil.GetUnitFirstName`),
-  `UnitPVPName` „Vorname Nachname“. Realm über `GetPlayerInfoByGUID` (7. Rückgabe, "" = eigener).
-- Spieler-Tooltip: Stufenzeile („Stufe %s …“, `TOOLTIP_UNIT_LEVEL`) ohne Zeilentyp `UnitLevel`, Klasse und
-  Fraktion in eigenen Zeilen danach (im Spiel gesehen).
-- Aura-Filter: `NOT_CANCELABLE` gibt es nicht mehr → `!CANCELABLE` (Negation mit `!`).
-- Aktionsleisten wie Mainline: 180 Plätze, Seiten 13–15 = Leisten 6–8.
-- Addon-Icons erscheinen nur in der Addon-Liste (20×20), kein Addon-Fach an der Minikarte.
-- Bank: Camelot-BankFrame mit Fächern ab `CharacterBankTab_1` (6); Schlüsselbund = -1.
+- **Secret values:** API results can be secret (`issecretvalue`). Do not compute with them, compare them
+  or test them for truth; only pass them to SetText/SetFormattedText/StatusBar:SetValue/AbbreviateLargeNumbers.
+  Helpers: `qnCore.IsSecret`, `qnCore.Plain(v, fallback)`. Aura data
+  (`SecretWhenUnitAuraRestricted`), threat and damage meter values can be secret in combat.
+- **Taint + secret values:** Blizzard code that reads auras fails as soon as its execution is tainted
+  ("Auras cannot be accessed when secret while tainted"). Therefore never trigger Blizzard's updates
+  from addon code (e.g. `ObjectiveTrackerManager:UpdateAll` – the scenario module reads auras
+  via `ShouldShowMawBuffs`) and never write fields into Blizzard's tables; only `hooksecurefunc`.
+- Combat log is blocked for addons. Built-in damage meter (`C_DamageMeter`) is available.
+- **Mind the load conditions:** Forever loads Blizzard files only according to `[AllowLoadGameType …]` in the
+  Blizzard TOCs. Example: `SecureAuraHeaderTemplate` does not exist (only game type classic) → qnBuffMod
+  uses insecure windows only. For templates/files always check the TOC condition, not only whether the
+  file exists.
+- **Last names:** `UnitName` returns first and **last name** (not the realm; `NameUtil.GetUnitFirstName`),
+  `UnitPVPName` "First Last". Realm via `GetPlayerInfoByGUID` (7th return, "" = own realm).
+- Player tooltip: level line ("Level %s …", `TOOLTIP_UNIT_LEVEL`) without line type `UnitLevel`, class and
+  faction in their own lines afterwards (seen in the game).
+- Aura filter: `NOT_CANCELABLE` no longer exists → `!CANCELABLE` (negation with `!`).
+- Action bars like Mainline: 180 slots, pages 13–15 = bars 6–8.
+- Addon icons only appear in the addon list (20×20), there is no addon compartment at the minimap.
+- Bank: Camelot BankFrame with tabs from `CharacterBankTab_1` (6); keyring = -1.
 
-## Quellen und Werkzeuge
+## Sources and tools
 
-- Blizzard-Quelltext: `git clone --depth 1 --branch forever https://github.com/Gethe/wow-ui-source`
-  (Zweig `classic_beta` ist veraltet). Statische Prüfung liefert nur Kandidaten: GlobalStrings,
-  C-Funktionen und Widget-Methoden stehen nicht im Quellbaum.
-- Testumgebung `tests`: fengari (Lua-VM in Node, lokal in `node_modules`, nicht im Repo; wird von
-  `Invoke-QnTests.ps1` bei Bedarf per `npm install` geholt) mit WoW-Attrappe `stub.lua` und Szenarien
-  je getestetem Addon in einem Ordner, dort durchnummeriert (`tests\qnBuffMod\test3.lua`);
-  Szenarien für die gemeinsame Bibliothek (Profile, Migration, Visible …) liegen unter `qnCore`.
-  Alle ausführen: `pwsh tests\Invoke-QnTests.ps1` (`-Filter qnBuffMod` oder `-Filter qnCore/test3`,
-  `-Locale enUS`, `-Detail`); einzeln: `node tests\run.mjs qnBuffMod/test3.lua` (Addons aus `AddOns`
-  neben `tests`, Sprache über
-  `$env:QN_LOCALE`). Die Attrappe lädt die echten Forever-GlobalStrings der Sprache (nicht im Repo;
-  `run.mjs`/`gs.mjs` laden fehlende über `globalstrings.mjs`, aktualisieren mit
-  `node tests\globalstrings.mjs --update`); Testvariablen
-  deshalb nie wie GlobalStrings benennen (`COMBAT` war einer → heißt jetzt `QN_COMBAT`).
-  Nach jeder Änderung alle Szenarien laufen lassen; neue Funktionen bekommen ein eigenes Szenario
-  (nächste freie Nummer im Ordner des Addons).
-  XML wird nicht geladen. Testfehler zuerst gegen Blizzards Quelltext prüfen – meist sind es Lücken der
-  Attrappe; die dann in der Attrappe schließen, nicht im Addon.
-- Mehrmonitor-Skripte: `qnViewPort\scripts` (`Initialize-WowMonitors.ps1`, `Set-WowWindow.ps1`,
-  gemeinsam `qnMonitors.ps1`) schreiben `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`;
-  rechnerabhängig, optional, nicht im Repo; die Attrappe lädt sie nie, Szenarien setzen die Daten selbst);
-  die Monitorauswahl liegt in `monitors.json` im WoW-Hauptordner (für alle Clients gemeinsam,
-  außerhalb des Repos). WoW lädt nur Dateien aus der TOC. Den WoW-Hauptordner finden die Skripte über
-  `Get-QnWowRoot` (`-WowRoot`, `$env:QN_WOW_ROOT`, fünf Ebenen über den Skripten – nur beim Aufruf über
-  die Junction –, sonst über einen laufenden Client).
-- Werkzeuge in `tools`: `Get-WowWindow.ps1` (Lage/Rahmen des WoW-Fensters, nur lesen),
-  `Get-Screen.ps1` (Bildschirmfoto aller Monitore nach `tools\screen.png`, nicht im Repo),
-  `New-QnPatterns.ps1` (Kachelmuster von qnCore).
-- Gemeinsames Icon: `qnCore\Media\qnIcon.tga` (64×64 TGA).
+- Blizzard source: `git clone --depth 1 --branch forever https://github.com/Gethe/wow-ui-source`
+  (branch `classic_beta` is outdated). Static checks only give candidates: GlobalStrings,
+  C functions and widget methods are not in the source tree.
+- Test environment `tests`: fengari (Lua VM in Node, locally in `node_modules`, not in the repository; fetched by
+  `Invoke-QnTests.ps1` via `npm install` when needed) with the WoW stub `stub.lua` and scenarios
+  in one folder per tested addon, numbered there (`tests\qnBuffMod\test3.lua`);
+  scenarios for the shared library (profiles, migration, Visible …) live under `qnCore`.
+  Run all: `pwsh tests\Invoke-QnTests.ps1` (`-Filter qnBuffMod` or `-Filter qnCore/test3`,
+  `-Locale enUS`, `-Detail`); single: `node tests\run.mjs qnBuffMod/test3.lua` (addons from `AddOns`
+  next to `tests`, language via `$env:QN_LOCALE`). The stub loads the real Forever GlobalStrings of the
+  language (not in the repository; `run.mjs`/`gs.mjs` fetch missing ones via `globalstrings.mjs`, update with
+  `node tests\globalstrings.mjs --update`); therefore never name test variables like GlobalStrings
+  (`COMBAT` was one → now `QN_COMBAT`).
+  Run all scenarios after every change; new features get their own scenario
+  (next free number in the addon's folder).
+  XML is not loaded. Check test failures against Blizzard's source first – mostly they are gaps in the
+  stub; close them in the stub, not in the addon.
+- Multi-monitor scripts: `qnViewPort\scripts` (`Initialize-WowMonitors.ps1`, `Set-WowWindow.ps1`,
+  shared `qnMonitors.ps1`) write `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`;
+  depends on the machine, optional, not in the repository; the stub never loads it, scenarios set the data themselves);
+  the monitor selection is stored in `monitors.json` in the WoW root folder (shared by all clients,
+  outside the repository). WoW only loads files listed in the TOC. The scripts find the WoW root folder via
+  `Get-QnWowRoot` (`-WowRoot`, `$env:QN_WOW_ROOT`, five levels above the scripts – only when called through
+  the junction –, otherwise via a running client).
+- Tools in `tools`: `Get-WowWindow.ps1` (position/frame of the WoW window, read only),
+  `Get-Screen.ps1` (screenshot of all monitors to `tools\screen.png`, not in the repository),
+  `New-QnPatterns.ps1` (tile patterns of qnCore).
+- Shared icon: `qnCore\Media\qnIcon.tga` (64×64 TGA).
 
-## Arbeitsweise
+## Way of working
 
-- Shell: PowerShell 7. **Deutsche Anführungszeichen („ “ ‘ ’) nie in doppelt quotierten
-  PowerShell-Strings ersetzen**; PowerShell hält sie für Anführungszeichen. Für Einzelstellen das
-  Edit-Werkzeug nutzen.
-- PowerShell: eine Liste mit nur **einem** Paar (`@(@('alt','neu'))`) wird flachgeklopft – eine
-  Ersetzungsschleife ersetzt dann einzelne Zeichen (hat `SettingsBuilder.lua` zerstört). Paare mit
-  `,@(...)` anlegen und die Paarlänge prüfen, oder das Edit-Werkzeug nutzen.
-- Zeilenenden der vorhandenen Datei beibehalten.
-- Stil der Umgebung übernehmen: Tabs, deutsche Kommentare, `local ADDON, ns = ...`, Abschnitts-Trenner
-  mit `-----`.
-- Im Bericht klar trennen: im Test geprüft / im Spiel bestätigt / nicht prüfbar („Ich weiß es nicht!“).
+- Shell: PowerShell 7. **Never replace German quotation marks („ “ ‘ ’) inside double-quoted
+  PowerShell strings**; PowerShell treats them as quote characters. Use the Edit tool for single
+  changes (German translations in `Locale.lua` still contain such quotes).
+- PowerShell: a list with only **one** pair (`@(@('old','new'))`) gets flattened – a
+  replacement loop then replaces single characters (this destroyed `SettingsBuilder.lua`). Create pairs with
+  `,@(...)` and check the pair length, or use the Edit tool.
+- Keep the line endings of the existing file.
+- Follow the surrounding style: tabs, English comments, `local ADDON, ns = ...`, section separators
+  with `-----`.
+- Commit messages in English.
+- In reports clearly separate: verified in tests / confirmed in the game / not verifiable ("Ich weiß es nicht!").

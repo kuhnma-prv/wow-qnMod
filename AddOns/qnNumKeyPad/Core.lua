@@ -1,53 +1,53 @@
--- qnNumKeyPad: Aktionsleiste in Form eines Ziffernblocks.
--- Core: Namensraum, gespeicherte Einstellungen, Ereignisse, Slash-Befehle.
+-- qnNumKeyPad: action bar in the shape of a numeric keypad.
+-- Core: namespace, saved settings, events, slash commands.
 
 local ADDON, ns = ...
 
--- Version, Print und Ereignisse (ns.events) kommen aus qnCore.
+-- Version, Print and events (ns.events) come from qnCore.
 local lib = qnCore
 lib.NewAddon(ns, ADDON)
 local L = ns.L
 
 ---------------------------------------------------------------------------
--- Standardwerte
+-- Defaults
 ---------------------------------------------------------------------------
 
 ns.defaults = {
 	enabled = true,
-	locked = false,          -- Position gesperrt
-	lockActions = false,     -- Aktionen immer gegen Herausziehen sperren
-	lockInCombat = true,     -- Aktionen im Kampf gegen Herausziehen sperren
+	locked = false,          -- position locked
+	lockActions = false,     -- always lock actions against dragging out
+	lockInCombat = true,     -- lock actions against dragging out in combat
 
-	-- Tastatur
+	-- Keyboard
 	layout = "Windows",
 	showEnter = false,
 	showNav = false,
 	showArrow = false,
-	bindShift = true,        -- Umschalt+Taste ebenfalls belegen
-	stance = false,          -- Tasten 1-12 folgen der Haltungs-/Gestaltleiste
+	bindShift = true,        -- also bind Shift+key
+	stance = false,          -- keys 1-12 follow the stance/form bar
 
-	-- Aktionsplätze: Seite (je 12 Plätze) für Taste 1-12, 13-24, 25-28
+	-- Action slots: page (12 slots each) for keys 1-12, 13-24, 25-28
 	page1 = 13,
 	page2 = 14,
 	page3 = 15,
 
-	-- Aussehen
+	-- Appearance
 	scale = 1,
-	padH = 1,                -- Abstand waagerecht zwischen Tasten
-	padV = 1,                -- Abstand senkrecht zwischen Tasten
-	blockGap = 0,            -- zusätzlicher Abstand zum Navigations-/Pfeilblock
+	padH = 1,                -- horizontal spacing between keys
+	padV = 1,                -- vertical spacing between keys
+	blockGap = 0,            -- additional gap to the navigation/arrow block
 	alpha = 1,
 	bgAlpha = 0,
-	labels = 1,              -- 1 = Kurzlabel, 2 = Tastenname, 3 = keine
-	fontSize = 0,            -- 0 = Standardgröße
+	labels = 1,              -- 1 = short label, 2 = key name, 3 = none
+	fontSize = 0,            -- 0 = default size
 	hideMacro = false,
 	hideBorder = false,
 	zoom = false,
-	showGrid = true,         -- leere Tasten anzeigen
+	showGrid = true,         -- show empty buttons
 	clickThrough = false,
 	flyout = "UP",
 
-	-- Sichtbarkeit
+	-- Visibility
 	fade = false,
 	fadeAlpha = 0.25,
 	fadeDelay = 0.2,
@@ -61,38 +61,38 @@ ns.defaults = {
 	useCustom = false,
 	custom = "[combat] show; [mod:alt] show; hide",
 
-	-- Position (Einheiten von UIParent, unabhängig von der Skalierung)
-	autoVisible = false,     -- automatisch im sichtbaren Bereich halten (mit qnViewPort: auf einem Monitor)
+	-- Position (UIParent units, independent of the scale)
+	autoVisible = false,     -- keep in the visible area automatically (with qnViewPort: on one monitor)
 	point = "CENTER",
 	x = 300,
 	y = -100,
 }
 
-local hintSeen = false   -- ein Profil hatte den Hinweis schon gezeigt (hintShown bis 1.1.0)
+local hintSeen = false   -- a profile had already shown the hint (hintShown up to 1.1.0)
 
--- Passt ein Profil aus älteren Versionen an (vor dem Ergänzen der Vorgaben).
+-- Upgrades a profile from older versions (before the defaults are filled in).
 local function Upgrade(db)
 	if db.layout ~= nil and not ns.GetLayout(db.layout) then
 		db.layout = nil
 	end
-	-- Hinweis beim ersten Einloggen gilt jetzt kontoweit (store.global.hintShown)
+	-- The first-login hint is now account-wide (store.global.hintShown)
 	if db.hintShown then
 		hintSeen = true
 	end
 end
 
--- Veraltete Schlüssel (qnCore löscht sie nach Upgrade)
+-- Obsolete keys (qnCore deletes them after Upgrade)
 local OBSOLETE = {
-	"keepVisible",   -- Vorgänger von autoVisible (war ungefragt an)
-	"hintShown",     -- je Profil bis 1.1.0, jetzt kontoweit
+	"keepVisible",   -- predecessor of autoVisible (was on without asking)
+	"hintShown",     -- per profile up to 1.1.0, now account-wide
 }
 
 ---------------------------------------------------------------------------
--- Hilfsfunktionen
+-- Helpers
 ---------------------------------------------------------------------------
 
--- Änderungen an geschützten Rahmen sind im Kampf gesperrt.
--- ns.Apply() merkt sich deshalb den Wunsch und holt ihn nach dem Kampf nach (qnCore.DeferInCombat).
+-- Changes to protected frames are blocked in combat.
+-- ns.Apply() therefore remembers the request and applies it after combat (qnCore.DeferInCombat).
 local warned = false
 
 local function ApplyAfterCombat()
@@ -116,14 +116,14 @@ function ns.Apply()
 	ns.QueueVisibleCheck()
 end
 
--- Nach Änderungen, die die benutzten Seiten betreffen (Seiten, Layout, Zusatztasten, Profil).
+-- After changes that affect the pages in use (pages, layout, extra keys, profile).
 function ns.ApplyAndCheck()
 	ns.Apply()
 	ns.CheckPages()
 end
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNNUMKEYPAD", { "/qnnumkeypad", "/qnnkp", "/numpad" }, function(cmd)
@@ -145,21 +145,21 @@ lib.RegisterSlash("QNNUMKEYPAD", { "/qnnumkeypad", "/qnnkp", "/numpad" }, functi
 	elseif cmd == "visible" then
 		ns.MoveIntoVisible()
 	else
-		-- ein Schlüssel; Print gibt jede Zeile als eigene Chatzeile aus
+		-- one key; Print outputs each line as a separate chat line
 		ns.Print(L["Commands:\n  /qnnkp – open options\n  /qnnkp lock | unlock – lock/unlock position\n  /qnnkp on | off – enable/disable numpad\n  /qnnkp reset – reset position\n  /qnnkp visible – move bar into the visible area"])
 	end
 end)
 
 ---------------------------------------------------------------------------
--- Ereignisse
+-- Events
 ---------------------------------------------------------------------------
 
 local events = ns.events
 
 ns.OnLoad(function()
-	-- Einstellungen je Profil (= Layout des Bearbeitungsmodus, qnCore); ns.db ist immer
-	-- das aktive Profil. Bis Version 1.0 lagen sie je Charakter in qnNumKeyPadDB –
-	-- diese Tabelle dient einmalig als Vorlage und wird nach dem ersten Profilwechsel gelöscht.
+	-- Settings per profile (= Edit Mode layout, qnCore); ns.db is always
+	-- the active profile. Up to version 1.0 they were stored per character in qnNumKeyPadDB -
+	-- that table serves once as a template and is deleted after the first profile switch.
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnNumKeyPadProfiles",
@@ -188,8 +188,8 @@ events.Register("PLAYER_LOGIN", function()
 	end
 end)
 
--- Nach dem Kampf die Darstellung (die Zieh-Fläche war im Kampf verborgen); Aufgeschobenes holt
--- qnCore.DeferInCombat nach.
+-- After combat, refresh the display (the drag area was hidden in combat); deferred work is
+-- applied by qnCore.DeferInCombat.
 events.Register("PLAYER_REGEN_ENABLED", function()
 	ns.ApplyCosmetic()   -- Bar.lua
 end)

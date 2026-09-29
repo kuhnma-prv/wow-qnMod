@@ -1,10 +1,10 @@
--- Szenario 2: qnMeter – Erfassung und Anzeige im normalen und im Secret-Modus (Ränge), isMe im Raid,
--- TPS und Warnung, Entfernungsprüfung im Kampf, Menü-Umschalter über store:Set, Kopplung an den
--- eingebauten Damage Meter, Titel, Zurücksetzen, Diagnose.
+-- Scenario 2: qnMeter - collection and display in normal and secret mode (ranks), isMe in raid,
+-- TPS and warning, range check in combat, menu toggles via store:Set, link to the
+-- built-in damage meter, title, reset, diagnostics.
 
--- Secret-Values: Tabellen, die bei Rechnen, Vergleichen und Verketten einen Fehler werfen.
--- issecretvalue muss vor qnCore stehen (qnCore merkt es sich beim Laden).
-local function Forbidden() error("Rechnen/Vergleichen mit einem secret-Wert", 2) end
+-- Secret values: tables that throw an error on arithmetic, comparison and concatenation.
+-- issecretvalue must be set before qnCore (qnCore remembers it on load).
+local function Forbidden() error("arithmetic/comparison with a secret value", 2) end
 local SecretMT = { __add = Forbidden, __sub = Forbidden, __mul = Forbidden, __div = Forbidden, __unm = Forbidden,
 	__lt = Forbidden, __le = Forbidden, __eq = Forbidden, __concat = Forbidden, __len = Forbidden }
 local function Secret(v) return setmetatable({ v = v }, SecretMT) end
@@ -16,7 +16,7 @@ end
 Enum.StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 1 }
 SOUNDKIT = SOUNDKIT or { RAID_WARNING = 8959 }
 
--- Eingebauter Damage Meter (Blizzard_DamageMeter, DamageMeterMixin)
+-- Built-in damage meter (Blizzard_DamageMeter, DamageMeterMixin)
 QN_DM = { barHeight = 30, spacing = 4, style = 1, textScale = 1.2, bgAlpha = 0.7, windowAlpha = 0.9, icons = false, classColor = true }
 DamageMeter = {}
 function DamageMeter:GetBarHeight() return QN_DM.barHeight end
@@ -36,10 +36,10 @@ function DamageMeter:SetShowBarIcons(v) QN_DM.icons = v end
 function DamageMeter:ShouldUseClassColor() return QN_DM.classColor end
 function DamageMeter:SetUseClassColor(v) QN_DM.classColor = v end
 
--- Einheiten: Token -> { id, name, class, guid, player, hostile, secretGUID }
+-- Units: token -> { id, name, class, guid, player, hostile, secretGUID }
 QN_UNITS = {}
 QN_THREAT = {}      -- id -> { value, scaled, isTanking }
-QN_SECRET = nil     -- nil | "all" (alle Werte secret) | "state" (nur isTanking/status secret)
+QN_SECRET = nil     -- nil | "all" (all values secret) | "state" (only isTanking/status secret)
 QN_PARTY, QN_RAID = 0, 0
 local function Party()
 	QN_UNITS = {
@@ -106,7 +106,7 @@ local T = meter.Threat
 local f = T.frame
 local db = meter.db
 
--- Meldungen der Warnung und im Chat mitschreiben
+-- Record warning and chat messages
 local warn
 rawset(RaidWarningFrame, "AddMessage", function(_, text) warn = text end)
 local chat = {}
@@ -123,85 +123,85 @@ local function Left(i) return f.bars[i] and f.bars[i]._shown and f.bars[i].left.
 local function Right(i) return f.bars[i] and f.bars[i]._shown and f.bars[i].right._text end
 
 ---------------------------------------------------------------------------
--- Titel, Texturen, Damage-Meter-Werte
+-- Title, textures, damage meter values
 ---------------------------------------------------------------------------
-Check(f.titleText._text == L["Threat"], "Titel gesetzt")
-Check(meter.GetTexturePath("Damage Meter") == "UI-HUD-CoolDownManager-Bar", "Textur als Atlas ohne Präfix")
-Check(meter.textureLabels["Damage Meter"] == DAMAGE_METER_LABEL, "Texturname über DAMAGE_METER_LABEL")
-Check(db.linkDamageMeter and f.eff.linked and f.eff.barHeight == 30 and f.eff.barSpacing == 4, "Werte vom Damage Meter übernommen")
+Check(f.titleText._text == L["Threat"], "title set")
+Check(meter.GetTexturePath("Damage Meter") == "UI-HUD-CoolDownManager-Bar", "texture as atlas without prefix")
+Check(meter.textureLabels["Damage Meter"] == DAMAGE_METER_LABEL, "texture name via DAMAGE_METER_LABEL")
+Check(db.linkDamageMeter and f.eff.linked and f.eff.barHeight == 30 and f.eff.barSpacing == 4, "values taken from the damage meter")
 
 ---------------------------------------------------------------------------
--- Normaler Modus: Sortierung, Ränge, Aggro-Balken, eigener Balken in der letzten Zeile
+-- Normal mode: sorting, ranks, aggro bar, own bar in the last row
 ---------------------------------------------------------------------------
 T.Refresh()
-Check(f.infoText._text == "Eber", "Ziel rechts im Titel: " .. tostring(f.infoText._text))
-Check(f.titleText._text == L["Threat"], "Titel bleibt")
--- Kapazität 3 (Höhe 150, Balken 30 + 4): Aggro, Tank, dann der eigene statt Magier
-Check(Left(1) == L["Pull Aggro"], "Zeile 1: Aggro ohne Rang: " .. tostring(Left(1)))
-Check(Left(2) == "1. Tanko", "Zeile 2: Tank mit Rang: " .. tostring(Left(2)))
-Check(Left(3) == "3. Tester", "Zeile 3: eigener Balken mit echtem Rang: " .. tostring(Left(3)))
-Check(not Left(4), "nicht mehr als 3 Zeilen")
-Check(Right(1) == "1100 (110%)", "in Reichweite: Nahkampf-Schwelle: " .. tostring(Right(1)))
-Check(QN_RANGE_CALLS > 0, "Entfernung außerhalb des Kampfes geprüft")
+Check(f.infoText._text == "Eber", "target on the right of the title: " .. tostring(f.infoText._text))
+Check(f.titleText._text == L["Threat"], "title stays")
+-- Capacity 3 (height 150, bar 30 + 4): aggro, tank, then our own instead of Magier
+Check(Left(1) == L["Pull Aggro"], "row 1: aggro without rank: " .. tostring(Left(1)))
+Check(Left(2) == "1. Tanko", "row 2: tank with rank: " .. tostring(Left(2)))
+Check(Left(3) == "3. Tester", "row 3: own bar with real rank: " .. tostring(Left(3)))
+Check(not Left(4), "no more than 3 rows")
+Check(Right(1) == "1100 (110%)", "in range: melee threshold: " .. tostring(Right(1)))
+Check(QN_RANGE_CALLS > 0, "range checked out of combat")
 
--- Bezugswert: der Tank, auch wenn ein anderer mehr hat; ohne Tank der höchste Wert
+-- Reference value: the tank, even if someone else has more; without tank the highest value
 QN_THREAT.party1.isTanking, QN_THREAT.party2.isTanking = nil, true
 T.Refresh()
-Check(Right(1) == "1045 (110%)" and Left(2) == "1. Tanko", "Bezug = Tank (Magier 950): " .. tostring(Right(1)))
+Check(Right(1) == "1045 (110%)" and Left(2) == "1. Tanko", "reference = tank (Magier 950): " .. tostring(Right(1)))
 QN_THREAT.party2.isTanking = nil
 T.Refresh()
-Check(Right(1) == "1100 (110%)", "ohne Tank: Bezug = höchster Wert: " .. tostring(Right(1)))
+Check(Right(1) == "1100 (110%)", "without tank: reference = highest value: " .. tostring(Right(1)))
 QN_THREAT.party1.isTanking = true
--- ohne Aggro-Balken drei Spieler; ohne "eigenen Balken immer zeigen" kein Nachziehen
+-- without aggro bar three players; without "always show own bar" no pulling in
 meter.store:Set("showAggroBar", false)
 T.Refresh()
-Check(Left(1) == "1. Tanko" and Left(2) == "2. Magier" and Left(3) == "3. Tester", "ohne Aggro-Balken: " .. tostring(Left(1)))
+Check(Left(1) == "1. Tanko" and Left(2) == "2. Magier" and Left(3) == "3. Tester", "without aggro bar: " .. tostring(Left(1)))
 meter.store:Set("showAggroBar", true)
 meter.store:Set("alwaysShowSelf", false)
 T.Refresh()
-Check(Left(1) == L["Pull Aggro"] and Left(3) == "2. Magier", "eigener Balken nicht nachgezogen: " .. tostring(Left(3)))
+Check(Left(1) == L["Pull Aggro"] and Left(3) == "2. Magier", "own bar not pulled in: " .. tostring(Left(3)))
 meter.store:Set("alwaysShowSelf", true)
 T.Refresh()
-Check(Left(3) == "3. Tester", "eigener Balken wieder in der letzten Zeile")
+Check(Left(3) == "3. Tester", "own bar back in the last row")
 
--- Im Kampf keine Entfernungsprüfung, Rückfall auf die Klasse (Krieger = Nahkampf)
+-- No range check in combat, fallback to the class (warrior = melee)
 QN_COMBAT = true
 QN_IN_RANGE = false
 QN_RANGE_CALLS = 0
 T.Refresh()
-Check(QN_RANGE_CALLS == 0, "im Kampf keine Entfernungsprüfung")
-Check(Right(1) == "1100 (110%)", "im Kampf: Nahkampf über Klasse: " .. tostring(Right(1)))
+Check(QN_RANGE_CALLS == 0, "no range check in combat")
+Check(Right(1) == "1100 (110%)", "in combat: melee via class: " .. tostring(Right(1)))
 QN_COMBAT = nil
 
--- Außerhalb des Kampfes und nicht in Reichweite: Fernkampf (130 %)
+-- Out of combat and out of range: ranged (130 %)
 T.Refresh()
-Check(Right(1) == "1300 (130%)", "außer Reichweite: Fernkampf-Schwelle: " .. tostring(Right(1)))
+Check(Right(1) == "1300 (130%)", "out of range: ranged threshold: " .. tostring(Right(1)))
 QN_IN_RANGE = nil
 
 ---------------------------------------------------------------------------
--- TPS und Warnung
+-- TPS and warning
 ---------------------------------------------------------------------------
 QN_NOW = 1005
 QN_THREAT.player.value = 1300
 warn = nil
 T.Refresh()
-Check(Left(1) == "1. Tester" and Left(2) == L["Pull Aggro"], "eigener Balken jetzt vorne: " .. tostring(Left(1)))
-Check(Right(1) == "1300 (100) 130%", "TPS über 5 Sekunden: " .. tostring(Right(1)))
-Check(warn == L["Threat: %d%%"]:format(130), "Warnung ausgelöst: " .. tostring(warn))
+Check(Left(1) == "1. Tester" and Left(2) == L["Pull Aggro"], "own bar now in front: " .. tostring(Left(1)))
+Check(Right(1) == "1300 (100) 130%", "TPS over 5 seconds: " .. tostring(Right(1)))
+Check(warn == L["Threat: %d%%"]:format(130), "warning triggered: " .. tostring(warn))
 warn = nil
 T.Refresh()
-Check(warn == nil, "Warnung nicht wiederholt")
+Check(warn == nil, "warning not repeated")
 QN_THREAT.player.value = 700
 T.Refresh()
 QN_THREAT.player.value = 1300
 T.Refresh()
-Check(warn ~= nil, "nach Unterschreiten erneut scharf")
+Check(warn ~= nil, "armed again after dropping below")
 
 ---------------------------------------------------------------------------
--- Secret-Modus: keine Ränge, eigener Balken zuerst, nichts wird gerechnet
+-- Secret mode: no ranks, own bar first, nothing is computed
 ---------------------------------------------------------------------------
 QN_THREAT.player.value = 800
--- Blizzards Widgets nehmen secret-Werte an; die Attrappe setzt dafür den inneren Wert ein.
+-- Blizzard's widgets accept secret values; the stub inserts the inner value for them.
 for i = 1, 3 do
 	local fs = f.bars[i].right
 	fs.SetFormattedText = function(self, fmt, ...)
@@ -216,28 +216,28 @@ end
 QN_SECRET = "all"
 warn = nil
 local ok, err = pcall(T.Refresh)
-Check(ok, "Secret-Modus ohne Fehler: " .. tostring(err))
-Check(Left(1) == "Tester" and Left(2) == "Tanko" and Left(3) == "Magier", "Secret-Modus: Gruppenreihenfolge ohne Ränge, eigener zuerst: "
+Check(ok, "secret mode without error: " .. tostring(err))
+Check(Left(1) == "Tester" and Left(2) == "Tanko" and Left(3) == "Magier", "secret mode: group order without ranks, own first: "
 	.. tostring(Left(1)) .. ", " .. tostring(Left(2)) .. ", " .. tostring(Left(3)))
-Check(Right(2) == "1000 (100%)", "Secret-Modus: Werte durchgereicht: " .. tostring(Right(2)))
-Check(tostring(f.infoText._text):find("|cffffaa00", 1, true) ~= nil, "Secret-Modus: Ziel orange")
-Check(warn == nil, "Secret-Modus: keine Warnung")
+Check(Right(2) == "1000 (100%)", "secret mode: values passed through: " .. tostring(Right(2)))
+Check(tostring(f.infoText._text):find("|cffffaa00", 1, true) ~= nil, "secret mode: target orange")
+Check(warn == nil, "secret mode: no warning")
 
 chat = {}
 ok, err = pcall(SlashCmdList.QNMETER, "check")
-Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "Diagnose mit secret-Werten: " .. tostring(err))
+Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "diagnostics with secret values: " .. tostring(err))
 
--- Nur der Status secret (Werte lesbar): Anzeige und Diagnose rechnen nicht mit dem Status
+-- Only the status secret (values readable): display and diagnostics do not compute with the status
 QN_SECRET = "state"
 ok, err = pcall(T.Refresh)
-Check(ok and Left(1) == "Tester", "nur Status secret: eingeschränkter Modus: " .. tostring(err or Left(1)))
+Check(ok and Left(1) == "Tester", "only status secret: restricted mode: " .. tostring(err or Left(1)))
 chat = {}
 ok, err = pcall(SlashCmdList.QNMETER, "check")
-Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "Diagnose: secret-Status erkannt: " .. tostring(err))
+Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "diagnostics: secret status detected: " .. tostring(err))
 QN_SECRET = nil
 
 ---------------------------------------------------------------------------
--- Raid mit secret-GUIDs: sich selbst über UnitIsUnit erkennen
+-- Raid with secret GUIDs: recognize oneself via UnitIsUnit
 ---------------------------------------------------------------------------
 QN_UNITS = {
 	player = { id = "player", name = "Tester", class = "WARRIOR", guid = "Player-1", player = true },
@@ -249,25 +249,25 @@ QN_UNITS = {
 }
 QN_PARTY, QN_RAID = 0, 3
 T.Refresh()
-Check(Left(3) == "3. Tester", "Raid: eigener Balken über UnitIsUnit erkannt: " .. tostring(Left(3)))
-Check(Left(2) == "1. Tanko", "Raid: Zusatzziel ohne lesbare GUID nicht doppelt: " .. tostring(Left(2)))
+Check(Left(3) == "3. Tester", "raid: own bar recognized via UnitIsUnit: " .. tostring(Left(3)))
+Check(Left(2) == "1. Tanko", "raid: extra target without readable GUID not duplicated: " .. tostring(Left(2)))
 Party()
 
 ---------------------------------------------------------------------------
--- Kein Ziel, Testmodus
+-- No target, test mode
 ---------------------------------------------------------------------------
 QN_UNITS.target = nil
 T.Refresh()
-Check(f.infoText._text == "" and not Left(1), "ohne Ziel: leer")
-Check(f.titleText._text == L["Threat"], "ohne Ziel: Titel bleibt")
+Check(f.infoText._text == "" and not Left(1), "without target: empty")
+Check(f.titleText._text == L["Threat"], "without target: title stays")
 T.SetTestMode(true)
-Check(f.infoText._text == L["Test enemy"], "Testmodus: Testgegner")
-Check(Left(1) == L["Pull Aggro"] and Left(2) == "1. Tankrok", "Testmodus: Ränge: " .. tostring(Left(2)))
+Check(f.infoText._text == L["Test enemy"], "test mode: test enemy")
+Check(Left(1) == L["Pull Aggro"] and Left(2) == "1. Tankrok", "test mode: ranks: " .. tostring(Left(2)))
 T.SetTestMode(false)
 Party()
 
 ---------------------------------------------------------------------------
--- Kontextmenü: Umschalter laufen über store:Set (Einstellungsfenster bekommt den Wert mit)
+-- Context menu: toggles go through store:Set (the settings window gets the value too)
 ---------------------------------------------------------------------------
 local items = {}
 MenuUtil.CreateContextMenu = function(owner, gen)
@@ -284,46 +284,46 @@ for _, key in ipairs({ "LOCKED", "USEFOCUS", "SHOWN" }) do
 	SETTINGS["QNMETER_" .. key]:SetValueChangedCallback(function(_, v) notified[key] = v end)
 end
 f.OnMenu(f, f)
-Check(items[L["Use focus target"]] ~= nil, "Menü: gleicher Text wie in den Optionen (Fokusziel bevorzugen)")
-Check(items[LOCK_FRAME] and items[HIDE], "Menü: Sperren und Ausblenden vorhanden")
+Check(items[L["Use focus target"]] ~= nil, "menu: same text as in the options (prefer focus target)")
+Check(items[LOCK_FRAME] and items[HIDE], "menu: lock and hide present")
 items[LOCK_FRAME].set()
-Check(db.locked == true and notified.LOCKED == true, "Menü: Sperren über store:Set")
-Check(f.resizeButton._shown == false, "gesperrt: Größenanfasser aus")
+Check(db.locked == true and notified.LOCKED == true, "menu: lock via store:Set")
+Check(f.resizeButton._shown == false, "locked: resize handle off")
 items[LOCK_FRAME].set()
-Check(db.locked == false and notified.LOCKED == false and f.resizeButton._shown == true, "Menü: Entsperren über store:Set")
+Check(db.locked == false and notified.LOCKED == false and f.resizeButton._shown == true, "menu: unlock via store:Set")
 items[L["Use focus target"]].set()
-Check(db.useFocus == true and notified.USEFOCUS == true and items[L["Use focus target"]].isSel() == true, "Menü: Fokus über store:Set")
+Check(db.useFocus == true and notified.USEFOCUS == true and items[L["Use focus target"]].isSel() == true, "menu: focus via store:Set")
 items[L["Use focus target"]].set()
 items[HIDE].set()
-Check(db.shown == false and notified.SHOWN == false and not f:IsShown(), "Menü: Ausblenden über store:Set")
+Check(db.shown == false and notified.SHOWN == false and not f:IsShown(), "menu: hide via store:Set")
 T.Toggle()
-Check(db.shown == true and notified.SHOWN == true and f:IsShown(), "Toggle über store:Set")
+Check(db.shown == true and notified.SHOWN == true and f:IsShown(), "Toggle via store:Set")
 
 ---------------------------------------------------------------------------
--- Zurücksetzen wendet die Einstellungen genau einmal an
+-- Reset applies the settings exactly once
 ---------------------------------------------------------------------------
 local applied = 0
 local origApply = T.ApplySettings
 T.ApplySettings = function(...) applied = applied + 1 return origApply(...) end
 db.scale = 1.5
 SlashCmdList.QNMETER("reset")
-Check(applied == 1 and meter.db.scale == 1, "Zurücksetzen: einmal angewendet (" .. applied .. ")")
+Check(applied == 1 and meter.db.scale == 1, "reset: applied once (" .. applied .. ")")
 T.ApplySettings = origApply
 db = meter.db
 
 ---------------------------------------------------------------------------
--- Damage-Meter-Kopplung: Setter im Bearbeitungsmodus wirken sofort, ohne Kopplung nicht
+-- Damage meter link: setters in edit mode take effect immediately, not without link
 ---------------------------------------------------------------------------
 DamageMeter:SetBarHeight(20)
 DamageMeter:SetBarSpacing(1)
 RunTimers()
-Check(f.eff.barHeight == 20 and f.eff.barSpacing == 1 and f.bars[1]._h == 20, "Damage Meter geändert: übernommen")
+Check(f.eff.barHeight == 20 and f.eff.barSpacing == 1 and f.bars[1]._h == 20, "damage meter changed: applied")
 meter.store:Set("linkDamageMeter", false)
-Check(not f.eff.linked and f.eff.barHeight == db.barHeight, "ohne Kopplung: eigene Balkenhöhe")
+Check(not f.eff.linked and f.eff.barHeight == db.barHeight, "without link: own bar height")
 DamageMeter:SetBarHeight(35)
 RunTimers()
-Check(f.eff.barHeight == db.barHeight, "ohne Kopplung: Damage Meter ignoriert")
+Check(f.eff.barHeight == db.barHeight, "without link: damage meter ignored")
 meter.store:Set("linkDamageMeter", true)
-Check(f.eff.barHeight == 35, "Kopplung wieder an: aktueller Wert")
+Check(f.eff.barHeight == 35, "link on again: current value")
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

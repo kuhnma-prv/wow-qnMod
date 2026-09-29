@@ -1,7 +1,7 @@
--- qnUnitFrames: Optionsseite "Klickbelegung" (Canvas-Layout).
--- Oben die Maustaste, darunter eine Zeile je Zusatztaste: Aktion (Dropdown) und bei Zauber die
--- Auswahl aus dem Zauberbuch, bei Makro der Makrotext. Gilt für die eigene Klasse im aktiven Profil.
--- Makros werden unten auf der Seite mehrzeilig bearbeitet (Eingabefenster haben nur eine Zeile).
+-- qnUnitFrames: "Click Bindings" options page (canvas layout).
+-- At the top the mouse button, below it one row per modifier: action (dropdown) and for a spell the
+-- selection from the spellbook, for a macro the macro text. Applies to the player's class in the active profile.
+-- Macros are edited multi-line at the bottom of the page (input dialogs have only one line).
 
 local _, ns = ...
 local lib = qnCore
@@ -9,24 +9,24 @@ local L = ns.L
 local UI = lib.UI
 
 local page, sub   -- page: qnCore.UI.Page
-local parent       -- Inhalt der Seite (Eltern der Steuerelemente)
+local parent       -- content of the page (parent of the controls)
 local infoText, buttonDropdown
 local rows = {}
-ns.clicksUI = { rows = rows }   -- für die Tests (dazu .button = Dropdown der Maustaste, .macro = Makro-Editor)
-local button = "1"   -- gewählte Maustaste
-local editKey        -- Belegung, deren Zauber gerade im Eingabefenster steht
-local macroKey       -- Belegung, deren Makro gerade im Makro-Editor steht
-local editor         -- Makro-Editor
+ns.clicksUI = { rows = rows }   -- for the tests (plus .button = mouse button dropdown, .macro = macro editor)
+local button = "1"   -- selected mouse button
+local editKey        -- binding whose spell is currently in the input dialog
+local macroKey       -- binding whose macro is currently in the macro editor
+local editor         -- macro editor
 
-local OTHER = {}   -- Eintrag "Anderer Zauber …" in der Zauberliste (kein Zaubername kann ihm gleichen)
+local OTHER = {}   -- "Other spell …" entry in the spell list (no spell name can equal it)
 local ROW_HEIGHT = 34
-local MACRO_LETTERS = 255   -- Länge eines Makros
+local MACRO_LETTERS = 255   -- length of a macro
 
 ---------------------------------------------------------------------------
--- Zauberbuch
+-- Spellbook
 ---------------------------------------------------------------------------
 
--- Namen der aktiven (nicht passiven) Zauber des Spielers, sortiert, ohne Doppelte
+-- Names of the player's active (non-passive) spells, sorted, without duplicates
 function ns.SpellNames()
 	local seen, list = {}, {}
 	local bank = Enum.SpellBookSpellBank.Player
@@ -55,7 +55,7 @@ local function SpellEntries(current)
 		list[#list + 1] = { name, name }
 		found = found or name == current
 	end
-	-- von Hand eingetragen oder (noch) nicht im Zauberbuch: trotzdem als Auswahl zeigen
+	-- entered by hand or not (yet) in the spellbook: show as a choice anyway
 	if current and current ~= "" and not found then
 		table.insert(list, 1, { current, current })
 	end
@@ -64,7 +64,7 @@ local function SpellEntries(current)
 end
 
 ---------------------------------------------------------------------------
--- Eingabefenster
+-- Input dialog
 ---------------------------------------------------------------------------
 
 local function Entry(key)
@@ -89,7 +89,7 @@ local function EditSpell(key)
 end
 
 ---------------------------------------------------------------------------
--- Makro-Editor (mehrzeilig, unten auf der Seite)
+-- Macro editor (multi-line, at the bottom of the page)
 ---------------------------------------------------------------------------
 
 local function CloseMacro()
@@ -112,7 +112,7 @@ end
 local function AcceptMacro()
 	local key = macroKey
 	if key then
-		-- Leerzeilen und Leerraum an den Enden entfernen
+		-- remove blank lines and whitespace at the ends
 		local text = strtrim((editor.box:GetText():gsub("\r", ""):gsub("\n%s*\n", "\n")))
 		CloseMacro()
 		ns.SetBinding(key, "macro", text)
@@ -131,12 +131,12 @@ local function CreateMacroEditor(anchor)
 	editor.label:SetPoint("TOPLEFT", 0, 0)
 	editor.label:SetWidth(620)
 
-	-- InputScrollFrameTemplate (Blizzard_SharedXML): mehrzeiliges Eingabefeld mit Bildlauf
+	-- InputScrollFrameTemplate (Blizzard_SharedXML): multi-line input field with scrolling
 	local scroll = CreateFrame("ScrollFrame", nil, editor, "InputScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", editor.label, "BOTTOMLEFT", 5, -10)
 	scroll:SetSize(600, 64)
 	editor.box = scroll.EditBox
-	editor.box:SetWidth(582)   -- OnLoad rechnet mit der Breite vor SetSize
+	editor.box:SetWidth(582)   -- OnLoad calculates with the width before SetSize
 	editor.box:SetMaxLetters(MACRO_LETTERS)
 
 	editor.accept = UI.Button(editor, ACCEPT, 110, AcceptMacro)
@@ -152,7 +152,7 @@ lib.Popup.Confirm("QNUNITFRAMES_CLEAR", L["Delete all click bindings for %s in t
 end)
 
 ---------------------------------------------------------------------------
--- Zeilen
+-- Rows
 ---------------------------------------------------------------------------
 
 local function RowKey(row)
@@ -252,8 +252,8 @@ function ns.RefreshClicksPage()
 	for _, row in ipairs(rows) do
 		RefreshRow(row)
 	end
-	-- Editor schließen, wenn sein Makro nicht mehr zur Anzeige passt (andere Maustaste, andere
-	-- Aktion, Profilwechsel)
+	-- close the editor if its macro no longer matches the display (other mouse button, other
+	-- action, profile switch)
 	if macroKey then
 		local entry = Entry(macroKey)
 		if not (entry and entry.type == "macro") or not macroKey:find(button .. "$") then
@@ -263,7 +263,7 @@ function ns.RefreshClicksPage()
 end
 
 ---------------------------------------------------------------------------
--- Aufbau
+-- Setup
 ---------------------------------------------------------------------------
 
 local function Build()

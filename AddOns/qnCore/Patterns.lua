@@ -1,6 +1,6 @@
--- qnCore: eigene kachelbare Hintergrundmuster (Media\Patterns, erzeugt mit
--- tools\New-QnPatterns.ps1). Überwiegend dunkel und durchscheinend, damit eine Farbe darunter
--- sichtbar bleibt. Zusätzlich bei LibSharedMedia angemeldet, sobald ein Addon es mitbringt.
+-- qnCore: own tileable background patterns (Media\Patterns, generated with
+-- tools\New-QnPatterns.ps1). Mostly dark and translucent so that a color underneath
+-- stays visible. Also registered with LibSharedMedia as soon as an addon brings it along.
 
 local ADDON, ns = ...
 local lib = qnCore
@@ -8,8 +8,8 @@ local L = ns.L
 
 local PATH = "Interface\\AddOns\\qnCore\\Media\\Patterns\\"
 
--- { Schlüssel, Anzeigename, Datei, LSM-Name }
--- LSM-Namen sind Schlüssel, die andere Addons speichern: deshalb in allen Sprachen gleich.
+-- { key, display name, file, LSM name }
+-- LSM names are keys that other addons save: therefore the same in all languages.
 lib.Patterns = {
 	{ "qnStripes", L["Hatching"], PATH .. "Stripes", "qn Stripes" },
 	{ "qnCrosshatch", L["Crosshatch"], PATH .. "Crosshatch", "qn Crosshatch" },
@@ -23,7 +23,7 @@ lib.Patterns = {
 	{ "qnGrain", L["Grain"], PATH .. "Grain", "qn Grain" },
 }
 
--- LibSharedMedia kommt ggf. erst mit einem später geladenen Addon (z. B. Titan)
+-- LibSharedMedia may only arrive with a later loaded addon (e.g. Titan)
 local registered = false
 local function RegisterLSM()
 	local lsm = not registered and LibStub and LibStub("LibSharedMedia-3.0", true)

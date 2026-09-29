@@ -1,17 +1,17 @@
-# Zeilenenden im Repo einheitlich LF, im Arbeitsverzeichnis je nach System
+# Line endings: LF in the repo, native in the working tree
 * text=auto
 
-# WoW-Dateien und Skripte
+# WoW files and scripts
 *.lua  text
 *.toc  text
 *.xml  text
 *.md   text
 *.mjs  text
 *.json text
-# PowerShell-Skripte unter Windows mit CRLF
+# PowerShell scripts with CRLF on Windows
 *.ps1  text eol=crlf
 
-# Binärdateien
+# Binary files
 *.tga  binary
 *.blp  binary
 *.png  binary

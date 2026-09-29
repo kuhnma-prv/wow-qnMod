@@ -1,5 +1,5 @@
--- qnBuffMod: ein Eintrag eines Fensters (Symbol, bei Stil 1 mit Leiste, Name und Restzeit).
--- Aufbau (Setup) hängt nur an der Darstellung des Fensters (look), Zeichnen (Paint) am Record.
+-- qnBuffMod: one entry of a window (icon, with style 1 plus bar, name and time remaining).
+-- Setup depends only on the window's appearance (look), Paint on the record.
 
 local _, ns = ...
 local E = ns.enum
@@ -12,15 +12,15 @@ local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local SPARK_TEXTURE = "Interface\\CastingBar\\UI-CastingBar-Spark"
 local GOLD = { 1, 0.82, 0 }
 local RED = { 1, 0, 0 }
-local TRIM = 0.08   -- beschnittener Symbolrand je Seite
+local TRIM = 0.08   -- trimmed icon edge per side
 
 ---------------------------------------------------------------------------
--- Schriften
+-- Fonts
 ---------------------------------------------------------------------------
 
 local largeFonts
 
--- Schriftobjekte für Name und Zeit je Schriftgröße (3 = Grundschrift + 2 pt)
+-- Font objects for name and time per font size (3 = base font + 2 pt)
 local function Fonts(size)
 	if size == E.font.SMALL then
 		return GameFontNormalSmall, ChatFontSmall
@@ -41,7 +41,7 @@ local function Fonts(size)
 end
 
 ---------------------------------------------------------------------------
--- Anlegen
+-- Creation
 ---------------------------------------------------------------------------
 
 function Entry.New(win, parent)
@@ -70,7 +70,7 @@ function Entry.New(win, parent)
 	return e
 end
 
--- Aufbau nach der Darstellung des Fensters
+-- Setup according to the window's appearance
 function Entry.Setup(e, look)
 	e.lookVersion = look.version
 	local size = look.size
@@ -114,7 +114,7 @@ function Entry.Setup(e, look)
 		e.detail:Hide()
 		e.timeText:SetParent(e)
 		if look.style == E.style.ICON then
-			-- Stil 2: Restzeit an einer Seite des Symbols
+			-- style 2: time remaining on one side of the icon
 			local sp = look.dataSpacing
 			local side = look.dataSide
 			if side == E.dataSide.LEFT then
@@ -135,7 +135,7 @@ function Entry.Setup(e, look)
 end
 
 ---------------------------------------------------------------------------
--- Name und Restzeit in der Leiste (Stil 1)
+-- Name and time remaining in the bar (style 1)
 ---------------------------------------------------------------------------
 
 local function Justify(value, default)
@@ -149,7 +149,7 @@ local function Justify(value, default)
 	return default
 end
 
--- Über die ganze Leiste (mit Textabständen, außer bei "Mittig")
+-- Across the whole bar (with text offsets, except for "Center")
 local function Full(fs, detail, look, justify)
 	local l, r = look.padLeft, look.padRight
 	if justify == "CENTER" then
@@ -160,7 +160,7 @@ local function Full(fs, detail, look, justify)
 	fs:SetJustifyH(justify)
 end
 
--- Anordnung der Texte; mode fasst zusammen, was sichtbar ist (neu nur bei Änderung)
+-- Arrangement of the texts; mode sums up what is visible (redone only on change)
 local function LayoutTexts(e, look, showName, showTime)
 	local name, time, detail = e.nameText, e.timeText, e.detail
 	local towardIcon = look.iconRight and "RIGHT" or "LEFT"
@@ -184,7 +184,7 @@ local function LayoutTexts(e, look, showName, showTime)
 	e.timeOnly = false
 
 	if beside and not fits then
-		-- nicht einmal die Zeit passt neben den Namen: nur die Zeit, bündig zur Symbolseite
+		-- not even the time fits beside the name: only the time, aligned to the icon side
 		name:Hide()
 		time:Show()
 		e.timeOnly = true
@@ -210,7 +210,7 @@ local function LayoutTexts(e, look, showName, showTime)
 		end
 		time:SetJustifyH(loc == E.timeAt.LEFT and "LEFT" or "RIGHT")
 	elseif showName and showTime then
-		-- Zeit über bzw. unter dem Namen, beide über die ganze Leiste
+		-- time above or below the name, both across the whole bar
 		local nameJust = Justify(look.nameJustNoTime, towardIcon)
 		local timeJust = Justify(look.timeJustNoName, towardIcon)
 		local upper, lower = time, name
@@ -240,7 +240,7 @@ local function LayoutTexts(e, look, showName, showTime)
 end
 
 ---------------------------------------------------------------------------
--- Zeichnen
+-- Painting
 ---------------------------------------------------------------------------
 
 local function DispelColor(rec)
@@ -248,7 +248,7 @@ local function DispelColor(rec)
 	return c.r, c.g, c.b
 end
 
--- Leistenfarbe eines Records (r, g, b, a)
+-- Bar color of a record (r, g, b, a)
 local function BarColor(rec, look)
 	if rec.kind == K.DEBUFF and look.colorBackground then
 		local r, g, b = DispelColor(rec)
@@ -282,7 +282,7 @@ local function InRange(unit)
 	return qnCore.Plain(UnitInRange(unit), false) == true
 end
 
--- Restzeit, Leiste, Blinken; plant die nächste Aktualisierung (e.nextUpdate)
+-- Time remaining, bar, flashing; schedules the next update (e.nextUpdate)
 function Entry.UpdateTime(e, now)
 	local rec, look = e.rec, e.look
 	if not rec then
@@ -291,7 +291,7 @@ function Entry.UpdateTime(e, now)
 	local timed = ns.Auras.HasExpiry(rec) and not rec.outOfRange
 	local remaining = timed and rec.expiration - now or 0
 
-	-- Blinken: nur mit Ablauf, nicht außer Reichweite; flashTime 0 = nie
+	-- flashing: only with expiration, not out of range; flashTime 0 = never
 	local flash = ns.db.flashTime
 	e.flashing = timed and flash > 0 and remaining <= flash and (remaining > 0 or InRange(e.win.unit)) or false
 	e.icon:SetAlpha(e.flashing and ns.Pulse(now) or 1)
@@ -329,13 +329,13 @@ function Entry.UpdateTime(e, now)
 	e.nextUpdate = timed and now + ns.UpdateInterval(remaining, e.flashing) or nil
 end
 
--- Record zeichnen
+-- Paint a record
 function Entry.Paint(e, rec, look, now)
 	e.rec, e.look = rec, look
 	e.icon:SetTexture(rec.icon)
 	e.count:SetText(rec.count and rec.count > 1 and rec.count or "")
 
-	-- Rahmen und Farbenblind-Symbol für Schwächungszauber
+	-- border and colorblind symbol for debuffs
 	if rec.kind == K.DEBUFF and look.colorIcons then
 		local c = AuraUtil.GetAuraBorderColor(rec.dispel or "None")
 		e.border:SetColorTexture(c.r, c.g, c.b, 1)

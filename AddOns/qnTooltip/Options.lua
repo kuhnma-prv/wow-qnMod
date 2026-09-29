@@ -1,8 +1,8 @@
--- qnTooltip: Optionen im Blizzard-Einstellungsfenster (Settings-API).
--- Hauptseite: allgemeine Schalter; Unterseiten: Darstellung, Position, Lebensbalken, Spieler, NSC,
--- Gegenstände & Zauber sowie die Zeilen-Bausteine (ElementsPage.lua).
--- Die Einstellungen gehören zum aktiven Profil (qnCore); die Werte von Spielern und NSC liegen in
--- ns.db.player bzw. ns.db.npc.
+-- qnTooltip: options in the Blizzard settings window (Settings API).
+-- Main page: general switches; subpages: Appearance, Position, Health Bar, Player, NPC,
+-- Items & Spells and the line elements (ElementsPage.lua).
+-- The settings belong to the active profile (qnCore); the values for players and NPCs are in
+-- ns.db.player and ns.db.npc.
 
 local _, ns = ...
 local L = ns.L
@@ -44,7 +44,7 @@ end
 
 local function AppearancePage(B, category)
 	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, APPEARANCE_LABEL)
-	-- eigene Kopfzeile statt APPEARANCE_LABEL: das hieße wie die Seite (wie in qnNumKeyPad)
+	-- own header instead of APPEARANCE_LABEL: that would match the page name (as in qnNumKeyPad)
 	S.Header(layout, DISPLAY)
 	B:Slider(cat, "scale", L["Scale"], 0.5, 2, 0.05, S.DecimalFormatter)
 	B:Dropdown(cat, "bgFile", BACKGROUND, ns.Style.BackgroundEntries)
@@ -157,7 +157,7 @@ local function Build(category, layout)
 	ItemsPage(B, category)
 end
 
--- setzt ns.category und ns.OpenOptions
+-- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
 	S.NewCategory(ns, "qnTooltip", Build)
 end

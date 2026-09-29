@@ -1,6 +1,6 @@
--- qnTooltip: Ziel der Einheit ("Ziel: >>IHR<<", laufend aktualisiert) und "Anvisiert von"
--- (Gruppen- bzw. Schlachtzugsmitglieder, die die Einheit anvisieren).
--- Namen können secret sein: sie gehen nur an SetFormattedText; Vergleiche nur mit lesbaren Werten.
+-- qnTooltip: target of the unit ("Target: >>YOU<<", continuously updated) and "Targeted by"
+-- (party or raid members targeting the unit).
+-- Names may be secret: they are only passed to SetFormattedText; comparisons only with readable values.
 
 local _, ns = ...
 local L = ns.L
@@ -9,7 +9,7 @@ local IsSecret = ns.IsSecret
 local Target = {}
 ns.Target = Target
 
-local UPDATE = 0.2   -- Sekunden zwischen zwei Aktualisierungen der Zielzeile
+local UPDATE = 0.2   -- seconds between two updates of the target line
 
 local function Plain(v)
 	if IsSecret(v) then
@@ -18,7 +18,7 @@ local function Plain(v)
 	return v
 end
 
--- Formatmuster und Name für eine Einheit (Klassenfarbe, sonst Auswahlfarbe)
+-- format pattern and name for a unit (class color, otherwise selection color)
 local function Colored(unit)
 	local icon = ns.UnitData.VALUES.raidIcon({ unit = unit }) or ""
 	if ns.IsUnit(unit, "player") then
@@ -46,7 +46,7 @@ local function Colored(unit)
 end
 
 ---------------------------------------------------------------------------
--- Zielzeile
+-- Target line
 ---------------------------------------------------------------------------
 
 local function Update(tip)
@@ -59,7 +59,7 @@ local function Update(tip)
 		tip.qnTarget = nil
 		return
 	end
-	-- Kennung des Ziels: GUID, "none" ohne Ziel, nil wenn secret (dann jedes Mal neu schreiben)
+	-- target identifier: GUID, "none" without a target, nil if secret (then rewrite every time)
 	local exists = UnitExists(t.unit)
 	local id = "none"
 	if exists then
@@ -78,7 +78,7 @@ local function Update(tip)
 	tip:Show()
 end
 
--- "Anvisiert von": Liste für Spieler und in Gruppen, im Schlachtzug bei NSC nur die Anzahl
+-- "Targeted by": list for players and in parties, only the count for NPCs in raids
 local function TargetedBy(tip, unit, isPlayer)
 	local num = GetNumGroupMembers()
 	if num < 1 then
@@ -110,7 +110,7 @@ local function TargetedBy(tip, unit, isPlayer)
 	end
 end
 
--- Zeilen anhängen (aus Unit.lua nach dem Aufbau der Kopfzeilen)
+-- append lines (from Unit.lua after the header lines are built)
 function Target.Add(tip, unit, cfg, isPlayer)
 	tip.qnTarget = nil
 	if cfg.showTarget then

@@ -1,14 +1,14 @@
--- qnInventory: Bankansicht, nachgebaut wie Blizzards Bankfenster in Forever (Camelot/BankFrame.xml
--- mit BankPanelTemplate): alle Fächer hintereinander, 8 Spalten, 88 Plätze je Seite, Seitenreiter
--- rechts, darunter die Taschenplätze der Bank. Zeigt den zuletzt gespeicherten Stand, auch für den
--- eingeloggten Charakter fern der Bank.
+-- qnInventory: bank view, recreated like Blizzard's bank window in Forever (Camelot/BankFrame.xml
+-- with BankPanelTemplate): all tabs in sequence, 8 columns, 88 slots per page, side tabs
+-- on the right, below them the bank's bag slots. Shows the last stored state, also for the
+-- logged-in character away from the bank.
 
 local _, ns = ...
 
 local L = ns.L
 
 local COLUMNS, PER_PAGE = 8, 88
--- Breite wie BankPanel (480); im Spiel mit dem Original verglichen
+-- Width like BankPanel (480); compared with the original in game
 local BASE_WIDTH, BASE_HEIGHT, ROW_HEIGHT = 480, 460, 47
 
 local view = {}
@@ -19,14 +19,14 @@ local buttons, bagButtons, pageTabs = {}, {}, {}
 local shown = 0
 local page = 1
 
--- Blizzards Bankknöpfe haben einen Rahmen in Knopfgröße; ItemButton bringt einen 64×64 großen mit
+-- Blizzard's bank buttons have a border of button size; ItemButton comes with a 64×64 one
 local function FitNormalTexture(b)
 	local normal = b:GetNormalTexture()
 	normal:ClearAllPoints()
 	normal:SetAllPoints()
 end
 
--- Kaufen, Sortieren: nur beim Bankier; hier abgeschaltet, mit Hinweis
+-- Purchase, sort: only at the banker; disabled here, with a hint
 local function Disable(b, tooltip)
 	b:SetEnabled(false)
 	b:SetMotionScriptsWhileDisabled(true)
@@ -54,7 +54,7 @@ local function ShownButtons()
 	return list
 end
 
--- Taschenplatz der Bank (wie BankItemButtonBagTemplate, ohne Kauf und Ziehen)
+-- Bag slot of the bank (like BankItemButtonBagTemplate, without purchase and dragging)
 local function BagButton(i)
 	local b = bagButtons[i]
 	if not b then
@@ -94,7 +94,7 @@ local function PageTab(i)
 		else
 			tab:SetPoint("TOPLEFT", pageTabs[i - 1], "BOTTOMLEFT", 0, -2)
 		end
-		-- eigener Klick statt BankPanelMixin.PageSelected (das gehört Blizzards Bankfenster)
+		-- own click instead of BankPanelMixin.PageSelected (that belongs to Blizzard's bank window)
 		tab:SetCustomOnMouseUpHandler(function(self, button, upInside)
 			if button == "LeftButton" and upInside then
 				page = self.pageNumber
@@ -133,7 +133,7 @@ local function Create()
 	search:SetPoint("TOPRIGHT", -56, -33)
 	search:SetWidth(110)
 
-	-- Sortierknopf wie BankAutoSortButtonTemplate
+	-- sort button like BankAutoSortButtonTemplate
 	local sort = CreateFrame("Button", nil, frame)
 	sort:SetSize(28, 26)
 	sort:SetPoint("LEFT", search, "RIGHT", 8, -1)
@@ -141,7 +141,7 @@ local function Create()
 	sort:GetNormalTexture():SetDesaturated(true)
 	Disable(sort, L["Sorting is only possible at a banker."])
 
-	-- Preis des nächsten Fachs wie BagCost, MoneyDisplay und PurchaseButton
+	-- price of the next tab like BagCost, MoneyDisplay and PurchaseButton
 	costText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalMed3")
 	costText:SetText(COSTS_LABEL)
 	costText:SetHeight(12)
@@ -156,7 +156,7 @@ local function Create()
 	purchase:SetPoint("TOPLEFT", cost, "TOPRIGHT", 8, 4)
 	Disable(purchase, L["Purchasing is only possible at a banker."])
 
-	-- Gold des Charakters unten rechts wie BankPanelMoneyFrameTemplate (ohne Ein-/Auszahlen)
+	-- character's gold at the bottom right like BankPanelMoneyFrameTemplate (without deposit/withdraw)
 	local border = CreateFrame("Frame", nil, frame, "ThinGoldEdgeTemplate")
 	border:SetSize(178, 19)
 	border:SetPoint("BOTTOMRIGHT", -6, 6)
@@ -171,7 +171,7 @@ local function Create()
 	ns.AttachHeader(frame, "bank")
 end
 
--- Plätze aller Fächer hintereinander, wie BankPanelMixin:GenerateItemSlotsForSelectedTab
+-- Slots of all tabs in sequence, like BankPanelMixin:GenerateItemSlotsForSelectedTab
 local function AllSlots(tabs)
 	local slots = {}
 	for _, tab in ipairs(tabs) do
@@ -202,7 +202,7 @@ local function LayoutPage(slots)
 		end
 		local entry = slots[first + i] or nil
 		ns.SetItem(b, entry)
-		-- wie CamelotBankPanelItemButtonMixin:Refresh
+		-- like CamelotBankPanelItemButtonMixin:Refresh
 		b:GetNormalTexture():SetAtlas(entry and "bank-frame-bag-slotframe" or "bank-frame-item-slotframe",
 			TextureKitConstants.IgnoreAtlasSize)
 		b:Show()
@@ -223,7 +223,7 @@ function view:Refresh()
 	end
 	notice:SetShown(not tabs)
 
-	-- Seitenreiter
+	-- side tabs
 	for i = 1, pages do
 		local tab = PageTab(i)
 		tab:SetPageInfo(Enum.BankType.Character, i, page)
@@ -233,7 +233,7 @@ function view:Refresh()
 		pageTabs[i]:Hide()
 	end
 
-	-- Taschenplätze ab dem zweiten Fach (das erste ist die Bank selbst)
+	-- bag slots from the second tab on (the first is the bank itself)
 	local maxTabs = tabs and char.bankMaxTabs or 0
 	bagText:SetShown(maxTabs > 1)
 	for i = 1, math.max(maxTabs - 1, #bagButtons) do

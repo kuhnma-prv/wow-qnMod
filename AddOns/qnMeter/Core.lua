@@ -1,16 +1,16 @@
--- qnMeter: Bedrohungsanzeige für die Gruppe gegen das aktuelle Ziel.
--- Core: Namensraum, gespeicherte Einstellungen, Hilfsfunktionen, Slash-Befehle.
+-- qnMeter: threat meter for the group against the current target.
+-- Core: namespace, saved settings, helper functions, slash commands.
 
 local ADDON, ns = ...
 _G.qnMeter = ns
 
--- Version, Print, Ereignisse und die Secret-Helfer (IsSecret, Plain, AnySecret) kommen aus qnCore.
+-- Version, Print, events and the secret helpers (IsSecret, Plain, AnySecret) come from qnCore.
 local lib = qnCore
 lib.NewAddon(ns, ADDON)
 local L = ns.L
 
 ---------------------------------------------------------------------------
--- Standardwerte
+-- Defaults
 ---------------------------------------------------------------------------
 
 ns.defaults = {
@@ -20,15 +20,15 @@ ns.defaults = {
 	width = 220,
 	height = 150,
 	scale = 1,
-	autoVisible = false,    -- Fenster automatisch im sichtbaren Bereich halten (mit qnViewPort: auf einem Monitor)
+	autoVisible = false,    -- keep the window in the visible area automatically (with qnViewPort: on a monitor)
 
-	-- Darstellung (Werte wie beim eingebauten Damage Meter)
+	-- Appearance (values as in the built-in Damage Meter)
 	styleVersion = 2,
-	linkDamageMeter = true, -- Balkenwerte vom eingebauten Damage Meter übernehmen
-	style = 0,              -- Enum.DamageMeterStyle: 0 Standard, 1 Dünn, 2 Umrandet, 3 Voller Hintergrund
+	linkDamageMeter = true, -- take bar values from the built-in Damage Meter
+	style = 0,              -- Enum.DamageMeterStyle: 0 Default, 1 Thin, 2 Bordered, 3 Full Background
 	barHeight = 24,
 	barSpacing = 2,
-	fontSize = 0,           -- 0 = Größe des Font-Objekts NumberFontNormal
+	fontSize = 0,           -- 0 = size of the font object NumberFontNormal
 	texture = "Damage Meter",
 	bgAlpha = 0.5,
 	showTitle = true,
@@ -43,24 +43,24 @@ ns.defaults = {
 	petColor = { r = 0.6, g = 0.6, b = 1 },
 	barColor = { r = 0.5, g = 0.5, b = 0.5 },
 
-	-- Inhalt
+	-- Content
 	showValue = true,
 	showPercent = true,
 	showTPS = true,
-	tpsWindow = 10,         -- Sekunden für die TPS-Berechnung
-	percentMode = 1,        -- 1 = relativ zum Tank (100 % = Tank), 2 = skaliert (100 % = Aggro)
+	tpsWindow = 10,         -- seconds for the TPS calculation
+	percentMode = 1,        -- 1 = relative to the tank (100 % = tank), 2 = scaled (100 % = aggro)
 	showAggroBar = true,
-	aggroMode = 1,          -- 1 = automatisch, 2 = immer Nahkampf (110 %), 3 = immer Fernkampf (130 %)
+	aggroMode = 1,          -- 1 = automatic, 2 = always melee (110 %), 3 = always ranged (130 %)
 	alwaysShowSelf = true,
 	useFocus = false,
 	ignorePlayerPets = true,
 	showPets = true,
 
-	-- Sichtbarkeit
-	showMode = 1,           -- 1 = immer, 2 = nur im Kampf, 3 = nur in Gruppe
+	-- Visibility
+	showMode = 1,           -- 1 = always, 2 = in combat only, 3 = in group only
 	updateInterval = 0.2,
 
-	-- Warnungen
+	-- Warnings
 	warnEnabled = true,
 	warnThreshold = 90,
 	warnSound = true,
@@ -70,10 +70,10 @@ ns.defaults = {
 }
 
 ---------------------------------------------------------------------------
--- Medien
+-- Media
 ---------------------------------------------------------------------------
 
--- Atlas oder Dateipfad; gespeichert wird der Schlüssel, nicht der Wert.
+-- Atlas or file path; the key is stored, not the value.
 ns.textures = {
 	["Damage Meter"] = "UI-HUD-CoolDownManager-Bar",
 	["Blizzard"] = "Interface\\TargetingFrame\\UI-StatusBar",
@@ -82,7 +82,7 @@ ns.textures = {
 	["Fertigkeit"] = "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar",
 }
 
--- Anzeigenamen der eigenen Texturen; die Schlüssel oben sind gespeicherte Werte.
+-- Display names of our own textures; the keys above are stored values.
 ns.textureLabels = {
 	["Damage Meter"] = DAMAGE_METER_LABEL,
 	["Flat"] = L["Flat"],
@@ -124,7 +124,7 @@ end
 
 
 ---------------------------------------------------------------------------
--- Diagnose: prüft zur Laufzeit, welche Funktionen tatsächlich da sind.
+-- Diagnostics: checks at runtime which functions actually exist.
 ---------------------------------------------------------------------------
 
 local function Yes(v)
@@ -156,20 +156,20 @@ function ns.Diagnose()
 end
 
 ---------------------------------------------------------------------------
--- Laden
+-- Loading
 ---------------------------------------------------------------------------
 
--- Passt ein Profil aus älteren Versionen an (vor dem Ergänzen der Vorgaben).
+-- Adapts a profile from older versions (before the defaults are filled in).
 local function Upgrade(db)
-	-- Umstieg auf die Damage-Meter-Optik: alte Darstellungswerte ersetzen.
+	-- switch to the Damage Meter look: replace old appearance values.
 	if next(db) and (db.styleVersion or 1) < 2 then
 		for _, key in ipairs({ "barHeight", "barSpacing", "fontSize", "texture", "bgAlpha", "useMyColor", "useTankColor" }) do
 			db[key] = ns.defaults[key]
 		end
 		db.styleVersion = 2
 	end
-	-- Lage bis 0.2.0 in Einheiten des Fensters (hing von der Skalierung ab), jetzt in Einheiten von
-	-- UIParent: einmal mit der gespeicherten Skalierung umrechnen.
+	-- Position up to 0.2.0 in window units (depended on the scale), now in units of
+	-- UIParent: convert once using the stored scale.
 	if not db.pointInParentUnits then
 		local p, s = db.point, tonumber(db.scale)
 		if type(p) == "table" and s and s ~= 1 then
@@ -180,14 +180,14 @@ local function Upgrade(db)
 	end
 end
 
--- Veraltete Schlüssel (qnCore löscht sie nach Upgrade)
+-- Obsolete keys (qnCore deletes them after Upgrade)
 local OBSOLETE = {
-	"fontOutline",   -- vor der Damage-Meter-Optik
-	"keepVisible",   -- Vorgänger von autoVisible (war ungefragt an)
+	"fontOutline",   -- before the Damage Meter look
+	"keepVisible",   -- predecessor of autoVisible (was on without asking)
 }
 
 ns.OnLoad(function()
-	-- Einstellungen je Profil (= Layout des Bearbeitungsmodus); ns.db ist immer das aktive Profil.
+	-- Settings per profile (= Edit Mode layout); ns.db is always the active profile.
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnMeterDB",
@@ -203,7 +203,7 @@ ns.OnLoad(function()
 end)
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNMETER", { "/qnm", "/qnmeter" }, function(cmd)
@@ -223,14 +223,14 @@ lib.RegisterSlash("QNMETER", { "/qnm", "/qnmeter" }, function(cmd)
 	elseif cmd == "visible" then
 		T.MoveIntoVisible()
 	elseif cmd == "reset" then
-		-- wendet über onSwitch auch die Einstellungen an; im Kampf erst danach (deferred)
+		-- also applies the settings via onSwitch; in combat only afterwards (deferred)
 		if ns.store:ResetActive() then
 			ns.Print(L["In combat: settings will be reset after combat."])
 		else
 			ns.Print(L["Settings reset."])
 		end
 	else
-		-- ein Schlüssel für die ganze Hilfe; Print gibt jede Zeile als eigene Chatzeile aus
+		-- one key for the whole help; Print outputs each line as a separate chat line
 		ns.Print(L["Commands: /qnm [toggle | lock | test | config | check | visible | reset]\n  toggle – show/hide window    lock – lock/unlock window\n  test – test mode             config – open options\n  check – API check            visible – move window into the visible area\n  reset – reset all settings"])
 	end
 end)

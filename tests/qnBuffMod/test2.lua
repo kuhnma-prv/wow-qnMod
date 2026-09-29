@@ -1,7 +1,7 @@
--- Szenario 2: Secret-Values in Aurendaten. Secret-Werte sind Tabellen, bei denen jede
--- Rechnung, jeder Vergleich und jedes Verketten einen Fehler wirft (wie im Client).
+-- Scenario 2: secret values in aura data. Secret values are tables where every
+-- arithmetic, comparison and concatenation throws an error (as in the client).
 local SecretMT = {}
-local function boom() error("Operation mit Secret-Value", 2) end
+local function boom() error("operation on secret value", 2) end
 for _, m in ipairs({ "__add", "__sub", "__mul", "__div", "__unm", "__lt", "__le", "__concat", "__len", "__index", "__call" }) do SecretMT[m] = boom end
 local function Secret() return setmetatable({}, SecretMT) end
 issecretvalue = function(v) return type(v) == "table" and getmetatable(v) == SecretMT end
@@ -27,43 +27,43 @@ UnitName = function() return Secret() end
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
-Check(true, "Einloggen mit secret-Auren ohne Fehler")
+Check(true, "login with secret auras without errors")
 local function Names()
 	local out = {}
 	for _, e in ipairs(bm.GetEntries(1)) do out[#out + 1] = e.weapon and ("W" .. e.slot) or e.name end
 	return table.concat(out, ",")
 end
-Check(Names():find("Offen", 1, true) and Names():find("?", 1, true), "lesbare Aura und Platzhalter: " .. Names())
+Check(Names():find("Offen", 1, true) and Names():find("?", 1, true), "readable aura and placeholder: " .. Names())
 local entries = bm.GetEntries(1)
 local ph
 for _, e in ipairs(entries) do if e.name == "?" then ph = e end end
-Check(ph and ph.rec.icon == bm.QUESTION_MARK and ph.time == nil and ph.countText == "", "Platzhalter: Fragezeichen, keine Restzeit, keine Stapel")
--- Waffe mit secret-Restzeit: verzaubert, Restzeit 0, Name unbekannt
+Check(ph and ph.rec.icon == bm.QUESTION_MARK and ph.time == nil and ph.countText == "", "placeholder: question mark, no time remaining, no stacks")
+-- weapon with secret time remaining: enchanted, time remaining 0, name unknown
 local weapon
 for _, e in ipairs(entries) do if e.weapon then weapon = e end end
-Check(weapon and weapon.name == UNKNOWN and weapon.time == nil, "Waffe mit secret-Werten: Restzeit 0, Name unbekannt")
+Check(weapon and weapon.name == UNKNOWN and weapon.time == nil, "weapon with secret values: time remaining 0, name unknown")
 FireEvent("UNIT_AURA", "player") RunTimers()
-Check(true, "UNIT_AURA mit secret-Auren ohne Fehler")
--- Tooltip und Warnprüfung mit secret-Namen
+Check(true, "UNIT_AURA with secret auras without errors")
+-- tooltip and warning check with secret names
 entries = bm.GetEntries(1)
 for _, e in ipairs(entries) do
 	e.entry._scripts.OnEnter(e.entry)
 	e.entry._scripts.OnLeave(e.entry)
 end
 RunTickers()
-Check(true, "Tooltips und Warnprüfung mit secret-Werten ohne Fehler")
--- ganze Rückgabe secret: Aura gilt als nicht vorhanden
+Check(true, "tooltips and warning check with secret values without errors")
+-- whole return value secret: aura counts as absent
 local old = C_UnitAuras.GetAuraDataByIndex
 C_UnitAuras.GetAuraDataByIndex = function() return Secret() end
 FireEvent("UNIT_AURA", "player") RunTimers()
-Check(#bm.GetEntries(1) == 1 and bm.GetEntries(1)[1].weapon, "komplett secret: keine Auren, keine Fehler")
+Check(#bm.GetEntries(1) == 1 and bm.GetEntries(1)[1].weapon, "completely secret: no auras, no errors")
 C_UnitAuras.GetAuraDataByIndex = old
--- Waffenverzauberungsinfo komplett secret: unverzaubert
+-- weapon enchant info completely secret: unenchanted
 C_PaperDollInfo.GetTemporaryEnchantmentInfo = function() return Secret() end
 FireEvent("WEAPON_ENCHANT_CHANGED")
-Check(#bm.GetEntries(1) == 0, "Waffeninfo secret: unverzaubert")
+Check(#bm.GetEntries(1) == 0, "weapon info secret: unenchanted")
 AURAS.player[2] = nil
 FireEvent("UNIT_AURA", "player") RunTimers()
-Check(Names() == "Offen", "zurück zu lesbaren Werten: " .. Names())
-Check(Count("The client is currently withholding aura data (secret). Affected auras are shown without time remaining or with a question mark.") == 1, "Hinweis auf secret-Felder genau einmal")
+Check(Names() == "Offen", "back to readable values: " .. Names())
+Check(Count("The client is currently withholding aura data (secret). Affected auras are shown without time remaining or with a question mark.") == 1, "hint about secret fields exactly once")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

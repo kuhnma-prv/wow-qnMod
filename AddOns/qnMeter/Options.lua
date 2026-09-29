@@ -1,13 +1,13 @@
--- qnMeter: Optionen im Blizzard-Einstellungsfenster (Settings-API).
--- Die Einstellungen gehören zum aktiven Profil (qnCore); nach einem Profilwechsel
--- liest qnCore die Steuerelemente neu ein.
+-- qnMeter: options in the Blizzard settings window (Settings API).
+-- The settings belong to the active profile (qnCore); after a profile switch
+-- qnCore reloads the controls.
 
 local _, ns = ...
 local L = ns.L
 local S = qnCore.Settings
 
--- Werte aus Menü und Slash-Befehlen setzt ns.store:Set (qnCore): so zeigt auch das
--- Einstellungsfenster sie an.
+-- Values from the menu and slash commands are set via ns.store:Set (qnCore): that way the
+-- settings window shows them too.
 
 local function TextureEntries()
 	local list = {}
@@ -38,7 +38,7 @@ local function Build(cat, layout)
 	S.Header(layout, L["Bars"])
 	local link = B:Checkbox(cat, "linkDamageMeter", L["Use Damage Meter settings"],
 		L["Takes style, bar height, spacing, text size, icons, class colors and transparency from the Edit Mode settings of the built-in Damage Meter."])
-	-- Nur bedienbar, solange die Werte nicht von der Schadensanzeige kommen.
+	-- Only usable as long as the values do not come from the Damage Meter.
 	local function NotLinked()
 		return not ns.db.linkDamageMeter
 	end
@@ -91,7 +91,7 @@ local function Build(cat, layout)
 	B:Checkbox(cat, "warnSolo", L["Warn when solo too"])
 end
 
--- setzt ns.category und ns.OpenOptions
+-- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
 	S.NewCategory(ns, "qnMeter", Build)
 end

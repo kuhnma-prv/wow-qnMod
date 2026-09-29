@@ -88,9 +88,9 @@ builds the release ZIP (all addon folders, each with the license).
 Scenarios live in `tests\<Addon>\testN.lua`. Blizzard's UI source for Classic Forever:
 branch `forever` of [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source).
 
-Conventions: code comments are German; every displayed text is localized (German is the source
-language, see `Locale.lua` in each addon). Code shared by three or more addons belongs in qnCore.
-`CLAUDE.md` contains the detailed project rules (in German).
+Conventions: code and comments are English; every displayed text is localized (English is the
+source language, `Locale.lua` in each addon holds the German translations). Code shared by three or
+more addons belongs in qnCore. `CLAUDE.md` contains the detailed project rules.
 
 ## License
 

@@ -1,7 +1,7 @@
--- Szenario 9: gemeinsame Bausteine der qnCore-Bibliothek (NewAddon mit events/OnLoad, RegisterSlash,
--- NewPrinter mehrzeilig, Settings.NewCategory).
+-- Scenario 9: shared building blocks of the qnCore library (NewAddon with events/OnLoad, RegisterSlash,
+-- NewPrinter multi-line, Settings.NewCategory).
 
--- Chatausgabe mitschreiben
+-- record chat output
 local chat = {}
 local oldAdd = DEFAULT_CHAT_FRAME.AddMessage
 function DEFAULT_CHAT_FRAME:AddMessage(msg)
@@ -9,9 +9,9 @@ function DEFAULT_CHAT_FRAME:AddMessage(msg)
 	oldAdd(self, msg)
 end
 
--- Secret-Values: Tabellen, bei denen Rechnen, Vergleichen und Verketten einen Fehler werfen.
--- issecretvalue muss vor qnCore stehen (qnCore merkt es sich beim Laden).
-local function Forbidden() error("Operation mit secret-Wert", 2) end
+-- Secret values: tables where arithmetic, comparison and concatenation throw an error.
+-- issecretvalue must be defined before qnCore (qnCore remembers it at load time).
+local function Forbidden() error("operation on secret value", 2) end
 local SecretMT = { __add = Forbidden, __sub = Forbidden, __mul = Forbidden, __div = Forbidden, __lt = Forbidden,
 	__le = Forbidden, __eq = Forbidden, __concat = Forbidden, __len = Forbidden, __index = Forbidden }
 local function Secret() return setmetatable({}, SecretMT) end
@@ -21,7 +21,7 @@ local core = LoadAddon("qnCore")
 local lib = qnCore
 
 ---------------------------------------------------------------------------
--- NewAddon: Ereignisverteiler und OnLoad
+-- NewAddon: event dispatcher and OnLoad
 ---------------------------------------------------------------------------
 local ns = {}
 lib.NewAddon(ns, "qnTest")
@@ -29,28 +29,28 @@ Check(type(ns.events) == "table" and type(ns.events.Register) == "function" and 
 local loads = 0
 ns.OnLoad(function() loads = loads + 1 end)
 FireEvent("ADDON_LOADED", "qnAnderes")
-Check(loads == 0, "OnLoad: fremdes Addon ignoriert")
+Check(loads == 0, "OnLoad: other addon ignored")
 FireEvent("ADDON_LOADED", "qnTest")
 FireEvent("ADDON_LOADED", "qnTest")
-Check(loads == 1, "OnLoad: genau einmal beim eigenen Namen (" .. loads .. ")")
-Check(ns.name == nil and ns.lib == nil and ns.version ~= nil and ns.Print and ns.L, "NewAddon: kein ns.name/ns.lib mehr")
+Check(loads == 1, "OnLoad: exactly once for its own name (" .. loads .. ")")
+Check(ns.name == nil and ns.lib == nil and ns.version ~= nil and ns.Print and ns.L, "NewAddon: no ns.name/ns.lib anymore")
 Check(lib.ICON == nil and lib.addons == nil and lib.name == nil and lib.Print == nil and lib.LOCALE == nil and lib.GERMAN ~= nil,
-	"ungenutzte API entfernt (ICON, addons, name, Print, LOCALE)")
+	"unused API removed (ICON, addons, name, Print, LOCALE)")
 local got
 ns.events.Register("PLAYER_MONEY", function(event, a) got = event .. ":" .. tostring(a) end)
 FireEvent("PLAYER_MONEY", 5)
 Check(got == "PLAYER_MONEY:5", "ns.events.Register: fn(event, ...)")
 
 ---------------------------------------------------------------------------
--- NewPrinter: mehrzeilig, jede Zeile mit Präfix
+-- NewPrinter: multi-line, every line with prefix
 ---------------------------------------------------------------------------
 chat = {}
 ns.Print("eins\nzwei\n\ndrei")
 Check(#chat == 3 and chat[1]:find("qnTest", 1, true) and chat[3]:find("qnTest", 1, true) and chat[3]:find("drei", 1, true),
-	"mehrzeilig: 3 Zeilen je mit Präfix (" .. #chat .. ")")
+	"multi-line: 3 lines each with prefix (" .. #chat .. ")")
 chat = {}
 ns.Print("%d von %s", 2, "x")
-Check(#chat == 1 and chat[1]:find("2 von x", 1, true), "Format mit Argumenten: " .. tostring(chat[1]))
+Check(#chat == 1 and chat[1]:find("2 von x", 1, true), "format with arguments: " .. tostring(chat[1]))
 
 ---------------------------------------------------------------------------
 -- RegisterSlash
@@ -59,15 +59,15 @@ local calls = {}
 lib.RegisterSlash("QNTEST", { "/qntest", "/qnt" }, function(cmd, rest, msg)
 	calls[#calls + 1] = { cmd, rest, msg }
 end)
-Check(SLASH_QNTEST1 == "/qntest" and SLASH_QNTEST2 == "/qnt" and SlashCmdList.QNTEST, "Slash-Befehle angemeldet")
+Check(SLASH_QNTEST1 == "/qntest" and SLASH_QNTEST2 == "/qnt" and SlashCmdList.QNTEST, "slash commands registered")
 SlashCmdList.QNTEST("  Delete   Ärger Müller  ")
 local c = calls[1]
-Check(c[1] == "delete" and c[2] == "Ärger Müller" and c[3] == "Delete   Ärger Müller", "cmd klein, rest in Schreibweise, msg ohne Rand: "
+Check(c[1] == "delete" and c[2] == "Ärger Müller" and c[3] == "Delete   Ärger Müller", "cmd lowercase, rest in original case, msg trimmed: "
 	.. tostring(c[1]) .. "|" .. tostring(c[2]) .. "|" .. tostring(c[3]))
 SlashCmdList.QNTEST(nil)
-Check(calls[2][1] == "" and calls[2][2] == "" and calls[2][3] == "", "ohne Eingabe: alles leer")
+Check(calls[2][1] == "" and calls[2][2] == "" and calls[2][3] == "", "no input: everything empty")
 SlashCmdList.QNTEST("100 0 0 0")
-Check(calls[3][1] == "100" and calls[3][2] == "0 0 0" and calls[3][3] == "100 0 0 0", "Zahlen roh in msg")
+Check(calls[3][1] == "100" and calls[3][2] == "0 0 0" and calls[3][3] == "100 0 0 0", "numbers raw in msg")
 
 ---------------------------------------------------------------------------
 -- Settings.NewCategory
@@ -76,22 +76,22 @@ LOG = {}
 local built
 local cat = lib.Settings.NewCategory(ns, "qnTest", function(category, layout)
 	built = { category, layout }
-	Check(#LOG == 0, "build läuft vor der Anmeldung")
+	Check(#LOG == 0, "build runs before registration")
 end)
-Check(built and built[1] == cat and ns.category == cat and built[2] and built[2].AddInitializer, "senkrechte Seite: category und layout")
-Check(table.concat(LOG, ";") == "Kategorie qnTest", "danach angemeldet: " .. table.concat(LOG, ";"))
+Check(built and built[1] == cat and ns.category == cat and built[2] and built[2].AddInitializer, "vertical page: category and layout")
+Check(table.concat(LOG, ";") == "Kategorie qnTest", "registered afterwards: " .. table.concat(LOG, ";"))
 LOG = {}
 ns.OpenOptions()
-Check(table.concat(LOG, ";") == "Öffne qnTest", "ns.OpenOptions öffnet die Seite: " .. table.concat(LOG, ";"))
+Check(table.concat(LOG, ";") == "Öffne qnTest", "ns.OpenOptions opens the page: " .. table.concat(LOG, ";"))
 local ns2 = {}
 lib.NewAddon(ns2, "qnTest2")
 local panel = CreateFrame("Frame")
 local got2
 lib.Settings.NewCategory(ns2, "qnTest2", function(category, canvas) got2 = canvas end, panel)
-Check(got2 == panel and ns2.category and ns2.category.name == "qnTest2", "Canvas-Seite: build bekommt den Rahmen")
+Check(got2 == panel and ns2.category and ns2.category.name == "qnTest2", "canvas page: build receives the frame")
 
 ---------------------------------------------------------------------------
--- Settings-Baukasten: Rückgaben, Set ohne Steuerelement, eine Form für Header/Button/Depends
+-- settings builder: return values, Set without control, one form for Header/Button/Depends
 ---------------------------------------------------------------------------
 local tbl = { flag = false, size = 1, mode = "a", col = { 1, 0, 0, 0.5 }, plain = 1 }
 local applied = {}
@@ -102,67 +102,67 @@ local tc = lib.Settings.NewCategory(ns2, "qnTest3", function() end)
 local n1 = select("#", B:Checkbox(tc, "flag", "Flag"))
 local n2 = select("#", B:Slider(tc, "size", "Size", 1, 5, 1))
 local n3 = select("#", B:Dropdown(tc, "mode", "Mode", { { "a", "A" }, { "b", "B" } }))
-Check(n1 == 1 and n2 == 1 and n3 == 1, ("Checkbox/Slider/Dropdown liefern nur den Initializer (%d/%d/%d)"):format(n1, n2, n3))
-Check(B.settings.flag and B.settings.size and B.settings.mode, "Einstellungen in B.settings[key]")
+Check(n1 == 1 and n2 == 1 and n3 == 1, ("Checkbox/Slider/Dropdown return only the initializer (%d/%d/%d)"):format(n1, n2, n3))
+Check(B.settings.flag and B.settings.size and B.settings.mode, "settings in B.settings[key]")
 local swatch, alphaInit = B:Color(tc, "col", "Col", nil, nil, "Alpha")
-Check(swatch and swatch.setting == B.settings.col and alphaInit and alphaInit.setting == B.settings.col_alpha, "Color: Farbfeld und Deckkraft-Regler")
-Check(select("#", B:Color(tc, "col2", "Col2")) == 1, "Color ohne Deckkraft: nur das Farbfeld")
+Check(swatch and swatch.setting == B.settings.col and alphaInit and alphaInit.setting == B.settings.col_alpha, "Color: swatch and opacity slider")
+Check(select("#", B:Color(tc, "col2", "Col2")) == 1, "Color without opacity: swatch only")
 B:Set("plain", 7)
-Check(tbl.plain == 7 and #applied == 1 and applied[1][1] == nil and applied[1][2] == 7, "Set ohne Steuerelement: apply(nil, value)")
+Check(tbl.plain == 7 and #applied == 1 and applied[1][1] == nil and applied[1][2] == 7, "Set without control: apply(nil, value)")
 B:Set("flag", true)
-Check(tbl.flag == true and applied[2][1] == B.settings.flag and applied[2][2] == true, "Set mit Steuerelement: über die Einstellung")
-Check(B.Header == nil and B.Button == nil and B.Depends == nil and lib.Settings.Header and lib.Settings.Depends, "nur S.Header/S.Button/S.Depends")
+Check(tbl.flag == true and applied[2][1] == B.settings.flag and applied[2][2] == true, "Set with control: via the setting")
+Check(B.Header == nil and B.Button == nil and B.Depends == nil and lib.Settings.Header and lib.Settings.Depends, "only S.Header/S.Button/S.Depends")
 
 ---------------------------------------------------------------------------
 -- DeferInCombat, Debounce
 ---------------------------------------------------------------------------
 local runs = { a = 0, b = 0 }
 local function A() runs.a = runs.a + 1 end
-local function B2() runs.b = runs.b + 1 error("Absicht") end
-Check(lib.DeferInCombat(A) == false and runs.a == 0, "außerhalb des Kampfes: false, nichts vorgemerkt")
+local function B2() runs.b = runs.b + 1 error("intentional") end
+Check(lib.DeferInCombat(A) == false and runs.a == 0, "outside of combat: false, nothing queued")
 QN_COMBAT = true
-Check(lib.DeferInCombat(B2) == true and lib.DeferInCombat(A) == true and lib.DeferInCombat(A) == true, "im Kampf: true")
+Check(lib.DeferInCombat(B2) == true and lib.DeferInCombat(A) == true and lib.DeferInCombat(A) == true, "in combat: true")
 QN_COMBAT = false
 local errors = {}
 local oldHandler = geterrorhandler
 geterrorhandler = function() return function(e) errors[#errors + 1] = tostring(e) end end
 FireEvent("PLAYER_REGEN_ENABLED")
 geterrorhandler = oldHandler
-Check(runs.a == 1 and runs.b == 1, "nach dem Kampf jede Funktion genau einmal (a=" .. runs.a .. ", b=" .. runs.b .. ")")
-Check(#errors == 1 and errors[1]:find("Absicht", 1, true), "Fehler über geterrorhandler, die übrigen laufen weiter")
+Check(runs.a == 1 and runs.b == 1, "after combat each function exactly once (a=" .. runs.a .. ", b=" .. runs.b .. ")")
+Check(#errors == 1 and errors[1]:find("intentional", 1, true), "error via geterrorhandler, the others keep running")
 FireEvent("PLAYER_REGEN_ENABLED")
-Check(runs.a == 1, "Liste danach leer")
+Check(runs.a == 1, "list empty afterwards")
 
 local count = 0
 local later = lib.Debounce(function() count = count + 1 end)
 later() later() later()
-Check(count == 0, "Debounce: erst im nächsten Frame")
+Check(count == 0, "Debounce: only in the next frame")
 RunTimers()
-Check(count == 1, "Debounce: mehrere Aufrufe einmal ausgeführt (" .. count .. ")")
+Check(count == 1, "Debounce: several calls executed once (" .. count .. ")")
 later()
 RunTimers()
-Check(count == 2, "Debounce: danach wieder bereit")
+Check(count == 2, "Debounce: ready again afterwards")
 
 ---------------------------------------------------------------------------
--- Secret-Helfer, Klassenfarben, RemoveKeys
+-- secret helpers, class colors, RemoveKeys
 ---------------------------------------------------------------------------
-Check(ns.AnySecret == lib.AnySecret, "ns.AnySecret aus NewAddon")
+Check(ns.AnySecret == lib.AnySecret, "ns.AnySecret from NewAddon")
 Check(lib.AnySecret(1, nil, "x") == false and lib.AnySecret(nil, Secret()) == true and lib.AnySecret() == false,
-	"AnySecret: auch mit nil dazwischen")
+	"AnySecret: also with nil in between")
 Check(lib.AnySecretIn({ a = 1, b = "x" }) == false and lib.AnySecretIn({ a = 1, b = Secret() }) == true, "AnySecretIn")
 local oldColors = RAID_CLASS_COLORS
 RAID_CLASS_COLORS = { MAGE = { r = 0.25, g = 0.78, b = 0.92 } }
 Check(lib.ClassColor("MAGE") == RAID_CLASS_COLORS.MAGE and lib.ClassColor("NOPE") == nil and lib.ClassColor(nil) == nil
-	and lib.ClassColor(Secret()) == nil, "ClassColor: bekannt, unbekannt, nil, secret")
+	and lib.ClassColor(Secret()) == nil, "ClassColor: known, unknown, nil, secret")
 Check(lib.ClassColoredName("Ada", "MAGE") == "|cff40c7ebAda|r", "ClassColoredName: " .. lib.ClassColoredName("Ada", "MAGE"))
-Check(lib.ClassColoredName("Bob", "NOPE") == "Bob", "ClassColoredName ohne Farbe: ungefärbt")
-Check(lib.ClassColoredName("Bob", Secret(), { r = 1, g = 0.82, b = 0 }) == "|cffffd100Bob|r", "ClassColoredName: Ersatzfarbe")
+Check(lib.ClassColoredName("Bob", "NOPE") == "Bob", "ClassColoredName without color: uncolored")
+Check(lib.ClassColoredName("Bob", Secret(), { r = 1, g = 0.82, b = 0 }) == "|cffffd100Bob|r", "ClassColoredName: fallback color")
 local sName = Secret()
-Check(lib.ClassColoredName(sName, "MAGE") == sName, "ClassColoredName: secret-Name unverändert")
+Check(lib.ClassColoredName(sName, "MAGE") == sName, "ClassColoredName: secret name unchanged")
 RAID_CLASS_COLORS = oldColors
 local t = { a = 1, keep = 2, dual = { x = 1, y = 2, deep = { z = 3 } } }
 lib.RemoveKeys(t, { "a", "dual.x", "dual.deep.z", "missing.path", "dual.none" })
-Check(t.a == nil and t.keep == 2 and t.dual.x == nil and t.dual.y == 2 and t.dual.deep.z == nil, "RemoveKeys mit Pfaden")
+Check(t.a == nil and t.keep == 2 and t.dual.x == nil and t.dual.y == 2 and t.dual.deep.z == nil, "RemoveKeys with paths")
 
 ---------------------------------------------------------------------------
 -- Popup.Confirm, Popup.EditText
@@ -170,29 +170,29 @@ Check(t.a == nil and t.keep == 2 and t.dual.x == nil and t.dual.y == 2 and t.dua
 local accepted
 lib.Popup.Confirm("QNTEST_CONFIRM", "Really %s?", DELETE, function(data) accepted = data end)   -- do not translate
 local d = StaticPopupDialogs.QNTEST_CONFIRM
-Check(d.button1 == DELETE and d.button2 == CANCEL and d.timeout == 0 and d.hideOnEscape == 1, "Confirm: Knöpfe und Verhalten")
+Check(d.button1 == DELETE and d.button2 == CANCEL and d.timeout == 0 and d.hideOnEscape == 1, "Confirm: buttons and behavior")
 d.OnAccept(nil, { key = 5 })
 Check(accepted and accepted.key == 5, "Confirm: onAccept(data)")
 local stored = "alt"
 lib.Popup.EditText("QNTEST_EDIT", "Text:", function() return stored end, function(v) stored = v end, 42)
 d = StaticPopupDialogs.QNTEST_EDIT
 Check(d.hasEditBox == 1 and d.maxLetters == 42 and d.button1 == ACCEPT and d.EditBoxOnEscapePressed == StaticPopup_StandardEditBoxOnEscapePressed,
-	"EditText: Eingabefeld, Länge, Escape wie Blizzard")
+	"EditText: edit box, length, Escape like Blizzard")
 local box = CreateFrame("EditBox")
 local dialog = CreateFrame("Frame")
 box._parent = dialog
 dialog.GetEditBox = function() return box end
 d.OnShow(dialog)
-Check(box:GetText() == "alt", "EditText: bisheriger Text beim Öffnen")
+Check(box:GetText() == "alt", "EditText: previous text on open")
 box:SetText("neu")
 d.OnAccept(dialog)
-Check(stored == "neu", "EditText: Annehmen übernimmt")
+Check(stored == "neu", "EditText: accept applies")
 box:SetText("enter")
 d.EditBoxOnEnterPressed(box)
-Check(stored == "enter" and not dialog:IsShown(), "EditText: Enter übernimmt und schließt")
+Check(stored == "enter" and not dialog:IsShown(), "EditText: Enter applies and closes")
 
 ---------------------------------------------------------------------------
--- Profiles.Register (Name aus NewAddon, obsolete), store:Set, store:SetValues, S.SetIn
+-- Profiles.Register (name from NewAddon, obsolete), store:Set, store:SetValues, S.SetIn
 ---------------------------------------------------------------------------
 qnTestDB = { profiles = { ["account:Raid"] = { old = 1, keep = 2, dual = { uiOnMain = true, side = "LEFT" } } }, global = {} }
 local pns = {}
@@ -205,28 +205,28 @@ local store = lib.Profiles.Register({
 	upgrade = function(db) if db.old then upgraded = db.old end end,
 })
 local prof = qnTestDB.profiles["account:Raid"]
-Check(store.name == "qnTestProfil" and lib.Profiles.stores.qnTestProfil == store, "Register: Name aus NewAddon")
+Check(store.name == "qnTestProfil" and lib.Profiles.stores.qnTestProfil == store, "Register: name from NewAddon")
 Check(upgraded == 1 and prof.old == nil and prof.dual.uiOnMain == nil and prof.keep == 2 and prof.dual.side == "LEFT",
-	"obsolete: nach upgrade gelöscht, übrige Werte bleiben")
+	"obsolete: deleted after upgrade, other values stay")
 local PB = lib.Settings.New({ store = store, prefix = "QNTESTP_", apply = function() applies = applies + 1 end })
 local pc = lib.Settings.NewCategory(pns, "qnTestProfil", function() end)
 PB:Slider(pc, "a", "A", 0, 10, 1)
 local seen = {}
 SETTINGS.QNTESTP_A:SetValueChangedCallback(function(_, v) seen[#seen + 1] = v end)
 store:Set("a", 5)
-Check(pns.db.a == 5 and seen[#seen] == 5 and applies == 1, "store:Set über die Einstellung (Rückruf, apply)")
+Check(pns.db.a == 5 and seen[#seen] == 5 and applies == 1, "store:Set via the setting (callback, apply)")
 store:Set("b", 7)
-Check(pns.db.b == 7 and applies == 2, "store:Set ohne Steuerelement: schreiben und apply")
+Check(pns.db.b == 7 and applies == 2, "store:Set without control: write and apply")
 applies = 0
 seen = {}
 store:SetValues({ a = 3, b = 4 })
 Check(pns.db.a == 3 and pns.db.b == 4 and applies == 1 and seen[#seen] == 3 and SETTINGS.QNTESTP_A:GetValue() == 3,
-	"store:SetValues: ein apply, Einstellungsfenster neu eingelesen (Rückruf des Baukastens stumm)")
+	"store:SetValues: one apply, settings window re-read (builder callback silent)")
 Check(lib.Settings.SetIn({ PB }, "a", 9) == true and pns.db.a == 9 and lib.Settings.SetIn({ PB }, "zzz", 1) == false and pns.db.zzz == nil,
-	"S.SetIn: nur mit Steuerelement")
+	"S.SetIn: only with control")
 
 ---------------------------------------------------------------------------
--- Lage: AnchorFactors, PointOffset, NearestCorner (verschobenes UIParent, Skalierungen)
+-- position: AnchorFactors, PointOffset, NearestCorner (shifted UIParent, scales)
 ---------------------------------------------------------------------------
 local function Fake(l, b, w, h, eff, scale)
 	return { GetLeft = function() return l end, GetBottom = function() return b end,
@@ -239,25 +239,25 @@ local rx, ry = lib.AnchorFactors("BOTTOMRIGHT")
 local lx, ly = lib.AnchorFactors("LEFT")
 Check(fx == 0 and fy == 1 and cx == 0.5 and cy == 0.5 and rx == 1 and ry == 0 and lx == 0 and ly == 0.5, "AnchorFactors")
 local realUI = UIParent
-UIParent = Fake(100, 50, 1000, 800, 0.8)   -- verschoben und verkleinert
+UIParent = Fake(100, 50, 1000, 800, 0.8)   -- shifted and scaled down
 local fr = Fake(300, 200, 100, 50, 1.6, 2)
 local x, y = lib.PointOffset(fr, "TOPLEFT", "BOTTOMLEFT")
-Check(math.abs(x - 250) < 1e-9 and math.abs(y - 225) < 1e-9, ("PointOffset in Einheiten des Rahmens: %s, %s"):format(x, y))
+Check(math.abs(x - 250) < 1e-9 and math.abs(y - 225) < 1e-9, ("PointOffset in frame units: %s, %s"):format(x, y))
 x, y = lib.PointOffset(fr, "TOPLEFT", "BOTTOMLEFT", true)
-Check(math.abs(x - 500) < 1e-9 and math.abs(y - 450) < 1e-9, ("PointOffset in Einheiten von UIParent: %s, %s"):format(x, y))
+Check(math.abs(x - 500) < 1e-9 and math.abs(y - 450) < 1e-9, ("PointOffset in UIParent units: %s, %s"):format(x, y))
 x, y = lib.PointOffset(fr, "CENTER", "CENTER", true)
-Check(math.abs(x - 100) < 1e-9 and math.abs(y - 0) < 1e-9, ("PointOffset Mitte zu Mitte: %s, %s"):format(x, y))
+Check(math.abs(x - 100) < 1e-9 and math.abs(y - 0) < 1e-9, ("PointOffset center to center: %s, %s"):format(x, y))
 Check(lib.NearestCorner(fr) == "BOTTOMRIGHT" and lib.NearestCorner(fr, "TOPLEFT") == "TOPLEFT"
 	and lib.NearestCorner(Fake(100, 500, 10, 10, 0.8)) == "TOPLEFT", "NearestCorner")
-Check(lib.PointOffset(Fake(nil, nil, 10, 10, 1), "CENTER", "CENTER") == nil, "PointOffset ohne Lage: nil")
+Check(lib.PointOffset(Fake(nil, nil, 10, 10, 1), "CENTER", "CENTER") == nil, "PointOffset without position: nil")
 UIParent = realUI
 
 ---------------------------------------------------------------------------
--- Visible: Bereich, Anbieter, Move, MoveAndReport, Keep
+-- Visible: area, provider, Move, MoveAndReport, Keep
 ---------------------------------------------------------------------------
 local V = lib.Visible
 local CL = core.L
--- Rahmen mit Lage l, b, w, h (UIParent bei 0,0, Skalierung 1); SetPoint verschiebt ihn
+-- frame at position l, b, w, h (UIParent at 0,0, scale 1); SetPoint moves it
 local function Place(f, l, b, w, h)
 	f.GetLeft = function() return l end
 	f.GetBottom = function() return b end
@@ -273,48 +273,48 @@ local function Place(f, l, b, w, h)
 	return function() return l, b end
 end
 local area = V.Area()
-Check(#area == 1 and area[1].l == 0 and area[1].r == 1920 and area[1].b == 0 and area[1].t == 1080, "ohne Anbieter: Bereich = UIParent")
+Check(#area == 1 and area[1].l == 0 and area[1].r == 1920 and area[1].b == 0 and area[1].t == 1080, "without provider: area = UIParent")
 local frac = V.VisibleFraction({ l = 0, r = 100, b = 0, t = 100 }, { { l = 0, r = 52, b = 0, t = 100 } })
-Check(math.abs(frac - 50 / 96) < 1e-9, "VisibleFraction mit Toleranz 2: " .. frac)
-Check(V.VisibleFraction({ l = -1, r = 1921, b = -1, t = 1081 }, area) > 0.9999, "Überstand bis 2 Einheiten zählt als sichtbar")
+Check(math.abs(frac - 50 / 96) < 1e-9, "VisibleFraction with tolerance 2: " .. frac)
+Check(V.VisibleFraction({ l = -1, r = 1921, b = -1, t = 1081 }, area) > 0.9999, "overhang up to 2 units counts as visible")
 
 local mf = CreateFrame("Frame")
 local pos = Place(mf, 1850, 500, 100, 50)
 local moved, why = V.Move(mf)
 local ml, mb = pos()
-Check(moved == true and ml == 1820 and mb == 500, ("Move: auf dem kürzesten Weg zurück (%s, %s)"):format(ml, mb))
-Check(mf._points[#mf._points][1] == "TOPLEFT" and mf._points[#mf._points][3] == "BOTTOMLEFT", "Move: neu verankert TOPLEFT an BOTTOMLEFT")
+Check(moved == true and ml == 1820 and mb == 500, ("Move: back by the shortest path (%s, %s)"):format(ml, mb))
+Check(mf._points[#mf._points][1] == "TOPLEFT" and mf._points[#mf._points][3] == "BOTTOMLEFT", "Move: re-anchored TOPLEFT to BOTTOMLEFT")
 moved, why = V.Move(mf)
-Check(moved == false and why == "visible", "Move: schon sichtbar")
+Check(moved == false and why == "visible", "Move: already visible")
 Place(mf, 1850, 500, 100, 50)
 mf.IsProtected = function() return true end
 QN_COMBAT = true
 moved, why = V.Move(mf)
 QN_COMBAT = false
-Check(moved == false and why == "combat", "Move: geschützt im Kampf")
+Check(moved == false and why == "combat", "Move: protected in combat")
 mf.IsProtected = nil
 mf.IsForbidden = function() return true end
-Check(select(2, V.Move(mf)) == "forbidden" and select(2, V.Move(nil)) == "forbidden", "Move: verboten bzw. kein Rahmen")
+Check(select(2, V.Move(mf)) == "forbidden" and select(2, V.Move(nil)) == "forbidden", "Move: forbidden or no frame")
 mf.IsForbidden = nil
--- Rand außerhalb des Rahmens (ClampRectInsets)
+-- border outside the frame (ClampRectInsets)
 pos = Place(mf, 1810, 500, 100, 50)
 mf.GetClampRectInsets = function() return -5, 15, 5, -5 end
-Check(V.Move(mf) == false, "ohne insets: Rahmen selbst sichtbar")
+Check(V.Move(mf) == false, "without insets: frame itself visible")
 moved = V.Move(mf, { insets = true })
 ml = pos()
-Check(moved and ml == 1805, "mit insets: Rand ins Bild geholt: " .. tostring(ml))
--- Anbieter: zwei Monitore mit Lücke dazwischen
+Check(moved and ml == 1805, "with insets: border pulled onto the screen: " .. tostring(ml))
+-- provider: two monitors with a gap in between
 V.SetAreaProvider(function() return { { l = 0, r = 1000, b = 0, t = 1080 }, { l = 1500, r = 2500, b = 0, t = 1080 } } end)
 pos = Place(mf, 1100, 500, 100, 50)
 mf.GetClampRectInsets = nil
 V.Move(mf)
 ml = pos()
-Check(ml == 900, "Anbieter: in den nächsten Bereich (900): " .. tostring(ml))
+Check(ml == 900, "provider: into the nearest area (900): " .. tostring(ml))
 pos = Place(mf, 1600, 500, 100, 50)
-Check(V.Move(mf) == false, "Anbieter: auf dem 2. Bereich sichtbar")
+Check(V.Move(mf) == false, "provider: visible on the 2nd area")
 V.SetAreaProvider(nil)
-Check(#V.Area() == 1 and V.Area()[1].r == 1920, "Anbieter entfernt: wieder UIParent")
--- Meldungen
+Check(#V.Area() == 1 and V.Area()[1].r == 1920, "provider removed: UIParent again")
+-- messages
 chat = {}
 Place(mf, 1850, 500, 100, 50)
 local m1 = V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
@@ -322,10 +322,10 @@ local m2, w2 = V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
 mf.IsForbidden = function() return true end
 V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
 mf.IsForbidden = nil
-Check(m1 == true and m2 == false and w2 == "visible", "MoveAndReport: Rückgabe wie Move")
+Check(m1 == true and m2 == false and w2 == "visible", "MoveAndReport: return value like Move")
 Check(#chat == 3 and chat[1]:find(CL["%s moved into the visible area."]:format("Test frame"), 1, true)
 	and chat[2]:find(CL["%s is already in the visible area."]:format("Test frame"), 1, true)
-	and chat[3]:find(CL["%s cannot be moved."]:format("Test frame"), 1, true), "MoveAndReport: Meldungen")
+	and chat[3]:find(CL["%s cannot be moved."]:format("Test frame"), 1, true), "MoveAndReport: messages")
 chat = {}
 Place(mf, 1850, 500, 100, 50)
 mf.IsProtected = function() return true end
@@ -333,39 +333,39 @@ QN_COMBAT = true
 V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
 QN_COMBAT = false
 mf.IsProtected = nil
-Check(chat[1] and chat[1]:find(CL["%s is protected – cannot be moved in combat."]:format("Test frame"), 1, true), "MoveAndReport: Kampf")
--- Notify / OnAreaChanged: ein Fehler hält die übrigen nicht auf
+Check(chat[1] and chat[1]:find(CL["%s is protected – cannot be moved in combat."]:format("Test frame"), 1, true), "MoveAndReport: combat")
+-- Notify / OnAreaChanged: an error does not stop the others
 local heard = 0
 local thrown = false
-V.OnAreaChanged(function() if not thrown then thrown = true error("Absicht") end end)
+V.OnAreaChanged(function() if not thrown then thrown = true error("intentional") end end)
 V.OnAreaChanged(function() heard = heard + 1 end)
 errors = {}
 geterrorhandler = function() return function(e) errors[#errors + 1] = tostring(e) end end
 V.Notify()
 geterrorhandler = oldHandler
-Check(heard == 1 and #errors == 1, "Notify: alle Zuhörer, Fehler über geterrorhandler")
--- Keep: nach dem Laden, neuer Fenstergröße und Änderung des Bereichs, nur wenn eingeschaltet
+Check(heard == 1 and #errors == 1, "Notify: all listeners, error via geterrorhandler")
+-- Keep: after loading, new window size and area change, only when enabled
 local kf = CreateFrame("Frame")
 local kpos = Place(kf, 1850, 500, 100, 50)
 local on, movedCalls = false, 0
 local check = V.Keep(kf, function() return on end, function() movedCalls = movedCalls + 1 end)
 FireEvent("PLAYER_ENTERING_WORLD") RunTimers()
-Check(kpos() == 1850 and movedCalls == 0, "Keep: ausgeschaltet nichts")
+Check(kpos() == 1850 and movedCalls == 0, "Keep: nothing when disabled")
 on = true
 FireEvent("PLAYER_ENTERING_WORLD") RunTimers()
-Check(kpos() == 1820 and movedCalls == 1, "Keep: nach dem Laden verschoben, onMoved")
+Check(kpos() == 1820 and movedCalls == 1, "Keep: moved after loading, onMoved")
 kpos = Place(kf, 1850, 500, 100, 50)
 FireEvent("DISPLAY_SIZE_CHANGED") RunTimers()
-Check(kpos() == 1820 and movedCalls == 2, "Keep: nach neuer Fenstergröße")
+Check(kpos() == 1820 and movedCalls == 2, "Keep: after new window size")
 kpos = Place(kf, 1850, 500, 100, 50)
 V.Notify() RunTimers()
-Check(kpos() == 1820 and movedCalls == 3, "Keep: nach Änderung des Bereichs")
+Check(kpos() == 1820 and movedCalls == 3, "Keep: after area change")
 kpos = Place(kf, 1850, 500, 100, 50)
 check() check()
-Check(kpos() == 1850, "check(): erst im nächsten Frame")
+Check(kpos() == 1850, "check(): only in the next frame")
 RunTimers()
-Check(kpos() == 1820 and movedCalls == 4, "check(): einmal geprüft")
+Check(kpos() == 1820 and movedCalls == 4, "check(): checked once")
 FireEvent("PLAYER_ENTERING_WORLD") RunTimers()
-Check(movedCalls == 4, "Keep: schon sichtbar – kein onMoved")
+Check(movedCalls == 4, "Keep: already visible – no onMoved")
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

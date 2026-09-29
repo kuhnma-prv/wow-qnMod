@@ -12,7 +12,7 @@ L["No untranslated text has been shown so far."] = "Bisher wurde kein Text ohne 
 L["/qncore – options   |   /qncore profile – profiles   |   /qncore status – show active profile   |   /qncore locale – missing translations"] = "/qncore – Optionen   |   /qncore profile – Profile   |   /qncore status – aktives Profil anzeigen   |   /qncore locale – fehlende Übersetzungen"
 L["Profile changed: %s"] = "Profil gewechselt: %s"
 
--- Options.lua: Questzielverfolgung
+-- Options.lua: Objective Tracker
 L["As in Edit Mode"] = "Wie im Bearbeitungsmodus"
 L["Objective Tracker text size below Blizzard's minimum of 12 (headers 2 larger). \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."] = "Schriftgröße der Questzielverfolgung unterhalb von Blizzards Minimum 12 (Überschriften 2 größer). „Wie im Bearbeitungsmodus“: es gilt Blizzards Regler. Gilt je Layout des Bearbeitungsmodus."
 
@@ -23,7 +23,7 @@ L["%s (Blizzard preset)"] = "%s (Blizzard-Vorgabe)"
 L["%s (character-specific, %s)"] = "%s (charakterspezifisch, %s)"
 L["%s (account)"] = "%s (Konto)"
 
--- Library.lua: Ankerpunkte (qnCore.PointEntries)
+-- Library.lua: anchor points (qnCore.PointEntries)
 L["Top left"] = "Oben links"
 L["Top center"] = "Oben Mitte"
 L["Top right"] = "Oben rechts"
@@ -34,7 +34,7 @@ L["Bottom left"] = "Unten links"
 L["Bottom center"] = "Unten Mitte"
 L["Bottom right"] = "Unten rechts"
 
--- Visible.lua (übernommen aus qnViewPort)
+-- Visible.lua (taken over from qnViewPort)
 L["%s moved into the visible area."] = "%s in den sichtbaren Bereich verschoben."
 L["%s is protected – cannot be moved in combat."] = "%s ist geschützt – im Kampf nicht verschiebbar."
 L["%s is already in the visible area."] = "%s liegt bereits im sichtbaren Bereich."

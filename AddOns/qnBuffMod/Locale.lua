@@ -4,7 +4,7 @@ local ADDON, ns = ...
 local L = qnCore.NewLocale(ns, ADDON)
 if not qnCore.GERMAN then return end
 
--- Anzeige, Warnungen, Tooltips (Auras, Format, Warnings, Tooltip, Window)
+-- Display, warnings, tooltips (Auras, Format, Warnings, Tooltip, Window)
 L["Recast Buffs"] = "Stärkungszauber erneuern"
 L["The client is currently withholding aura data (secret). Affected auras are shown without time remaining or with a question mark."] = "Der Client hält gerade Aurendaten zurück (secret). Betroffene Zauber erscheinen ohne Restzeit bzw. mit Fragezeichen."
 L["%d days"] = "%d Tage"
@@ -29,7 +29,7 @@ L["Window %d (Alt-click: select the window in the options.)"] = "Fenster %d (Alt
 L["Spell ID: %d"] = "Zauber-ID: %d"
 L["In combat the client withholds aura data. Until then the windows show the last known state."] = "Im Kampf hält der Client Aurendaten zurück. Die Fenster zeigen bis danach den letzten bekannten Stand."
 
--- Fensterverwaltung und Optionen (Core, Config): Meldungen und Dialoge
+-- Window management and options (Core, Config): messages and dialogs
 L["Not possible in combat."] = "Im Kampf nicht möglich."
 L["No more than %d windows are possible."] = "Mehr als %d Fenster sind nicht möglich."
 L["Window %d added, copying settings from window %d."] = "Fenster %d mit den Einstellungen von Fenster %d angelegt."
@@ -44,7 +44,7 @@ L["Result: |cFF66FF66%s|r"] = "Ergebnis: |cFF66FF66%s|r"
 L["Invalid result: |cFFFF3333%s|r"] = "Ungültiges Ergebnis: |cFFFF3333%s|r"
 L["%s selected."] = "%s ausgewählt."
 
--- Config: Auswahllisten
+-- Config: dropdown lists
 L["Vehicle"] = "Fahrzeug"
 L["Filters > Own > Non-expiring"] = "Filter > Eigene > Nicht ablaufende"
 L["Filters > Non-expiring > Own"] = "Filter > Nicht ablaufende > Eigene"
@@ -90,7 +90,7 @@ L["Above"] = "Darüber"
 L["Below"] = "Darunter"
 L["auto"] = "automatisch"
 
--- Config: Fensterverwaltung
+-- Config: window management
 L["Window"] = "Fenster"
 L["Edit window"] = "Fenster bearbeiten"
 L["The settings on this page only affect the selected window. Alt-clicking a window selects it as well."] = "Die Einstellungen auf dieser Seite gelten nur für das gewählte Fenster. Alt-Klick auf ein Fenster wählt es ebenfalls aus."
@@ -107,7 +107,7 @@ L["Find window"] = "Fenster suchen"
 L["Move into visible area"] = "In sichtbaren Bereich holen"
 L["Moves the window only as far as needed to be completely inside the visible area. The rest of its position is kept."] = "Verschiebt das Fenster nur so weit, bis es vollständig im sichtbaren Bereich liegt. Die übrige Position bleibt erhalten."
 
--- Config: Allgemein
+-- Config: general
 L["Blizzard Frames"] = "Blizzard-Fenster"
 L["Hide Blizzard's buff frames"] = "Blizzards Zauberfenster verbergen"
 L["Hides Blizzard's frames for buffs and debuffs."] = "Verbirgt Blizzards Fenster für Stärkungs- und Schwächungszauber."
@@ -127,7 +127,7 @@ L["Warn for duration 2:00 – 10:00"] = "Warnen bei Dauer 2:00 – 10:00"
 L["Warn for duration 10:01 – 30:00"] = "Warnen bei Dauer 10:01 – 30:00"
 L["Warn for duration from 30:01"] = "Warnen bei Dauer ab 30:01"
 
--- Config: Seite Fenster
+-- Config: Window page
 L["Disable window"] = "Fenster deaktivieren"
 L["Disable icon tooltips"] = "Keine Tooltips an den Symbolen"
 L["Prevents moving the window."] = "Verhindert das Verschieben."
@@ -145,7 +145,7 @@ L["Test condition"] = "Bedingung prüfen"
 L["Test"] = "Testen"
 L["Shows in chat what the saved condition currently does."] = "Zeigt im Chat, was die gespeicherte Bedingung gerade bewirkt."
 
--- Config: Seite Darstellung
+-- Config: Appearance page
 L["Custom color for this window"] = "Eigene Farbe für dieses Fenster"
 L["Background opacity"] = "Deckkraft des Hintergrunds"
 L["Border"] = "Rahmen"
@@ -162,7 +162,7 @@ L["Buff spacing"] = "Abstand zwischen Zaubern"
 L["Row or column spacing"] = "Abstand zwischen Zeilen bzw. Spalten"
 L["Font"] = "Schrift"
 
--- Config: Seite Knöpfe
+-- Config: Buttons page
 L["Colors: |cFF9600FFcurse|r, |cFF966400disease|r, |cFF3296FFmagic|r, |cFF009600poison|r, |cFFc80000others (e.g. physical)|r."] = "Farben: |cFF9600FFFluch|r, |cFF966400Krankheit|r, |cFF3296FFMagie|r, |cFF009600Gift|r, |cFFc80000andere (z. B. körperlich)|r."
 L["Buttons"] = "Knöpfe"
 L["Icon position"] = "Symbolposition"
@@ -187,7 +187,7 @@ L["Text offset (right side)"] = "Textabstand rechts"
 L["Offset from icon"] = "Abstand zum Symbol"
 L["No effect with 'Center'."] = "Ohne Wirkung bei 'Mittig'."
 
--- Config: Seite Gruppierung
+-- Config: Grouping page
 L["Grouping"] = "Gruppierung"
 L["Grouping (before sorting)"] = "Gruppierung (vor der Sortierung)"
 L["Grouping order"] = "Reihenfolge der Gruppierungen"

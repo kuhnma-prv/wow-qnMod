@@ -1,40 +1,40 @@
--- qnUnitFrames: Klickbelegung auf Blizzards Gruppen- und Schlachtzugsrahmen anwenden.
+-- qnUnitFrames: apply click bindings to Blizzard's party and raid frames.
 --
--- Die Rahmen sind sichere Einheitenknöpfe (SecureUnitButtonTemplate): ein Klick liest die Attribute
--- "<Zusatztaste>type<Taste>" usw. (SecureTemplates.lua). Wir setzen nur eigene, genau benannte
--- Attribute ("shift-type1", "shift-spell1"); Blizzards "*type1"/"*type2" (Ziel/Menü) bleiben
--- unberührt und gelten weiter, wo wir nichts belegen. Attribute geschützter Rahmen lassen sich nur
--- außerhalb des Kampfes ändern – im Kampf wird nachgeholt (qnCore.DeferInCombat).
+-- The frames are secure unit buttons (SecureUnitButtonTemplate): a click reads the attributes
+-- "<modifier>type<button>" etc. (SecureTemplates.lua). We only set our own, exactly named
+-- attributes ("shift-type1", "shift-spell1"); Blizzard's "*type1"/"*type2" (target/menu) stay
+-- untouched and still apply where we bind nothing. Attributes of protected frames can only be
+-- changed out of combat – in combat the change is deferred (qnCore.DeferInCombat).
 --
--- Rahmen (Namen aus Blizzards Quelltext):
---   CompactPartyFrameMember1–5, CompactPartyFramePet1–5   Gruppe im Schlachtzugsstil
---   CompactRaidFrame<n>                                    Schlachtzug, Gruppen nicht getrennt
---                                                          (auch Begleiter: frame.frameType "pet")
---   CompactRaidGroup1–8Member1–5                           Schlachtzug nach Gruppen
---   PartyFrame.PartyMemberFramePool (+ .PetFrame)          klassische Gruppenrahmen
--- Neue Rahmen melden CompactUnitFrame_SetUpFrame und PartyFrame:InitializePartyMemberFrames.
+-- Frames (names from Blizzard's source code):
+--   CompactPartyFrameMember1–5, CompactPartyFramePet1–5   party in raid style
+--   CompactRaidFrame<n>                                    raid, groups not separated
+--                                                          (pets too: frame.frameType "pet")
+--   CompactRaidGroup1–8Member1–5                           raid by groups
+--   PartyFrame.PartyMemberFramePool (+ .PetFrame)          classic party frames
+-- New frames are reported by CompactUnitFrame_SetUpFrame and PartyFrame:InitializePartyMemberFrames.
 
 local _, ns = ...
 local lib = qnCore
 local L = ns.L
 
-local applied = {}   -- [Rahmen] = { [Attributname] = true }: von uns gesetzte Attribute
+local applied = {}   -- [frame] = { [attribute name] = true }: attributes set by us
 ns.applied = applied
 
 ---------------------------------------------------------------------------
--- Attribute aus den Belegungen
+-- Attributes from the bindings
 ---------------------------------------------------------------------------
 
 local VALUE_ATTRIBUTE = { spell = "spell", macro = "macrotext" }
 
--- { [Attributname] = Wert } für die Belegungen der eigenen Klasse
+-- { [attribute name] = value } for the bindings of the player's class
 function ns.BuildAttributes()
 	local attrs = {}
 	for key, entry in pairs(ns.Bindings()) do
 		local prefix, button = key:match("^(.-)(%d)$")
 		local valueAttr = VALUE_ATTRIBUTE[entry.type]
 		if valueAttr then
-			-- Zauber/Makro ohne Inhalt: nichts belegen
+			-- spell/macro without content: bind nothing
 			if entry.value and entry.value ~= "" then
 				attrs[prefix .. "type" .. button] = entry.type
 				attrs[prefix .. valueAttr .. button] = entry.value
@@ -47,7 +47,7 @@ function ns.BuildAttributes()
 end
 
 ---------------------------------------------------------------------------
--- Rahmen suchen
+-- Find frames
 ---------------------------------------------------------------------------
 
 local function Add(set, frame)
@@ -56,7 +56,7 @@ local function Add(set, frame)
 	end
 end
 
--- Menge der Rahmen, die laut Einstellungen belegt werden
+-- Set of frames that are bound according to the settings
 function ns.CollectFrames()
 	local set = {}
 	local db = ns.db
@@ -67,8 +67,8 @@ function ns.CollectFrames()
 				Add(set, _G["CompactPartyFramePet" .. i])
 			end
 		end
-		-- Blizzard_CompactRaidFrameContainer.lua GetUnitFrame: Mitglieder und Begleiter heißen
-		-- gleich, frameType unterscheidet sie
+		-- Blizzard_CompactRaidFrameContainer.lua GetUnitFrame: members and pets have the same
+		-- names, frameType tells them apart
 		local i = 1
 		local frame = _G["CompactRaidFrame1"]
 		while frame do
@@ -97,11 +97,11 @@ function ns.CollectFrames()
 end
 
 ---------------------------------------------------------------------------
--- Anwenden
+-- Apply
 ---------------------------------------------------------------------------
 
--- Setzt attrs auf frame und löscht, was wir früher gesetzt haben und nicht mehr gilt.
--- Unveränderte Werte werden nicht neu geschrieben (Apply läuft bei jedem Neuaufbau der Rahmen).
+-- Sets attrs on frame and clears what we set earlier and no longer applies.
+-- Unchanged values are not rewritten (Apply runs on every rebuild of the frames).
 local function SetFrame(frame, attrs)
 	local old = applied[frame]
 	if old then
@@ -141,7 +141,7 @@ function ns.Apply()
 	end
 end
 
--- Änderung durch den Spieler: im Kampf einen Hinweis, dass sie später wirkt
+-- Change by the player: in combat a notice that it takes effect later
 function ns.ApplyChange()
 	if InCombatLockdown() then
 		ns.Print(L["The change will be applied after combat."])
@@ -150,7 +150,7 @@ function ns.ApplyChange()
 end
 
 ---------------------------------------------------------------------------
--- Tooltip: Belegung unter dem Einheiten-Tooltip der Rahmen
+-- Tooltip: bindings below the unit tooltip of the frames
 ---------------------------------------------------------------------------
 
 local ORDER = {}
@@ -158,7 +158,7 @@ for i, prefix in ipairs(ns.MODIFIERS) do
 	ORDER[prefix] = i
 end
 
--- nach Maustaste, dann in der Reihenfolge der Zusatztasten
+-- by mouse button, then in the order of the modifiers
 local function SortKeys(a, b)
 	local pa, ba = a:match("^(.-)(%d)$")
 	local pb, bb = b:match("^(.-)(%d)$")
@@ -168,10 +168,10 @@ local function SortKeys(a, b)
 	return (ORDER[pa] or 99) < (ORDER[pb] or 99)
 end
 
-local MACRO_PREVIEW = 32   -- Zeichen des Makrotexts im Tooltip
+local MACRO_PREVIEW = 32   -- characters of the macro text in the tooltip
 local UTF8_CHAR = "[\1-\127\194-\244][\128-\191]*"
 
--- erste Zeile, auf n Zeichen gekürzt (UTF-8: nie mitten im Zeichen)
+-- first line, shortened to n characters (UTF-8: never in the middle of a character)
 local function FirstLine(text, n)
 	local line = text:match("^[^\n]*")
 	local short = line:match("^" .. UTF8_CHAR:rep(n))
@@ -181,7 +181,7 @@ local function FirstLine(text, n)
 	return line ~= text and line .. "…" or line
 end
 
--- Anzeigetext einer Belegung: Zaubername, bei Makros der Anfang des Makrotexts, sonst die Aktion
+-- Display text of a binding: spell name, for macros the start of the macro text, otherwise the action
 function ns.ActionText(entry)
 	if entry.type == "spell" then
 		return entry.value
@@ -192,7 +192,7 @@ function ns.ActionText(entry)
 	return ns.TypeText(entry.type)
 end
 
--- sortierte Schlüssel der wirksamen Belegungen (Zauber/Makro ohne Inhalt fehlen)
+-- sorted keys of the effective bindings (spell/macro without content are missing)
 function ns.ActiveKeys()
 	local keys = {}
 	for key, entry in pairs(ns.Bindings()) do
@@ -224,13 +224,13 @@ local function AddTooltipLines(tooltip)
 end
 
 ---------------------------------------------------------------------------
--- Start
+-- Startup
 ---------------------------------------------------------------------------
 
 function ns.InitClicks()
 	local Queue = lib.Debounce(ns.Apply)
-	-- neue Rahmen im Schlachtzugsstil (CompactParty…/CompactRaid…); Namensplaketten und andere
-	-- CompactUnitFrames nicht
+	-- new raid-style frames (CompactParty…/CompactRaid…); not nameplates and other
+	-- CompactUnitFrames
 	hooksecurefunc("CompactUnitFrame_SetUpFrame", function(frame)
 		if frame:IsForbidden() then
 			return
@@ -240,7 +240,7 @@ function ns.InitClicks()
 			Queue()
 		end
 	end)
-	-- klassische Gruppenrahmen entstehen beim ersten Zeigen aus einem Pool
+	-- classic party frames are created from a pool when first shown
 	hooksecurefunc(PartyFrame, "InitializePartyMemberFrames", Queue)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, AddTooltipLines)
 end

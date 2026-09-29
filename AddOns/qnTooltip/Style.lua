@@ -1,8 +1,8 @@
--- qnTooltip: Aussehen der Tooltips (Hintergrund, Rahmen, Verlauf oben, Schriften, Skalierung).
--- Jeder gestaltete Tooltip bekommt einen eigenen Rahmen mit BackdropTemplate, der die Ebene des
--- Tooltips teilt (SetUsingParentLevel, wie Blizzards AuraContainerUtil.SetTooltipBackdrop); Blizzards
--- NineSlice wird dafür ausgeblendet. Farben je Tooltip (Klasse, Qualität …) setzen die übrigen Dateien
--- über Style.SetColors; beim Leeren des Tooltips gelten wieder die allgemeinen Farben.
+-- qnTooltip: look of the tooltips (background, border, gradient at the top, fonts, scale).
+-- Every styled tooltip gets its own frame with BackdropTemplate that shares the tooltip's
+-- level (SetUsingParentLevel, like Blizzard's AuraContainerUtil.SetTooltipBackdrop); Blizzard's
+-- NineSlice is hidden for it. Per-tooltip colors (class, quality, ...) are set by the other files
+-- via Style.SetColors; when the tooltip is cleared the general colors apply again.
 
 local _, ns = ...
 local lib = qnCore
@@ -14,10 +14,10 @@ ns.Style = Style
 local MASK_HEIGHT = 32
 
 ---------------------------------------------------------------------------
--- Hintergründe und Rahmen
+-- Backgrounds and borders
 ---------------------------------------------------------------------------
 
--- { Schlüssel, Anzeigename, Datei, kacheln }
+-- { key, display name, file, tile }
 Style.BACKGROUNDS = {
 	{ "rock", L["Rock"], "Interface\\FrameGeneral\\UI-Background-Rock" },
 	{ "marble", L["Marble"], "Interface\\FrameGeneral\\UI-Background-Marble" },
@@ -33,7 +33,7 @@ function Style.BackgroundEntries()
 	end
 	for _, p in ipairs(lib.Patterns) do
 		list[#list + 1] = { p[1], p[2] }
-		skip[p[4]] = true   -- bei LSM angemeldete eigene Muster nicht doppelt
+		skip[p[4]] = true   -- own patterns registered with LSM are not listed twice
 	end
 	for _, e in ipairs(ns.LSMEntries("background", skip)) do
 		list[#list + 1] = e
@@ -41,7 +41,7 @@ function Style.BackgroundEntries()
 	return list
 end
 
--- Datei und Kacheln zu einem gespeicherten Hintergrund
+-- file and tiling for a saved background
 local function Background(key)
 	for _, b in ipairs(Style.BACKGROUNDS) do
 		if b[1] == key then
@@ -60,7 +60,7 @@ local function Background(key)
 	return Style.BACKGROUNDS[1][3], false
 end
 
--- Randbreite innen (Einrückung von Hintergrund, Verlauf und Lebensbalken)
+-- inner edge width (inset of background, gradient and health bar)
 function Style.Inset()
 	local db = ns.db
 	if db.borderStyle == "angular" then
@@ -71,8 +71,8 @@ function Style.Inset()
 	return 3
 end
 
--- Backdrop-Tabelle zu den Einstellungen; neue Tabelle je Änderung, denn SetBackdrop übergeht
--- eine Tabelle, die schon gesetzt ist.
+-- backdrop table for the settings; a new table per change, because SetBackdrop ignores
+-- a table that is already set.
 local backdrop, backdropKey
 local function Backdrop()
 	local db = ns.db
@@ -100,7 +100,7 @@ local function Backdrop()
 end
 
 ---------------------------------------------------------------------------
--- Farben je Tooltip
+-- Colors per tooltip
 ---------------------------------------------------------------------------
 
 local function Unpack(c)
@@ -118,13 +118,13 @@ local function ApplyColors(tip)
 	if ns.db.borderStyle ~= "none" then
 		frame:SetBackdropBorderColor(Unpack(border))
 	end
-	-- Verlauf nur auf sichtbarem Hintergrund
+	-- gradient only on a visible background
 	local alpha = bg[4] or 1
 	frame.mask:SetShown(ns.db.mask and alpha > 0.01)
 	frame.mask:SetAlpha(math.min(1, alpha))
 end
 
--- bg, border: { r, g, b, a } oder nil (= allgemeine Farbe)
+-- bg, border: { r, g, b, a } or nil (= general color)
 function Style.SetColors(tip, bg, border)
 	if not tip.qnBackdrop then
 		return
@@ -133,7 +133,7 @@ function Style.SetColors(tip, bg, border)
 	ApplyColors(tip)
 end
 
--- nur den Rahmen umfärben (Hintergrund bleibt)
+-- recolor only the border (background stays)
 function Style.SetBorder(tip, r, g, b)
 	if not tip.qnBackdrop then
 		return
@@ -148,7 +148,7 @@ function Style.Reset(tip)
 end
 
 ---------------------------------------------------------------------------
--- Aufbau
+-- Setup
 ---------------------------------------------------------------------------
 
 local function HideNineSlice(tip)
@@ -157,7 +157,7 @@ local function HideNineSlice(tip)
 	end
 end
 
--- Aussehen eines Tooltips vollständig anwenden
+-- fully apply the look of a tooltip
 local function Apply(tip)
 	local frame = tip.qnBackdrop
 	if not frame then
@@ -173,7 +173,7 @@ local function Apply(tip)
 	tip:SetScale(ns.db.scale)
 end
 
--- Tooltip einmalig vorbereiten
+-- prepare a tooltip once
 function Style.Setup(tip)
 	if tip.qnStyled or tip:IsForbidden() then
 		return
@@ -185,7 +185,7 @@ function Style.Setup(tip)
 	frame:SetAllPoints(tip)
 	tip.qnBackdrop = frame
 
-	-- heller Verlauf über der Kopfzeile
+	-- light gradient over the header line
 	local mask = frame:CreateTexture(nil, "BORDER", nil, -1)
 	mask:SetTexture("Interface\\Tooltips\\UI-Tooltip-Background")
 	mask:SetBlendMode("ADD")
@@ -195,7 +195,7 @@ function Style.Setup(tip)
 	tip:HookScript("OnShow", function(self)
 		HideNineSlice(self)
 	end)
-	-- GameTooltip und Verwandte; FriendsTooltip ist ein einfacher Rahmen ohne dieses Skript
+	-- GameTooltip and relatives; FriendsTooltip is a plain frame without this script
 	if tip:HasScript("OnTooltipCleared") then
 		tip:HookScript("OnTooltipCleared", Style.Reset)
 	end
@@ -210,7 +210,7 @@ function Style.ApplyAll()
 end
 
 ---------------------------------------------------------------------------
--- Schriften (Font-Objekte, gelten für alle Tooltips)
+-- Fonts (font objects, apply to all tooltips)
 ---------------------------------------------------------------------------
 
 local FLAGS = { default = true, NONE = "", OUTLINE = "OUTLINE", THINOUTLINE = "THINOUTLINE", THICKOUTLINE = "THICKOUTLINE" }
@@ -233,7 +233,7 @@ function Style.FontEntries()
 	return list
 end
 
--- Schrift zu Einstellungen: font (LSM-Name oder "default"), size (0 = Vorgabe), flag
+-- font for settings: font (LSM name or "default"), size (0 = default), flag
 function Style.Font(defaultFont, defaultSize, defaultFlag, font, size, flag)
 	local file = font ~= "default" and ns.LSMFetch("font", font) or defaultFont
 	local s = (size and size > 0) and size or defaultSize
@@ -244,13 +244,13 @@ function Style.Font(defaultFont, defaultSize, defaultFlag, font, size, flag)
 	return file, s, f
 end
 
-local defaults   -- Blizzard-Schriften beim ersten Anwenden
+local defaults   -- Blizzard fonts at the first apply
 
 function Style.ApplyFonts()
 	local db = ns.db
 	if not defaults then
 		defaults = { header = { GameTooltipHeaderText:GetFont() }, body = { GameTooltipText:GetFont() } }
-		-- Schatten wie bei vielen Tooltip-Addons, etwas kräftiger als Blizzards Vorgabe
+		-- shadow like many tooltip addons, somewhat stronger than Blizzard's default
 		for _, font in ipairs({ GameTooltipHeaderText, GameTooltipText, Tooltip_Small }) do
 			font:SetShadowOffset(1, -1)
 			font:SetShadowColor(0, 0, 0, 0.9)
@@ -262,8 +262,8 @@ function Style.ApplyFonts()
 end
 
 ---------------------------------------------------------------------------
--- Blizzard stellt das Aussehen bei jedem neuen Inhalt wieder her (TooltipDataHandler,
--- GameTooltip_OnHide): danach NineSlice wieder ausblenden.
+-- Blizzard restores the look on every new content (TooltipDataHandler,
+-- GameTooltip_OnHide): hide NineSlice again afterwards.
 ---------------------------------------------------------------------------
 
 function Style.Init()

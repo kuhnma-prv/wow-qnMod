@@ -1,30 +1,30 @@
--- qnInventory: Briefkasten.
--- Versand: Beim Aufruf von SendMail werden Anhänge und Gold einer Post an einen eigenen Charakter
--- (dieser oder ein verbundener Realm) vorgemerkt und erst bei MAIL_SEND_SUCCESS dessen Briefkasten
--- gutgeschrieben. Bei Gold oder Anhängen an Fremde fragt Blizzard_SecureTransferUI erst nach
--- (SECURE_TRANSFER_CONFIRM_SEND_MAIL); gesendet wird dann über C_SecureTransfer.SendMail, und
--- MAIL_SEND_SUCCESS kommt erst danach. Verworfen wird die Vormerkung bei MAIL_FAILED und
--- SECURE_TRANSFER_CANCEL. Der Abbrechen-Knopf der Nachfrage meldet nichts; die Vormerkung bleibt
--- dann liegen, bis der nächste SendMail-Aufruf sie ersetzt (MAIL_SEND_SUCCESS kommt nur nach einem
--- Versand).
--- Nachnahme (C.O.D.): Anhänge gehören erst nach dem Bezahlen dem Empfänger und zählen nicht.
--- Empfang: Solange der Briefkasten offen ist, wird sein Inhalt gespeichert.
--- Für die Postansicht (ViewMail.lua) zusätzlich jeder Brief einzeln (char.mailList, siehe Core.lua).
+-- qnInventory: mailbox.
+-- Sending: when SendMail is called, the attachments and gold of a mail to one of our own characters
+-- (this or a connected realm) are put on hold and only credited to that character's mailbox at
+-- MAIL_SEND_SUCCESS. For gold or attachments to strangers, Blizzard_SecureTransferUI asks first
+-- (SECURE_TRANSFER_CONFIRM_SEND_MAIL); sending then happens via C_SecureTransfer.SendMail, and
+-- MAIL_SEND_SUCCESS only comes afterwards. The pending entry is discarded at MAIL_FAILED and
+-- SECURE_TRANSFER_CANCEL. The confirmation's cancel button reports nothing; the pending entry then
+-- stays until the next SendMail call replaces it (MAIL_SEND_SUCCESS only comes after an actual
+-- send).
+-- Cash on delivery (C.O.D.): attachments only belong to the recipient after payment and do not count.
+-- Receiving: while the mailbox is open, its content is stored.
+-- For the mail view (ViewMail.lua) additionally every letter individually (char.mailList, see Core.lua).
 
 local _, ns = ...
 
 local IsSecret = ns.IsSecret
 
 local DAY = 24 * 60 * 60
--- Briefe an eigene Charaktere liegen 30 Tage im Briefkasten
+-- Letters to our own characters stay in the mailbox for 30 days
 local MAIL_DAYS = 30
 local LETTER_ICON = "Interface\\Icons\\INV_Letter_15"
 
 local mailOpen = false
-local pending   -- { realmDB, target = Name, items = { [itemID] = Anzahl }, money = Kupfer, letter = Brief }
+local pending   -- { realmDB, target = name, items = { [itemID] = count }, money = copper, letter = letter }
 
--- Eigener Charakter zum eingegebenen Empfänger: Daten des Realms und gespeicherter Name, sonst nil.
--- Akzeptiert "name", "Name" und "Name-Realm" (dieser oder ein verbundener Realm).
+-- Own character for the entered recipient: realm data and stored name, otherwise nil.
+-- Accepts "name", "Name" and "Name-Realm" (this or a connected realm).
 local function FindRecipient(recipient)
 	local name, realm = strsplit("-", strtrim(recipient), 2)
 	local realmDB = ns.realmDB
@@ -40,13 +40,13 @@ local function FindRecipient(recipient)
 	end
 end
 
--- Nach dem Aufruf von SendMail sind die Anhänge noch vorhanden
+-- After the SendMail call the attachments are still present
 local function OnSendMail(recipient, subject)
 	pending = nil
 	local realmDB, target = FindRecipient(recipient)
 	if not target or (realmDB == ns.realmDB and target == ns.player) then return end
 
-	-- Nachnahme (secret: vorsichtshalber als Nachnahme behandelt)
+	-- C.O.D. (secret: treated as C.O.D. to be safe)
 	local cod = ns.Plain(GetSendMailCOD(), 1)
 	local items, attachments, icon = {}, {}, nil
 	for i = 1, ATTACHMENTS_MAX_SEND do
@@ -55,7 +55,7 @@ local function OnSendMail(recipient, subject)
 			if cod == 0 then
 				ns.AddCount(items, itemID, count)
 			end
-			-- GetSendMailItemLink steht nicht im Forever-Quelltext (C-Funktion, nicht prüfbar)
+			-- GetSendMailItemLink is not in the Forever source (C function, cannot be verified)
 			local link = GetSendMailItemLink and GetSendMailItemLink(i)
 			attachments[#attachments + 1] = { link or ("item:" .. itemID), count or 1 }
 			icon = icon or texture
@@ -82,7 +82,7 @@ local function CommitSend()
 	if not char then return end
 
 	if not char.mail then
-		-- Briefkasten des Empfängers noch nie gesehen: nur ein Teil ist bekannt
+		-- recipient's mailbox never seen: only part of it is known
 		char.mail = {}
 		char.mailIncomplete = true
 	end
@@ -90,13 +90,13 @@ local function CommitSend()
 		ns.AddCount(char.mail, itemID, count)
 	end
 	char.mailMoney = (char.mailMoney or 0) + p.money
-	-- neuester Brief oben, wie im Briefkasten
+	-- newest letter on top, as in the mailbox
 	char.mailList = char.mailList or {}
 	table.insert(char.mailList, 1, p.letter)
 	ns.DataChanged("mail")
 end
 
--- Inhalt des Briefkastens; bricht ab (alter Stand bleibt), wenn ein Wert secret ist
+-- Content of the mailbox; aborts (old state remains) if a value is secret
 local function ScanInbox()
 	local numItems, totalItems = GetInboxNumItems()
 	if IsSecret(numItems) then return end
@@ -119,7 +119,7 @@ local function ScanInbox()
 				local _, itemID, _, count, _, _, isCurrency = GetInboxItem(i, a)
 				if ns.AnySecret(itemID, count, isCurrency) then return end
 				if itemID and not isCurrency then
-					-- Nachnahme: Anhänge erst nach dem Bezahlen eigener Besitz
+					-- C.O.D.: attachments are only ours after payment
 					if (codAmount or 0) == 0 then
 						ns.AddCount(items, itemID, count)
 					end
@@ -135,7 +135,7 @@ local function ScanInbox()
 	ns.char.mail = items
 	ns.char.mailMoney = money
 	ns.char.mailList = list
-	-- Mehr Post, als der Server auf einmal anzeigt (max. 50)
+	-- More mail than the server shows at once (max. 50)
 	ns.char.mailIncomplete = (not IsSecret(totalItems) and totalItems and totalItems > numItems) or nil
 	ns.DataChanged("mail")
 end
@@ -144,7 +144,7 @@ function ns.InitMail()
 	local events = ns.events
 	events.Register("MAIL_SHOW", function() mailOpen = true end)
 	events.Register("MAIL_CLOSED", function() mailOpen = false end)
-	-- erst hier sind die Daten da; MAIL_SHOW kommt davor mit leerem Briefkasten
+	-- only here is the data available; MAIL_SHOW comes earlier with an empty mailbox
 	events.Register("MAIL_INBOX_UPDATE", function()
 		if mailOpen then ScanInbox() end
 	end)

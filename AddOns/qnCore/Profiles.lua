@@ -1,24 +1,24 @@
--- qnCore: Einstellungsprofile für alle qn-Addons.
+-- qnCore: settings profiles for all qn addons.
 --
--- Das aktive Profil ist immer das Layout, das im Bearbeitungsmodus von WoW
--- aktiv ist. Profilschlüssel:
---   preset:<Nr>                Blizzard-Vorgabe (Modern, Klassisch …), nach Position
---   account:<Name>             kontoweites Layout
---   char:<Name-Realm>:<Name>   charakterspezifisches Layout – gibt es nur für diesen
---                              Charakter, deshalb gehört der Charakter zum Schlüssel
+-- The active profile is always the layout that is active in WoW's
+-- Edit Mode. Profile keys:
+--   preset:<No>                Blizzard preset (Modern, Classic ...), by position
+--   account:<Name>             account-wide layout
+--   char:<Name-Realm>:<Name>   character-specific layout - exists only for this
+--                              character, hence the character is part of the key
 --
--- Jedes Addon meldet in seinem ADDON_LOADED seine gespeicherte Variable an:
+-- Each addon registers its saved variable in its ADDON_LOADED:
 --   store = qnCore.Profiles.Register({ ns, sv, defaults, upgrade, obsolete, legacy, onSwitch })
--- und findet in ns.db (= store.db) immer die Tabelle des aktiven Profils. store:Set(key, value)
--- bzw. store:SetValues(values) ändert Werte so, dass auch das Einstellungsfenster sie zeigt.
--- Aufbau der gespeicherten Variable:
---   { profiles = { [Schlüssel] = {...} }, global = {...} }
--- store.global ist kontoweit und hängt an keinem Profil.
+-- and always finds the active profile's table in ns.db (= store.db). store:Set(key, value)
+-- or store:SetValues(values) changes values so that the settings window shows them too.
+-- Structure of the saved variable:
+--   { profiles = { [key] = {...} }, global = {...} }
+-- store.global is account-wide and not tied to any profile.
 --
--- Beim ersten Start nach dem Umbau werden die bisherigen Einstellungen (altes Format ohne
--- Profile bzw. opts.legacy) das aktuelle Profil. Ein Layout, für das es noch kein Profil
--- gibt, startet mit einer Kopie des bis dahin aktiven Profils. Bis das Layout nach dem
--- Einloggen bekannt ist, gilt das Profil der letzten Sitzung dieses Charakters (qnCoreCharDB.layout).
+-- On the first start after the rework, the previous settings (old format without
+-- profiles or opts.legacy) become the current profile. A layout that has no profile
+-- yet starts with a copy of the profile active until then. Until the layout is known after
+-- logging in, the profile of this character's last session applies (qnCoreCharDB.layout).
 
 local _, ns = ...
 local lib = qnCore
@@ -27,9 +27,9 @@ local L = ns.L
 local P = {}
 lib.Profiles = P
 
-local stores = {}          -- Anmeldereihenfolge
+local stores = {}          -- registration order
 P.stores = stores
-local activeKey            -- nil, solange das Layout noch nicht bekannt ist
+local activeKey            -- nil as long as the layout is not known yet
 local listeners = {}
 
 local TYPE_PRESET = Enum.EditModeLayoutType.Preset
@@ -37,14 +37,14 @@ local TYPE_ACCOUNT = Enum.EditModeLayoutType.Account
 local TYPE_CHARACTER = Enum.EditModeLayoutType.Character
 
 ---------------------------------------------------------------------------
--- Profilobjekt je Addon
+-- Profile object per addon
 ---------------------------------------------------------------------------
 
 local Store = {}
 Store.__index = Store
 
--- Bringt eine Profiltabelle auf den aktuellen Stand: Umrechnungen (upgrade), veraltete
--- Schlüssel löschen (obsolete, nach upgrade – das kann sie noch lesen), Vorgaben ergänzen.
+-- Brings a profile table up to date: conversions (upgrade), delete obsolete
+-- keys (obsolete, after upgrade - which can still read them), fill in defaults.
 function Store:Prepare(db)
 	if self.upgrade then
 		self.upgrade(db)
@@ -54,9 +54,9 @@ function Store:Prepare(db)
 	return db
 end
 
--- Setzt einen Wert des aktiven Profils so, dass auch das Einstellungsfenster ihn anzeigt (über
--- die Einstellung samt Rückruf). Ohne Steuerelement schreibt der erste Baukasten direkt und ruft
--- sein apply; ohne Baukasten wird nur geschrieben.
+-- Sets a value of the active profile so that the settings window shows it too (via
+-- the setting including callback). Without a control, the first builder writes directly and calls
+-- its apply; without a builder, the value is only written.
 function Store:Set(key, value)
 	if lib.Settings.SetIn(self.builders, key, value) then
 		return
@@ -69,9 +69,9 @@ function Store:Set(key, value)
 	end
 end
 
--- Mehrere Werte auf einmal: schreiben, das Einstellungsfenster neu einlesen (ohne Rückrufe) und
--- dann nur einmal apply des ersten Baukastens aufrufen – kein Zwischenstand wird angewendet
--- (z. B. neues x mit altem y).
+-- Several values at once: write, re-read the settings window (without callbacks) and
+-- then call apply of the first builder only once - no intermediate state is applied
+-- (e.g. new x with old y).
 function Store:SetValues(values)
 	for key, value in pairs(values) do
 		self.db[key] = value
@@ -92,19 +92,19 @@ function Store:SetDB(db)
 	end
 end
 
--- Neue Profiltabelle: Kopie des aktiven Profils bzw. der Vorlage aus dem alten Format.
+-- New profile table: copy of the active profile or of the template from the old format.
 function Store:NewProfileTable()
 	return self:Prepare(CopyTable(self.db or self.seed or {}))
 end
 
--- Schaltet auf das Profil key. Liefert true, wenn sich ns.db geändert hat.
+-- Switches to profile key. Returns true if ns.db has changed.
 function Store:Activate(key)
 	local profiles = self.sv.profiles
 	if self.migrating then
-		-- Erster Start nach dem Umbau: die bisherigen Einstellungen (samt Änderungen seit dem
-		-- Laden) werden das aktuelle Profil. Gibt es dafür schon ein Profil (z. B. von einem
-		-- anderen Charakter mit eigener früherer SavedVariablesPerCharacter übernommen), bleibt
-		-- es erhalten und die bisherigen Werte werden verworfen.
+		-- First start after the rework: the previous settings (including changes since
+		-- loading) become the current profile. If a profile already exists for it (e.g. taken over
+		-- from another character with its own earlier SavedVariablesPerCharacter), it
+		-- is kept and the previous values are discarded.
 		self.migrating = nil
 		if not profiles[key] then
 			profiles[key] = self.db
@@ -118,7 +118,7 @@ function Store:Activate(key)
 	local db = profiles[key]
 	if not db then
 		if self.key == nil and self.db then
-			db = self.db          -- vorläufige Tabelle aus der Zeit vor dem Einloggen übernehmen
+			db = self.db          -- take over the provisional table from before logging in
 		else
 			db = self:NewProfileTable()
 		end
@@ -132,7 +132,7 @@ function Store:Activate(key)
 	return true
 end
 
--- Nach einem Wechsel: Einstellungsfenster neu einlesen, dann das Addon anwenden lassen.
+-- After a switch: re-read the settings window, then let the addon apply.
 function Store:Switched()
 	for _, builder in ipairs(self.builders) do
 		builder:Refresh()
@@ -157,9 +157,9 @@ function Store:HasProfile(key)
 	return self.sv.profiles[key] ~= nil
 end
 
--- Inhalt des aktiven Profils durch src ersetzen (dieselbe Tabelle, damit Verweise gültig bleiben).
--- Im Kampf erst danach (onSwitch der Addons fasst geschützte Rahmen an); ein weiterer Aufruf bis
--- dahin ersetzt den vorgemerkten. Liefert true, wenn verzögert.
+-- Replace the content of the active profile with src (same table, so references stay valid).
+-- In combat only afterwards (the addons' onSwitch touches protected frames); a further call until
+-- then replaces the queued one. Returns true if deferred.
 function Store:Replace(src)
 	if InCombatLockdown() then
 		self.pending = { key = self.key, src = src }
@@ -176,7 +176,7 @@ function Store:Replace(src)
 	return false
 end
 
--- Nach dem Kampf: vorgemerktes Ersetzen ausführen, wenn noch dasselbe Profil aktiv ist.
+-- After combat: carry out the queued replacement if the same profile is still active.
 function Store:ApplyPending()
 	local pending = self.pending
 	self.pending = nil
@@ -185,13 +185,13 @@ function Store:ApplyPending()
 	end
 end
 
--- Aktives Profil auf die Vorgaben zurücksetzen. Liefert true, wenn bis nach dem Kampf verzögert.
+-- Reset the active profile to the defaults. Returns true if deferred until after combat.
 function Store:ResetActive()
 	return self:Replace({})
 end
 
--- Inhalt eines anderen Profils in das aktive Profil kopieren. Liefert, ob kopiert wird, und
--- ob das bis nach dem Kampf verzögert ist.
+-- Copy the content of another profile into the active profile. Returns whether it is copied and
+-- whether that is deferred until after combat.
 function Store:CopyToActive(fromKey)
 	local src = self.sv.profiles[fromKey]
 	if not src or src == self.db then
@@ -210,12 +210,12 @@ function Store:Delete(key)
 end
 
 ---------------------------------------------------------------------------
--- Anmeldung
+-- Registration
 ---------------------------------------------------------------------------
 
--- Gespeicherte Variable opts.sv laden und in das Profilformat bringen (auch in _G zurückschreiben).
--- Liefert sv und seed: die bisherigen Einstellungen aus dem alten Format ohne Profile bzw. aus
--- opts.legacy, sonst nil.
+-- Load saved variable opts.sv and bring it into profile format (also write it back to _G).
+-- Returns sv and seed: the previous settings from the old format without profiles or from
+-- opts.legacy, otherwise nil.
 local function LoadSavedVariable(opts)
 	local sv = _G[opts.sv]
 	if type(sv) ~= "table" then
@@ -223,13 +223,13 @@ local function LoadSavedVariable(opts)
 	end
 	local seed
 	if sv.profiles == nil then
-		-- altes Format ohne Profile: die ganze Tabelle wird zur Vorlage für das erste Profil
+		-- old format without profiles: the whole table becomes the template for the first profile
 		if next(sv) then
 			seed = sv
 		end
 		sv = {}
 	end
-	sv.version = nil   -- früher gespeichert, nie gelesen
+	sv.version = nil   -- saved in the past, never read
 	sv.profiles = sv.profiles or {}
 	sv.global = sv.global or {}
 	_G[opts.sv] = sv
@@ -240,12 +240,12 @@ local function LoadSavedVariable(opts)
 	return sv, seed
 end
 
--- Startprofil des neu angemeldeten store wählen.
+-- Choose the start profile of the newly registered store.
 local function ChooseStartProfile(store, sv, seed)
 	if seed then
-		-- Bisherige Einstellungen: werden beim ersten erkannten Layout das aktuelle Profil.
-		-- Eine Kopie bleibt als Vorlage (sv.migrated) für Charaktere, die später zum ersten
-		-- Mal mit einem Layout ohne Profil einloggen.
+		-- Previous settings: become the current profile at the first detected layout.
+		-- A copy remains as template (sv.migrated) for characters that later log in for the first
+		-- time with a layout without profile.
 		store:Prepare(seed)
 		sv.migrated = sv.migrated or CopyTable(seed)
 		store.migrating = true
@@ -259,8 +259,8 @@ local function ChooseStartProfile(store, sv, seed)
 	if type(sv.migrated) == "table" then
 		store.seed = store:Prepare(sv.migrated)
 	end
-	-- Startprofil: das bekannte Layout, sonst das der letzten Sitzung, sonst eine
-	-- vorläufige Tabelle, die beim ersten erkannten Layout dessen Profil wird.
+	-- Start profile: the known layout, otherwise that of the last session, otherwise a
+	-- provisional table that becomes the profile of the first detected layout.
 	local key = activeKey or (qnCoreCharDB and qnCoreCharDB.layout)
 	if activeKey then
 		store:Activate(activeKey)
@@ -272,15 +272,15 @@ local function ChooseStartProfile(store, sv, seed)
 	end
 end
 
--- opts.ns        Namensraum; ns.db wird bei jedem Wechsel gesetzt
--- opts.name      Addon-Name (Anzeige, Schlüssel in P.stores); Vorgabe: Name aus qnCore.NewAddon
--- opts.sv        Name der gespeicherten Variable (## SavedVariables)
--- opts.defaults  Vorgaben
--- opts.upgrade   function(db) – rechnet ältere Tabellen um (optional)
--- opts.obsolete  Liste veralteter Schlüssel, die gelöscht werden, auch "dual.uiOnMain" (optional)
--- opts.legacy    Tabelle im alten Format ohne Profile, z. B. aus einer früheren
+-- opts.ns        namespace; ns.db is set on every switch
+-- opts.name      addon name (display, key in P.stores); default: name from qnCore.NewAddon
+-- opts.sv        name of the saved variable (## SavedVariables)
+-- opts.defaults  defaults
+-- opts.upgrade   function(db) - converts older tables (optional)
+-- opts.obsolete  list of obsolete keys to delete, also "dual.uiOnMain" (optional)
+-- opts.legacy    table in the old format without profiles, e.g. from an earlier
 --                SavedVariablesPerCharacter (optional)
--- opts.onSwitch  function(store) – nach einem Profilwechsel (optional)
+-- opts.onSwitch  function(store) - after a profile switch (optional)
 function P.Register(opts)
 	assert(qnCoreDB, "qnCore.Profiles.Register: call only in the addon's own ADDON_LOADED.")   -- do not translate: developer hint
 	local sv, seed = LoadSavedVariable(opts)
@@ -298,7 +298,7 @@ function P.Register(opts)
 		onSwitch = opts.onSwitch,
 		builders = {},
 	}, Store)
-	-- eine Funktion je Addon, damit DeferInCombat mehrere Aufrufe zusammenfasst
+	-- one function per addon, so that DeferInCombat merges several calls
 	store.applyPending = function()
 		store:ApplyPending()
 	end
@@ -313,7 +313,7 @@ function P.Register(opts)
 end
 
 ---------------------------------------------------------------------------
--- Aktives Layout des Bearbeitungsmodus
+-- Active Edit Mode layout
 ---------------------------------------------------------------------------
 
 local function CharName()
@@ -325,10 +325,10 @@ local function CharName()
 	return realm ~= "" and (name .. "-" .. realm) or name
 end
 
--- Liefert Schlüssel und Beschreibung des aktiven Layouts oder nil, solange es nicht bekannt ist.
+-- Returns key and description of the active layout, or nil as long as it is not known.
 local function ReadActiveLayout()
-	-- Blizzards Kopie enthält vorne die Vorgaben; overrideLayoutInfo (Sonderfälle) bewusst nicht.
-	-- layoutInfo gibt es erst nach dem ersten EDIT_MODE_LAYOUTS_UPDATED.
+	-- Blizzard's copy contains the presets at the front; overrideLayoutInfo (special cases) deliberately not.
+	-- layoutInfo only exists after the first EDIT_MODE_LAYOUTS_UPDATED.
 	local layoutInfo = EditModeManagerFrame.layoutInfo
 	local index = layoutInfo and layoutInfo.activeLayout
 	local info = index and layoutInfo.layouts[index]
@@ -348,14 +348,14 @@ local function ReadActiveLayout()
 	elseif info.layoutType == TYPE_ACCOUNT then
 		return "account:" .. name, { kind = "account", name = name }
 	end
-	return nil   -- Sonderlayouts (Override) haben kein eigenes Profil
+	return nil   -- special layouts (override) have no profile of their own
 end
 
 function P.GetActiveKey()
 	return activeKey
 end
 
--- Anzeigename eines Profils
+-- Display name of a profile
 function P.GetLabel(key)
 	if not key then
 		return L["not yet determined"]
@@ -372,7 +372,7 @@ function P.GetLabel(key)
 	return L["%s (account)"]:format(meta.name)
 end
 
--- Alle Profilschlüssel der angegebenen Addons (nil = alle), sortiert nach Anzeigename
+-- All profile keys of the given addons (nil = all), sorted by display name
 function P.GetKnownKeys(list)
 	local seen, keys = {}, {}
 	for _, store in ipairs(list or stores) do
@@ -389,7 +389,7 @@ function P.GetKnownKeys(list)
 	return keys
 end
 
--- Rückruf bei jedem Profilwechsel: fn(neuerSchlüssel, alterSchlüssel)
+-- Callback on every profile switch: fn(newKey, oldKey)
 function P.OnChange(fn)
 	listeners[#listeners + 1] = fn
 end
@@ -398,7 +398,7 @@ local Queue
 
 local function Check()
 	if lib.DeferInCombat(Queue) then
-		return   -- geschützte Rahmen erst nach dem Kampf anfassen
+		return   -- touch protected frames only after combat
 	end
 	local key, meta = ReadActiveLayout()
 	if not key then
@@ -416,7 +416,7 @@ local function Check()
 			store:Switched()
 		end
 	end
-	-- ein Fehler hält die übrigen nicht auf
+	-- an error does not stop the others
 	for _, fn in ipairs(listeners) do
 		local ok, err = pcall(fn, key, old)
 		if not ok then
@@ -425,15 +425,15 @@ local function Check()
 	end
 end
 
--- Mehrere Auslöser im selben Frame zusammenfassen; erst danach hat Blizzard
--- EditModeManagerFrame.layoutInfo aktualisiert.
+-- Merge several triggers in the same frame; only afterwards has Blizzard
+-- updated EditModeManagerFrame.layoutInfo.
 Queue = lib.Debounce(Check)
 
 ---------------------------------------------------------------------------
--- Profile verwalten (Seite "Profile")
+-- Manage profiles ("Profiles" page)
 ---------------------------------------------------------------------------
 
--- Im Kampf wird erst danach angewendet; der Rückgabewert deferred sagt das.
+-- In combat, it is applied only afterwards; the return value deferred says so.
 function P.ResetActive(list)
 	local deferred = false
 	for _, store in ipairs(list or stores) do
@@ -444,7 +444,7 @@ function P.ResetActive(list)
 	return deferred
 end
 
--- Liefert die Zahl der Addons und deferred (im Kampf: erst danach angewendet).
+-- Returns the number of addons and deferred (in combat: applied only afterwards).
 function P.CopyToActive(fromKey, list)
 	local n, deferred = 0, false
 	for _, store in ipairs(list or stores) do
@@ -467,7 +467,7 @@ function P.Delete(key, list)
 			n = n + 1
 		end
 	end
-	-- Beschreibung behalten, solange noch irgendein Addon das Profil hat
+	-- keep the description as long as any addon still has the profile
 	local used = false
 	for _, store in ipairs(stores) do
 		if store:HasProfile(key) then
@@ -481,7 +481,7 @@ function P.Delete(key, list)
 end
 
 ---------------------------------------------------------------------------
--- Start (aus Core.lua bei ADDON_LOADED von qnCore)
+-- Start (from Core.lua on qnCore's ADDON_LOADED)
 ---------------------------------------------------------------------------
 
 function P.Init()
@@ -491,12 +491,12 @@ function P.Init()
 
 	local hub = lib.NewEventHub()
 	hub.Register("PLAYER_ENTERING_WORLD", Queue)
-	-- Bei PLAYER_SPECIALIZATION_CHANGED ruft Blizzard selbst UpdateLayoutInfo auf
-	-- (EditModeManagerFrameMixin:OnEvent) – der Hook genügt. EDIT_MODE_LAYOUTS_UPDATED bleibt
-	-- angemeldet: dort läuft UpdateLayoutInfo in einem pcall (Blizzard: "BUILD FIXME"); scheitert
-	-- es, läuft der Hook nicht.
+	-- On PLAYER_SPECIALIZATION_CHANGED Blizzard itself calls UpdateLayoutInfo
+	-- (EditModeManagerFrameMixin:OnEvent) - the hook is enough. EDIT_MODE_LAYOUTS_UPDATED stays
+	-- registered: there UpdateLayoutInfo runs in a pcall (Blizzard: "BUILD FIXME"); if it
+	-- fails, the hook does not run.
 	hub.Register("EDIT_MODE_LAYOUTS_UPDATED", Queue)
-	-- hooksecurefunc hängt sich nur hinten an und verändert Blizzards Code nicht
+	-- hooksecurefunc only appends itself and does not change Blizzard's code
 	for _, method in ipairs({ "UpdateLayoutInfo", "SelectLayout", "SaveLayouts" }) do
 		hooksecurefunc(EditModeManagerFrame, method, Queue)
 	end

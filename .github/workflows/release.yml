@@ -1,4 +1,4 @@
-# Release bei einem Tag v*: ZIP mit allen qn*-Addon-Ordnern aus AddOns, je Ordner mit LICENSE
+# Release on a tag v*: ZIP with all qn* addon folders from AddOns, each folder with LICENSE
 name: Release
 
 on:
@@ -14,13 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Paket bauen
+      - name: Build package
         shell: pwsh
         run: |
           $tag = $env:GITHUB_REF_NAME
           $out = Join-Path $env:RUNNER_TEMP 'package'
           New-Item -ItemType Directory -Force $out | Out-Null
-          # nur Addon-Ordner mit TOC
+          # only addon folders with a TOC
           $addons = Get-ChildItem AddOns -Directory -Filter 'qn*' | Where-Object { Test-Path (Join-Path $_ "$($_.Name).toc") }
           foreach ($a in $addons) {
             Copy-Item $a.FullName (Join-Path $out $a.Name) -Recurse
@@ -31,7 +31,7 @@ jobs:
           "ZIP=$zip" >> $env:GITHUB_ENV
           Write-Host "Addons: $($addons.Name -join ', ')"
 
-      - name: GitHub-Release anlegen
+      - name: Create GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
