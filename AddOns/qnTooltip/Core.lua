@@ -317,11 +317,15 @@ end
 -- Loading
 ---------------------------------------------------------------------------
 
+-- Version of the settings (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
+
 ns.OnLoad(function()
 	-- Settings per profile (= Edit Mode layout); ns.db is always the active profile.
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnTooltipDB",
+		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.defaults,
 		onSwitch = function()
 			ns.Apply()

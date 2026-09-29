@@ -23,7 +23,6 @@ ns.defaults = {
 	autoVisible = false,    -- keep the window in the visible area automatically (with qnViewPort: on a monitor)
 
 	-- Appearance (values as in the built-in Damage Meter)
-	styleVersion = 2,
 	linkDamageMeter = true, -- take bar values from the built-in Damage Meter
 	style = 0,              -- Enum.DamageMeterStyle: 0 Default, 1 Thin, 2 Bordered, 3 Full Background
 	barHeight = 24,
@@ -159,31 +158,13 @@ end
 -- Loading
 ---------------------------------------------------------------------------
 
--- Adapts a profile from older versions (before the defaults are filled in).
-local function Upgrade(db)
-	-- switch to the Damage Meter look: replace old appearance values.
-	if next(db) and (db.styleVersion or 1) < 2 then
-		for _, key in ipairs({ "barHeight", "barSpacing", "fontSize", "texture", "bgAlpha", "useMyColor", "useTankColor" }) do
-			db[key] = ns.defaults[key]
-		end
-		db.styleVersion = 2
-	end
-	-- Position up to 0.2.0 in window units (depended on the scale), now in units of
-	-- UIParent: convert once using the stored scale.
-	if not db.pointInParentUnits then
-		local p, s = db.point, tonumber(db.scale)
-		if type(p) == "table" and s and s ~= 1 then
-			p[3] = p[3] and math.floor(p[3] * s + 0.5)
-			p[4] = p[4] and math.floor(p[4] * s + 0.5)
-		end
-		db.pointInParentUnits = true
-	end
-end
+-- Version of the settings (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
 
--- Obsolete keys (qnCore deletes them after Upgrade)
+-- Keys of a profile dropped without replacement
 local OBSOLETE = {
-	"fontOutline",   -- before the Damage Meter look
-	"keepVisible",   -- predecessor of autoVisible (was on without asking)
+	"styleVersion",         -- markers of conversions before settings 1.0
+	"pointInParentUnits",
 }
 
 ns.OnLoad(function()
@@ -191,8 +172,8 @@ ns.OnLoad(function()
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnThreatMeterDB",
+		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.defaults,
-		upgrade = Upgrade,
 		obsolete = OBSOLETE,
 		onSwitch = function()
 			ns.Threat.ApplySettings()

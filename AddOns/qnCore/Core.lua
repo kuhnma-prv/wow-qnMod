@@ -19,33 +19,13 @@ ns.profileDefaults = {
 	questTextSize = 0,             -- Objective Tracker font size, 0 = as in Edit Mode (QuestTracker.lua)
 }
 
--- Obsolete keys in qnCoreDB.global
-local OBSOLETE = {
-	"chatTimestamps",   -- timestamp option removed (the game has it)
-}
+-- Version of qnCore's settings (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
 
--- An earlier version stored the bags per profile (qnCoreDB.profiles): copy them once into the
--- account-wide settings - from this character's last active profile.
--- Since ownProfiles is set, qnCoreDB.profiles holds qnCore's own profiles.
-local function MigrateProfiles(db)
-	local profiles = db.profiles
-	if type(profiles) ~= "table" or db.ownProfiles then
-		return
-	end
-	local last = qnCoreCharDB and qnCoreCharDB.layout
-	local src = last and profiles[last]
-	if not src then
-		local _, first = next(profiles)
-		src = first
-	end
-	if type(src) == "table" then
-		if not db.global.bagsShared and type(src.bags) == "table" then
-			db.global.bags = CopyTable(src.bags)
-		end
-	end
-	db.global.bagsShared = nil
-	db.profiles, db.version = nil, nil
-end
+-- Keys of qnCoreDB dropped without replacement
+local OBSOLETE = {
+	"ownProfiles",   -- marker of the move to qnCore's own profiles (before settings 1.0)
+}
 
 ---------------------------------------------------------------------------
 -- Slash commands
@@ -90,17 +70,13 @@ ns.OnLoad(function()
 	qnCoreDB = qnCoreDB or {}
 	qnCoreDB.global = qnCoreDB.global or {}
 	lib.Profiles.Init()
-	MigrateProfiles(qnCoreDB)
-	lib.RemoveKeys(qnCoreDB.global, OBSOLETE)
-	if not qnCoreDB.ownProfiles then
-		qnCoreDB.profiles = {}   -- otherwise Profiles.Register would take the whole table for the old format
-		qnCoreDB.ownProfiles = true
-	end
+	lib.RemoveKeys(qnCoreDB, OBSOLETE)
 
 	ns.global = lib.MergeDefaults(qnCoreDB.global, ns.defaults)
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnCoreDB",
+		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.profileDefaults,
 		onSwitch = function() ns.QuestTracker.Apply() end,
 	})

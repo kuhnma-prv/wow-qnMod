@@ -38,8 +38,12 @@ ns.OPTION_DEFAULTS = {
 	viewsBothFactions = false,   -- character selection of the views: include the other faction
 }
 
+-- Version of the saved data (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
+
 local function InitDB()
 	qnInventoryDB = qnInventoryDB or {}
+	qnCore.Migrate(qnInventoryDB, { name = ADDON, settingsVersion = SETTINGS_VERSION, print = ns.Print })
 	qnInventoryDB.realms = qnInventoryDB.realms or {}
 	qnInventoryDB.options = qnCore.MergeDefaults(qnInventoryDB.options or {}, ns.OPTION_DEFAULTS)
 	ns.options = qnInventoryDB.options
@@ -53,16 +57,12 @@ local function InitDB()
 	qnInventoryDB.realms[ns.realm] = realmDB
 	ns.realmDB = realmDB
 
-	-- entry from version 0.1.0, when the name was queried too early
-	realmDB[UNKNOWNOBJECT] = nil
-
 	local char = realmDB[ns.player] or {}
 	realmDB[ns.player] = char
 	ns.char = char
 	local _, class = UnitClass("player")
 	char.class = qnCore.Plain(class, char.class)   -- secret: keep the previous class
 	char.faction = qnCore.Plain(UnitFactionGroup("player"), char.faction)
-	qnCore.RemoveKeys(char, { "updated" })   -- stored formerly, never read
 end
 
 -- Does a stored character belong to the selection? both = include the other faction.

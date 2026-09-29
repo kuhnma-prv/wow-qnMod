@@ -1,11 +1,10 @@
 -- Scenario 10: position relative to UIParent in the addons (qnCore.PointOffset/NearestCorner):
--- qnThreatMeter stores in UIParent units (one-time conversion of old profiles, no jump when
--- changing the scale), qnBuffMod anchors correctly with a shifted UIParent.
+-- qnThreatMeter stores in UIParent units (no jump when changing the scale, markers of the
+-- conversions before settings 1.0 are deleted), qnBuffMod anchors correctly with a shifted UIParent.
 
 qnCoreCharDB = { layout = "account:Raid" }
-qnThreatMeterDB = { global = {}, profiles = {
-	["account:Raid"] = { scale = 1.5, point = { "TOPLEFT", "BOTTOMLEFT", 100, 600 } },
-	["preset:1"] = { scale = 2, point = { "TOPLEFT", "BOTTOMLEFT", 10, 20 }, pointInParentUnits = true },
+qnThreatMeterDB = { settingsVersion = "1.0", global = {}, profiles = {
+	["account:Raid"] = { scale = 1.5, point = { "TOPLEFT", "BOTTOMLEFT", 150, 900 }, pointInParentUnits = true, styleVersion = 2 },
 } }
 
 LoadAddon("qnCore")
@@ -20,17 +19,16 @@ SetEditModeLayout(3)
 -- qnThreatMeter
 ---------------------------------------------------------------------------
 local raid = qnThreatMeterDB.profiles["account:Raid"]
-Check(raid.pointInParentUnits == true and raid.point[3] == 150 and raid.point[4] == 900,
-	("old profile converted once (× 1.5): %s, %s"):format(raid.point[3], raid.point[4]))
-local pre = qnThreatMeterDB.profiles["preset:1"]
-Check(pre.point[3] == 10 and pre.point[4] == 20, "profile with flag not converted again")
+Check(raid.pointInParentUnits == nil and raid.styleVersion == nil, "obsolete conversion markers deleted")
+Check(raid.point[3] == 150 and raid.point[4] == 900,
+	("position in UIParent units unchanged: %s, %s"):format(raid.point[3], raid.point[4]))
 local f = meter.Threat.frame
 local function LastPoint()
 	return f._points[#f._points]
 end
 local p = LastPoint()
 Check(p[1] == "TOPLEFT" and p[2] == UIParent and p[3] == "BOTTOMLEFT" and math.abs(p[4] - 100) < 1e-9 and math.abs(p[5] - 600) < 1e-9,
-	("same position as before (window units 100, 600): %s, %s"):format(p[4], p[5]))
+	("position in window units (÷ 1.5 = 100, 600): %s, %s"):format(p[4], p[5]))
 SETTINGS.QNTHREATMETER_SCALE:SetValue(2)
 p = LastPoint()
 Check(math.abs(p[4] - 75) < 1e-9 and math.abs(p[5] - 450) < 1e-9 and raid.point[3] == 150,
@@ -42,7 +40,6 @@ f.GetHeight = function() return 100 end
 f.GetEffectiveScale = function() return 2 end
 meter.Window.SavePosition(f)
 Check(raid.point[3] == 100 and raid.point[4] == 400, ("SavePosition in UIParent units: %s, %s"):format(raid.point[3], raid.point[4]))
-Check(meter.store:NewProfileTable().pointInParentUnits == true, "new profile carries the flag")
 
 ---------------------------------------------------------------------------
 -- qnBuffMod: shifted UIParent (qnViewPort: UI on the main monitor)

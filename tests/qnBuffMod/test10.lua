@@ -1,22 +1,23 @@
--- Scenario 10: qnBuffMod – conversion of the old data format, cleanup on load, window management,
--- position, disabled windows, no duplicate display
+-- Scenario 10: qnBuffMod – cleanup on load (sanitize), window management, position,
+-- disabled windows, no duplicate display
 local clicks = {}
 local orig = CreateSettingsButtonInitializer
 function CreateSettingsButtonInitializer(n, bt, click, ...) clicks[bt] = click return orig(n, bt, click, ...) end
 
--- profiles in the old nested format or already in the new one
+-- profiles in the current flat format (db.windows) with invalid values
 qnCoreCharDB = { layout = "preset:1" }
-qnBuffModDB = { global = {}, profiles = {
+qnBuffModDB = { settingsVersion = "1.0", global = {}, profiles = {
 	["preset:1"] = {
 		bgColorBUFF = "rot", flashTime = 500, enableExpiration = 1, expirationTime2 = -5,
-		windowOptionsList = {
-			[1] = { primaryOptionsList = { [1] = {
+		windows = {
+			[1] = {
 				lockWindow = 1, clampWindow = 0, sortSeq1 = 3, sortSeq2 = 3, sortSeq3 = 6, buffSize1 = 99, buffSize2 = 3,
 				windowBackgroundColor = { 1, 2 }, unitType = 9, layoutType = 1.5, detailWidth1 = 600,
 				position = { "TOPLEFT", "UIParent", "BOTTOMLEFT", 100, 200, 265, 80 },
-			} } },
-			[3] = { primaryOptionsList = { [1] = { disableWindow = 1, unitType = 4 } } },
-			[4] = {},
+			},
+			[3] = { disableWindow = 1, unitType = 4, position = { "TOPLEFT", 5 } },
+			[4] = "broken",
+			name = { buffSize1 = 30 },
 		},
 	},
 	["account:Raid"] = { windows = { [2] = { buffSize1 = 25 } } },
@@ -30,25 +31,25 @@ local oldPrint = bm.Print
 bm.Print = function(fmt, ...) printed[#printed + 1] = tostring(fmt):format(...) oldPrint(fmt, ...) end
 
 ---------------------------------------------------------------------------
--- conversion (decision 6) and cleanup (criterion 59)
+-- cleanup on load (criterion 59)
 ---------------------------------------------------------------------------
 local db = qnBuffModDB.profiles["preset:1"]
 Check(bm.db == db, "character's last profile active")
-Check(db.windowOptionsList == nil and type(db.windows) == "table", "old key deleted, flat format")
 local w1 = db.windows[1]
 Check(w1 and w1.lockWindow == true and w1.clampWindow == false, "booleans 1/0 taken over as true/false")
 Check(w1.sortSeq1 == 3 and w1.sortSeq2 == E.group.NONE and w1.sortSeq3 == 6, "duplicate group: the later slot becomes none")
 Check(w1.buffSize1 == 45 and w1.buffSize2 == 15 and w1.detailWidth1 == 400, "icon size and bar width clamped")
 Check(w1.windowBackgroundColor == nil and w1.unitType == nil and w1.layoutType == nil, "invalid color and selection values → default")
-Check(w1.position and w1.position[4] == 100 and w1.position[5] == 200, "position taken over")
-Check(db.windows[3].disableWindow == true and db.windows[3].unitType == 4 and type(db.windows[4]) == "table", "further windows taken over (empty ones too)")
+Check(w1.position and w1.position[4] == 100 and w1.position[5] == 200, "valid position kept")
+Check(db.windows[3].disableWindow == true and db.windows[3].unitType == 4 and db.windows[3].position == nil, "further window cleaned up (invalid position removed)")
+Check(type(db.windows[4]) == "table" and next(db.windows[4]) == nil and db.windows.name == nil, "invalid window entries: non-table → empty window, non-numeric ID removed")
 Check(type(db.bgColorBUFF) == "table" and db.bgColorBUFF[3] == bm.defaults.bgColorBUFF[3], "invalid general color → default")
 Check(db.flashTime == 60 and db.expirationTime2 == 0 and db.enableExpiration == true, "general values clamped, booleans taken over")
-Check(qnBuffModDB.profiles["account:Raid"].windows[2].buffSize1 == 25 and qnBuffModDB.profiles["account:Raid"].windowOptionsList == nil, "profile in the new format unchanged")
-Check(bm.store.seed == nil and bm.store.migrating == nil, "no takeover of foreign settings (no legacy)")
--- one-time: a second pass changes nothing anymore
+Check(qnBuffModDB.profiles["account:Raid"].windows[2].buffSize1 == 25, "valid profile unchanged")
+-- a second pass changes nothing anymore
 bm.store:Prepare(db)
-Check(db.windows[1].buffSize1 == 45 and db.windows[1].sortSeq2 == E.group.NONE, "conversion repeatable without effect")
+Check(db.windows[1].buffSize1 == 45 and db.windows[1].sortSeq2 == E.group.NONE and db.windows[1].lockWindow == true,
+	"cleanup repeatable without effect")
 
 -- position before the first arrangement: saved position
 local points = {}

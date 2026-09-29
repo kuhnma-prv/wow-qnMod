@@ -16,8 +16,10 @@ L["Profile changed: %s"] = "Profil gewechselt: %s"
 L["As in Edit Mode"] = "Wie im Bearbeitungsmodus"
 L["Objective Tracker text size below Blizzard's minimum of 12 (headers 2 larger). \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."] = "Schriftgröße der Questzielverfolgung unterhalb von Blizzards Minimum 12 (Überschriften 2 größer). „Wie im Bearbeitungsmodus“: es gilt Blizzards Regler. Gilt je Layout des Bearbeitungsmodus."
 
+-- Library.lua
+L["Saved settings of %s have version %s, this addon version knows %s: nothing is converted."] = "Die gespeicherten Einstellungen von %s haben die Version %s, diese Addon-Version kennt %s: es wird nichts umgewandelt."
+
 -- Profiles.lua
-L["Previous settings moved into profile %s."] = "Bisherige Einstellungen in das Profil %s übernommen."
 L["not yet determined"] = "noch nicht ermittelt"
 L["%s (Blizzard preset)"] = "%s (Blizzard-Vorgabe)"
 L["%s (character-specific, %s)"] = "%s (charakterspezifisch, %s)"

@@ -8,17 +8,18 @@
 --                              character, hence the character is part of the key
 --
 -- Each addon registers its saved variable in its ADDON_LOADED:
---   store = qnCore.Profiles.Register({ ns, sv, defaults, upgrade, obsolete, legacy, onSwitch })
+--   store = qnCore.Profiles.Register({ ns, sv, defaults, settingsVersion, migrations, obsolete,
+--                                      sanitize, onSwitch })
 -- and always finds the active profile's table in ns.db (= store.db). store:Set(key, value)
 -- or store:SetValues(values) changes values so that the settings window shows them too.
 -- Structure of the saved variable:
---   { profiles = { [key] = {...} }, global = {...} }
--- store.global is account-wide and not tied to any profile.
+--   { settingsVersion = "1.0", profiles = { [key] = {...} }, global = {...} }
+-- store.global is account-wide and not tied to any profile. Migrations between settings
+-- versions: qnCore.Migrate (Library.lua).
 --
--- On the first start after the rework, the previous settings (old format without
--- profiles or opts.legacy) become the current profile. A layout that has no profile
--- yet starts with a copy of the profile active until then. Until the layout is known after
--- logging in, the profile of this character's last session applies (qnCoreCharDB.layout).
+-- A layout that has no profile yet starts with a copy of the profile active until then.
+-- Until the layout is known after logging in, the profile of this character's last session
+-- applies (qnCoreCharDB.layout).
 
 local _, ns = ...
 local lib = qnCore
@@ -43,13 +44,14 @@ local TYPE_CHARACTER = Enum.EditModeLayoutType.Character
 local Store = {}
 Store.__index = Store
 
--- Brings a profile table up to date: conversions (upgrade), delete obsolete
--- keys (obsolete, after upgrade - which can still read them), fill in defaults.
+-- Brings a profile table into shape: delete obsolete keys, let the addon repair invalid
+-- values (sanitize; setting a value to nil brings back its default), fill in defaults.
+-- Conversions between settings versions are done beforehand by qnCore.Migrate.
 function Store:Prepare(db)
-	if self.upgrade then
-		self.upgrade(db)
-	end
 	lib.RemoveKeys(db, self.obsolete)
+	if self.sanitize then
+		self.sanitize(db)
+	end
 	lib.MergeDefaults(db, self.defaults)
 	return db
 end
@@ -92,29 +94,14 @@ function Store:SetDB(db)
 	end
 end
 
--- New profile table: copy of the active profile or of the template from the old format.
+-- New profile table: copy of the active profile, otherwise the defaults.
 function Store:NewProfileTable()
-	return self:Prepare(CopyTable(self.db or self.seed or {}))
+	return self:Prepare(CopyTable(self.db or {}))
 end
 
 -- Switches to profile key. Returns true if ns.db has changed.
 function Store:Activate(key)
 	local profiles = self.sv.profiles
-	if self.migrating then
-		-- First start after the rework: the previous settings (including changes since
-		-- loading) become the current profile. If a profile already exists for it (e.g. taken over
-		-- from another character with its own earlier SavedVariablesPerCharacter), it
-		-- is kept and the previous values are discarded.
-		self.migrating = nil
-		if not profiles[key] then
-			profiles[key] = self.db
-			self.key = key
-			if self.ns and self.ns.Print then
-				self.ns.Print(L["Previous settings moved into profile %s."], P.GetLabel(key))
-			end
-			return false
-		end
-	end
 	local db = profiles[key]
 	if not db then
 		if self.key == nil and self.db then
@@ -213,52 +200,24 @@ end
 -- Registration
 ---------------------------------------------------------------------------
 
--- Load saved variable opts.sv and bring it into profile format (also write it back to _G).
--- Returns sv and seed: the previous settings from the old format without profiles or from
--- opts.legacy, otherwise nil.
+-- Keys of the saved variable itself from the profile migration before settings version 1.0
+local ROOT_OBSOLETE = { "migrated", "version" }
+
+-- Load saved variable opts.sv (also write it back to _G).
 local function LoadSavedVariable(opts)
 	local sv = _G[opts.sv]
 	if type(sv) ~= "table" then
 		sv = {}
 	end
-	local seed
-	if sv.profiles == nil then
-		-- old format without profiles: the whole table becomes the template for the first profile
-		if next(sv) then
-			seed = sv
-		end
-		sv = {}
-	end
-	sv.version = nil   -- saved in the past, never read
-	sv.profiles = sv.profiles or {}
-	sv.global = sv.global or {}
+	lib.RemoveKeys(sv, ROOT_OBSOLETE)
+	sv.profiles = type(sv.profiles) == "table" and sv.profiles or {}
+	sv.global = type(sv.global) == "table" and sv.global or {}
 	_G[opts.sv] = sv
-
-	if not seed and type(opts.legacy) == "table" and next(opts.legacy) then
-		seed = CopyTable(opts.legacy)
-	end
-	return sv, seed
+	return sv
 end
 
 -- Choose the start profile of the newly registered store.
-local function ChooseStartProfile(store, sv, seed)
-	if seed then
-		-- Previous settings: become the current profile at the first detected layout.
-		-- A copy remains as template (sv.migrated) for characters that later log in for the first
-		-- time with a layout without profile.
-		store:Prepare(seed)
-		sv.migrated = sv.migrated or CopyTable(seed)
-		store.migrating = true
-		store:SetDB(seed)
-		if activeKey then
-			store:Activate(activeKey)
-		end
-		return
-	end
-
-	if type(sv.migrated) == "table" then
-		store.seed = store:Prepare(sv.migrated)
-	end
+local function ChooseStartProfile(store, sv)
 	-- Start profile: the known layout, otherwise that of the last session, otherwise a
 	-- provisional table that becomes the profile of the first detected layout.
 	local key = activeKey or (qnCoreCharDB and qnCoreCharDB.layout)
@@ -272,29 +231,37 @@ local function ChooseStartProfile(store, sv, seed)
 	end
 end
 
--- opts.ns        namespace; ns.db is set on every switch
--- opts.name      addon name (display, key in P.stores); default: name from qnCore.NewAddon
--- opts.sv        name of the saved variable (## SavedVariables)
--- opts.defaults  defaults
--- opts.upgrade   function(db) - converts older tables (optional)
--- opts.obsolete  list of obsolete keys to delete, also "dual.uiOnMain" (optional)
--- opts.legacy    table in the old format without profiles, e.g. from an earlier
---                SavedVariablesPerCharacter (optional)
--- opts.onSwitch  function(store) - after a profile switch (optional)
+-- opts.ns               namespace; ns.db is set on every switch
+-- opts.name             addon name (display, key in P.stores); default: name from qnCore.NewAddon
+-- opts.sv               name of the saved variable (## SavedVariables)
+-- opts.defaults         defaults of a profile
+-- opts.settingsVersion  version of the settings, "1.0" (see qnCore.Migrate)
+-- opts.migrations       { [major] = function(sv) } - conversions for a new major version (optional)
+-- opts.obsolete         keys of a profile dropped without replacement, also "dual.uiOnMain" (optional)
+-- opts.sanitize         function(db) - repairs invalid values of a profile on every load (optional)
+-- opts.onSwitch         function(store) - after a profile switch (optional)
 function P.Register(opts)
 	assert(qnCoreDB, "qnCore.Profiles.Register: call only in the addon's own ADDON_LOADED.")   -- do not translate: developer hint
-	local sv, seed = LoadSavedVariable(opts)
+	assert(opts.upgrade == nil and opts.legacy == nil,
+		"qnCore.Profiles.Register: upgrade/legacy were removed - use migrations or sanitize.")   -- do not translate: developer hint
+	local sv = LoadSavedVariable(opts)
 
 	local name = opts.name or (opts.ns and ns.addonNames[opts.ns])
 	assert(name, "qnCore.Profiles.Register: name missing (register ns with qnCore.NewAddon first).")   -- do not translate: developer hint
+	lib.Migrate(sv, {
+		name = name,
+		settingsVersion = opts.settingsVersion,
+		migrations = opts.migrations,
+		print = opts.ns and opts.ns.Print,
+	})
 	local store = setmetatable({
 		name = name,
 		ns = opts.ns,
 		sv = sv,
 		global = sv.global,
 		defaults = opts.defaults or {},
-		upgrade = opts.upgrade,
 		obsolete = opts.obsolete or {},
+		sanitize = opts.sanitize,
 		onSwitch = opts.onSwitch,
 		builders = {},
 	}, Store)
@@ -305,7 +272,7 @@ function P.Register(opts)
 	for _, db in pairs(sv.profiles) do
 		store:Prepare(db)
 	end
-	ChooseStartProfile(store, sv, seed)
+	ChooseStartProfile(store, sv)
 
 	stores[#stores + 1] = store
 	stores[name] = store

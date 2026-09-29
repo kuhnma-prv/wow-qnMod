@@ -1,5 +1,5 @@
 -- Scenario 7: qnViewPort – account-wide values and profile switch
---   * layoutKey and mapFadeSaved moved from old profiles to qnViewPortDB.global
+--   * layoutKey and mapFadeSaved live account-wide in qnViewPortDB.global
 --   * an applied monitor arrangement counts once per arrangement, not once per profile
 --   * without dual monitor mode, with monitor data: main monitor viewport not cut to half
 --     the window width
@@ -7,10 +7,9 @@
 
 local KEY = "5760x2160;0,0,3840,2160*;3840,377,1920,1200"   -- arrangement from qnViewPort\Monitors.lua
 qnCoreCharDB = { layout = "account:Raid" }
-qnViewPortDB = { global = {}, profiles = {
-	["account:Raid"] = { viewport = { 10, 1920, 0, 0 },
-		dual = { enabled = true, mapNoFade = true, mapFadeSaved = "1", layoutKey = KEY } },
-	["char:Tester-Realm:Solo"] = { viewport = { 5, 0, 0, 0 }, dual = { enabled = false, layoutKey = "" } },
+qnViewPortDB = { settingsVersion = "1.0", global = { layoutKey = KEY, mapFadeSaved = "1" }, profiles = {
+	["account:Raid"] = { viewport = { 10, 1920, 0, 0 }, dual = { enabled = true, mapNoFade = true } },
+	["char:Tester-Realm:Solo"] = { viewport = { 5, 0, 0, 0 }, dual = { enabled = false } },
 } }
 C_CVar._v.mapFade = "0"   -- set by mapNoFade (previously 1)
 local CHAT = {}
@@ -33,10 +32,9 @@ RunTimers()
 local raid, solo = qnViewPortDB.profiles["account:Raid"], qnViewPortDB.profiles["char:Tester-Realm:Solo"]
 local g = qnViewPortDB.global
 
--- 1. migration
-Check(g.layoutKey == KEY and raid.dual.layoutKey == nil and solo.dual.layoutKey == nil,
-	"layoutKey moved to account-wide, removed from the profiles: " .. tostring(g.layoutKey))
-Check(g.mapFadeSaved == "1" and raid.dual.mapFadeSaved == nil, "mapFadeSaved moved to account-wide")
+-- 1. login with account-wide values
+Check(g.layoutKey == KEY, "layoutKey account-wide kept: " .. tostring(g.layoutKey))
+Check(g.mapFadeSaved == "1", "mapFadeSaved account-wide kept")
 Check(vp.global == g, "ns.global = qnViewPortDB.global")
 Check(C_CVar._v.mapFade == "0", "Raid with mapNoFade: mapFade stays 0")
 Check(Taken() == 0 and raid.viewport[1] == 10, "known arrangement: not applied again")

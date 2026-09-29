@@ -68,24 +68,15 @@ ns.defaults = {
 	y = -100,
 }
 
-local hintSeen = false   -- a profile had already shown the hint (hintShown up to 1.1.0)
+-- Version of the settings (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
 
--- Upgrades a profile from older versions (before the defaults are filled in).
-local function Upgrade(db)
+-- Check of a profile on every load: an unknown key layout falls back to the default.
+local function Sanitize(db)
 	if db.layout ~= nil and not ns.GetLayout(db.layout) then
 		db.layout = nil
 	end
-	-- The first-login hint is now account-wide (store.global.hintShown)
-	if db.hintShown then
-		hintSeen = true
-	end
 end
-
--- Obsolete keys (qnCore deletes them after Upgrade)
-local OBSOLETE = {
-	"keepVisible",   -- predecessor of autoVisible (was on without asking)
-	"hintShown",     -- per profile up to 1.1.0, now account-wide
-}
 
 ---------------------------------------------------------------------------
 -- Helpers
@@ -157,24 +148,15 @@ end)
 local events = ns.events
 
 ns.OnLoad(function()
-	-- Settings per profile (= Edit Mode layout, qnCore); ns.db is always
-	-- the active profile. Up to version 1.0 they were stored per character in qnNumKeyPadDB -
-	-- that table serves once as a template and is deleted after the first profile switch.
+	-- Settings per profile (= Edit Mode layout, qnCore); ns.db is always the active profile.
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnNumKeyPadProfiles",
+		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.defaults,
-		upgrade = Upgrade,
-		obsolete = OBSOLETE,
-		legacy = qnNumKeyPadDB,
+		sanitize = Sanitize,
 		onSwitch = ns.ApplyAndCheck,
 	})
-	if hintSeen then
-		ns.store.global.hintShown = true
-	end
-	lib.Profiles.OnChange(function()
-		qnNumKeyPadDB = nil
-	end)
 	ns.CreateBar()
 	ns.InitOptions()
 end)

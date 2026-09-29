@@ -1,4 +1,4 @@
--- Scenario 12: qnCore review – migrating old settings when a profile exists, profile page
+-- Scenario 12: qnCore review – existing profile is kept on registration, profile page
 -- in combat, tracking spells outside the menu, errors in OnChange callbacks, Keep after
 -- combat, MergeDefaults with wrong type
 
@@ -11,28 +11,26 @@ local P = qnCore.Profiles
 local ERRS = {}
 geterrorhandler = function() return function(e) ERRS[#ERRS + 1] = tostring(e) end end
 
--- test addon with template from an earlier SavedVariablesPerCharacter (like qnNumKeyPad)
+-- test addon on a saved variable that already has a profile
 local switches = {}
-local function Register(name, legacy)
+local function Register(name)
 	local ns = qnCore.NewAddon({}, name)
 	switches[name] = 0
-	local store = P.Register({ ns = ns, sv = "QN_TEST32_SV", defaults = { scale = 1, color = { r = 1, g = 1 } }, legacy = legacy,
+	local store = P.Register({ ns = ns, sv = "QN_TEST32_SV", settingsVersion = "1.0", defaults = { scale = 1, color = { r = 1, g = 1 } },
 		onSwitch = function() switches[name] = switches[name] + 1 end })
 	return store, ns
 end
 
 ---------------------------------------------------------------------------
--- 1. old values do not overwrite an existing profile
+-- 1. existing profile is kept, defaults filled in
 ---------------------------------------------------------------------------
-local a = Register("qnTestA", { scale = 2 })
-local b = Register("qnTestB", { scale = 3 })   -- second character, layout still unknown
+QN_TEST32_SV = { settingsVersion = "1.0", profiles = { ["account:Raid"] = { scale = 2 } } }
+local a = Register("qnTestA")
 SetEditModeLayout(3)
 local raid = QN_TEST32_SV.profiles["account:Raid"]
-Check(raid ~= nil and raid.scale == 2 and a.db == raid, "first migration becomes the profile: " .. tostring(raid and raid.scale))
-Check(b.db == raid and b.db.scale == 2, "second migration does not overwrite the existing profile: " .. tostring(b.db.scale))
-Check(switches.qnTestB == 1 and switches.qnTestA == 0, "discarded old values: switched normally (onSwitch)")
-local c = Register("qnTestC", { scale = 9 })   -- layout already known
-Check(c.db == raid and raid.scale == 2 and not c.migrating, "with known layout too: profile stays: " .. tostring(raid.scale))
+Check(raid ~= nil and raid.scale == 2 and a.db == raid, "existing profile active, value kept: " .. tostring(raid and raid.scale))
+local c = Register("qnTestC")   -- layout already known
+Check(c.db == raid and raid.scale == 2, "with known layout too: profile stays: " .. tostring(raid.scale))
 Check(type(raid.color) == "table" and raid.color.r == 1, "defaults filled in")
 
 ---------------------------------------------------------------------------
