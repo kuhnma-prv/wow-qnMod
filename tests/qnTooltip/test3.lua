@@ -83,24 +83,24 @@ local lines = GameTooltip:Texts()
 Check(lines[1] == "|T135349:16:16:0:0:32:32:2:30:2:30|t Donnerzorn", "Symbol vor dem Namen: " .. lines[1])
 Check(bd._bdBorder[1] == 0.64 and bd._bdBorder[4] == 0.8, "Rahmen in Qualitätsfarbe")
 local text = table.concat(lines, "\n")
-Check(text:find(L["Gegenstands-ID"] .. ": |cffffffff19019|r", 1, true) and text:find(L["Symbol-ID"] .. ": |cffffffff135349|r", 1, true), "Gegenstands- und Symbol-ID")
+Check(text:find(L["Item ID"] .. ": |cffffffff19019|r", 1, true) and text:find(L["Icon ID"] .. ": |cffffffff135349|r", 1, true), "Gegenstands- und Symbol-ID")
 Check(not text:find(AUCTION_STACK_SIZE, 1, true), "Stapelgröße nur bei stapelbaren Gegenständen")
 ProcessTooltip(GameTooltip, { type = Enum.TooltipDataType.Item, id = 2589, lines = { { type = Enum.TooltipDataLineType.ItemName, leftText = "Leinenstoff" } } })
 Check(table.concat(GameTooltip:Texts(), "\n"):find(AUCTION_STACK_SIZE .. ": |cffffffff20|r", 1, true), "Stapelgröße 20")
 
 SETTINGS.QNTOOLTIP_IDSWITHMODIFIER:SetValue(true)
 ProcessTooltip(GameTooltip, { type = Enum.TooltipDataType.Item, id = 2589, lines = { { type = Enum.TooltipDataLineType.ItemName, leftText = "Leinenstoff" } } })
-Check(not table.concat(GameTooltip:Texts(), "\n"):find(L["Gegenstands-ID"], 1, true), "IDs nur mit Zusatztaste")
+Check(not table.concat(GameTooltip:Texts(), "\n"):find(L["Item ID"], 1, true), "IDs nur mit Zusatztaste")
 SETTINGS.QNTOOLTIP_IDSWITHMODIFIER:SetValue(false)
 
 ProcessTooltip(GameTooltip, { type = Enum.TooltipDataType.Spell, id = 133, lines = { { type = Enum.TooltipDataLineType.SpellName, leftText = "Feuerball" } } })
 lines = GameTooltip:Texts()
 Check(lines[1] == "|T136133:16:16:0:0:32:32:2:30:2:30|t Feuerball", "Zaubersymbol")
-Check(table.concat(lines, "\n"):find(L["Zauber-ID"] .. ": |cffffffff133|r", 1, true), "Zauber-ID")
+Check(table.concat(lines, "\n"):find(L["Spell ID"] .. ": |cffffffff133|r", 1, true), "Spell ID")
 Check(bd._bdColor[4] == 0.8, "Zauber: eigener Hintergrund")
 
 ProcessTooltip(ItemRefTooltip, { type = Enum.TooltipDataType.Quest, id = 783, lines = { { type = 0, leftText = "Eine Bedrohung" } } })
-Check(table.concat(ItemRefTooltip:Texts(), "\n"):find(L["Quest-ID"] .. ": |cffffffff783|r", 1, true), "Quest-ID im ItemRefTooltip")
+Check(table.concat(ItemRefTooltip:Texts(), "\n"):find(L["Quest ID"] .. ": |cffffffff783|r", 1, true), "Quest-ID im ItemRefTooltip")
 Check(ItemRefTooltip.qnBackdrop._bdBorder[1] == 0.25, "Quest: Rahmen in Schwierigkeitsfarbe")
 
 ---------------------------------------------------------------------------
@@ -145,31 +145,31 @@ local nameRow
 for _, row in ipairs(p.rows) do if row.key == "name" then nameRow = row end end
 nameRow.edit._scripts.OnClick(nameRow.edit)
 Check(p.selected == "name" and nameRow.sel:IsShown() and not p.rows[1].sel:IsShown(), "Stift wechselt den Baustein")
-Check(ed.TitleContainer.TitleText._text == L["Baustein: %s"]:format(NAME) and ed.color:IsShown() and not ed.iconNote:IsShown(), "Dialog für Text")
-Check(ed.color._text == L["Klassenfarbe"], "Farbauswahl zeigt Klassenfarbe")
+Check(ed.TitleContainer.TitleText._text == L["Element: %s"]:format(NAME) and ed.color:IsShown() and not ed.iconNote:IsShown(), "Dialog für Text")
+Check(ed.color._text == L["Class Color"], "Farbauswahl zeigt Klassenfarbe")
 -- eigene Farbe über den Farbwähler
 for i, r in ipairs(ed.color._radios) do
-	if r.text == L["Eigene Farbe …"] then ed.color:PickRadio(i) end
+	if r.text == L["Custom color …"] then ed.color:PickRadio(i) end
 end
 ColorPickerFrame._rgb = { 1, 0, 0 }
 ColorPickerFrame._info.swatchFunc()
 Check(tt.db.player.elements.name.color == "ff0000", "eigene Farbe gespeichert")
-Check(ed.color._text == L["Eigene Farbe …"] and ed.swatch._color[1] == 1, "Anzeige der eigenen Farbe")
+Check(ed.color._text == L["Custom color …"] and ed.swatch._color[1] == 1, "Anzeige der eigenen Farbe")
 Check(nameRow.preview._text:find("|cffff0000", 1, true), "Vorschau der Zeile in der eigenen Farbe")
 -- Abbrechen im Farbwähler: vorheriger Wert zurück, auch eine Farbfunktion
 for i, r in ipairs(ed.color._radios) do
-	if r.text == L["Klassenfarbe"] then ed.color:PickRadio(i) end
+	if r.text == L["Class Color"] then ed.color:PickRadio(i) end
 end
 for i, r in ipairs(ed.color._radios) do
-	if r.text == L["Eigene Farbe …"] then ed.color:PickRadio(i) end
+	if r.text == L["Custom color …"] then ed.color:PickRadio(i) end
 end
 ColorPickerFrame._rgb = { 0, 1, 0 }
 ColorPickerFrame._info.swatchFunc()
 Check(tt.db.player.elements.name.color == "00ff00", "Farbwähler: Farbe beim Ziehen übernommen")
 ColorPickerFrame:Cancel()
-Check(tt.db.player.elements.name.color == "class" and ed.color._text == L["Klassenfarbe"], "Abbrechen: Klassenfarbe zurück")
+Check(tt.db.player.elements.name.color == "class" and ed.color._text == L["Class Color"], "Abbrechen: Klassenfarbe zurück")
 for i, r in ipairs(ed.color._radios) do
-	if r.text == L["Eigene Farbe …"] then ed.color:PickRadio(i) end
+	if r.text == L["Custom color …"] then ed.color:PickRadio(i) end
 end
 ColorPickerFrame._rgb = { 1, 0, 0 }
 ColorPickerFrame._info.swatchFunc()
@@ -209,7 +209,7 @@ Check(not ed:IsShown() and tt.db.player.elements.moveSpeed.format == "%d km/h", 
 -- Abbrechen stellt alles wieder her, auch schon übernommene Änderungen (Farbe, Format, Filter)
 nameRow.edit._scripts.OnClick(nameRow.edit)
 for i, r in ipairs(ed.color._radios) do
-	if r.text == L["Farbe der Fraktion"] then ed.color:PickRadio(i) end
+	if r.text == L["Faction Color"] then ed.color:PickRadio(i) end
 end
 ed.format:SetText("[%s]")
 ed.format._scripts.OnEnterPressed(ed.format)
@@ -261,4 +261,4 @@ SETTINGS.QNTOOLTIP_BGFILE:SetValue("dark")
 SetEditModeLayout(1)
 Check(bd._backdrop.bgFile:find("Marble", 1, true), "zurück: Profil 1 angewendet")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

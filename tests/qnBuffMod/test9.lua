@@ -8,13 +8,13 @@ local F = bm.FormatTime
 ---------------------------------------------------------------------------
 -- Zeitformate (Kriterium 45)
 ---------------------------------------------------------------------------
-Check(F(1, 1, true) == L["1 Sekunde"] and F(60, 1, true) == L["%d Sekunden"]:format(60) and F(61, 1, true) == L["%d Minuten"]:format(2), "Format 1: Sekunden bis 60, darüber Minuten")
-Check(F(3540, 1, true) == L["%d Minuten"]:format(59) and F(3541, 1, true) == L["1 Stunde"] and F(120, 1, true) == L["%d Minuten"]:format(2), "Format 1: Grenze 3540")
-Check(F(86340, 1, true) == L["%d Stunden"]:format(24) and F(86341, 1, true) == L["1 Tag"] and F(86341, 1, false) == L["%d Stunden"]:format(24), "Format 1: Grenze 86340, Tage nur mit showDays")
-Check(F(200000, 1, true) == L["%d Tage"]:format(3) and F(200000, 1, false) == L["%d Stunden"]:format(56), "Format 1: Tage bzw. Stunden über 24 h")
-Check(F(90, 1, true) == L["%d Minuten"]:format(2) and F(9.2, 1, true) == L["%d Sekunden"]:format(10), "Format 1: aufgerundet")
-Check(F(3700, 2, true) == L["%d Std"]:format(2) and F(1, 2, true) == L["%d Sek"]:format(1) and F(1800, 2, true) == L["%d Min"]:format(30)
-	and F(90000, 2, true) == L["%d Tag"]:format(2), "Format 2")
+Check(F(1, 1, true) == L["1 second"] and F(60, 1, true) == L["%d seconds"]:format(60) and F(61, 1, true) == L["%d minutes"]:format(2), "Format 1: Sekunden bis 60, darüber Minuten")
+Check(F(3540, 1, true) == L["%d minutes"]:format(59) and F(3541, 1, true) == L["1 hour"] and F(120, 1, true) == L["%d minutes"]:format(2), "Format 1: Grenze 3540")
+Check(F(86340, 1, true) == L["%d hours"]:format(24) and F(86341, 1, true) == L["1 day"] and F(86341, 1, false) == L["%d hours"]:format(24), "Format 1: Grenze 86340, Tage nur mit showDays")
+Check(F(200000, 1, true) == L["%d days"]:format(3) and F(200000, 1, false) == L["%d hours"]:format(56), "Format 1: Tage bzw. Stunden über 24 h")
+Check(F(90, 1, true) == L["%d minutes"]:format(2) and F(9.2, 1, true) == L["%d seconds"]:format(10), "Format 1: aufgerundet")
+Check(F(3700, 2, true) == L["%d hour"]:format(2) and F(1, 2, true) == L["%d sec"]:format(1) and F(1800, 2, true) == L["%d min"]:format(30)
+	and F(90000, 2, true) == L["%d day"]:format(2), "Format 2")
 Check(F(1800, 3, true) == "30m" and F(59, 3, true) == "59s" and F(90000, 3, true) == "2d" and F(90000, 3, false) == "25h", "Format 3")
 Check(F(3700, 4, true) == "1h 01m" and F(59, 4, true) == "59s" and F(61, 4, true) == "1m 01s" and F(90061, 4, true) == "1d 1h"
 	and F(90061, 4, false) == "25h 01m", "Format 4")
@@ -255,4 +255,4 @@ Check(first.entry.icon._points[1][1] == "RIGHT" and win.edges.barLeft == 245 and
 	("Symbol auf der Nicht-Vorgabeseite: Leiste außerhalb, Hintergrund links verbreitert (%s, %s)"):format(tostring(win.frame._w), tostring(first.x)))
 SETTINGS.QNBUFFMOD_B_RIGHTALIGN1:SetValue(E.side.LEFT)
 Check(bm.GetEntries(1)[1].entry.icon._points[1][1] == "LEFT" and win.edges.barLeft == 0, "Symbol links")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

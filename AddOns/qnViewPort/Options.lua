@@ -90,9 +90,9 @@ local function Refresh()
 	inner:SetPoint("TOPLEFT", preview, "TOPLEFT", PAD + pending[1] / w * pw, -(PAD + pending[3] / h * ph))
 	inner:SetPoint("BOTTOMRIGHT", preview, "BOTTOMRIGHT", -(PAD + pending[2] / w * pw), PAD + pending[4] / h * ph)
 
-	ratioScreen:SetText(L["|cffccccccBildschirmauflösung: |cffffffff%s"]:format(w .. " × " .. h .. " – " .. Quotient(w / h)))
+	ratioScreen:SetText(L["|cffccccccScreen resolution: |cffffffff%s"]:format(w .. " × " .. h .. " – " .. Quotient(w / h)))
 	local vw, vh = w - pending[1] - pending[2], h - pending[3] - pending[4]
-	ratioView:SetText(L["|cffccccccEigener Viewport: |cffffffff%s"]:format(vw .. " × " .. vh .. " – " .. (vh > 0 and Quotient(vw / vh) or "0")))
+	ratioView:SetText(L["|cffccccccCustom viewport: |cffffffff%s"]:format(vw .. " × " .. vh .. " – " .. (vh > 0 and Quotient(vw / vh) or "0")))
 end
 
 local function SetPending(v, changed)
@@ -146,9 +146,9 @@ local function KeepTick()
 		EndKeep()
 		ns.db.viewport = previous
 		ns.ShowViewport(previous)
-		ns.Print(L["Einstellung nicht bestätigt – vorherigen Viewport wiederhergestellt."])
+		ns.Print(L["Setting not confirmed – previous viewport restored."])
 	else
-		keepButton:SetText(L["Einstellung behalten? Zurück in %d s"]:format(math.ceil(left)))
+		keepButton:SetText(L["Keep Settings?  Reverting in %d sec."]:format(math.ceil(left)))
 	end
 end
 
@@ -249,7 +249,7 @@ local function Box(index, tooltip)
 			end
 		end
 	end)
-	UI.Tooltip(box, tooltip, L["Pixel, Eingabe mit Enter bestätigen."])
+	UI.Tooltip(box, tooltip, L["Pixels, press Enter to confirm."])
 	boxes[index] = box
 	return box
 end
@@ -298,7 +298,7 @@ local function Build()
 	local desc = page.top
 
 	local tips = UI.Text(content, "GameFontHighlightSmall",
-		L["|cffffffff/qnvp|r  Optionen öffnen     |cffffffff/qnvp 0 0 0 0|r  zurücksetzen     |cffffffff/qnvp 5 20 15 0|r  links, rechts, oben, unten setzen"])
+		L["|cffffffff/qnvp|r  open options     |cffffffff/qnvp 0 0 0 0|r  reset     |cffffffff/qnvp 5 20 15 0|r  set left, right, top, bottom"])
 	tips:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -8)
 
 	local w, h = ns.screen[1], ns.screen[2]
@@ -314,7 +314,7 @@ local function Build()
 	local fill = inner:CreateTexture(nil, "BACKGROUND")
 	fill:SetAllPoints()
 	fill:SetColorTexture(1, 1, 0, 0.1)
-	local label = UI.Text(inner, "GameFontNormal", L["Spielwelt"])
+	local label = UI.Text(inner, "GameFontNormal", L["Game world"])
 	label:SetPoint("CENTER")
 	CreateHandles()
 
@@ -326,17 +326,17 @@ local function Build()
 	applyButton = UI.Button(content, APPLY, 130, function()
 		ClearFocusAll()
 		ns.ApplyWithConfirm(pending)
-	end, L["Ohne Bestätigung wird die Einstellung nach %d Sekunden zurückgenommen."]:format(KEEP_SECONDS))
+	end, L["Without confirmation the setting reverts after %d seconds."]:format(KEEP_SECONDS))
 	applyButton:SetPoint("TOPRIGHT", boxes[4], "BOTTOM", -6, -10)
 
 	resetButton = UI.Button(content, RESET, 130, function()
 		ClearFocusAll()
 		EndKeep()
 		ns.ApplyViewport({ 0, 0, 0, 0 })
-	end, L["Ganze Bildschirmfläche für die Spielwelt (/qnvp 0 0 0 0)."])
+	end, L["Whole screen for the game world (/qnvp 0 0 0 0)."])
 	resetButton:SetPoint("TOPLEFT", boxes[4], "BOTTOM", 6, -10)
 
-	keepButton = UI.Button(content, L["Einstellung behalten?"], 280, EndKeep)
+	keepButton = UI.Button(content, L["Keep Settings?"], 280, EndKeep)
 	keepButton:SetPoint("TOP", boxes[4], "BOTTOM", 0, -10)
 	keepButton:Hide()
 
@@ -351,7 +351,7 @@ local function Build()
 	check:SetScript("OnClick", function(self)
 		ns.db.suppressMessage = self:GetChecked() and true or false
 	end)
-	local checkText = UI.Text(content, "GameFontHighlight", L["Hinweis beim Einloggen unterdrücken"])
+	local checkText = UI.Text(content, "GameFontHighlight", L["Suppress the on-load message"])
 	checkText:SetPoint("LEFT", check, "RIGHT", 2, 0)
 
 	colorSwatch = CreateFrame("Button", nil, content)
@@ -365,11 +365,11 @@ local function Build()
 	colorSwatch.tex:SetPoint("BOTTOMRIGHT", -2, 2)
 	UpdateSwatch()
 	colorSwatch:SetScript("OnClick", OpenColorPicker)
-	local colorText = UI.Text(content, "GameFontHighlight", L["Farbe der Fläche außerhalb der Welt"])
+	local colorText = UI.Text(content, "GameFontHighlight", L["Color of the area outside the world"])
 	colorText:SetPoint("LEFT", colorSwatch, "RIGHT", 8, 0)
 
 	-- Hintergrundmuster über der Farbe
-	local patternText = UI.Text(content, "GameFontHighlight", L["Hintergrundmuster"])
+	local patternText = UI.Text(content, "GameFontHighlight", L["Background pattern"])
 	patternText:SetPoint("TOPLEFT", colorSwatch, "BOTTOMLEFT", 0, -16)
 	patternDropdown = UI.Dropdown(content, 220, ns.PatternChoices, function()
 		return ns.db.pattern
@@ -377,12 +377,12 @@ local function Build()
 		ns.db.pattern = value
 		ns.UpdateBorderLook()
 		alphaSlider:SetEnabled(value ~= "none")
-	end, L["Kein Muster (nur Farbe)"])
+	end, L["No pattern (color only)"])
 	patternDropdown:SetPoint("LEFT", patternText, "LEFT", 170, 0)
-	UI.Tooltip(patternDropdown, L["Hintergrundmuster"],
-		L["Gekacheltes Muster über der Farbe der Fläche außerhalb der Welt. Die Farbe bleibt darunter sichtbar, soweit das Muster durchscheint."])
+	UI.Tooltip(patternDropdown, L["Background pattern"],
+		L["Tiled pattern over the color of the area outside the world. The color stays visible underneath wherever the pattern lets it show through."])
 
-	local alphaText = UI.Text(content, "GameFontHighlight", L["Deckkraft des Musters"])
+	local alphaText = UI.Text(content, "GameFontHighlight", L["Pattern opacity"])
 	alphaText:SetPoint("TOPLEFT", patternText, "BOTTOMLEFT", 0, -22)
 	alphaSlider = CreateFrame("Frame", nil, content, "MinimalSliderWithSteppersTemplate")
 	alphaSlider:SetSize(220, 20)
@@ -427,7 +427,7 @@ end
 -- setzt ns.category und ns.OpenOptions
 function ns.InitOptions()
 	page = UI.Page("qnViewPort", { descWidth = 560, desc =
-		L["Verkleinert den Bereich, in dem die 3D-Welt gezeichnet wird. Die Oberfläche bleibt, wo sie ist – so lassen sich Leisten und Fenster neben die Spielwelt legen."] })
+		L["Shrinks the area in which the 3D world is rendered. The interface stays where it is – so bars and windows can be placed next to the game world."] })
 	panel, content = page.panel, page.content
 	qnCore.Settings.NewCategory(ns, "qnViewPort", Build, panel)
 end

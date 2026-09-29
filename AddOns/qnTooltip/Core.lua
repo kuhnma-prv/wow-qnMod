@@ -30,47 +30,47 @@ end
 
 ns.ELEMENTS = {
 	player = {
-		{ "friendIcon", L["Freundes-Symbol"], "icon", Icon(1, 1, true) },
-		{ "raidIcon", L["Zielmarkierung"], "icon", Icon(1, 2, true) },
-		{ "roleIcon", L["Rollen-Symbol"], "icon", Icon(1, 3, true) },
-		{ "pvpIcon", L["PvP-Symbol"], "icon", Icon(1, 4, true) },
-		{ "factionIcon", L["Fraktions-Symbol"], "icon", Icon(1, 5, true) },
-		{ "classIcon", L["Klassen-Symbol"], "icon", Icon(1, 6, true) },
+		{ "friendIcon", L["Friend Icon"], "icon", Icon(1, 1, true) },
+		{ "raidIcon", L["Raid Target Icon"], "icon", Icon(1, 2, true) },
+		{ "roleIcon", L["Role Icon"], "icon", Icon(1, 3, true) },
+		{ "pvpIcon", L["PvP Icon"], "icon", Icon(1, 4, true) },
+		{ "factionIcon", L["Faction Icon"], "icon", Icon(1, 5, true) },
+		{ "classIcon", L["Class Icon"], "icon", Icon(1, 6, true) },
 		{ "title", HONOR_REWARD_TITLE_TOOLTIP, "text", Text(1, 7, true, "ccffff", "%s") },
 		{ "name", NAME, "text", Text(1, 8, true, "class", "%s") },
-		{ "surname", L["Nachname"], "text", Text(1, 9, true, "class", "%s") },
+		{ "surname", L["Surname"], "text", Text(1, 9, true, "class", "%s") },
 		{ "realm", L["Realm"], "text", Text(1, 9, true, "00eeee", "%s") },
 		{ "statusAFK", AFK, "text", Text(1, 10, true, "ffd200", "(%s)") },
 		{ "statusDND", DND, "text", Text(1, 11, true, "ffd200", "(%s)") },
 		{ "statusDC", PLAYER_OFFLINE, "text", Text(1, 12, true, "999999", "(%s)") },
 		{ "guildName", GUILD, "text", Text(2, 1, true, "ff00ff", "<%s>") },
-		{ "guildIndex", L["Gildenrang-Nummer"], "text", Text(2, 2, false, "cc88ff", "%s") },
+		{ "guildIndex", L["Guild Rank Number"], "text", Text(2, 2, false, "cc88ff", "%s") },
 		{ "guildRank", RANK, "text", Text(2, 3, true, "cc88ff", "(%s)") },
-		{ "guildRealm", L["Realm der Gilde"], "text", Text(2, 4, true, "00cccc", "%s") },
-		{ "levelValue", L["Stufe"], "text", Text(3, 1, true, "level", "%s") },
+		{ "guildRealm", L["Guild Realm"], "text", Text(2, 4, true, "00cccc", "%s") },
+		{ "levelValue", L["Level"], "text", Text(3, 1, true, "level", "%s") },
 		{ "factionName", FACTION, "text", Text(3, 2, true, "faction", "%s") },
-		{ "gender", L["Geschlecht"], "text", Text(3, 3, false, "999999", "%s") },
+		{ "gender", L["Gender"], "text", Text(3, 3, false, "999999", "%s") },
 		{ "raceName", RACE, "text", Text(3, 4, true, "cccccc", "%s") },
 		{ "className", CLASS, "text", Text(3, 5, true, "class", "%s") },
 		{ "isPlayer", PLAYER, "text", Text(3, 6, false, "ffffff", "(%s)") },
 		{ "role", ROLE, "text", Text(3, 7, false, "ffffff", "(%s)") },
-		{ "moveSpeed", L["Bewegungstempo"], "number", Text(3, 8, false, "e8e7a8", "%d%%") },
+		{ "moveSpeed", L["Movement Speed"], "number", Text(3, 8, false, "e8e7a8", "%d%%") },
 		{ "itemLevel", STAT_AVERAGE_ITEM_LEVEL, "text", Text(4, 1, true, "ffffff", "%s") },
 		{ "zone", ZONE, "text", Text(5, 1, false, "ffffff", "%s") },
 	},
 	npc = {
-		{ "raidIcon", L["Zielmarkierung"], "icon", Icon(1, 1, true) },
-		{ "classIcon", L["Klassen-Symbol"], "icon", Icon(1, 2, false) },
-		{ "questIcon", L["Quest-Symbol"], "icon", Icon(1, 3, true) },
+		{ "raidIcon", L["Raid Target Icon"], "icon", Icon(1, 1, true) },
+		{ "classIcon", L["Class Icon"], "icon", Icon(1, 2, false) },
+		{ "questIcon", L["Quest Icon"], "icon", Icon(1, 3, true) },
 		{ "name", NAME, "text", Text(1, 4, true, "default", "%s") },
 		{ "npcTitle", HONOR_REWARD_TITLE_TOOLTIP, "fixed", Text(0, 0, true, "99e8e8", "<%s>") },
-		{ "levelValue", L["Stufe"], "text", Text(2, 1, true, "level", "%s") },
+		{ "levelValue", L["Level"], "text", Text(2, 1, true, "level", "%s") },
 		{ "classifBoss", BOSS, "text", Text(2, 2, true, "ff0000", "(%s)") },
 		{ "classifElite", ELITE, "text", Text(2, 3, true, "ffff33", "(%s)") },
 		{ "classifRare", MAP_LEGEND_RARE, "text", Text(2, 4, true, "ffaaff", "(%s)") },
-		{ "creature", L["Kreaturtyp"], "text", Text(2, 5, true, "selection", "%s") },
+		{ "creature", L["Creature Type"], "text", Text(2, 5, true, "selection", "%s") },
 		{ "reactionName", REPUTATION, "text", Text(2, 6, true, "33ffff", "<%s>", "reaction6") },
-		{ "moveSpeed", L["Bewegungstempo"], "number", Text(2, 7, false, "e8e7a8", "%d%%") },
+		{ "moveSpeed", L["Movement Speed"], "number", Text(2, 7, false, "e8e7a8", "%d%%") },
 	},
 }
 
@@ -354,8 +354,8 @@ lib.RegisterSlash("QNTOOLTIP", { "/qntt", "/qntooltip" }, function(cmd)
 		ns.OpenOptions()
 	elseif cmd == "reset" then
 		ns.store:ResetActive()
-		ns.Print(L["Einstellungen zurückgesetzt."])
+		ns.Print(L["Settings reset."])
 	else
-		ns.Print(L["Befehle: /qntt [config | reset]\n  config – Optionen öffnen\n  reset – alle Einstellungen des aktiven Profils zurücksetzen"])
+		ns.Print(L["Commands: /qntt [config | reset]\n  config – open options\n  reset – reset all settings of the active profile"])
 	end
 end)

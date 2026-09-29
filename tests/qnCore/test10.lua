@@ -79,4 +79,4 @@ local pos = bm.db.windows[1].position
 Check(pos[1] == "TOPLEFT" and pos[2] == "UIParent" and pos[3] == "TOPRIGHT" and pos[4] == 0 and pos[5] == -90 and pos[6] == 40, "Position gespeichert")
 UIParent.GetLeft, UIParent.GetBottom = nil, nil
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

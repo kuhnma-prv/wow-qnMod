@@ -110,7 +110,7 @@ function Store:Activate(key)
 			profiles[key] = self.db
 			self.key = key
 			if self.ns and self.ns.Print then
-				self.ns.Print(L["Bisherige Einstellungen in das Profil %s übernommen."], P.GetLabel(key))
+				self.ns.Print(L["Previous settings moved into profile %s."], P.GetLabel(key))
 			end
 			return false
 		end
@@ -282,11 +282,11 @@ end
 --                SavedVariablesPerCharacter (optional)
 -- opts.onSwitch  function(store) – nach einem Profilwechsel (optional)
 function P.Register(opts)
-	assert(qnCoreDB, "qnCore.Profiles.Register: erst im ADDON_LOADED des eigenen Addons aufrufen.")   -- nicht übersetzen: Entwicklerhinweis
+	assert(qnCoreDB, "qnCore.Profiles.Register: call only in the addon's own ADDON_LOADED.")   -- do not translate: developer hint
 	local sv, seed = LoadSavedVariable(opts)
 
 	local name = opts.name or (opts.ns and ns.addonNames[opts.ns])
-	assert(name, "qnCore.Profiles.Register: name fehlt (ns erst mit qnCore.NewAddon anmelden).")   -- nicht übersetzen: Entwicklerhinweis
+	assert(name, "qnCore.Profiles.Register: name missing (register ns with qnCore.NewAddon first).")   -- do not translate: developer hint
 	local store = setmetatable({
 		name = name,
 		ns = opts.ns,
@@ -358,18 +358,18 @@ end
 -- Anzeigename eines Profils
 function P.GetLabel(key)
 	if not key then
-		return L["noch nicht ermittelt"]
+		return L["not yet determined"]
 	end
 	local meta = qnCoreDB and qnCoreDB.layouts and qnCoreDB.layouts[key]
 	if not meta then
 		return key
 	end
 	if meta.kind == "preset" then
-		return L["%s (Blizzard-Vorgabe)"]:format(meta.name)
+		return L["%s (Blizzard preset)"]:format(meta.name)
 	elseif meta.kind == "char" then
-		return L["%s (charakterspezifisch, %s)"]:format(meta.name, meta.char or "?")
+		return L["%s (character-specific, %s)"]:format(meta.name, meta.char or "?")
 	end
-	return L["%s (Konto)"]:format(meta.name)
+	return L["%s (account)"]:format(meta.name)
 end
 
 -- Alle Profilschlüssel der angegebenen Addons (nil = alle), sortiert nach Anzeigename

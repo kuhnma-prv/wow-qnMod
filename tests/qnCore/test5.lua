@@ -10,4 +10,4 @@ Check(qnCoreDB.global.bags.merchantOpen == "backpack", "Taschen aus zuletzt akti
 Check(qnCoreDB.global.chatTimestamps == nil, "Zeitstempel nicht übernommen (Option entfernt)")
 Check(qnCoreDB.global.bags.auctionOpen == "all", "Vorgaben ergänzt")
 Check(qnCoreDB.layouts ~= nil, "Layout-Beschreibungen bleiben")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

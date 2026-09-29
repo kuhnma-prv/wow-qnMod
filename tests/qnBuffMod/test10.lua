@@ -105,13 +105,13 @@ Check(table.concat(names, ",") == "Arkane Intelligenz@HELPFUL|CANCELABLE,Bärenf
 ---------------------------------------------------------------------------
 points = {}
 clicks[ADD]()
-Check(bm.SelectedID() == 2 and printed[#printed] == L["Fenster %d angelegt."]:format(2), "kleinste freie ID, Meldung, ausgewählt")
+Check(bm.SelectedID() == 2 and printed[#printed] == L["Window %d added."]:format(2), "kleinste freie ID, Meldung, ausgewählt")
 Check(points[1] and points[1][1] == "CENTER" and points[1][2] == UIParent and points[1][3] == "CENTER", "neues Fenster in der Bildschirmmitte")
 Check(bm.db.windows[2].position ~= nil, "Position des neuen Fensters gespeichert")
 SETTINGS.QNBUFFMOD_B_BUFFSIZE1:SetValue(33)
 points = {}
-clicks[L["Duplizieren"]]()
-Check(bm.SelectedID() == 5 and bm.db.windows[5].buffSize1 == 33 and printed[#printed] == L["Fenster %d mit den Einstellungen von Fenster %d angelegt."]:format(5, 2), "Kopie mit Einstellungen")
+clicks[L["Clone"]]()
+Check(bm.SelectedID() == 5 and bm.db.windows[5].buffSize1 == 33 and printed[#printed] == L["Window %d added, copying settings from window %d."]:format(5, 2), "Kopie mit Einstellungen")
 Check(points[1] and points[1][1] == "CENTER", "Kopie in der Bildschirmmitte")
 -- Zurücksetzen
 bm.GetWindow(5).frame.GetLeft = function() return 1500 end
@@ -122,22 +122,22 @@ Check(points[1] and points[1][1] == "CENTER" and points[1][3] == "CENTER", "Zur�
 QN_COMBAT = true
 printed = {}
 clicks[ADD]()
-clicks[L["Duplizieren"]]()
+clicks[L["Clone"]]()
 StaticPopupDialogs.QNBUFFMOD_DELETE_WINDOW.OnAccept()
 QN_COMBAT = false
-Check(#printed == 3 and printed[1] == L["Im Kampf nicht möglich."] and printed[3] == L["Im Kampf nicht möglich."] and #bm.WindowIDs() == 5, "Anlegen, Kopieren, Löschen im Kampf abgelehnt")
+Check(#printed == 3 and printed[1] == L["Not possible in combat."] and printed[3] == L["Not possible in combat."] and #bm.WindowIDs() == 5, "Anlegen, Kopieren, Löschen im Kampf abgelehnt")
 -- höchstens 10 Fenster
 for _ = 1, 5 do clicks[ADD]() end
 Check(#bm.WindowIDs() == 10, "zehn Fenster")
 printed = {}
 clicks[ADD]()
-Check(#bm.WindowIDs() == 10 and printed[1] == L["Mehr als %d Fenster sind nicht möglich."]:format(10), "elftes abgelehnt")
+Check(#bm.WindowIDs() == 10 and printed[1] == L["No more than %d windows are possible."]:format(10), "elftes abgelehnt")
 -- Löschen: Auswahl an derselben Listenposition
 SETTINGS.QNBUFFMOD_EDITWINDOW:SetValue(4)
-clicks[L["Löschen …"]]()
-Check(LAST_POPUP.which == "QNBUFFMOD_DELETE_WINDOW" and LAST_POPUP.a1 == L["Fenster %d"]:format(4), "Rückfrage mit Fensternamen")
+clicks[L["Delete …"]]()
+Check(LAST_POPUP.which == "QNBUFFMOD_DELETE_WINDOW" and LAST_POPUP.a1 == L["Window %d"]:format(4), "Rückfrage mit Fensternamen")
 StaticPopupDialogs.QNBUFFMOD_DELETE_WINDOW.OnAccept()
-Check(bm.db.windows[4] == nil and bm.SelectedID() == 5 and printed[#printed] == L["Fenster %d gelöscht."]:format(4), "gelöscht, nächstes an derselben Position gewählt")
+Check(bm.db.windows[4] == nil and bm.SelectedID() == 5 and printed[#printed] == L["Window %d deleted."]:format(4), "gelöscht, nächstes an derselben Position gewählt")
 -- alle löschen: das letzte legt sofort ein neues an
 for _ = 1, 20 do
 	if #bm.WindowIDs() == 1 then break end
@@ -146,7 +146,7 @@ end
 local last = bm.WindowIDs()[1]
 StaticPopupDialogs.QNBUFFMOD_DELETE_WINDOW.OnAccept()
 ids = bm.WindowIDs()
-Check(#ids == 1 and printed[#printed] == L["Kein Fenster übrig – Fenster %d angelegt."]:format(ids[1]) and bm.GetWindow(ids[1]).o.buffSize1 == bm.windowDefaults.buffSize1,
+Check(#ids == 1 and printed[#printed] == L["No window left – window %d added."]:format(ids[1]) and bm.GetWindow(ids[1]).o.buffSize1 == bm.windowDefaults.buffSize1,
 	"letztes gelöscht: neues mit Vorgaben (" .. tostring(last) .. " → " .. tostring(ids[1]) .. ")")
 
 -- Position nach dem Ziehen gespeichert und beim Wiederaufbau (Profilwechsel) wiederhergestellt
@@ -181,4 +181,4 @@ QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED") RunTimers()
 Check(bm.db == qnBuffModDB.profiles["account:Raid"] and bm.WindowIDs()[1] == 2 and bm.GetWindow(2).o.buffSize1 == 25, "nach dem Kampf gewechselt, Fenster des neuen Profils")
 Check(Same(before, oldDB), "Abbau ändert das alte Profil nicht")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

@@ -57,7 +57,7 @@ Check(TOOLTIP.owner == b and TOOLTIP.anchor == "ANCHOR_RIGHT", "linke Bildschirm
 Check(TOOLTIP.aura and TOOLTIP.aura[1] == "player" and TOOLTIP.aura[2] == 1 and TOOLTIP.aura[3] == "HELPFUL|CANCELABLE", "Blizzards Aurentooltip mit Einheit, Index, Filter")
 local l1, last = TOOLTIP.lines[1], TOOLTIP.lines[#TOOLTIP.lines]
 Check(l1.text == "Tester" and l1.r == 0.78 and l1.g == 0.61, "Wirker in Klassenfarbe")
-Check(last.text == L["Zauber-ID: %d"]:format(19740) and last.right == L["/qnbuff zum Einstellen"], "Fußzeile: Zauber-ID und /qnbuff: " .. Texts())
+Check(last.text == L["Spell ID: %d"]:format(19740) and last.right == L["/qnbuff for options"], "Fußzeile: Zauber-ID und /qnbuff: " .. Texts())
 Check(TOOLTIP.minWidth == 180, "mindestens 180 breit")
 -- alle 0,5 s erneuert
 local before = TOOLTIP
@@ -91,26 +91,26 @@ b._scripts.OnLeave(b)
 clicks[ADD]()
 local win2 = bm.GetWindow(2)
 Check(not win.title:IsShown() and not win2.title:IsShown(), "ohne offene Fensterseite keine Titel")
-local current = cats[L["Fenster"]]
+local current = cats[L["Window"]]
 SettingsPanel.GetCurrentCategory = function() return current end
 SettingsPanel:Show()
 EventRegistry:TriggerEvent("Settings.CategoryChanged")
-Check(win.title:IsShown() and win.title:GetText() == L["Fenster %d"]:format(1) and win2.title:IsShown(), "Titel über jedem Fenster")
+Check(win.title:IsShown() and win.title:GetText() == L["Window %d"]:format(1) and win2.title:IsShown(), "Titel über jedem Fenster")
 Check(win2.title._textColor[1] == 1 and win2.title._textColor[3] == 1 and win.title._textColor[3] == 0, "ausgewähltes Fenster weiß, andere gold")
 b = Entry("Segen")
 b._scripts.OnEnter(b)
-Check(TOOLTIP.lines[#TOOLTIP.lines].text == L["Fenster %d (Alt-Klick: Fenster in den Optionen auswählen.)"]:format(1), "Fensterzeile statt Fußzeile: " .. Texts())
+Check(TOOLTIP.lines[#TOOLTIP.lines].text == L["Window %d (Alt-click: select the window in the options.)"]:format(1), "Fensterzeile statt Fußzeile: " .. Texts())
 b._scripts.OnLeave(b)
 win.bg._scripts.OnEnter(win.bg)
-Check(TOOLTIP.owner == win.bg and TOOLTIP.anchor == "ANCHOR_CURSOR" and TOOLTIP.lines[1].text == L["Fenster %d"]:format(1)
-	and TOOLTIP.lines[2].text == L["Alt-Klick: Fenster in den Optionen auswählen."], "Hintergrund: Fenstertooltip am Mauszeiger")
+Check(TOOLTIP.owner == win.bg and TOOLTIP.anchor == "ANCHOR_CURSOR" and TOOLTIP.lines[1].text == L["Window %d"]:format(1)
+	and TOOLTIP.lines[2].text == L["Alt-click: select the window in the options."], "Hintergrund: Fenstertooltip am Mauszeiger")
 win.bg._scripts.OnLeave(win.bg)
 -- disableTooltips
 SETTINGS.QNBUFFMOD_EDITWINDOW:SetValue(1)
 SETTINGS.QNBUFFMOD_W_DISABLETOOLTIPS:SetValue(true)
 b = Entry("Segen")
 b._scripts.OnEnter(b)
-Check(TOOLTIP.aura == nil and TOOLTIP.lines[1].text == L["Fenster %d"]:format(1) and TOOLTIP.lines[2].text == L["Alt-Klick: Fenster in den Optionen auswählen."],
+Check(TOOLTIP.aura == nil and TOOLTIP.lines[1].text == L["Window %d"]:format(1) and TOOLTIP.lines[2].text == L["Alt-click: select the window in the options."],
 	"disableTooltips bei offener Fensterseite: nur Fenstertooltip")
 b._scripts.OnLeave(b)
 current = cats[APPEARANCE_LABEL]
@@ -144,7 +144,7 @@ SETTINGS.QNBUFFMOD_W_LOCKWINDOW:SetValue(true)
 Check(not win.bg:IsMouseEnabled() and b:IsMouseEnabled(), "gesperrt, Optionen zu: Hintergrund ohne Maus, Einträge mit")
 b._scripts.OnMouseDown(b, "LeftButton")
 Check(not f._moving, "gesperrt: kein Ziehen am Eintrag")
-current = cats[L["Fenster"]]
+current = cats[L["Window"]]
 EventRegistry:TriggerEvent("Settings.CategoryChanged")
 Check(win.bg:IsMouseEnabled(), "gesperrt, Fensterseite offen: Hintergrund nimmt die Maus")
 win.bg._scripts.OnMouseDown(win.bg, "LeftButton")
@@ -159,7 +159,7 @@ LOG = {}
 printed = {}
 b = Entry("Segen")
 b._scripts.OnMouseDown(b, "LeftButton")
-Check(bm.SelectedID() == 1 and printed[1] == L["%s ausgewählt."]:format(L["Fenster %d"]:format(1)) and not f._moving, "Alt-Klick wählt das Fenster und meldet es")
+Check(bm.SelectedID() == 1 and printed[1] == L["%s selected."]:format(L["Window %d"]:format(1)) and not f._moving, "Alt-Klick wählt das Fenster und meldet es")
 local opened = false
 for _, line in ipairs(LOG) do if line == "Öffne " .. current.name then opened = true end end
 Check(opened, "Alt-Klick öffnet die Seite Fenster")
@@ -169,4 +169,4 @@ Check(bm.SelectedID() == 2 and win2.title._textColor[3] == 1 and win.title._text
 IsAltKeyDown = function() return false end
 SettingsPanel:Hide()
 Check(not win.title:IsShown(), "Einstellungsfenster zu: Titel weg")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

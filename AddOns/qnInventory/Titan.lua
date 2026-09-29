@@ -198,11 +198,11 @@ end
 
 function Titan.BankTooltip(tip)
 	local colored = Colored(BANK_ID)
-	tip:AddLine(L["Bank und Taschen"], 1, 1, 1)
+	tip:AddLine(L["Bank and Bags"], 1, 1, 1)
 	-- je Fraktion ein Block mit eigener Summe
 	for _, g in ipairs(Titan.Groups()) do
 		tip:AddLine(" ")
-		GroupHeader(tip, L["Belegte Plätze auf"], g.faction)
+		GroupHeader(tip, L["Used slots on"], g.faction)
 		local sum = { 0, 0, 0, 0 }
 		for _, c in ipairs(g.chars) do
 			local bankUsed, bankTotal = Titan.BankSlots(c.char)
@@ -220,7 +220,7 @@ function Titan.BankTooltip(tip)
 		tip:AddDoubleLine(TitanUtils_GetGoldText(ACCOUNT_BANK_PANEL_TITLE .. ":"), Titan.SlotText(accountUsed, accountTotal, colored))
 	end
 	tip:AddLine(" ")
-	tip:AddLine(TitanUtils_GetGreenText(L["Linksklick: Taschen, Umschalt-Linksklick: Bank"]))
+	tip:AddLine(TitanUtils_GetGreenText(L["Left-click: bags, Shift-left-click: bank"]))
 end
 
 local function BankMenu(_, root)
@@ -291,7 +291,7 @@ end
 local function GoldMenu(_, root)
 	local T = TL()
 	Titan_Menu.AddSelectorList(root, GOLD_ID, nil, "ViewAll", {
-		{ L["Gold aller Charaktere"], true },
+		{ L["Gold of all characters"], true },
 		{ T["TITAN_GOLD_TOGGLE_PLAYER_TEXT"], false },
 	})
 	Titan_Menu.AddDivider(root)
@@ -338,12 +338,12 @@ end
 Titan.active = C_AddOns.IsAddOnLoaded("Titan") and type(TitanUtils_PluginToRegister) == "function"
 if Titan.active then
 	Create(BANK_ID, {
-		menuText = L["qnInventory Bank/Taschen"],
+		menuText = L["qnInventory Bank/Bags"],
 		buttonTextFunction = BankButtonText,
 		tooltipTemplateFunction = Titan.BankTooltip,
 		menuContextFunction = BankMenu,
 		icon = ICON_BANK,
-		notes = L["Belegte Plätze in Bank und Taschen; im Tooltip alle Charaktere nach Fraktion."],
+		notes = L["Used bank and bag slots; the tooltip lists all characters by faction."],
 		savedVariables = { ShowIcon = true, ShowLabelText = true, ShowColoredText = true, DisplayOnRightSide = false },
 	}, BankClick)
 	Create(GOLD_ID, {
@@ -352,7 +352,7 @@ if Titan.active then
 		tooltipTemplateFunction = Titan.GoldTooltip,
 		menuContextFunction = GoldMenu,
 		icon = ICON_GOLD,
-		notes = L["Gold aller Charaktere wie TitanGold, aus den Daten von qnInventory."],
+		notes = L["Gold of all characters like TitanGold, from the data of qnInventory."],
 		savedVariables = { ShowIcon = true, ShowLabelText = true, ShowColoredText = true, DisplayOnRightSide = false,
 			ViewAll = true },
 	})

@@ -106,7 +106,7 @@ function ns.Apply()
 	if lib.DeferInCombat(ApplyAfterCombat) then
 		if not warned then
 			warned = true
-			ns.Print(L["Änderung wird nach dem Kampf übernommen."])
+			ns.Print(L["The change will be applied after combat."])
 		end
 		ns.ApplyCosmetic()
 		return
@@ -131,22 +131,22 @@ lib.RegisterSlash("QNNUMKEYPAD", { "/qnnumkeypad", "/qnnkp", "/numpad" }, functi
 		ns.OpenOptions()
 	elseif cmd == "lock" then
 		ns.store:Set("locked", true)
-		ns.Print(L["Position gesperrt."])
+		ns.Print(L["Position locked."])
 	elseif cmd == "unlock" then
 		ns.store:Set("locked", false)
-		ns.Print(L["Position entsperrt. Ziehen mit der linken Maustaste, Rechtsklick öffnet die Optionen."])
+		ns.Print(L["Position unlocked. Left-click to drag, right-click to open the options."])
 	elseif cmd == "on" or cmd == "show" then
 		ns.store:Set("enabled", true)
 	elseif cmd == "off" or cmd == "hide" then
 		ns.store:Set("enabled", false)
-		ns.Print(L["Ausgeschaltet. Einschalten mit /qnnkp on"])
+		ns.Print(L["Disabled. To enable it, type /qnnkp on"])
 	elseif cmd == "reset" then
 		ns.ResetPosition()
 	elseif cmd == "visible" then
 		ns.MoveIntoVisible()
 	else
 		-- ein Schlüssel; Print gibt jede Zeile als eigene Chatzeile aus
-		ns.Print(L["Befehle:\n  /qnnkp – Optionen öffnen\n  /qnnkp lock | unlock – Position sperren/entsperren\n  /qnnkp on | off – Ziffernblock ein-/ausschalten\n  /qnnkp reset – Position zurücksetzen\n  /qnnkp visible – Leiste in den sichtbaren Bereich holen"])
+		ns.Print(L["Commands:\n  /qnnkp – open options\n  /qnnkp lock | unlock – lock/unlock position\n  /qnnkp on | off – enable/disable numpad\n  /qnnkp reset – reset position\n  /qnnkp visible – move bar into the visible area"])
 	end
 end)
 
@@ -184,7 +184,7 @@ events.Register("PLAYER_LOGIN", function()
 	local global = ns.store.global
 	if not ns.db.locked and not global.hintShown then
 		global.hintShown = true
-		ns.Print(L["Leiste mit der linken Maustaste verschieben, Rechtsklick öffnet die Optionen. Sperren mit /qnnkp lock."])
+		ns.Print(L["Left-click to drag the bar, right-click to open the options. Lock it with /qnnkp lock."])
 	end
 end)
 

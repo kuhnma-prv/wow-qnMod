@@ -23,4 +23,4 @@ SETTINGS.QNCORE_BAGS_ENABLED:SetValue(false)
 LOG = {}
 OpenAllBags()
 Check(table.concat(LOG, ";") == "OpenAllBags(nil)", "Automatik aus: qnCore fasst keine Tasche an")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

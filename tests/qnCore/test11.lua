@@ -61,11 +61,11 @@ local mpos = Place(mf, 1900, 500, 220, 150)
 chat = {}
 SlashCmdList.QNMETER("visible")
 local l = mpos()
-Check(l == 1700 and ChatHas(CL["%s in den sichtbaren Bereich verschoben."]:format(meter.L["Fenster"])), "/qnm visible: verschoben, Meldung: " .. tostring(l))
+Check(l == 1700 and ChatHas(CL["%s moved into the visible area."]:format(meter.L["Window"])), "/qnm visible: verschoben, Meldung: " .. tostring(l))
 Check(meter.db.point[3] == 1700 and meter.db.point[4] == 650, ("Lage gespeichert: %s, %s"):format(meter.db.point[3], meter.db.point[4]))
 chat = {}
 SlashCmdList.QNMETER("visible")
-Check(ChatHas(CL["%s liegt bereits im sichtbaren Bereich."]:format(meter.L["Fenster"])), "/qnm visible: schon sichtbar")
+Check(ChatHas(CL["%s is already in the visible area."]:format(meter.L["Window"])), "/qnm visible: schon sichtbar")
 -- autoVisible: bei Änderung des Bereichs (qnViewPort) und neuer Fenstergröße
 mpos = Place(mf, 1900, 500, 220, 150)
 V.Notify() RunTimers()
@@ -95,12 +95,12 @@ chat = {}
 QN_COMBAT = true
 SlashCmdList.QNNUMKEYPAD("visible")
 QN_COMBAT = false
-Check(bpos() == 1850 and ChatHas(CL["%s ist geschützt – im Kampf nicht verschiebbar."]:format(nkp.L["Leiste"])), "/qnnkp visible im Kampf: nicht verschoben, Meldung")
+Check(bpos() == 1850 and ChatHas(CL["%s is protected – cannot be moved in combat."]:format(nkp.L["Bar"])), "/qnnkp visible im Kampf: nicht verschoben, Meldung")
 FireEvent("PLAYER_REGEN_ENABLED") RunTimers()
 chat = {}
 SlashCmdList.QNNUMKEYPAD("visible")
 l = bpos()
-Check(math.abs(l - (1920 - 191)) <= 0.5 and ChatHas(CL["%s in den sichtbaren Bereich verschoben."]:format(nkp.L["Leiste"])), "/qnnkp visible: verschoben: " .. tostring(l))
+Check(math.abs(l - (1920 - 191)) <= 0.5 and ChatHas(CL["%s moved into the visible area."]:format(nkp.L["Bar"])), "/qnnkp visible: verschoben: " .. tostring(l))
 Check(nkp.db.point == "CENTER" and nkp.db.x == math.floor(1729 + 95.5 - 960 + 0.5), "Lage am eingestellten Anker gespeichert: " .. tostring(nkp.db.x))
 nkp.store:Set("autoVisible", true)
 RunTimers()
@@ -124,12 +124,12 @@ em.system = 1
 local epos = Place(em, 1900, 500, 100, 100)
 chat = {}
 vp.Layout.MoveFrame(em)
-Check(epos() == 1820 and ChatHas(CL["%s in den sichtbaren Bereich verschoben."]:format("TestEditModeFrame"))
-	and ChatHas(vp.L["Rahmen des Bearbeitungsmodus: gilt bis /reload bzw. bis das Layout neu geladen wird. Dauerhaft: im Bearbeitungsmodus verschieben."]),
+Check(epos() == 1820 and ChatHas(CL["%s moved into the visible area."]:format("TestEditModeFrame"))
+	and ChatHas(vp.L["Edit Mode frame: lasts until /reload or until the layout is reloaded. To keep it: move it in Edit Mode."]),
 	"MoveFrame: verschoben, Hinweis für den Bearbeitungsmodus")
 chat = {}
 vp.Layout.MoveFrame(em)
-Check(#chat == 1 and ChatHas(CL["%s liegt bereits im sichtbaren Bereich."]:format("TestEditModeFrame")), "MoveFrame: schon sichtbar, kein Hinweis")
+Check(#chat == 1 and ChatHas(CL["%s is already in the visible area."]:format("TestEditModeFrame")), "MoveFrame: schon sichtbar, kein Hinweis")
 
 V.SetAreaProvider(vp.Layout.GetVisibleAbs)
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

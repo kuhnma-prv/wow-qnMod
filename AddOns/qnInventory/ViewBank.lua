@@ -139,7 +139,7 @@ local function Create()
 	sort:SetPoint("LEFT", search, "RIGHT", 8, -1)
 	sort:SetNormalAtlas("bags-button-autosort-up")
 	sort:GetNormalTexture():SetDesaturated(true)
-	Disable(sort, L["Sortieren geht nur beim Bankier."])
+	Disable(sort, L["Sorting is only possible at a banker."])
 
 	-- Preis des nächsten Fachs wie BagCost, MoneyDisplay und PurchaseButton
 	costText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalMed3")
@@ -154,7 +154,7 @@ local function Create()
 	purchase:SetSize(124, 21)
 	purchase:SetText(BANKSLOTPURCHASE)
 	purchase:SetPoint("TOPLEFT", cost, "TOPRIGHT", 8, 4)
-	Disable(purchase, L["Kaufen geht nur beim Bankier."])
+	Disable(purchase, L["Purchasing is only possible at a banker."])
 
 	-- Gold des Charakters unten rechts wie BankPanelMoneyFrameTemplate (ohne Ein-/Auszahlen)
 	local border = CreateFrame("Frame", nil, frame, "ThinGoldEdgeTemplate")
@@ -166,7 +166,7 @@ local function Create()
 	money:SetPoint("RIGHT", border)
 
 	notice = ns.CreateNotice(frame)
-	notice:SetText(L["Die Bank dieses Charakters ist noch nicht erfasst. Einmal mit ihm die Bank öffnen genügt."])
+	notice:SetText(L["This character's bank has not been recorded yet. Opening the bank with it once is enough."])
 
 	ns.AttachHeader(frame, "bank")
 end

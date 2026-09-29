@@ -57,14 +57,14 @@ lib.RegisterSlash("QNCORE", { "/qncore", "/qnc" }, function(cmd)
 	elseif cmd == "profile" or cmd == "profil" then
 		ns.OpenProfiles()
 	elseif cmd == "status" then
-		ns.Print(L["Version %s, aktives Profil: %s"], lib.version, lib.Profiles.GetLabel(lib.Profiles.GetActiveKey()))
+		ns.Print(L["Version %s, active profile: %s"], lib.version, lib.Profiles.GetLabel(lib.Profiles.GetActiveKey()))
 		for _, store in ipairs(lib.Profiles.stores) do
-			ns.Print(L["  %s – %d Profil(e)"], store.name, #store:ProfileKeys())
+			ns.Print(L["  %s – %d profile(s)"], store.name, #store:ProfileKeys())
 		end
 	elseif cmd == "locale" then
-		-- Texte, die in dieser Sitzung ohne Übersetzung angezeigt wurden
-		if lib.GERMAN then
-			ns.Print(L["Deutscher Client: alle Texte erscheinen im Original."])
+		-- texts shown without translation in this session (only German clients translate)
+		if not lib.GERMAN then
+			ns.Print(L["Non-German client: all texts are shown in the original (English)."])
 			return
 		end
 		local any = false
@@ -75,10 +75,10 @@ lib.RegisterSlash("QNCORE", { "/qncore", "/qnc" }, function(cmd)
 			end
 		end
 		if not any then
-			ns.Print(L["Bisher wurde kein Text ohne Übersetzung angezeigt."])
+			ns.Print(L["No untranslated text has been shown so far."])
 		end
 	else
-		ns.Print(L["/qncore – Optionen   |   /qncore profile – Profile   |   /qncore status – aktives Profil anzeigen   |   /qncore locale – fehlende Übersetzungen"])
+		ns.Print(L["/qncore – options   |   /qncore profile – profiles   |   /qncore status – show active profile   |   /qncore locale – missing translations"])
 	end
 end)
 
@@ -114,6 +114,6 @@ end)
 
 lib.Profiles.OnChange(function(key, old)
 	if old then
-		ns.Print(L["Profil gewechselt: %s"], lib.Profiles.GetLabel(key))
+		ns.Print(L["Profile changed: %s"], lib.Profiles.GetLabel(key))
 	end
 end)

@@ -91,4 +91,4 @@ Check(P(f)[1] == "TOP" and P(f)[2] == UIParent and P(f.BlackoutFrame)[2] == UIPa
 f:Minimize() f:Maximize() RunTimers()
 Check(P(f)[2] == UIParent, "danach fasst qnViewPort die Karte nicht mehr an")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

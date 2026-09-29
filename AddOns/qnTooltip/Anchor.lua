@@ -18,12 +18,12 @@ local MODIFIER = {
 function Anchor.ModeEntries(inherit)
 	local list = {}
 	if inherit then
-		list[#list + 1] = { "inherit", L["Wie allgemein eingestellt"] }
+		list[#list + 1] = { "inherit", L["As set in general"] }
 	end
-	list[#list + 1] = { "blizzard", L["Blizzard-Standard (Bearbeitungsmodus)"] }
-	list[#list + 1] = { "cursor", L["Am Mauszeiger"] }
-	list[#list + 1] = { "cursorRight", L["Rechts vom Mauszeiger"] }
-	list[#list + 1] = { "static", L["Fester Punkt"] }
+	list[#list + 1] = { "blizzard", L["Blizzard default (Edit Mode)"] }
+	list[#list + 1] = { "cursor", L["At the cursor"] }
+	list[#list + 1] = { "cursorRight", L["Right of the cursor"] }
+	list[#list + 1] = { "static", L["Fixed point"] }
 	return list
 end
 

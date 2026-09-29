@@ -22,7 +22,7 @@ ns.Threat = T
 local db, frame
 local playerGUID
 
-local TITLE = L["Bedrohung"]
+local TITLE = L["Threat"]
 local AGGRO_MELEE = 1.1
 local AGGRO_RANGED = 1.3
 local RANGE_ITEM = 8149 -- Voodoo-Talisman, 5 Meter (Nahkampfentfernung)
@@ -149,15 +149,15 @@ local function CollectGroup(mob)
 end
 
 local testData = {
-	{ name = "Tankrok", class = "WARRIOR", value = 52000, isTanking = true }, -- nicht übersetzen (Fantasiename)
-	{ name = "Du", class = nil, value = 47000, isMe = true }, -- nicht übersetzen (wird durch den eigenen Namen ersetzt)
-	{ name = L["Schurkine"], class = "ROGUE", value = 43500 },
-	{ name = L["Feuerfunke"], class = "MAGE", value = 39000 },
-	{ name = L["Pfeilwind"], class = "HUNTER", value = 30500 },
-	{ name = "Wolf", class = nil, value = 12000, isPet = true }, -- nicht übersetzen (in beiden Sprachen gleich)
-	{ name = L["Heilhand"], class = "PRIEST", value = 21000 },
-	{ name = L["Blattgrün"], class = "DRUID", value = 16500 },
-	{ name = L["Schattenkuss"], class = "WARLOCK", value = 26000 },
+	{ name = "Tankrok", class = "WARRIOR", value = 52000, isTanking = true }, -- do not translate (fantasy name)
+	{ name = "You", class = nil, value = 47000, isMe = true }, -- do not translate (replaced by the own name)
+	{ name = L["Stabbina"], class = "ROGUE", value = 43500 },
+	{ name = L["Firespark"], class = "MAGE", value = 39000 },
+	{ name = L["Arrowwind"], class = "HUNTER", value = 30500 },
+	{ name = "Wolf", class = nil, value = 12000, isPet = true }, -- do not translate (same in both languages)
+	{ name = L["Healhand"], class = "PRIEST", value = 21000 },
+	{ name = L["Leafgreen"], class = "DRUID", value = 16500 },
+	{ name = L["Shadowkiss"], class = "WARLOCK", value = 26000 },
 }
 
 local function CollectTest()
@@ -332,7 +332,7 @@ local function Warn(pct)
 		Flash()
 	end
 	if db.warnMessage then
-		local text = L["Bedrohung: %d%%"]:format(pct)
+		local text = L["Threat: %d%%"]:format(pct)
 		RaidWarningFrame:AddMessage(text, ChatTypeInfo["RAID_WARNING"])
 	end
 end
@@ -492,7 +492,7 @@ local function CollectEntries(visible)
 	local mob
 	if T.testMode then
 		CollectTest()
-		frame.infoText:SetText(L["Testgegner"])
+		frame.infoText:SetText(L["Test enemy"])
 	else
 		mob = T.FindMob()
 		if mob then
@@ -545,7 +545,7 @@ local function RankNormal(mob, capacity, tankValue)
 	if db.showAggroBar and tankValue > 0 then
 		local e = NewEntry()
 		e.isAggro = true
-		e.name = L["Aggro ziehen"]
+		e.name = L["Pull Aggro"]
 		e.value = math.floor(tankValue * (IsMelee(mob) and AGGRO_MELEE or AGGRO_RANGED) + 0.5)
 		order[#order + 1] = e
 	end
@@ -643,7 +643,7 @@ end
 function T.Toggle()
 	ns.store:Set("shown", not db.shown)
 	if db.shown and not frame:IsShown() then
-		ns.Print(L["Fenster ist aktiviert, wird aber wegen der Sichtbarkeitsoption gerade nicht gezeigt."])
+		ns.Print(L["Window is enabled but currently hidden because of the visibility option."])
 	end
 end
 
@@ -663,7 +663,7 @@ end
 
 -- Fenster in den sichtbaren Bereich holen (Slash-Befehl, Knopf); mit qnViewPort auf einen Monitor.
 function T.MoveIntoVisible()
-	if qnCore.Visible.MoveAndReport(frame, L["Fenster"], ns.Print) then
+	if qnCore.Visible.MoveAndReport(frame, L["Window"], ns.Print) then
 		Window.SavePosition(frame)
 	end
 end
@@ -675,17 +675,17 @@ local function OpenMenu(owner)
 		root:CreateCheckbox(LOCK_FRAME, function() return db.locked end, function()
 			ns.store:Set("locked", not db.locked)
 		end)
-		root:CreateCheckbox(L["Testmodus"], function() return T.testMode end, function()
+		root:CreateCheckbox(L["Test Mode"], function() return T.testMode end, function()
 			T.SetTestMode(not T.testMode)
 		end)
-		root:CreateCheckbox(L["Fokusziel bevorzugen"], function() return db.useFocus end, function()
+		root:CreateCheckbox(L["Use focus target"], function() return db.useFocus end, function()
 			ns.store:Set("useFocus", not db.useFocus)
 		end)
 		root:CreateDivider()
-		root:CreateButton(L["Optionen …"], ns.OpenOptions)
+		root:CreateButton(L["Options …"], ns.OpenOptions)
 		root:CreateButton(HIDE, function()
 			ns.store:Set("shown", false)
-			ns.Print(L["Mit /qnm wieder einblenden."])
+			ns.Print(L["Type /qnm to show it again."])
 		end)
 	end)
 end

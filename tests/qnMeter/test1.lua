@@ -20,6 +20,6 @@ T.frame.OnMenu(T.frame, T.frame)
 local texts = {}
 for _, e in ipairs(MENU_LOG) do texts[#texts + 1] = tostring(e[2]) end
 Check(#MENU_LOG >= 6, "Menü mit Einträgen: " .. table.concat(texts, ", "))
-Check(tContains(texts, L["Testmodus"]) and tContains(texts, LOCK_FRAME), "Menütexte über L bzw. GlobalStrings")
+Check(tContains(texts, L["Test Mode"]) and tContains(texts, LOCK_FRAME), "Menütexte über L bzw. GlobalStrings")
 SlashCmdList.QNMETER("test")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

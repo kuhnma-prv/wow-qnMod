@@ -144,7 +144,7 @@ end
 -- Änderung durch den Spieler: im Kampf einen Hinweis, dass sie später wirkt
 function ns.ApplyChange()
 	if InCombatLockdown() then
-		ns.Print(L["Änderung wird nach dem Kampf übernommen."])
+		ns.Print(L["The change will be applied after combat."])
 	end
 	ns.Apply()
 end
@@ -187,7 +187,7 @@ function ns.ActionText(entry)
 		return entry.value
 	end
 	if entry.type == "macro" and entry.value then
-		return L["Makro: %s"]:format(FirstLine(entry.value, MACRO_PREVIEW))
+		return L["Macro: %s"]:format(FirstLine(entry.value, MACRO_PREVIEW))
 	end
 	return ns.TypeText(entry.type)
 end

@@ -23,10 +23,10 @@ local function Largest(t, showDays)
 end
 
 local LONG = {
-	d = { L["1 Tag"], L["%d Tage"] }, h = { L["1 Stunde"], L["%d Stunden"] },
-	m = { L["1 Minute"], L["%d Minuten"] }, s = { L["1 Sekunde"], L["%d Sekunden"] },
+	d = { L["1 day"], L["%d days"] }, h = { L["1 hour"], L["%d hours"] },
+	m = { L["1 minute"], L["%d minutes"] }, s = { L["1 second"], L["%d seconds"] },
 }
-local SHORT = { d = L["%d Tag"], h = L["%d Std"], m = L["%d Min"], s = L["%d Sek"] }
+local SHORT = { d = L["%d day"], h = L["%d hour"], m = L["%d min"], s = L["%d sec"] }
 local ABBREV = { d = "%dd", h = "%dh", m = "%dm", s = "%ds" }
 
 local FORMATS = {}
@@ -96,8 +96,8 @@ end
 -- Auswahltexte der Zeitformate
 function ns.TimeFormatEntries()
 	return {
-		{ 1, L["1 Stunde / 22 Minuten"] },
-		{ 2, L["1 Stunde / 22 Min"] },
+		{ 1, L["1 hour / 22 minutes"] },
+		{ 2, L["1 hour / 22 min"] },
 		{ 3, "1h / 22m" },
 		{ 4, "1h 11m / 22m 22s" },
 		{ 5, "1:11h / 22:22" },

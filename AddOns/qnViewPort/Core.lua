@@ -201,13 +201,13 @@ end
 
 -- Kachelbare Blizzard-Texturen (im Forever-Quelltext mit horizTile/vertTile verwendet)
 ns.PATTERNS = {
-	{ "rock", L["Fels"], "Interface\\FrameGeneral\\UI-Background-Rock" },
-	{ "marble", L["Marmor"], "Interface\\FrameGeneral\\UI-Background-Marble" },
-	{ "wood", L["Holz"], "Interface\\BlackMarket\\BlackMarketBackground-Tile" },
+	{ "rock", L["Rock"], "Interface\\FrameGeneral\\UI-Background-Rock" },
+	{ "marble", L["Marble"], "Interface\\FrameGeneral\\UI-Background-Marble" },
+	{ "wood", L["Wood"], "Interface\\BlackMarket\\BlackMarketBackground-Tile" },
 	{ "dialog", L["Dialog"], "Interface\\DialogFrame\\UI-DialogBox-Background" },
-	{ "dialogDark", L["Dialog dunkel"], "Interface\\DialogFrame\\UI-DialogBox-Background-Dark" },
+	{ "dialogDark", L["Dialog (dark)"], "Interface\\DialogFrame\\UI-DialogBox-Background-Dark" },
 	{ "tooltip", L["Tooltip"], "Interface\\Tooltips\\UI-Tooltip-Background" },
-	{ "parchment", L["Pergament"], "Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal" },
+	{ "parchment", L["Parchment"], "Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal" },
 	{ "achievement", ACHIEVEMENTS, "Interface\\AchievementFrame\\UI-Achievement-AchievementBackground" },
 }
 -- dahinter die eigenen Muster aus qnCore
@@ -234,7 +234,7 @@ end
 -- Auswahlliste für das Dropdown: { Schlüssel, Text }; Muster aus LibSharedMedia (falls vorhanden)
 -- dahinter, ohne Dateien, die schon in der Liste stehen
 function ns.PatternChoices()
-	local list = { { "none", L["Kein Muster (nur Farbe)"] } }
+	local list = { { "none", L["No pattern (color only)"] } }
 	local seen = {}
 	for _, p in ipairs(ns.PATTERNS) do
 		list[#list + 1] = { p[1], p[2] }
@@ -418,7 +418,7 @@ lib.RegisterSlash("QNVIEWPORT", { "/qnvp", "/qnviewport", "/viewport" }, functio
 		else
 			ns.EndKeep()
 			ns.ApplyViewport(v)
-			ns.Print(L["Viewport zurückgesetzt."])
+			ns.Print(L["Viewport reset."])
 		end
 	elseif msg == "" then
 		ns.OpenOptions()
@@ -426,7 +426,7 @@ lib.RegisterSlash("QNVIEWPORT", { "/qnvp", "/qnviewport", "/viewport" }, functio
 		ns.Dual.Slash(rest)
 	elseif not ns.Layout.Slash(msg:lower()) then
 		-- ein Schlüssel; Print gibt jede Zeile als eigene Chatzeile aus
-		ns.Print(L["/qnvp – Optionen öffnen\n/qnvp 0 0 0 0 – Viewport zurücksetzen\n/qnvp L R O U – Versätze in Pixeln setzen (links, rechts, oben, unten)\n/qnvp dual – Zweiter Monitor (/qnvp dual help)\n/qnvp monitors – Monitordaten anzeigen\n/qnvp check – Rahmen außerhalb der Monitore suchen (verschieben: Optionen → Monitore)"])
+		ns.Print(L["/qnvp – open options\n/qnvp 0 0 0 0 – reset viewport\n/qnvp L R T B – set offsets in pixels (left, right, top, bottom)\n/qnvp dual – second monitor (/qnvp dual help)\n/qnvp monitors – show monitor data\n/qnvp check – find frames outside the monitors (to move them: Options → Monitors)"])
 	end
 end)
 
@@ -468,7 +468,7 @@ ns.OnLoad(function()
 		ns.UpdateBorderLook()
 		if ns.IsActive() and not ns.db.suppressMessage then
 			C_Timer.After(8, function()
-				ns.Print(L["Eigener Viewport ist aktiv. /qnvp zum Einstellen, /qnvp 0 0 0 0 zum Zurücksetzen."])
+				ns.Print(L["Custom viewport is active. /qnvp to adjust, /qnvp 0 0 0 0 to reset."])
 			end)
 		end
 	end)

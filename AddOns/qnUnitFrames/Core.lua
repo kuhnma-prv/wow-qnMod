@@ -47,7 +47,7 @@ local MODIFIER_TEXT = { alt = ALT_KEY_TEXT, ctrl = CTRL_KEY_TEXT, shift = SHIFT_
 -- "alt-shift-" → "ALT+UMSCHALT"; ohne Zusatztaste ein eigener Text
 function ns.ModifierText(prefix)
 	if prefix == "" then
-		return L["Ohne Zusatztaste"]
+		return L["No modifier"]
 	end
 	local parts = {}
 	for mod in prefix:gmatch("(%a+)%-") do
@@ -74,13 +74,13 @@ end
 -- Aktionen; "" = nichts setzen, Blizzards Verhalten bleibt (Linksklick: Ziel, Rechtsklick: Menü).
 -- value: "spell" = Zaubername, "macro" = Makrotext
 ns.TYPES = {
-	{ "", L["Blizzard-Standard"] },
-	{ "spell", L["Zauber"] },
+	{ "", L["Blizzard default"] },
+	{ "spell", L["Spell"] },
 	{ "macro", MACRO },
 	{ "target", TARGET },
 	{ "menu", FRAME_ACTION_MENU },
 	{ "focus", SET_FOCUS },
-	{ "assist", L["Assistieren"] },
+	{ "assist", L["Assist"] },
 }
 local KNOWN_TYPE = {}
 for _, t in ipairs(ns.TYPES) do
@@ -167,9 +167,9 @@ lib.RegisterSlash("QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, function(cmd)
 		ns.store:Set("enabled", true)
 	elseif cmd == "off" then
 		ns.store:Set("enabled", false)
-		ns.Print(L["Klickzauber ausgeschaltet. Einschalten mit /qnuf on"])
+		ns.Print(L["Click casting turned off. Turn it on with /qnuf on"])
 	else
-		ns.Print(L["Befehle:\n  /qnuf – Optionen öffnen\n  /qnuf clicks – Klickbelegung bearbeiten\n  /qnuf on | off – Klickzauber ein-/ausschalten"])
+		ns.Print(L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"])
 	end
 end)
 

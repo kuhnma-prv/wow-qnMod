@@ -62,8 +62,8 @@ Check(Last()[4] == "show", "leere erweiterte Bedingung: show")
 local text = ""
 local editBox = { SetText = function(_, t) text = t end, GetText = function() return text end, SetFocus = function() end }
 local dialog = { GetEditBox = function() return editBox end }
-clicks[L["Bearbeiten …"]]()
-Check(LAST_POPUP.which == "QNBUFFMOD_CONDITION" and LAST_POPUP.a1 == L["Fenster %d"]:format(1), "Dialog für Fenster 1")
+clicks[L["Edit …"]]()
+Check(LAST_POPUP.which == "QNBUFFMOD_CONDITION" and LAST_POPUP.a1 == L["Window %d"]:format(1), "Dialog für Fenster 1")
 StaticPopupDialogs.QNBUFFMOD_CONDITION.OnShow(dialog)
 Check(text == "", "Dialog vorbelegt mit gespeichertem Text")
 text = "[combat] hide\n\n[bonusbar:5] show;\n"
@@ -97,12 +97,12 @@ SETTINGS.QNBUFFMOD_W_VISWINDOW:SetValue(E.vis.CUSTOM)
 local parsed
 SecureCmdOptionParse = function(c) parsed = c return "hide", "target" end
 printed = {}
-clicks[L["Testen"]]()
+clicks[L["Test"]]()
 Check(parsed == "[combat] hide;[possessbar] show", "geprüft wird die aufbereitete Bedingung")
-Check(printed[1] == L["Bedingung: %s"]:format(parsed) and printed[2] == L["Ziel: %s"]:format("target")
-	and printed[3] == L["Ergebnis: |cFF66FF66%s|r"]:format("hide"), "Bedingung, Ziel, Ergebnis ausgegeben")
+Check(printed[1] == L["Condition: %s"]:format(parsed) and printed[2] == L["Target: %s"]:format("target")
+	and printed[3] == L["Result: |cFF66FF66%s|r"]:format("hide"), "Bedingung, Ziel, Ergebnis ausgegeben")
 SecureCmdOptionParse = function() return "blau", nil end
 printed = {}
-clicks[L["Testen"]]()
-Check(#printed == 2 and printed[2] == L["Ungültiges Ergebnis: |cFFFF3333%s|r"]:format("blau"), "ungültiges Ergebnis, ohne Ziel")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+clicks[L["Test"]]()
+Check(#printed == 2 and printed[2] == L["Invalid result: |cFFFF3333%s|r"]:format("blau"), "ungültiges Ergebnis, ohne Ziel")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

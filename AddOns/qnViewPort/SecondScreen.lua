@@ -44,7 +44,7 @@ function Dual.CheckWindow()
 	local problem = d.useMonitorData and ns.Layout.GetProblem()
 	-- Grobe Prüfung: Der Hauptmonitor ist mindestens halb so breit wie der 2. Monitor.
 	if W < d.width * 1.5 then
-		return false, L["Das Spielfenster ist nur %d × %d Pixel groß. Es muss über beide Monitore reichen (Hauptmonitor-Breite + %d).%s"]:format(
+		return false, L["The game window is only %d × %d pixels. It must span both monitors (main monitor width + %d).%s"]:format(
 			ns.screen[1], ns.screen[2], d.width, problem and ("\n" .. problem) or "")
 	end
 	return true
@@ -114,7 +114,7 @@ local function NewPlacement(prefix, label, r, g, b)
 end
 
 local bagPlace = NewPlacement("bags", HUD_EDIT_MODE_BAGS_LABEL, 0, 0.8, 1)
-local mapPlace = NewPlacement("zoneMap", L["Zonenkarte"], 1, 0.8, 0)
+local mapPlace = NewPlacement("zoneMap", L["Zone Map"], 1, 0.8, 0)
 -- ganze Monitore (ohne …Point/…Offset: Ecke unten rechts, Abstände 0)
 local worldPlace = NewPlacement("worldMap", WORLDMAP_BUTTON, 0.3, 1, 0.3)
 local questPlace = NewPlacement("questLog", MAP_AND_QUEST_LOG, 1, 0.5, 1)
@@ -349,11 +349,11 @@ end
 -- showBattlefieldMinimap, mit dem Blizzard sich den Zustand über das Einloggen hinaus merkt).
 function Dual.SetZoneMapShown(on)
 	if InCombatLockdown() and not ZoneMapLoaded() then
-		ns.Print(L["Die Zonenkarte kann im Kampf nicht geladen werden."])
+		ns.Print(L["The Zone Map cannot be loaded in combat."])
 		return
 	end
 	if not LoadZoneMap() then
-		ns.Print(L["Zonenkarte (Blizzard_BattlefieldMap) konnte nicht geladen werden."])
+		ns.Print(L["Zone Map (Blizzard_BattlefieldMap) could not be loaded."])
 		return
 	end
 	local f = _G.BattlefieldMapFrame
@@ -361,7 +361,7 @@ function Dual.SetZoneMapShown(on)
 		f:Toggle()
 	end
 	if on and not f:IsShown() then
-		ns.Print(L["Die Zonenkarte ist hier nicht verfügbar (Blizzard zeigt sie z. B. nicht in jeder Instanz)."])
+		ns.Print(L["The Zone Map is not available here (Blizzard does not show it in every instance, for example)."])
 	end
 end
 
@@ -569,12 +569,12 @@ function Dual.SetEnabled(on)
 			if not ok then
 				ns.Print("|cffff8080" .. msg .. "|r")
 			end
-			ns.Print(L["Zwei-Monitor-Modus aktiv: 3D-Welt auf dem Hauptmonitor."])
+			ns.Print(L["Dual monitor mode on: 3D world on the main monitor."])
 		else
 			ns.EndKeep()
 			ns.ApplyViewport({ 0, 0, 0, 0 })
 			ns.Layout.ReleaseUI()
-			ns.Print(L["Zwei-Monitor-Modus aus."])
+			ns.Print(L["Dual monitor mode off."])
 		end
 	end
 	Dual.Reapply(true)
@@ -607,11 +607,11 @@ function Dual.Slash(msg)
 		DB().width, DB().height = tonumber(w), tonumber(h)
 		if y ~= "" then DB().offsetY = tonumber(y) end
 		Dual.Reapply(true)
-		ns.Print((ns.Layout.Active() and L["2. Monitor: %d × %d, Versatz oben %d (gilt nur ohne Monitordaten)"]
-			or L["2. Monitor: %d × %d, Versatz oben %d"]):format(DB().width, DB().height, DB().offsetY))
+		ns.Print((ns.Layout.Active() and L["Second monitor: %d × %d, top offset %d (only used without monitor data)"]
+			or L["Second monitor: %d × %d, top offset %d"]):format(DB().width, DB().height, DB().offsetY))
 	else
 		-- ein Schlüssel; Print gibt jede Zeile als eigene Chatzeile aus
-		ns.Print(L["/qnvp dual – Optionen   |   on / off   |   left / right\n/qnvp dual B H [Y] – Größe des 2. Monitors in Pixeln, Y = Abstand von oben (nur ohne Monitordaten)\n/qnvp dual guides – Platzierungsbereiche anzeigen   |   map – Weltkarte öffnen   |   zonemap – Zonenkarte ein/aus"])
+		ns.Print(L["/qnvp dual – options   |   on / off   |   left / right\n/qnvp dual W H [Y] – size of the second monitor in pixels, Y = distance from the top (only without monitor data)\n/qnvp dual guides – show placement areas   |   map – open the World Map   |   zonemap – toggle the Zone Map"])
 	end
 end
 
@@ -760,11 +760,11 @@ end
 local function RefreshInfoText(ctx)
 	local data, main, second = ctx.data, ctx.main, ctx.second
 	local ok, msg = Dual.CheckWindow()
-	info:SetText(L["|cffccccccSpielfenster:|r %d × %d     |cffcccccc2. Monitor im Fenster:|r %s     |cffccccccWelt:|r %s%s%s"]:format(
+	info:SetText(L["|cffccccccGame window:|r %d × %d     |cffccccccSecond monitor in the window:|r %s     |cffccccccWorld:|r %s%s%s"]:format(
 		ns.screen[1], ns.screen[2],
-		second and ("x %d, y %d, %d × %d"):format(second.x, second.y, second.w, second.h) or L["keiner"],
-		main and ("%d × %d"):format(main.w, main.h) or L["ganzes Fenster"],
-		data and ("\n" .. L["|cff80ff80Monitordaten aktiv|r – Lage und Größe oben sind gemessen und nicht änderbar (Seite „Monitore“)."]) or "",
+		second and ("x %d, y %d, %d × %d"):format(second.x, second.y, second.w, second.h) or L["none"],
+		main and ("%d × %d"):format(main.w, main.h) or L["whole window"],
+		data and ("\n" .. L["|cff80ff80Monitor data active|r – position and size above are measured and cannot be changed (\"Monitors\" page)."]) or "",
 		ok and "" or ("\n|cffff8080" .. msg .. "|r")))
 end
 
@@ -772,8 +772,8 @@ end
 local function RefreshMonitorText()
 	local lines = ns.Layout.Describe()
 	lines[#lines + 1] = ""
-	lines[#lines + 1] = ns.Layout.IsUIConstrained() and L["Blizzard-Oberfläche: auf dem Hauptmonitor"]
-		or L["Blizzard-Oberfläche: über das ganze Fenster"]
+	lines[#lines + 1] = ns.Layout.IsUIConstrained() and L["Blizzard interface: on the main monitor"]
+		or L["Blizzard interface: across the whole window"]
 	monInfo:SetText(table.concat(lines, "\n"))
 end
 
@@ -796,14 +796,14 @@ end
 ---------------------------------------------------------------------------
 
 local function BuildPage(desc)
-	local enable = Check(L["Zwei-Monitor-Modus aktiv (3D-Welt nur auf dem Hauptmonitor)"], nil, nil, nil,
+	local enable = Check(L["Dual monitor mode enabled (3D world on the main monitor only)"], nil, nil, nil,
 		function() return DB().enabled end, Dual.SetEnabled)
 	enable:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", -4, -14)
 
 	-- Lage des 2. Monitors: Handwerte ohne Monitordaten, sonst gemessene Werte (gesperrt)
-	local side = Choice(L["Lage des 2. Monitors"], 220, {
-		{ "RIGHT", L["Rechts vom Hauptmonitor"] },
-		{ "LEFT", L["Links vom Hauptmonitor"] },
+	local side = Choice(L["Position of the second monitor"], 220, {
+		{ "RIGHT", L["Right of the main monitor"] },
+		{ "LEFT", L["Left of the main monitor"] },
 	}, function()
 		local main, second = ns.Layout.GetMainRect(), ns.Layout.GetSecondRect()
 		if ns.Layout.Active() and main and second then
@@ -816,13 +816,13 @@ local function BuildPage(desc)
 		end
 	end, nil, function() return not ns.Layout.Active() end)
 	side:SetPoint("TOPLEFT", enable, "BOTTOMLEFT", 164, -14)
-	UI.Tooltip(side, L["Lage des 2. Monitors"], L["Nur ohne Monitordaten einstellbar. Mit Monitordaten werden Lage, Größe und Abstand gemessen (qnViewPort\\scripts)."])
+	UI.Tooltip(side, L["Position of the second monitor"], L["Only adjustable without monitor data. With monitor data, position, size and offset are measured (qnViewPort\\scripts)."])
 
 	local wBox = NumBox(HUD_EDIT_MODE_SETTING_CHAT_FRAME_WIDTH, "width")
 	wBox:SetPoint("TOPLEFT", side, "BOTTOMLEFT", -90, -18)
 	local hBox = NumBox(HUD_EDIT_MODE_SETTING_CHAT_FRAME_HEIGHT, "height")
 	hBox:SetPoint("LEFT", wBox, "RIGHT", 70, 0)
-	local yBox = NumBox(L["Abstand von oben"], "offsetY")
+	local yBox = NumBox(L["Distance from top"], "offsetY")
 	yBox:SetPoint("LEFT", hBox, "RIGHT", 150, 0)
 
 	-- linksbündig mit dem Kontrollkästchen oben (wBox steht 70 weiter rechts)
@@ -846,9 +846,9 @@ local function MonitorEntries()
 	for i = 0, #monitors do
 		local r = monitors[i]
 		if i == 0 then
-			list[#list + 1] = { 0, L["Hauptmonitor (%d × %d)"]:format(r.w, r.h) }
+			list[#list + 1] = { 0, L["Main monitor (%d × %d)"]:format(r.w, r.h) }
 		elseif r == main then
-			list[#list + 1] = { i, L["Monitor %d (%d × %d), Haupt"]:format(i, r.w, r.h) }
+			list[#list + 1] = { i, L["Monitor %d (%d × %d), main"]:format(i, r.w, r.h) }
 		else
 			list[#list + 1] = { i, L["Monitor %d (%d × %d)"]:format(i, r.w, r.h) }
 		end
@@ -864,17 +864,17 @@ local function PlacementControls(prefix, anchor, monitorTitle, cornerTitle)
 		function() return MonitorIndex(prefix) end,
 		function(i) DB()[prefix .. "Monitor"] = i end, Dual.ApplyAll)
 	monitor:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 94, -8)
-	UI.Tooltip(monitor, monitorTitle, L["Nummern wie auf der Seite „Monitore“."])
+	UI.Tooltip(monitor, monitorTitle, L["Numbers as on the \"Monitors\" page."])
 
-	local corner = Choice(L["Ecke"], 150, CORNERS,
+	local corner = Choice(L["Corner"], 150, CORNERS,
 		function() return Corner(prefix) end,
 		function(p) DB()[prefix .. "Point"] = p end, Dual.ApplyAll)
 	corner:SetPoint("LEFT", monitor, "RIGHT", 60, 0)
 	UI.Tooltip(corner, cornerTitle)
 
-	local offsetX = NumBox(L["Abstand waagerecht"], prefix .. "OffsetX", Dual.ApplyAll)
+	local offsetX = NumBox(L["Horizontal offset"], prefix .. "OffsetX", Dual.ApplyAll)
 	offsetX:SetPoint("TOPLEFT", monitor, "BOTTOMLEFT", 80, -14)
-	local offsetY = NumBox(L["senkrecht"], prefix .. "OffsetY", Dual.ApplyAll)
+	local offsetY = NumBox(L["vertical"], prefix .. "OffsetY", Dual.ApplyAll)
 	offsetY:SetPoint("LEFT", offsetX, "RIGHT", 90, 0)
 	return monitor, offsetX
 end
@@ -907,24 +907,24 @@ local function BuildPlacementPage(desc)
 	-- Taschen
 	local bagHead = UI.Text(page, "GameFontNormal", HUD_EDIT_MODE_BAGS_LABEL)
 	bagHead:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -16)
-	local cBags = Check(L["Taschen beim Öffnen platzieren"], "bags",
-		L["Legt offene Taschen bei jedem Öffnen an die gewählte Ecke. Sie stapeln sich von dort senkrecht, weitere Spalten zur Monitormitte hin."],
+	local cBags = Check(L["Place bags when opened"], "bags",
+		L["Moves open bags to the chosen corner each time they open. They stack vertically from there, further columns towards the center of the monitor."],
 		Dual.ApplyAll)
 	cBags:SetPoint("TOPLEFT", bagHead, "BOTTOMLEFT", -4, -4)
-	local bagMonitor = PlacementControls("bags", cBags, L["Monitor für die Taschen"], L["Ecke für die Taschen"])
+	local bagMonitor = PlacementControls("bags", cBags, L["Monitor for the bags"], L["Corner for the bags"])
 
 	-- Zonenkarte
-	local mapHead = UI.Text(page, "GameFontNormal", L["Zonenkarte (Umschalt+M)"])
+	local mapHead = UI.Text(page, "GameFontNormal", L["Zone Map (Shift+M)"])
 	mapHead:SetPoint("TOPLEFT", bagMonitor, "BOTTOMLEFT", -90, -52)
-	local cShow = Check(L["Zonenkarte anzeigen"], nil,
-		L["Zeigt oder verbirgt Blizzards Zonenkarte. Blizzard merkt sich den Zustand selbst (CVar showBattlefieldMinimap)."],
+	local cShow = Check(L["Show Zone Map"], nil,
+		L["Shows or hides Blizzard's Zone Map. Blizzard remembers the state itself (CVar showBattlefieldMinimap)."],
 		nil, Dual.IsZoneMapShown, Dual.SetZoneMapShown)
 	cShow:SetPoint("TOPLEFT", mapHead, "BOTTOMLEFT", -4, -4)
-	local cPlace = Check(L["Zonenkarte beim Anzeigen platzieren"], "zoneMap",
-		L["Legt die Zonenkarte samt Reiter bei jedem Einblenden an die gewählte Ecke. Ziehen am Reiter wirkt dann nur bis zum nächsten Einblenden."],
+	local cPlace = Check(L["Place Zone Map when shown"], "zoneMap",
+		L["Moves the Zone Map and its tab to the chosen corner each time it is shown. Dragging the tab then only lasts until it is shown again."],
 		Dual.ApplyAll)
 	cPlace:SetPoint("TOPLEFT", cShow, "BOTTOMLEFT", 0, -2)
-	local mapMonitor, mapOffsetX = PlacementControls("zoneMap", cPlace, L["Monitor für die Zonenkarte"], L["Ecke für die Zonenkarte"])
+	local mapMonitor, mapOffsetX = PlacementControls("zoneMap", cPlace, L["Monitor for the Zone Map"], L["Corner for the Zone Map"])
 	-- Größe gilt auch ohne Platzierung; linksbündig mit dem Monitor-Knopf
 	local mapScale = ZoneMapScaleSlider()
 	mapScale:SetPoint("TOPLEFT", mapOffsetX, "BOTTOMLEFT", -80, -14)
@@ -932,42 +932,42 @@ local function BuildPlacementPage(desc)
 	-- Weltkarte: maximiert und verkleinert („Karte & Questlog“) je auf einen ganzen Monitor
 	local worldHead = UI.Text(page, "GameFontNormal", WORLDMAP_BUTTON)
 	worldHead:SetPoint("TOPLEFT", mapScale, "BOTTOMLEFT", -90, -20)
-	local cWorld = Check(L["Maximierte Weltkarte auf"], "worldMap",
-		L["Blizzard legt die maximierte Weltkarte über das ganze Spielfenster, bei mehreren Monitoren also über alle. An: Karte und schwarze Fläche nur auf dem gewählten Monitor."],
+	local cWorld = Check(L["Maximized World Map on"], "worldMap",
+		L["Blizzard places the maximized World Map across the whole game window, i.e. across all monitors. On: map and black background only on the selected monitor."],
 		Dual.ApplyAll)
 	cWorld:SetPoint("TOPLEFT", worldHead, "BOTTOMLEFT", -4, -4)
 	local worldMonitor = Choice("", 240, MonitorEntries,
 		function() return MonitorIndex("worldMap") end,
 		function(i) DB().worldMapMonitor = i end, Dual.ApplyAll)
 	worldMonitor:SetPoint("LEFT", cWorld, "LEFT", 260, 0)
-	UI.Tooltip(worldMonitor, L["Monitor für die maximierte Weltkarte"], L["Nummern wie auf der Seite „Monitore“."])
-	local cQuest = Check(L["„Karte & Questlog“ auf"], "questLog",
-		L["Die verkleinerte Weltkarte mit dem Questlog – das Questlog öffnet diese Ansicht. Blizzard legt sie an den linken Rand des Spielfensters. An: an den linken Rand des gewählten Monitors."],
+	UI.Tooltip(worldMonitor, L["Monitor for the maximized World Map"], L["Numbers as on the \"Monitors\" page."])
+	local cQuest = Check(L["\"Map & Quest Log\" on"], "questLog",
+		L["The minimized World Map with the quest log – opening the quest log shows this view. Blizzard places it at the left edge of the game window. On: at the left edge of the selected monitor."],
 		Dual.ApplyAll)
 	cQuest:SetPoint("TOPLEFT", cWorld, "BOTTOMLEFT", 0, -6)
 	local questMonitor = Choice("", 240, MonitorEntries,
 		function() return MonitorIndex("questLog") end,
 		function(i) DB().questLogMonitor = i end, Dual.ApplyAll)
 	questMonitor:SetPoint("LEFT", cQuest, "LEFT", 260, 0)
-	UI.Tooltip(questMonitor, L["Monitor für „Karte & Questlog“"], L["Nummern wie auf der Seite „Monitore“."])
+	UI.Tooltip(questMonitor, L["Monitor for \"Map & Quest Log\""], L["Numbers as on the \"Monitors\" page."])
 
-	local cFollow = Check(L["Karte folgt der aktuellen Zone"], "mapFollowZone",
-		L["Wechselt bei offener Karte beim Betreten einer neuen Zone auf deren Karte. Beim Öffnen zeigt Blizzard ohnehin die aktuelle Zone."])
+	local cFollow = Check(L["Map follows the current zone"], "mapFollowZone",
+		L["While the map is open, switches to the new zone's map when you enter it. Blizzard shows the current zone anyway when the map opens."])
 	cFollow:SetPoint("TOPLEFT", cQuest, "BOTTOMLEFT", 0, -6)
-	local cOpen = Check(L["Karte beim Einloggen öffnen"], "mapAutoOpen",
-		L["Nur beim Einloggen und nach /reload, nicht nach Ladebildschirmen."])
+	local cOpen = Check(L["Open the map on login"], "mapAutoOpen",
+		L["Only on login and after /reload, not after loading screens."])
 	cOpen:SetPoint("LEFT", cFollow, "LEFT", 300, 0)
-	local cFade = Check(L["Karte beim Laufen nicht ausblenden"], "mapNoFade",
-		L["Setzt die Blizzard-Einstellung mapFade auf 0. Beim Ausschalten wird der vorherige Wert wiederhergestellt. Blizzard blendet die Karte ohnehin nur aus, solange die Maus nicht über ihr ist – bei der maximierten Karte also kaum."],
+	local cFade = Check(L["Do not fade the map while moving"], "mapNoFade",
+		L["Sets the Blizzard option mapFade to 0. Turning this off restores the previous value. Blizzard only fades the map while the mouse is not over it – so hardly ever with the maximized map."],
 		function() ApplyMapFade(true) end)
 	cFade:SetPoint("TOPLEFT", cFollow, "BOTTOMLEFT", 0, -2)
 
-	local cGuides = Check(L["Bereiche anzeigen"], "guides",
-		L["Rahmt die Bereiche ein: blau Taschen, gelb Zonenkarte, grün Weltkarte, violett „Karte & Questlog“ (nur wenn die Platzierung an ist)."], Dual.UpdateArea)
+	local cGuides = Check(L["Show areas"], "guides",
+		L["Outlines the areas: blue bags, yellow Zone Map, green World Map, purple \"Map & Quest Log\" (only while placement is on)."], Dual.UpdateArea)
 	cGuides:SetPoint("TOPLEFT", cFade, "BOTTOMLEFT", 0, -10)
 
 	local apply = ApplyButton(cGuides, false)
-	local openMap = UI.Button(page, L["Karte öffnen"], 160, Dual.OpenMap)
+	local openMap = UI.Button(page, L["Open map"], 160, Dual.OpenMap)
 	openMap:SetPoint("LEFT", apply, "RIGHT", 10, 0)
 end
 
@@ -1000,12 +1000,12 @@ local function RowEnter(button)
 	marker:Show()
 	GameTooltip:SetOwner(button, "ANCHOR_LEFT")
 	GameTooltip:AddLine(e.name)
-	GameTooltip:AddLine(L["Verschiebt nur dieses Element auf dem kürzesten Weg auf einen Monitor. Rot markiert: seine jetzige Fläche."], 1, 1, 1, true)
+	GameTooltip:AddLine(L["Moves only this element onto a monitor by the shortest path. Marked in red: its current area."], 1, 1, 1, true)
 	if e.editMode then
-		GameTooltip:AddLine(L["Rahmen des Bearbeitungsmodus: gilt bis /reload bzw. bis das Layout neu geladen wird. Dauerhaft: im Bearbeitungsmodus verschieben."], 1, 0.8, 0.3, true)
+		GameTooltip:AddLine(L["Edit Mode frame: lasts until /reload or until the layout is reloaded. To keep it: move it in Edit Mode."], 1, 0.8, 0.3, true)
 	end
 	if e.protected then
-		GameTooltip:AddLine(L["Geschützter Rahmen: nicht im Kampf. Verschieben aus Addon-Code kann „Aktion blockiert“-Meldungen (Taint) auslösen."], 1, 0.5, 0.5, true)
+		GameTooltip:AddLine(L["Protected frame: not in combat. Moving it from addon code can cause \"action blocked\" messages (taint)."], 1, 0.5, 0.5, true)
 	end
 	GameTooltip:Show()
 end
@@ -1040,7 +1040,7 @@ local function Row(i)
 	row.notes:SetPoint("LEFT", row.where, "RIGHT", 6, 0)
 	row.notes:SetWidth(130)
 	row.notes:SetWordWrap(false)
-	row.button = UI.Button(row, L["In sichtbaren Bereich holen"], 180, function(self)
+	row.button = UI.Button(row, L["Move into visible area"], 180, function(self)
 		local e = self:GetParent().entry
 		if e then
 			marker:Hide()
@@ -1076,16 +1076,16 @@ function Dual.CheckVisible()
 	listContent:SetHeight(math.max(1, #list * ROW_HEIGHT))
 	listContent:SetShown(#list > 0)
 	if #list == 0 then
-		listHeader:SetText("|cff80ff80" .. L["Alle eingeblendeten Oberflächenelemente liegen auf einem Monitor."] .. "|r")
+		listHeader:SetText("|cff80ff80" .. L["All shown interface elements are on a monitor."] .. "|r")
 	else
-		listHeader:SetText(L["%d Element(e) ganz oder teilweise außerhalb der Monitore"]:format(#list))
+		listHeader:SetText(L["%d element(s) fully or partly outside the monitors"]:format(#list))
 	end
 	listPage.Fit()
 end
 
 -- Liste im Inhalt der Seite (blättert mit der Seite)
 local function BuildVisibleList(parent, anchor)
-	listHeader = UI.Text(parent, "GameFontNormal", L["Noch nicht geprüft – „Sichtbarkeit prüfen“ drücken."])
+	listHeader = UI.Text(parent, "GameFontNormal", L["Not checked yet – press \"Check visibility\"."])
 	listHeader:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -14)
 
 	listContent = CreateFrame("Frame", nil, parent)
@@ -1105,8 +1105,8 @@ end
 
 local function BuildMonitorPage(desc, ui)
 	listPage = ui
-	local cData = Check(L["Monitordaten verwenden"], "useMonitorData",
-		L["Aus: Lage und Größe des 2. Monitors kommen von der Seite „Zweiter Monitor“."], function()
+	local cData = Check(L["Use monitor data"], "useMonitorData",
+		L["Off: position and size of the second monitor come from the \"Second Monitor\" page."], function()
 			if DB().enabled then
 				Dual.Reapply(true)
 			else
@@ -1119,18 +1119,18 @@ local function BuildMonitorPage(desc, ui)
 	local apply = ApplyButton(cData, true)
 
 	-- Blizzard-Oberfläche nur auf Knopfdruck verschieben (bis zum Zurücksetzen oder /reload)
-	local uiMain = UI.Button(page, L["Oberfläche auf den Hauptmonitor"], 220, function()
+	local uiMain = UI.Button(page, L["Interface to main monitor"], 220, function()
 		ns.Layout.ConstrainUI()
 		Dual.RefreshOptions()
-	end, L["Legt UIParent einmalig nur über den Hauptmonitor. Achtung: verschiebt damit ALLE Blizzard-Fenster, die an UIParent hängen (Aktionsleisten, Minikarte, Questliste, Chat …). Gilt bis zum Zurücksetzen oder /reload; nur im Zwei-Monitor-Modus."])
+	end, L["Places UIParent over the main monitor once. Caution: this moves ALL Blizzard windows attached to UIParent (action bars, minimap, objective tracker, chat …). Lasts until reset or /reload; dual monitor mode only."])
 	uiMain:SetPoint("TOPLEFT", apply, "BOTTOMLEFT", 0, -10)
 	local uiReset = UI.Button(page, RESET, 160, function()
 		ns.Layout.ReleaseUI()
 		Dual.RefreshOptions()
-	end, L["Legt die Blizzard-Oberfläche wieder über das ganze Spielfenster."])
+	end, L["Places the Blizzard interface across the whole game window again."])
 	uiReset:SetPoint("LEFT", uiMain, "RIGHT", 10, 0)
-	local check = UI.Button(page, L["Sichtbarkeit prüfen"], 160, Dual.CheckVisible,
-		L["Sucht alle eingeblendeten Oberflächenelemente, die ganz oder teilweise auf keinem Monitor liegen, und listet sie unten auf. Verschoben wird nur, was du dort einzeln anklickst."])
+	local check = UI.Button(page, L["Check visibility"], 160, Dual.CheckVisible,
+		L["Finds all shown interface elements that are fully or partly outside every monitor and lists them below. Only what you click there, one at a time, is moved."])
 	check:SetPoint("LEFT", apply, "RIGHT", 10, 0)
 
 	monInfo = UI.Text(page, "GameFontHighlight")
@@ -1155,14 +1155,14 @@ end
 ---------------------------------------------------------------------------
 
 function ns.InitSecondScreen()
-	NewPage(L["Monitore"],
-		L["Die Monitordaten (Monitors.lua) schreibt qnViewPort\\scripts\\Initialize-WowMonitors.ps1: einmalig Monitore auswählen und den Hauptmonitor festlegen. Set-WowWindow.ps1 zieht das Spielfenster dann über die ausgewählten Monitore und gleicht die Daten ab. Nach einer Änderung /reload."],
+	NewPage(L["Monitors"],
+		L["The monitor data (Monitors.lua) is written by qnViewPort\\scripts\\Initialize-WowMonitors.ps1: select the monitors once and set the main monitor. Set-WowWindow.ps1 then stretches the game window across the selected monitors and updates the data. /reload after a change."],
 		BuildMonitorPage)
-	sub = NewPage(L["Zweiter Monitor"],
-		L["Das Spielfenster muss über mehrere Monitore gezogen sein (Fenstermodus, z. B. 5760 × 2160). Dann liegt die 3D-Welt auf dem Hauptmonitor. Oberflächenelemente verschiebst du im Bearbeitungsmodus von Blizzard; Elemente außerhalb der Monitore findest du auf der Seite „Monitore“, Taschen, Zonenkarte und Weltkarte auf der Seite „Platzierung“."],
+	sub = NewPage(L["Second Monitor"],
+		L["The game window must be stretched across several monitors (windowed mode, e.g. 5760 × 2160). The 3D world is then placed on the main monitor. Move interface elements with Blizzard's Edit Mode; elements outside the monitors are listed on the \"Monitors\" page, bags, Zone Map and World Map are on the \"Placement\" page."],
 		BuildPage)
-	NewPage(L["Platzierung"],
-		L["Legt Taschen und Zonenkarte an eine Ecke eines Monitors und die Weltkarte auf einen Monitor. Die Abstände zählen in Pixeln vom Rand der Ecke nach innen. Ohne Haken fasst qnViewPort das jeweilige Fenster nicht an."],
+	NewPage(L["Placement"],
+		L["Places bags and the Zone Map in a corner of a monitor and the World Map on a monitor. Offsets are counted in pixels inward from the edges of the corner. Unless checked, qnViewPort does not touch that window."],
 		BuildPlacementPage)
 
 	-- Taschen: Blizzard setzt die Anker in UpdateContainerFrameAnchors – beim Öffnen und Schließen

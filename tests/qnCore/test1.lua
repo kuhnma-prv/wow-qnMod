@@ -109,4 +109,4 @@ SlashCmdList.QNNUMKEYPAD("lock")
 Check(nkp.db.locked == true, "/qnnkp lock")
 SlashCmdList.QNINVENTORY("gold")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

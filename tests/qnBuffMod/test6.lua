@@ -22,10 +22,10 @@ local function Count(pattern)
 	return n
 end
 local function Msg(name, sec)
-	return L["Der Zauber |cFFFFFFFF%s|r läuft in |cFFFFFFFF%s|r ab."]:format(name, bm.FormatTime(sec, 1, true))
+	return L["The |cFFFFFFFF%s|r buff will expire in |cFFFFFFFF%s|r."]:format(name, bm.FormatTime(sec, 1, true))
 end
 local function MsgKey(name, sec, key)
-	return L["Der Zauber |cFFFFFFFF%s|r läuft in |cFFFFFFFF%s|r ab. Außerhalb des Kampfes |cFFFFFFFF%s|r drücken zum Erneuern."]:format(name, bm.FormatTime(sec, 1, true), key)
+	return L["The |cFFFFFFFF%s|r buff will expire in |cFFFFFFFF%s|r. Press |cFFFFFFFF%s|r while out of combat to recast."]:format(name, bm.FormatTime(sec, 1, true), key)
 end
 local function Has(text)
 	for _, m in ipairs(printed) do if m == text then return true end end
@@ -60,7 +60,7 @@ Check(button and button._template == "SecureActionButtonTemplate" and button:Get
 Check(#overrides == 1 and overrides[1][1] == button and overrides[1][3] == "F5" and overrides[1][4] == "QNBUFFMOD_RECASTBUFFFRAME", "Taste per Override auf den Knopf gelegt")
 FireEvent("UPDATE_BINDINGS")
 Check(#overrides == 1, "gleiche Belegung: nichts wiederholt")
-Check(BINDING_HEADER_QNBUFFMOD == "qnBuffMod" and BINDING_NAME_QNBUFFMOD_RECASTBUFFS == L["Stärkungszauber erneuern"], "Tastenbelegung benannt")
+Check(BINDING_HEADER_QNBUFFMOD == "qnBuffMod" and BINDING_NAME_QNBUFFMOD_RECASTBUFFS == L["Recast Buffs"], "Tastenbelegung benannt")
 -- ohne Warnung: eigene Aura mit der kürzesten Restzeit, die der Spieler wirken kann (Entscheidung 10)
 Check(button:GetAttribute("spell") == "Kurz", "ohne Warnung: kürzeste eigene Aura: " .. tostring(button:GetAttribute("spell")))
 
@@ -171,7 +171,7 @@ AURAS.target = { Buff("Zielsegen", 600, 1008, "player") }
 FireEvent("PLAYER_TARGET_CHANGED") RunTimers()
 n = #list
 RunTickers()
-Check(Has(L["Der Zauber |cFFFFFFFF%s|r auf |cFFFFFFFF%s|r läuft in |cFFFFFFFF%s|r ab."]:format("Zielsegen", "Tester", bm.FormatTime(8, 1, true))), "Warnung für das Ziel nennt die Einheit")
+Check(Has(L["The |cFFFFFFFF%s|r buff on |cFFFFFFFF%s|r will expire in |cFFFFFFFF%s|r."]:format("Zielsegen", "Tester", bm.FormatTime(8, 1, true))), "Warnung für das Ziel nennt die Einheit")
 Check(#list == n, "Zielauren kommen nicht in die Erneuerungsliste")
 AURAS.vehicle = { Buff("Fahrzeugschild", 300, 1007, "vehicle") }
 FireEvent("UNIT_ENTERED_VEHICLE", "player")
@@ -191,11 +191,11 @@ QN_AURAS_SECRET = true
 FireEvent("UNIT_AURA", "player") RunTimers()
 QN_AURAS_SECRET = false
 FireEvent("ADDON_RESTRICTION_STATE_CHANGED") RunTimers()
-Check(Count(L["Im Kampf hält der Client Aurendaten zurück. Die Fenster zeigen bis danach den letzten bekannten Stand."]) == 1, "Hinweis auf die Sperre genau einmal")
+Check(Count(L["In combat the client withholds aura data. Until then the windows show the last known state."]) == 1, "Hinweis auf die Sperre genau einmal")
 AURAS.player[1].locked = true
 FireEvent("UNIT_AURA", "player") RunTimers()
 FireEvent("UNIT_AURA", "player") RunTimers()
-Check(Count(L["Der Client hält gerade Aurendaten zurück (secret). Betroffene Zauber erscheinen ohne Restzeit bzw. mit Fragezeichen."]) == 1, "Hinweis auf secret-Felder genau einmal")
+Check(Count(L["The client is currently withholding aura data (secret). Affected auras are shown without time remaining or with a question mark."]) == 1, "Hinweis auf secret-Felder genau einmal")
 -- Warnung abgeschaltet
 AURAS.player[1].locked = nil
 SETTINGS.QNBUFFMOD_ENABLEEXPIRATION:SetValue(false)
@@ -203,4 +203,4 @@ AURAS.player[#AURAS.player + 1] = Buff("Still", 600, 1005)
 FireEvent("UNIT_AURA", "player") RunTimers()
 RunTickers()
 Check(Count("Still") == 0, "Warnung im Chat aus: keine Meldung")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

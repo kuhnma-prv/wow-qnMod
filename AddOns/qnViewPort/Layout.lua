@@ -35,17 +35,17 @@ function Layout.GetData()
 
 	local data = _G.qnViewPortMonitors
 	if type(data) ~= "table" or type(data.window) ~= "table" or type(data.monitors) ~= "table" then
-		problem = L["Keine Monitordaten – qnViewPort\\scripts\\Initialize-WowMonitors.ps1 ausführen, dann /reload."]
+		problem = L["No monitor data – run qnViewPort\\scripts\\Initialize-WowMonitors.ps1, then /reload."]
 		return nil
 	end
 	local dw, dh = tonumber(data.window.width) or 0, tonumber(data.window.height) or 0
 	if dw <= 0 or dh <= 0 then
-		problem = L["Monitordaten ohne Fenstergröße."]
+		problem = L["Monitor data without window size."]
 		return nil
 	end
 	-- Anders großes Fenster (z. B. Auflösungsskalierung) nur bei gleichem Seitenverhältnis umrechnen.
 	if math.abs(dw / dh - W / H) > 0.01 then
-		problem = L["Spielfenster %d × %d passt nicht zu den Monitordaten (%d × %d) – Set-WowWindow.ps1 ausführen."]:format(W, H, dw, dh)
+		problem = L["Game window %d × %d does not match the monitor data (%d × %d) – run Set-WowWindow.ps1."]:format(W, H, dw, dh)
 		return nil
 	end
 	local kx, ky = W / dw, H / dh
@@ -68,7 +68,7 @@ function Layout.GetData()
 	end
 	main = main or list[1]
 	if not main then
-		problem = L["Monitordaten ohne Monitor."]
+		problem = L["Monitor data without a monitor."]
 		return nil
 	end
 	cache = { monitors = list, main = main }
@@ -180,7 +180,7 @@ local constrainedRect   -- zuletzt angewendeter Bereich (Pixel), solange constra
 -- rect = Bereich in Pixeln oder nil = ganzes Fenster. Liefert true, wenn angewendet.
 local function SetUIParent(rect)
 	if InCombatLockdown() then
-		ns.Print(L["%s ist geschützt – im Kampf nicht verschiebbar."]:format("UIParent"))
+		ns.Print(L["%s is protected – cannot be moved in combat."]:format("UIParent"))
 		return false
 	end
 	-- ns.FrameSetPoint = Methode der Widget-Klasse (ohne Umweg über überschriebene Methoden)
@@ -223,11 +223,11 @@ Layout.ReapplyUI = ReapplyUI
 function Layout.ConstrainUI()
 	local rect = DB().enabled and Layout.GetMainRect()
 	if not rect or IsFull(rect) then
-		ns.Print(L["Nur im Zwei-Monitor-Modus, wenn das Spielfenster über mehrere Monitore reicht."])
+		ns.Print(L["Only in dual monitor mode, when the game window spans several monitors."])
 		return
 	end
 	if SetUIParent(rect) then
-		ns.Print(L["Blizzard-Oberfläche auf dem Hauptmonitor (bis zum Zurücksetzen oder /reload)."])
+		ns.Print(L["Blizzard interface on the main monitor (until reset or /reload)."])
 	end
 end
 
@@ -260,7 +260,7 @@ local function Source(f)
 		end
 		return addon or "Addon", false
 	end
-	return L["unbenannt"], false
+	return L["unnamed"], false
 end
 
 -- Prüft alle sichtbaren Oberflächenelemente (Kinder von UIParent) und liefert die, die ganz
@@ -306,7 +306,7 @@ function Layout.MoveFrame(f)
 			FCF_SavePositionAndDimensions(f)
 		end
 		if f.system ~= nil then
-			ns.Print(L["Rahmen des Bearbeitungsmodus: gilt bis /reload bzw. bis das Layout neu geladen wird. Dauerhaft: im Bearbeitungsmodus verschieben."])
+			ns.Print(L["Edit Mode frame: lasts until /reload or until the layout is reloaded. To keep it: move it in Edit Mode."])
 		end
 	end
 	return moved
@@ -509,7 +509,7 @@ function Layout.Refresh()
 			g.layoutKey = key
 			ns.EndKeep()
 			ns.ApplyViewport(Layout.ViewportFor(data.main))
-			ns.Print(L["Monitoranordnung übernommen: %d Monitore, 3D-Welt auf dem Hauptmonitor (%d × %d)."]:format(
+			ns.Print(L["Monitor layout applied: %d monitors, 3D world on the main monitor (%d × %d)."]:format(
 				#data.monitors, data.main.w, data.main.h))
 		end
 	end
@@ -537,24 +537,24 @@ function Layout.Describe()
 	local lines = {}
 	local data = Layout.GetData()
 	if not data then
-		lines[1] = "|cffff8080" .. (problem or L["Keine Monitordaten."]) .. "|r"
+		lines[1] = "|cffff8080" .. (problem or L["No monitor data."]) .. "|r"
 		return lines
 	end
 	for _, m in ipairs(data.monitors) do
 		lines[#lines + 1] = ("%d: %s  x %d, y %d, %d × %d%s%s"):format(m.index, m.name or m.device or "?",
-			m.x, m.y, m.w, m.h, m == data.main and ("  |cff80ff80%s|r"):format(L["Hauptmonitor"]) or "",
-			m.selected == false and ("  (%s)"):format(L["nicht ausgewählt, zeigt aber einen Teil des Fensters"]) or "")
+			m.x, m.y, m.w, m.h, m == data.main and ("  |cff80ff80%s|r"):format(L["Main monitor"]) or "",
+			m.selected == false and ("  (%s)"):format(L["not selected, but shows part of the window"]) or "")
 	end
 	if not DB().useMonitorData then
-		lines[#lines + 1] = "|cffffff80" .. L["Monitordaten sind abgeschaltet (Optionen, Zweiter Monitor)."] .. "|r"
+		lines[#lines + 1] = "|cffffff80" .. L["Monitor data is turned off (options, Second Monitor)."] .. "|r"
 	end
 	return lines
 end
 
 function Layout.Slash(cmd)
 	if cmd == "monitors" or cmd == "monitore" then
-		ns.Print((constrained and L["Spielfenster %d × %d, Oberfläche auf dem Hauptmonitor:"]
-			or L["Spielfenster %d × %d, Oberfläche über das ganze Fenster:"]):format(ns.screen[1], ns.screen[2]))
+		ns.Print((constrained and L["Game window %d × %d, interface on the main monitor:"]
+			or L["Game window %d × %d, interface across the whole window:"]):format(ns.screen[1], ns.screen[2]))
 		for _, line in ipairs(Layout.Describe()) do
 			ns.Print(line)
 		end
@@ -568,11 +568,11 @@ end
 
 -- Kurzbeschreibung eines Prüfergebnisses
 function Layout.DescribeEntry(e)
-	local where = e.visible < 0.0001 and ("|cffff6060%s|r"):format(L["ganz außerhalb"])
-		or L["|cffffd060teilweise außerhalb|r (%d %% sichtbar)"]:format(math.floor(e.visible * 100))
+	local where = e.visible < 0.0001 and ("|cffff6060%s|r"):format(L["fully outside"])
+		or L["|cffffd060partly outside|r (%d %% visible)"]:format(math.floor(e.visible * 100))
 	local notes = { e.source }
 	if e.editMode then notes[#notes + 1] = HUD_EDIT_MODE_MENU end
-	if e.protected then notes[#notes + 1] = L["geschützt"] end
+	if e.protected then notes[#notes + 1] = L["protected"] end
 	return where, table.concat(notes, ", ")
 end
 
@@ -580,13 +580,13 @@ end
 function Layout.Report()
 	local list = Layout.CheckFrames()
 	if #list == 0 then
-		ns.Print(L["Alle sichtbaren Oberflächenelemente liegen auf einem Monitor."])
+		ns.Print(L["All visible interface elements are on a monitor."])
 	end
 	for _, e in ipairs(list) do
 		local where, notes = Layout.DescribeEntry(e)
 		ns.Print(("|cffffff80%s|r – %s – %s"):format(e.name, where, notes))
 	end
 	if #list > 0 then
-		ns.Print(L["Einzeln verschieben: Optionen → qnViewPort → Monitore."])
+		ns.Print(L["Move them one at a time: Options → qnViewPort → Monitors."])
 	end
 end

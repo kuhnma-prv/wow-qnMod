@@ -33,4 +33,4 @@ qnLateHasDB = { profiles = { [key] = { a = 9 } }, global = { g = 1 } }
 local s3, ns3 = Late("qnLateHas", "qnLateHasDB", { a = 1 })
 Check(s3.key == key and ns3.db == qnLateHasDB.profiles[key] and ns3.db.a == 9 and s3.global.g == 1, "spät, mit Profil: dieses Profil")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

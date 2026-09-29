@@ -161,7 +161,7 @@ end
 
 local function ColorEntries()
 	local list = UD.ColorEntries()
-	list[#list + 1] = { CUSTOM, L["Eigene Farbe …"] }
+	list[#list + 1] = { CUSTOM, L["Custom color …"] }
 	return list
 end
 
@@ -276,7 +276,7 @@ local function RefreshRow(p, row, item, before, after)
 		row.up:SetEnabled(before ~= nil and before.e[3] ~= "fixed" and before.c.line == c.line)
 		row.down:SetEnabled(after ~= nil and after.e[3] ~= "fixed" and after.c.line == c.line)
 	end
-	row.preview:SetText(PreviewText(e, c, p.raw) or INVALID:format(L["(ungültiges Format)"]))
+	row.preview:SetText(PreviewText(e, c, p.raw) or INVALID:format(L["(invalid format)"]))
 	row.preview:SetAlpha(c.enable and 1 or 0.4)
 	row.sel:SetShown(p.editor:IsShown() and row.key == p.selected)
 end
@@ -302,8 +302,8 @@ local function UpdateResult(p)
 		return
 	end
 	local text = PreviewText(e, c, p.raw, ed.format:GetText())
-	ed.result:SetText(text and L["Vorschau: %s"]:format(text)
-		or INVALID:format(L["Ungültig – genau ein Platzhalter (%s, bei Zahlen auch %d), Prozentzeichen als %%."]))
+	ed.result:SetText(text and L["Preview: %s"]:format(text)
+		or INVALID:format(L["Invalid – exactly one placeholder (%s, for numbers also %d), percent sign as %%."]))
 end
 
 -- Eingabe übernehmen, wenn gültig; sonst den gespeicherten Wert zurück
@@ -320,7 +320,7 @@ local function CommitFormat(p)
 		c.format = text
 		ns.RefreshElementsPages()
 	else
-		ns.Print(L["Ungültiges Format: %s"], text)
+		ns.Print(L["Invalid format: %s"], text)
 		p.editor.format:SetText(c.format or "")
 		UpdateResult(p)
 	end
@@ -384,7 +384,7 @@ local function CreateEditor(p)
 	ed.filter:SetPoint("TOPLEFT", ed.color, "BOTTOMLEFT", 0, -10)
 	UI.Label(ed, ed.filter, FILTER)
 
-	ed.iconNote = UI.Text(ed, "GameFontHighlightSmall", L["Symbole haben weder Farbe noch Format – für sie gilt nur der Filter."])
+	ed.iconNote = UI.Text(ed, "GameFontHighlightSmall", L["Icons have neither color nor format – only the filter applies to them."])
 	ed.iconNote:SetPoint("TOPLEFT", PAD, -116)
 	ed.iconNote:SetWidth(EDITOR_WIDTH - 2 * PAD)
 
@@ -418,7 +418,7 @@ local function CreateEditor(p)
 	ed.help = UI.Text(ed, "GameFontHighlightSmall")
 	ed.help:SetPoint("TOPLEFT", PAD, -150)
 	ed.help:SetWidth(EDITOR_WIDTH - 2 * PAD)
-	ed.exHead = UI.Text(ed, "GameFontNormalSmall", L["Beispiele – anklicken zum Übernehmen:"])
+	ed.exHead = UI.Text(ed, "GameFontNormalSmall", L["Examples – click to use:"])
 	ed.exHead:SetPoint("TOPLEFT", ed.help, "BOTTOMLEFT", 0, -10)
 	-- je Beispiel eine Zeile: Knopf mit dem Format, dahinter das Ergebnis
 	ed.examples = {}
@@ -449,7 +449,7 @@ local function RefreshEditor(p)
 	if not (e and ed:IsShown()) then
 		return
 	end
-	ed.TitleContainer.TitleText:SetText(L["Baustein: %s"]:format(e[2]))
+	ed.TitleContainer.TitleText:SetText(L["Element: %s"]:format(e[2]))
 	local text = e[3] ~= "icon"
 	for _, w in ipairs(ed.text) do
 		w:SetShown(text)
@@ -471,8 +471,8 @@ local function RefreshEditor(p)
 	end
 	UpdateResult(p)
 	ed.help:SetText(e[3] == "number"
-		and L["%d oder %s steht für die Zahl, alles andere erscheint so, wie es dasteht. Genau ein Platzhalter ist erlaubt. Ein Prozentzeichen schreibst du als %%, z. B. %d%% für 120%. Farbcodes färben einen Teil: ||cffff0000rot||r (die Farbe oben gilt für den ganzen Baustein)."]
-		or L["%s steht für den Wert, alles andere erscheint so, wie es dasteht. Genau ein %s ist erlaubt. Ein Prozentzeichen schreibst du als %%. Farbcodes färben einen Teil: ||cffff0000rot||r (die Farbe oben gilt für den ganzen Baustein)."])
+		and L["%d or %s stands for the number, everything else appears as written. Exactly one placeholder is allowed. Write a percent sign as %%, e.g. %d%% for 120%. Color codes color a part: ||cffff0000red||r (the color above applies to the whole element)."]
+		or L["%s stands for the value, everything else appears as written. Exactly one %s is allowed. Write a percent sign as %%. Color codes color a part: ||cffff0000red||r (the color above applies to the whole element)."])
 	for i, fmt in ipairs(Examples(e)) do
 		local b = ed.examples[i]
 		b.fmt = fmt
@@ -556,7 +556,7 @@ end
 local function Preview(kind)
 	local unit = kind == "player" and "player" or "target"
 	if kind == "npc" and not (UnitExists("target") and not UnitIsPlayer("target")) then
-		ns.Print(L["Für die Vorschau einen NSC anvisieren."])
+		ns.Print(L["Target an NPC for the preview."])
 		return
 	end
 	local p = pages[kind]
@@ -568,7 +568,7 @@ end
 local function Build(p, title)
 	local kind = p.kind
 	p.ui = UI.Page(title, {
-		desc = L["Die Kopfzeilen des Tooltips bestehen aus diesen Bausteinen. Zeile und Reihenfolge bestimmen ihre Lage; Farbe, Format und Filter gelten je Baustein. Symbole haben weder Farbe noch Format. Die Werte liegen im aktiven Profil."],
+		desc = L["The header lines of the tooltip are built from these elements. Line and order set their placement; color, format and filter apply per element. Icons have neither color nor format. The values are stored in the active profile."],
 		descWidth = 600,
 		defaults = function()
 			StaticPopup_Show("QNTOOLTIP_ELEMENTS_RESET", title, nil, kind)
@@ -578,7 +578,7 @@ local function Build(p, title)
 	local parent = p.ui.content
 
 	p.preview = UI.Button(parent, PREVIEW, 120, function() Preview(kind) end,
-		kind == "player" and L["Zeigt den Tooltip des eigenen Charakters."] or L["Zeigt den Tooltip des anvisierten NSC."])
+		kind == "player" and L["Shows the tooltip of your own character."] or L["Shows the tooltip of the targeted NPC."])
 	p.preview:SetPoint("TOPLEFT", p.ui.top, "BOTTOMLEFT", 0, -10)
 	p.preview:SetScript("OnLeave", GameTooltip_Hide)
 
@@ -587,7 +587,7 @@ local function Build(p, title)
 	header:SetPoint("TOPLEFT", p.preview, "BOTTOMLEFT", 0, -12)
 	header:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
 	local x = 30
-	for _, h in ipairs({ { L["Baustein"], 154 }, { L["Zeile"], 62 }, { L["Reihenfolge"], 76 }, { PREVIEW, 0 } }) do
+	for _, h in ipairs({ { L["Element"], 154 }, { L["Line"], 62 }, { L["Order"], 76 }, { PREVIEW, 0 } }) do
 		local fs = UI.Text(header, "GameFontNormalSmall", h[1])
 		fs:SetPoint("LEFT", x, 0)
 		x = x + h[2]
@@ -607,7 +607,7 @@ local function Build(p, title)
 	end)
 end
 
-lib.Popup.Confirm("QNTOOLTIP_ELEMENTS_RESET", L["Bausteine für %s auf die Vorgaben zurücksetzen?"], RESET, function(kind)
+lib.Popup.Confirm("QNTOOLTIP_ELEMENTS_RESET", L["Reset the elements for %s to the defaults?"], RESET, function(kind)
 	ns.db[kind].elements = CopyTable(ns.defaults[kind].elements)
 	ns.RefreshElementsPages()
 end)

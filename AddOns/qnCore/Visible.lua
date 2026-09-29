@@ -176,13 +176,13 @@ end
 function Visible.MoveAndReport(frame, label, printFn, opts)
 	local moved, why = Visible.Move(frame, opts)
 	if moved then
-		printFn(L["%s in den sichtbaren Bereich verschoben."]:format(label))
+		printFn(L["%s moved into the visible area."]:format(label))
 	elseif why == "combat" then
-		printFn(L["%s ist geschützt – im Kampf nicht verschiebbar."]:format(label))
+		printFn(L["%s is protected – cannot be moved in combat."]:format(label))
 	elseif why == "visible" then
-		printFn(L["%s liegt bereits im sichtbaren Bereich."]:format(label))
+		printFn(L["%s is already in the visible area."]:format(label))
 	else
-		printFn(L["%s kann nicht verschoben werden."]:format(label))
+		printFn(L["%s cannot be moved."]:format(label))
 	end
 	return moved, why
 end

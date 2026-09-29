@@ -386,11 +386,11 @@ end
 function UD.ColorEntries()
 	return {
 		{ "default", DEFAULT },
-		{ "class", L["Klassenfarbe"] },
-		{ "level", L["Farbe der Stufe"] },
-		{ "reaction", L["Farbe der Reaktion"] },
-		{ "faction", L["Farbe der Fraktion"] },
-		{ "selection", L["Farbe der Auswahl"] },
+		{ "class", L["Class Color"] },
+		{ "level", L["Level Color"] },
+		{ "reaction", L["Reaction Color"] },
+		{ "faction", L["Faction Color"] },
+		{ "selection", L["Selection Color"] },
 	}
 end
 
@@ -427,19 +427,19 @@ end
 function UD.FilterEntries()
 	local list = { { "none", NONE } }
 	for _, f in ipairs({
-		{ "ingroup", L["in einer Gruppe"] },
-		{ "inraid", L["im Schlachtzug"] },
-		{ "incombat", L["im Kampf"] },
-		{ "ininstance", L["in einer Instanz"] },
-		{ "inpvp", L["auf einem Schlachtfeld"] },
-		{ "inarena", L["in der Arena"] },
-		{ "samerealm", L["vom eigenen Realm"] },
-		{ "sameguild", L["aus der eigenen Gilde"] },
-		{ "reaction5", L["Ruf ab freundlich"] },
-		{ "reaction6", L["Ruf ab wohlwollend"] },
+		{ "ingroup", L["in a group"] },
+		{ "inraid", L["in a raid"] },
+		{ "incombat", L["in combat"] },
+		{ "ininstance", L["in an instance"] },
+		{ "inpvp", L["in a battleground"] },
+		{ "inarena", L["in an arena"] },
+		{ "samerealm", L["from your realm"] },
+		{ "sameguild", L["from your guild"] },
+		{ "reaction5", L["reputation friendly or better"] },
+		{ "reaction6", L["reputation honored or better"] },
 	}) do
-		list[#list + 1] = { f[1], L["nur %s"]:format(f[2]) }
-		list[#list + 1] = { "!" .. f[1], L["nicht %s"]:format(f[2]) }
+		list[#list + 1] = { f[1], L["only %s"]:format(f[2]) }
+		list[#list + 1] = { "!" .. f[1], L["not %s"]:format(f[2]) }
 	end
 	return list
 end

@@ -168,7 +168,7 @@ Check(t.a == nil and t.keep == 2 and t.dual.x == nil and t.dual.y == 2 and t.dua
 -- Popup.Confirm, Popup.EditText
 ---------------------------------------------------------------------------
 local accepted
-lib.Popup.Confirm("QNTEST_CONFIRM", "Wirklich %s?", DELETE, function(data) accepted = data end)   -- nicht übersetzen
+lib.Popup.Confirm("QNTEST_CONFIRM", "Really %s?", DELETE, function(data) accepted = data end)   -- do not translate
 local d = StaticPopupDialogs.QNTEST_CONFIRM
 Check(d.button1 == DELETE and d.button2 == CANCEL and d.timeout == 0 and d.hideOnEscape == 1, "Confirm: Knöpfe und Verhalten")
 d.OnAccept(nil, { key = 5 })
@@ -317,23 +317,23 @@ Check(#V.Area() == 1 and V.Area()[1].r == 1920, "Anbieter entfernt: wieder UIPar
 -- Meldungen
 chat = {}
 Place(mf, 1850, 500, 100, 50)
-local m1 = V.MoveAndReport(mf, "Testrahmen", ns.Print)   -- nicht übersetzen
-local m2, w2 = V.MoveAndReport(mf, "Testrahmen", ns.Print)   -- nicht übersetzen
+local m1 = V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
+local m2, w2 = V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
 mf.IsForbidden = function() return true end
-V.MoveAndReport(mf, "Testrahmen", ns.Print)   -- nicht übersetzen
+V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
 mf.IsForbidden = nil
 Check(m1 == true and m2 == false and w2 == "visible", "MoveAndReport: Rückgabe wie Move")
-Check(#chat == 3 and chat[1]:find(CL["%s in den sichtbaren Bereich verschoben."]:format("Testrahmen"), 1, true)
-	and chat[2]:find(CL["%s liegt bereits im sichtbaren Bereich."]:format("Testrahmen"), 1, true)
-	and chat[3]:find(CL["%s kann nicht verschoben werden."]:format("Testrahmen"), 1, true), "MoveAndReport: Meldungen")
+Check(#chat == 3 and chat[1]:find(CL["%s moved into the visible area."]:format("Test frame"), 1, true)
+	and chat[2]:find(CL["%s is already in the visible area."]:format("Test frame"), 1, true)
+	and chat[3]:find(CL["%s cannot be moved."]:format("Test frame"), 1, true), "MoveAndReport: Meldungen")
 chat = {}
 Place(mf, 1850, 500, 100, 50)
 mf.IsProtected = function() return true end
 QN_COMBAT = true
-V.MoveAndReport(mf, "Testrahmen", ns.Print)   -- nicht übersetzen
+V.MoveAndReport(mf, "Test frame", ns.Print)   -- do not translate
 QN_COMBAT = false
 mf.IsProtected = nil
-Check(chat[1] and chat[1]:find(CL["%s ist geschützt – im Kampf nicht verschiebbar."]:format("Testrahmen"), 1, true), "MoveAndReport: Kampf")
+Check(chat[1] and chat[1]:find(CL["%s is protected – cannot be moved in combat."]:format("Test frame"), 1, true), "MoveAndReport: Kampf")
 -- Notify / OnAreaChanged: ein Fehler hält die übrigen nicht auf
 local heard = 0
 local thrown = false
@@ -368,4 +368,4 @@ Check(kpos() == 1820 and movedCalls == 4, "check(): einmal geprüft")
 FireEvent("PLAYER_ENTERING_WORLD") RunTimers()
 Check(movedCalls == 4, "Keep: schon sichtbar – kein onMoved")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

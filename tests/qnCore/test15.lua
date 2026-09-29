@@ -69,4 +69,4 @@ RunTimers()
 Check(canvas >= 6, ("Canvas-Seiten angemeldet: %d"):format(canvas))
 Check(#bad == 0, "alle Canvas-Seiten mit UI.Page gebaut" .. (#bad > 0 and (": fehlt bei " .. table.concat(bad, ", ")) or ""))
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

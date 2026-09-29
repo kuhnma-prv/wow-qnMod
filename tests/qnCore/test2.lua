@@ -27,4 +27,4 @@ Check(nkp.db.scale == 1, "qnNumKeyPad ohne Altdaten: Vorgaben")
 local found
 for _, key in ipairs(P.GetKnownKeys()) do if key == "char:Tester-Realm:Solo" then found = true end end
 Check(found, "GetKnownKeys enthält Char-Profil")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

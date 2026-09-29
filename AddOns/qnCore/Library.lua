@@ -90,28 +90,28 @@ function lib.ClassColoredName(name, classFile, fallback)
 end
 
 ---------------------------------------------------------------------------
--- Lokalisierung
--- Schlüssel ist der deutsche Text. Deutsche Clients zeigen ihn unverändert,
--- alle anderen die englische Übersetzung aus der Locale.lua des Addons
--- (in der TOC vor allen Dateien, die Texte verwenden):
+-- Localization
+-- The key is the English text. Non-German clients show it unchanged, German
+-- clients the German translation from the addon's Locale.lua
+-- (in the TOC before all files that use texts):
 --   local ADDON, ns = ...
 --   local L = qnCore.NewLocale(ns, ADDON)
---   if qnCore.GERMAN then return end
---   L["Deutscher Text"] = "English text"
--- Fehlt eine Übersetzung, erscheint der deutsche Text; /qncore locale listet
--- solche Schlüssel auf. Hat Blizzard einen passenden Text (GlobalStrings wie
--- CANCEL, DELETE), wird dieser statt eines eigenen Schlüssels verwendet.
+--   if not qnCore.GERMAN then return end
+--   L["English text"] = "Deutscher Text"
+-- If a translation is missing, the English text appears; /qncore locale lists
+-- such keys. If Blizzard has a matching text (GlobalStrings like CANCEL,
+-- DELETE), it is used instead of an own key.
 ---------------------------------------------------------------------------
 
 lib.GERMAN = GetLocale() == "deDE"
-lib.missing = {}   -- [Addon] = { [Schlüssel] = true }: ohne Übersetzung angezeigt
+lib.missing = {}   -- [Addon] = { [key] = true }: shown without translation
 
 function lib.NewLocale(addonNS, name)
 	if addonNS.L then
 		return addonNS.L
 	end
 	local L = setmetatable({}, { __index = function(_, key)
-		if not lib.GERMAN and key ~= nil then
+		if lib.GERMAN and key ~= nil then
 			local list = lib.missing[name or "?"] or {}
 			lib.missing[name or "?"] = list
 			list[key] = true
@@ -261,14 +261,14 @@ function lib.PointEntries(cornersOnly)
 	local L = ns.L
 	if cornersOnly then
 		return {
-			{ "TOPLEFT", L["Oben links"] }, { "TOPRIGHT", L["Oben rechts"] },
-			{ "BOTTOMLEFT", L["Unten links"] }, { "BOTTOMRIGHT", L["Unten rechts"] },
+			{ "TOPLEFT", L["Top left"] }, { "TOPRIGHT", L["Top right"] },
+			{ "BOTTOMLEFT", L["Bottom left"] }, { "BOTTOMRIGHT", L["Bottom right"] },
 		}
 	end
 	return {
-		{ "TOPLEFT", L["Oben links"] }, { "TOP", L["Oben Mitte"] }, { "TOPRIGHT", L["Oben rechts"] },
-		{ "LEFT", L["Links Mitte"] }, { "CENTER", L["Mitte"] }, { "RIGHT", L["Rechts Mitte"] },
-		{ "BOTTOMLEFT", L["Unten links"] }, { "BOTTOM", L["Unten Mitte"] }, { "BOTTOMRIGHT", L["Unten rechts"] },
+		{ "TOPLEFT", L["Top left"] }, { "TOP", L["Top center"] }, { "TOPRIGHT", L["Top right"] },
+		{ "LEFT", L["Left center"] }, { "CENTER", L["Center"] }, { "RIGHT", L["Right center"] },
+		{ "BOTTOMLEFT", L["Bottom left"] }, { "BOTTOM", L["Bottom center"] }, { "BOTTOMRIGHT", L["Bottom right"] },
 	}
 end
 

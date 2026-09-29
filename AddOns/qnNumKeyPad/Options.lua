@@ -14,7 +14,7 @@ local S = qnCore.Settings
 -- Eigene Sichtbarkeitsbedingung (Makrobedingungen für den Zustandstreiber "visibility")
 ---------------------------------------------------------------------------
 
-qnCore.Popup.EditText("QNNUMKEYPAD_CUSTOM", L["Eigene Sichtbarkeitsbedingung (Makro-Syntax, z. B. [combat] show; hide):"],
+qnCore.Popup.EditText("QNNUMKEYPAD_CUSTOM", L["Custom visibility condition (macro syntax, e.g. [combat] show; hide):"],
 	function() return ns.db.custom end,
 	function(text) ns.store:Set("custom", text) end, 500)
 
@@ -23,19 +23,19 @@ qnCore.Popup.EditText("QNNUMKEYPAD_CUSTOM", L["Eigene Sichtbarkeitsbedingung (Ma
 ---------------------------------------------------------------------------
 
 local PAGES = {
-	{ 1, L["Seite 1 – Aktionsleiste 1"] },
-	{ 2, L["Seite 2 – Aktionsleiste 1, zweite Seite"] },
-	{ 3, L["Seite 3 – Aktionsleiste 4 (rechts)"] },
-	{ 4, L["Seite 4 – Aktionsleiste 5 (rechts)"] },
-	{ 5, L["Seite 5 – Aktionsleiste 3 (unten rechts)"] },
-	{ 6, L["Seite 6 – Aktionsleiste 2 (unten links)"] },
-	{ 7, L["Seite 7 – Haltung/Gestalt 1"] },
-	{ 8, L["Seite 8 – Haltung/Gestalt 2"] },
-	{ 9, L["Seite 9 – Haltung/Gestalt 3"] },
-	{ 10, L["Seite 10 – Haltung/Gestalt 4"] },
-	{ 13, L["Seite 13 – Aktionsleiste 6"] },
-	{ 14, L["Seite 14 – Aktionsleiste 7"] },
-	{ 15, L["Seite 15 – Aktionsleiste 8"] },
+	{ 1, L["Page 1 – Action Bar 1"] },
+	{ 2, L["Page 2 – Action Bar 1, second page"] },
+	{ 3, L["Page 3 – Action Bar 4 (right)"] },
+	{ 4, L["Page 4 – Action Bar 5 (right)"] },
+	{ 5, L["Page 5 – Action Bar 3 (bottom right)"] },
+	{ 6, L["Page 6 – Action Bar 2 (bottom left)"] },
+	{ 7, L["Page 7 – Stance/Form 1"] },
+	{ 8, L["Page 8 – Stance/Form 2"] },
+	{ 9, L["Page 9 – Stance/Form 3"] },
+	{ 10, L["Page 10 – Stance/Form 4"] },
+	{ 13, L["Page 13 – Action Bar 6"] },
+	{ 14, L["Page 14 – Action Bar 7"] },
+	{ 15, L["Page 15 – Action Bar 8"] },
 }
 
 local function LayoutEntries()
@@ -54,113 +54,113 @@ local function Build(category, layout)
 	-- Allgemein -----------------------------------------------------------
 	local cat = category
 	S.Header(layout, GENERAL)
-	B:Checkbox(cat, "enabled", L["Ziffernblock aktiv"],
-		L["Aus: Leiste ausgeblendet und alle Tastenbelegungen des Ziffernblocks aufgehoben."])
-	B:Checkbox(cat, "locked", L["Position sperren"],
-		L["Verhindert versehentliches Verschieben. Entsperrt zeigt die Leiste eine grüne Fläche zum Ziehen; Rechtsklick darauf öffnet diese Optionen."])
-	B:Checkbox(cat, "lockActions", L["Aktionen immer sperren"],
-		L["Aktionen lassen sich nur mit der Taste für 'Aktion aufnehmen' (Standard: Umschalt) herausziehen. Wirkt zusätzlich zur Blizzard-Einstellung 'Aktionsleisten sperren'."])
-	B:Checkbox(cat, "lockInCombat", L["Aktionen im Kampf sperren"],
-		L["Verhindert im Kampf das versehentliche Herausziehen von Aktionen."])
+	B:Checkbox(cat, "enabled", L["Numpad enabled"],
+		L["Off: bar hidden and all numpad keybinds removed."])
+	B:Checkbox(cat, "locked", L["Lock position"],
+		L["Prevents accidental moving. When unlocked, the bar shows a green area for dragging; right-clicking it opens these options."])
+	B:Checkbox(cat, "lockActions", L["Always lock actions"],
+		L["Actions can only be dragged out with the 'Pick Up Action' key (default: Shift). Works in addition to the Blizzard option 'Lock Action Bars'."])
+	B:Checkbox(cat, "lockInCombat", L["Lock actions in combat"],
+		L["Prevents accidentally dragging actions out during combat."])
 
-	S.Header(layout, L["Tastatur"])
-	B:Dropdown(cat, "layout", L["Tastaturlayout"], LayoutEntries(), nil, nil, check)
-	B:Checkbox(cat, "showEnter", L["Enter-Taste anzeigen"],
-		L["Achtung: belegt Enter und hebt damit 'Chat öffnen' auf, solange der Ziffernblock aktiv ist."], check)
-	B:Checkbox(cat, "showNav", L["Navigationstasten anzeigen"],
-		L["Einfg, Pos1, Bild auf/ab, Entf, Ende. Überschreibt deren bisherige Belegung (Chat-Bildlauf, Kamera)."], check)
-	B:Checkbox(cat, "showArrow", L["Pfeiltasten anzeigen"],
-		L["Achtung: überschreibt die Bewegung mit den Pfeiltasten."], check)
-	B:Checkbox(cat, "bindShift", L["Auch mit Umschalttaste belegen"],
-		L["Umschalt+Taste löst dieselbe Aktion aus. Verhindert, dass Umschalt+Ziffernblock die Standardbelegung (z. B. Leistenwechsel) auslöst."])
-	B:Checkbox(cat, "stance", L["Haltungswechsel"],
-		L["Tasten 1–12 folgen der Haltungs-/Gestaltleiste, so wie die Hauptleiste (z. B. Kampfhaltung, Katzengestalt, Verstohlenheit). Ohne Haltung gelten die eigenen Plätze."])
+	S.Header(layout, L["Keyboard"])
+	B:Dropdown(cat, "layout", L["Keyboard layout"], LayoutEntries(), nil, nil, check)
+	B:Checkbox(cat, "showEnter", L["Show Enter key"],
+		L["Warning: binds Enter and thereby unbinds 'Open Chat' while the numpad is active."], check)
+	B:Checkbox(cat, "showNav", L["Show navigation keys"],
+		L["Insert, Home, Page Up/Down, Delete, End. Overrides their current bindings (chat scroll, camera)."], check)
+	B:Checkbox(cat, "showArrow", L["Show arrow keys"],
+		L["Warning: overrides movement with the arrow keys."], check)
+	B:Checkbox(cat, "bindShift", L["Also bind with Shift"],
+		L["Shift+key triggers the same action. Prevents Shift+numpad from triggering the default bindings (e.g. action bar paging)."])
+	B:Checkbox(cat, "stance", L["Stance switching"],
+		L["Keys 1–12 follow the stance/form bar like the main action bar does (e.g. Battle Stance, Cat Form, Stealth). Without a stance the bar's own slots apply."])
 
 	-- Darstellung ---------------------------------------------------------
 	local look, lookLayout = Settings.RegisterVerticalLayoutSubcategory(category, APPEARANCE_LABEL)
-	S.Header(lookLayout, L["Größe und Abstände"])
-	B:Slider(look, "scale", L["Skalierung"], 0.3, 2, 0.05, S.DecimalFormatter)
-	B:Slider(look, "padH", L["Abstand waagerecht"], 0, 30, 1)
-	B:Slider(look, "padV", L["Abstand senkrecht"], 0, 30, 1)
-	B:Slider(look, "blockGap", L["Abstand zum Zusatzblock"], 0, 80, 1, nil,
-		L["Zusätzlicher Abstand zwischen Ziffernblock und Navigations-/Pfeiltasten."])
+	S.Header(lookLayout, L["Size and spacing"])
+	B:Slider(look, "scale", L["Scale"], 0.3, 2, 0.05, S.DecimalFormatter)
+	B:Slider(look, "padH", L["Horizontal spacing"], 0, 30, 1)
+	B:Slider(look, "padV", L["Vertical spacing"], 0, 30, 1)
+	B:Slider(look, "blockGap", L["Gap to extra block"], 0, 80, 1, nil,
+		L["Additional gap between the numpad and the navigation/arrow keys."])
 
 	-- eigene Kopfzeile statt APPEARANCE_LABEL: das hieße auf Englisch wie die Seite ("Appearance")
 	S.Header(lookLayout, DISPLAY)
-	B:Slider(look, "alpha", L["Deckkraft"], 0, 1, 0.05, S.FractionFormatter)
-	B:Slider(look, "bgAlpha", L["Deckkraft des Hintergrunds"], 0, 1, 0.05, S.FractionFormatter)
-	B:Checkbox(look, "showGrid", L["Leere Tasten anzeigen"])
-	B:Dropdown(look, "labels", L["Tastenbeschriftung"], {
-		{ 1, L["Kurz (1, 2, +, …)"] },
-		{ 2, L["Tastenname (Num 1, …)"] },
+	B:Slider(look, "alpha", L["Opacity"], 0, 1, 0.05, S.FractionFormatter)
+	B:Slider(look, "bgAlpha", L["Background opacity"], 0, 1, 0.05, S.FractionFormatter)
+	B:Checkbox(look, "showGrid", L["Show empty buttons"])
+	B:Dropdown(look, "labels", L["Key labels"], {
+		{ 1, L["Short (1, 2, +, …)"] },
+		{ 2, L["Key name (Num 1, …)"] },
 		{ 3, NONE_KEY },
 	})
-	B:Slider(look, "fontSize", L["Schriftgröße der Beschriftung"], 0, 24, 1, S.FontSizeFormatter)
-	B:Checkbox(look, "hideMacro", L["Makrotext ausblenden"])
-	B:Checkbox(look, "hideBorder", L["Rahmen für ausgerüstete Gegenstände ausblenden"])
-	B:Checkbox(look, "zoom", L["Symbole zoomen"], L["Schneidet den Rand der Symbole ab."])
-	B:Dropdown(look, "flyout", L["Richtung von Aufklappmenüs"], {
+	B:Slider(look, "fontSize", L["Label font size"], 0, 24, 1, S.FontSizeFormatter)
+	B:Checkbox(look, "hideMacro", L["Hide macro text"])
+	B:Checkbox(look, "hideBorder", L["Hide equipped item border"])
+	B:Checkbox(look, "zoom", L["Zoom icons"], L["Crops the border of the icons."])
+	B:Dropdown(look, "flyout", L["Flyout direction"], {
 		{ "UP", HUD_EDIT_MODE_SETTING_AURA_FRAME_ICON_DIRECTION_UP },
 		{ "DOWN", HUD_EDIT_MODE_SETTING_AURA_FRAME_ICON_DIRECTION_DOWN },
 		{ "LEFT", HUD_EDIT_MODE_SETTING_AURA_FRAME_ICON_DIRECTION_LEFT },
 		{ "RIGHT", HUD_EDIT_MODE_SETTING_AURA_FRAME_ICON_DIRECTION_RIGHT },
 	})
-	B:Checkbox(look, "clickThrough", L["Mausklicks durchlassen"],
-		L["Tasten reagieren nicht auf die Maus; nur die Tastatur löst sie aus."])
+	B:Checkbox(look, "clickThrough", L["Click-through"],
+		L["Buttons ignore the mouse; only the keyboard triggers them."])
 
 	-- Position ------------------------------------------------------------
 	local pos, posLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Position"])
 	S.Header(posLayout, L["Position"])
 	-- dieselbe Einstellung wie unter "Allgemein", nur ein zweites Steuerelement
 	Settings.CreateCheckbox(pos, B.settings.locked)
-	B:Dropdown(pos, "point", L["Anker"], qnCore.PointEntries(), L["Bezugspunkt am Bildschirm und an der Leiste. Beim Wechsel bleibt die Leiste an ihrem Platz."],
+	B:Dropdown(pos, "point", L["Anchor"], qnCore.PointEntries(), L["Reference point on the screen and on the bar. The bar stays in place when this changes."],
 		nil, ns.KeepPosition)
-	B:Slider(pos, "x", L["X-Versatz"], -3000, 3000, 1)
-	B:Slider(pos, "y", L["Y-Versatz"], -3000, 3000, 1)
-	S.Button(posLayout, L["Waagerecht zentrieren"], L["Zentrieren"], function() ns.CenterBar(true) end)
-	S.Button(posLayout, L["Senkrecht zentrieren"], L["Zentrieren"], function() ns.CenterBar(false) end)
-	S.Button(posLayout, L["Position zurücksetzen"], RESET, ns.ResetPosition)
-	B:Checkbox(pos, "autoVisible", L["Automatisch im sichtbaren Bereich halten"],
-		L["Holt die Leiste nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."])
-	S.Button(posLayout, L["Leiste suchen"], L["In sichtbaren Bereich holen"], ns.MoveIntoVisible,
-		L["Verschiebt die Leiste jetzt auf den nächsten sichtbaren Monitor (/qnnkp visible)."])
+	B:Slider(pos, "x", L["X offset"], -3000, 3000, 1)
+	B:Slider(pos, "y", L["Y offset"], -3000, 3000, 1)
+	S.Button(posLayout, L["Center horizontally"], L["Center"], function() ns.CenterBar(true) end)
+	S.Button(posLayout, L["Center vertically"], L["Center"], function() ns.CenterBar(false) end)
+	S.Button(posLayout, L["Reset position"], RESET, ns.ResetPosition)
+	B:Checkbox(pos, "autoVisible", L["Keep in visible area automatically"],
+		L["Moves the bar back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."])
+	S.Button(posLayout, L["Find bar"], L["Move into visible area"], ns.MoveIntoVisible,
+		L["Moves the bar onto the nearest visible monitor now (/qnnkp visible)."])
 
 	-- Sichtbarkeit --------------------------------------------------------
 	local vis, visLayout = Settings.RegisterVerticalLayoutSubcategory(category, HUD_EDIT_MODE_SETTING_AURA_FRAME_VISIBLE_SETTING)
-	S.Header(visLayout, L["Ausblenden"])
-	local fade = B:Checkbox(vis, "fade", L["Ausblenden ohne Maus"],
-		L["Blendet die Leiste auf die unten eingestellte Deckkraft ab, solange die Maus nicht darüber ist."])
+	S.Header(visLayout, L["Fading"])
+	local fade = B:Checkbox(vis, "fade", L["Fade out without mouseover"],
+		L["Fades the bar to the opacity set below while the mouse is not over it."])
 	local function Fading()
 		return ns.db.fade
 	end
-	S.Depends(B:Slider(vis, "fadeAlpha", L["Deckkraft ausgeblendet"], 0, 1, 0.05, S.FractionFormatter), fade, Fading)
-	S.Depends(B:Slider(vis, "fadeDelay", L["Verzögerung"], 0, 3, 0.1, S.SecondsFormatter), fade, Fading)
+	S.Depends(B:Slider(vis, "fadeAlpha", L["Faded opacity"], 0, 1, 0.05, S.FractionFormatter), fade, Fading)
+	S.Depends(B:Slider(vis, "fadeDelay", L["Delay"], 0, 3, 0.1, S.SecondsFormatter), fade, Fading)
 
-	S.Header(visLayout, L["Verbergen"])
-	local custom = B:Checkbox(vis, "useCustom", L["Eigene Bedingung verwenden"],
-		L["Ersetzt alle folgenden Schalter durch eine eigene Makrobedingung."])
+	S.Header(visLayout, L["Hiding"])
+	local custom = B:Checkbox(vis, "useCustom", L["Use custom condition"],
+		L["Replaces all of the following switches with a custom macro condition."])
 	local function NotCustom()
 		return not ns.db.useCustom
 	end
-	S.Depends(B:Checkbox(vis, "hideVehicle", L["Im Fahrzeug / bei Übernahme verbergen"]), custom, NotCustom)
-	S.Depends(B:Checkbox(vis, "hideCombat", L["Im Kampf verbergen"]), custom, NotCustom)
-	S.Depends(B:Checkbox(vis, "hideNoCombat", L["Außerhalb des Kampfes verbergen"]), custom, NotCustom)
-	S.Depends(B:Checkbox(vis, "hidePet", L["Mit Begleiter verbergen"]), custom, NotCustom)
-	S.Depends(B:Checkbox(vis, "hideNoPet", L["Ohne Begleiter verbergen"]), custom, NotCustom)
-	S.Depends(B:Checkbox(vis, "hideStealth", L["In Verstohlenheit verbergen"]), custom, NotCustom)
-	S.Depends(B:Checkbox(vis, "hideForm", L["In Haltung/Gestalt verbergen"]), custom, NotCustom)
-	B:Register(vis, "custom", L["Eigene Bedingung"])
-	S.Button(visLayout, L["Eigene Bedingung"], L["Bearbeiten …"], function()
+	S.Depends(B:Checkbox(vis, "hideVehicle", L["Hide in vehicle / while possessing"]), custom, NotCustom)
+	S.Depends(B:Checkbox(vis, "hideCombat", L["Hide in combat"]), custom, NotCustom)
+	S.Depends(B:Checkbox(vis, "hideNoCombat", L["Hide out of combat"]), custom, NotCustom)
+	S.Depends(B:Checkbox(vis, "hidePet", L["Hide with pet"]), custom, NotCustom)
+	S.Depends(B:Checkbox(vis, "hideNoPet", L["Hide without pet"]), custom, NotCustom)
+	S.Depends(B:Checkbox(vis, "hideStealth", L["Hide in stealth"]), custom, NotCustom)
+	S.Depends(B:Checkbox(vis, "hideForm", L["Hide in stance/form"]), custom, NotCustom)
+	B:Register(vis, "custom", L["Custom condition"])
+	S.Button(visLayout, L["Custom condition"], L["Edit …"], function()
 		StaticPopup_Show("QNNUMKEYPAD_CUSTOM")
-	end, L["Makrobedingung mit show/hide, z. B. '[combat] show; [mod:alt] show; hide'."])
+	end, L["Macro condition with show/hide, e.g. '[combat] show; [mod:alt] show; hide'."])
 
 	-- Aktionsplätze -------------------------------------------------------
-	local slots, slotsLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Aktionsplätze"])
-	S.Header(slotsLayout, L["Aktionsplätze"])
-	local note = L["Die Aktionen liegen in den Plätzen dieser Seite. Eine Blizzard-Leiste, die dieselbe Seite benutzt, zeigt dieselben Aktionen – im Bearbeitungsmodus ausblenden."]
-	B:Dropdown(slots, "page1", L["Tasten 1–12"], PAGES, note, nil, check)
-	B:Dropdown(slots, "page2", L["Tasten 13–24"], PAGES, note, nil, check)
-	B:Dropdown(slots, "page3", L["Tasten 25–28"], PAGES, L["Die Aktionen liegen in den Plätzen dieser Seite. Eine Blizzard-Leiste, die dieselbe Seite benutzt, zeigt dieselben Aktionen – im Bearbeitungsmodus ausblenden. Nur mit eingeblendeten Pfeiltasten benutzt: beim Macintosh-Layout für alle vier Pfeiltasten, bei Windows, Microsoft Office und Natural Elite für Pfeil nach unten und nach rechts, bei Natural Multimedia für Pfeil nach rechts, bei Razer Naga nie."], nil, check)
+	local slots, slotsLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Action slots"])
+	S.Header(slotsLayout, L["Action slots"])
+	local note = L["The actions are stored in the slots of this page. A Blizzard action bar using the same page shows the same actions – hide it in Edit Mode."]
+	B:Dropdown(slots, "page1", L["Keys 1–12"], PAGES, note, nil, check)
+	B:Dropdown(slots, "page2", L["Keys 13–24"], PAGES, note, nil, check)
+	B:Dropdown(slots, "page3", L["Keys 25–28"], PAGES, L["The actions are stored in the slots of this page. A Blizzard action bar using the same page shows the same actions – hide it in Edit Mode. Only used when the arrow keys are shown: all four arrow keys with the Macintosh layout, Down and Right Arrow with Windows, Microsoft Office and Natural Elite, Right Arrow with Natural Multimedia, never with Razer Naga."], nil, check)
 end
 
 -- setzt ns.category und ns.OpenOptions

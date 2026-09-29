@@ -75,4 +75,4 @@ LOG = {}
 FireEvent("PLAYER_ENTERING_WORLD") RunTimers()
 Check(#LOG == 0, "danach nichts zu tun")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

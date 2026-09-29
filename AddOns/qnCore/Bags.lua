@@ -14,10 +14,10 @@ ns.Bags = Bags
 
 -- Beim Öffnen des Ortes
 Bags.OPEN_MODES = {
-	{ "none", L["Nichts tun"] },
+	{ "none", L["Do nothing"] },
 	{ "all", BINDING_NAME_OPENALLBAGS },
-	{ "backpack", L["Nur den Rucksack öffnen"] },
-	{ "closed", L["Alle Taschen schließen"] },
+	{ "backpack", L["Backpack only"] },
+	{ "closed", L["Close all bags"] },
 }
 
 -- Orte (Ereignisse des Forever-Clients)
@@ -26,7 +26,7 @@ Bags.VENUES = {
 	{ key = "bank", label = BANK, open = "BANKFRAME_OPENED", close = "BANKFRAME_CLOSED" },
 	{ key = "gbank", label = GUILD_BANK, open = "GUILDBANKFRAME_OPENED", close = "GUILDBANKFRAME_CLOSED" },
 	{ key = "merchant", label = MERCHANT, open = "MERCHANT_SHOW", close = "MERCHANT_CLOSED" },
-	{ key = "trade", label = L["Handel mit Spielern"], open = "TRADE_SHOW", close = "TRADE_CLOSED" },
+	{ key = "trade", label = L["Player Trading Frame"], open = "TRADE_SHOW", close = "TRADE_CLOSED" },
 	{ key = "mail", label = MINIMAP_TRACKING_MAILBOX, open = "MAIL_SHOW", close = "MAIL_CLOSED" },
 }
 

@@ -23,4 +23,4 @@ Check(qnNumKeyPadDB == nil, "alte Char-Tabelle gelöscht")
 SetEditModeLayout(4)
 Check(meter.db.scale == 1.4, "weiteres Layout: Kopie des aktiven Profils")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

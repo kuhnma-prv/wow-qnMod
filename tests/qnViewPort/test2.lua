@@ -102,7 +102,7 @@ SlashCmdList.QNVIEWPORT("100 0 0 0")
 Check(vp.db.viewport[1] == 100 and WFLeft() == 100, "/qnvp 100 0 0 0 speichert und wendet an")
 T = T + 21
 RunTickers()
-Check(vp.db.viewport[1] == 3000 and vp.GetViewport()[1] == 2880 and Count("Einstellung nicht bestätigt – vorherigen Viewport wiederhergestellt.") == 1,
+Check(vp.db.viewport[1] == 3000 and vp.GetViewport()[1] == 2880 and Count("Setting not confirmed – previous viewport restored.") == 1,
 	"nach 20 s ohne Bestätigung: gespeicherter Wert 3000 unverändert zurück")
 SlashCmdList.QNVIEWPORT("0 0 0 0")
 Check(vp.db.viewport[1] == 0 and not vp.IsActive(), "/qnvp 0 0 0 0 speichert sofort")
@@ -141,7 +141,7 @@ Check(WorldMapFrame.mapID == 1, "Zonenwechsel bei offener Karte: Karte der Zone"
 -- 8. Zwei-Monitor-Modus: Meldung nur beim tatsächlichen Umschalten
 CHAT = {}
 SlashCmdList.QNVIEWPORT("dual on") RunTimers()
-Check(Count("Zwei-Monitor-Modus aktiv: 3D-Welt auf dem Hauptmonitor.") == 1, "dual on: eine Meldung")
+Check(Count("Dual monitor mode on: 3D world on the main monitor.") == 1, "dual on: eine Meldung")
 Check(vp.db.dual.enabled and vp.db.viewport[2] == 1920 and vp.db.viewport[1] == 0, "dual on: Viewport auf den Hauptmonitor gespeichert")
 SlashCmdList.QNVIEWPORT("dual on") RunTimers()
 SlashCmdList.QNVIEWPORT("dual right") RunTimers()
@@ -149,15 +149,15 @@ SlashCmdList.QNVIEWPORT("dual right") RunTimers()
 local enable = CheckBox("enabled")
 Check(enable ~= nil, "Kontrollkästchen Zwei-Monitor-Modus gefunden")
 Click(enable, true)
-Check(Count("Zwei-Monitor-Modus aktiv: 3D-Welt auf dem Hauptmonitor.") == 1, "erneut ein / Lage / Kontrollkästchen: keine weitere Meldung (" .. #CHAT .. ")")
+Check(Count("Dual monitor mode on: 3D world on the main monitor.") == 1, "erneut ein / Lage / Kontrollkästchen: keine weitere Meldung (" .. #CHAT .. ")")
 SlashCmdList.QNVIEWPORT("dual 1600 1200") RunTimers()
-Check(vp.db.viewport[2] == 1600 and Count("Zwei-Monitor-Modus aktiv: 3D-Welt auf dem Hauptmonitor.") == 1, "neue Größe: Viewport neu, ohne Meldung")
+Check(vp.db.viewport[2] == 1600 and Count("Dual monitor mode on: 3D world on the main monitor.") == 1, "neue Größe: Viewport neu, ohne Meldung")
 Click(enable, false)
-Check(not vp.db.dual.enabled and vp.db.viewport[2] == 0 and Count("Zwei-Monitor-Modus aus.") == 1, "Kontrollkästchen aus: eine Meldung, Viewport zurück")
+Check(not vp.db.dual.enabled and vp.db.viewport[2] == 0 and Count("Dual monitor mode off.") == 1, "Kontrollkästchen aus: eine Meldung, Viewport zurück")
 SlashCmdList.QNVIEWPORT("200 0 0 0")
 vp.EndKeep()
 SlashCmdList.QNVIEWPORT("dual off") RunTimers()
-Check(Count("Zwei-Monitor-Modus aus.") == 1 and vp.db.viewport[1] == 200, "dual off bei ausgeschaltetem Modus: keine Meldung, Viewport bleibt")
+Check(Count("Dual monitor mode off.") == 1 and vp.db.viewport[1] == 200, "dual off bei ausgeschaltetem Modus: keine Meldung, Viewport bleibt")
 
 -- 9. Taschen über den Hook an UpdateContainerFrameAnchors
 local bag = CreateFrame("Frame", "ContainerFrame1")
@@ -196,7 +196,7 @@ local side
 for _, dd in ipairs(drops) do
 	Record(dd)
 	for _, r in ipairs(dd._radios or {}) do
-		if r.text == L["Links vom Hauptmonitor"] then side = dd end
+		if r.text == L["Left of the main monitor"] then side = dd end
 	end
 end
 local wBox, hBox, yBox = Box("width"), Box("height"), Box("offsetY")
@@ -207,7 +207,7 @@ vp.Dual.RefreshOptions()
 Check(wBox._text == 1600 and hBox._text == 1000 and yBox._text == 50, ("ohne Monitordaten: Handwerte %s/%s/%s"):format(
 	tostring(wBox._text), tostring(hBox._text), tostring(yBox._text)))
 Check(wBox._enabled == true and wBox.label._font == "GameFontHighlight", "ohne Monitordaten: Feld bedienbar")
-Check(side._enabled == true and side.label._font == "GameFontHighlight" and side._text == L["Rechts vom Hauptmonitor"],
+Check(side._enabled == true and side.label._font == "GameFontHighlight" and side._text == L["Right of the main monitor"],
 	"ohne Monitordaten: Lage bedienbar: " .. tostring(side._text))
 Check(CheckBox("mapFollowZone")._checked == true and not CheckBox("mapNoFade")._checked, ("Kontrollkästchen nach DB: %s/%s"):format(
 	tostring(CheckBox("mapFollowZone")._checked), tostring(CheckBox("mapNoFade")._checked)))
@@ -226,4 +226,4 @@ vp.db.dual.useMonitorData = false
 vp.Dual.RefreshOptions()
 Check(wBox._text == 1600 and wBox._enabled == true, "wieder ohne Monitordaten: Handwert")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

@@ -36,4 +36,4 @@ enter(b)
 Check(#calls == 1 and calls[1][1] == GameTooltip and calls[1][2] == b, "qnViewPort.BagTooltip mit Tooltip und Knopf aufgerufen")
 qnViewPort = nil
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

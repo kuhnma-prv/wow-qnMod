@@ -102,4 +102,4 @@ Check(table.concat(LOG, ";") == "ToggleAllBags(nil)", "eigene Taschen: Blizzards
 LOG = {}
 inv.Show("bags", inv.PlayerKey())
 Check(table.concat(LOG, ";"):find("OpenAllBags", 1, true) ~= nil, "Auswahl des eigenen Charakters öffnet Blizzards Taschen")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

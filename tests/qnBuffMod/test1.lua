@@ -57,4 +57,4 @@ local opened = false
 for _, l in ipairs(LOG) do if l == "Öffne qnBuffMod" then opened = true end end
 Check(opened, "/qnbuff öffnet die Optionen")
 Check(SLASH_QNBUFFMOD1 == "/qnbuff" and SLASH_QNBUFFMOD2 == "/qnbuffmod" and SLASH_QNBUFFMOD3 == "/qnaura", "Slash-Befehle")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

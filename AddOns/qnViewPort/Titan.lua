@@ -268,14 +268,14 @@ local dropdowns = {}
 
 -- Einträge eines Dropdowns; ein gespeicherter, aber nicht mehr vorhandener Monitor bleibt sichtbar.
 function Titan.Entries(bar)
-	local list = { { 0, L["Wie Titan (ganze Oberfläche)"] } }
+	local list = { { 0, L["As Titan (entire UI)"] } }
 	local monitors = ns.Layout.GetVisible()
 	for i, r in ipairs(monitors) do
 		list[#list + 1] = { i, L["Monitor %d (%d × %d)"]:format(i, r.w, r.h) }
 	end
 	local saved = tonumber(DB()[bar]) or 0
 	if saved > #monitors then
-		list[#list + 1] = { saved, L["Monitor %d (nicht vorhanden)"]:format(saved) }
+		list[#list + 1] = { saved, L["Monitor %d (not present)"]:format(saved) }
 	end
 	return list
 end
@@ -360,19 +360,19 @@ local function BuildPage()
 			end)
 		dd:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", i == 1 and 164 or 0, i == 1 and -16 or -10)
 		UI.Label(page, dd, data and data.locale_name or b.name)
-		UI.Tooltip(dd, data and data.locale_name or b.name, L["Nummern wie auf der Seite „Monitore“."])
+		UI.Tooltip(dd, data and data.locale_name or b.name, L["Numbers as on the \"Monitors\" page."])
 		dropdowns[#dropdowns + 1] = dd
 		anchor = dd
 	end
 
 	local apply = UI.Button(page, APPLY, 160, Titan.Apply,
-		L["Legt die Leisten erneut an ihre Monitore, z. B. nach einer Änderung der Monitoranordnung."])
+		L["Places the bars on their monitors again, e.g. after the monitor arrangement has changed."])
 	apply:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", -160, -16)
 
-	local scaleHead = UI.Text(page, "GameFontNormal", L["Skalierung je Monitor"])
+	local scaleHead = UI.Text(page, "GameFontNormal", L["Scale per monitor"])
 	scaleHead:SetPoint("TOPLEFT", apply, "BOTTOMLEFT", -4, -22)
 	scaleText = UI.Text(page, "GameFontHighlightSmall",
-		L["Größe der Leisten, Plugins und Tooltips von Titan auf diesem Monitor, zusätzlich zu Titans eigener Skalierung. Für Monitore mit unterschiedlicher Pixeldichte, z. B. etwa 65 % für einen Monitor mit 100 % Windows-Skalierung neben einem Hauptmonitor mit 150 %."])
+		L["Size of Titan's bars, plugins and tooltips on this monitor, in addition to Titan's own scale. For monitors with different pixel density, e.g. about 65 % for a monitor at 100 % Windows scaling next to a main monitor at 150 %."])
 	scaleText:SetPoint("TOPLEFT", scaleHead, "BOTTOMLEFT", 0, -6)
 	scaleText:SetWidth(600)
 end
@@ -457,7 +457,7 @@ function ns.InitTitan()
 	end
 
 	ui = UI.Page("Titan Panel", { desc =
-		L["Legt die durchgehenden Titan-Leisten an die obere bzw. untere Kante eines Monitors. Ein- und ausgeschaltet werden sie weiter in Titan. Tooltips der Titan-Plugins bleiben auf dem Monitor des Plugins."] })
+		L["Places the full-width Titan bars on the top or bottom edge of a monitor. They are still turned on and off in Titan. Tooltips of Titan plugins stay on the plugin's monitor."] })
 	page = ui.content
 	ui.panel:SetScript("OnShow", Titan.RefreshOptions)
 	BuildPage()

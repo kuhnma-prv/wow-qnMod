@@ -12,7 +12,7 @@ ns.StatusBar = SB
 -- { Schlüssel, Anzeigename, Datei }
 SB.TEXTURES = {
 	{ "Blizzard", "Blizzard", "Interface\\TargetingFrame\\UI-StatusBar" },
-	{ "Flach", L["Flach"], "Interface\\Buttons\\WHITE8X8" },
+	{ "Flat", L["Flat"], "Interface\\Buttons\\WHITE8X8" },
 	{ "Raid", RAID, "Interface\\RaidFrame\\Raid-Bar-Hp-Fill" },
 }
 
