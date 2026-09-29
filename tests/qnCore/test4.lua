@@ -1,15 +1,15 @@
 -- Scenario 4: second character after the migration, first login, layout without profile
 -- -> gets the saved template (previous settings), not the default values.
-qnMeterDB = { version = 1, global = {}, profiles = { ["account:Raid"] = { scale = 1.4 } }, migrated = { scale = 1.4 } }
+qnThreatMeterDB = { version = 1, global = {}, profiles = { ["account:Raid"] = { scale = 1.4 } }, migrated = { scale = 1.4 } }
 
 local core = LoadAddon("qnCore")
-local meter = LoadAddon("qnMeter")
+local meter = LoadAddon("qnThreatMeter")
 FireEvent("PLAYER_LOGIN")
 RunTimers()
 SetEditModeLayout(4)
 Check(meter.db.scale == 1.4, "char layout without profile: template from the migration")
-Check(qnMeterDB.profiles["char:Tester-Realm:Solo"] == meter.db, "saved as profile")
-Check(qnMeterDB.version == nil, "old version number removed")
+Check(qnThreatMeterDB.profiles["char:Tester-Realm:Solo"] == meter.db, "saved as profile")
+Check(qnThreatMeterDB.version == nil, "old version number removed")
 
 -- registration only after the layout is detected (addon loads later)
 local P = qnCore.Profiles

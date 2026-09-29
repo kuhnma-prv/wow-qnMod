@@ -1,8 +1,8 @@
--- qnMeter: threat meter for the group against the current target.
+-- qnThreatMeter: threat meter for the group against the current target.
 -- Core: namespace, saved settings, helper functions, slash commands.
 
 local ADDON, ns = ...
-_G.qnMeter = ns
+_G.qnThreatMeter = ns
 
 -- Version, Print, events and the secret helpers (IsSecret, Plain, AnySecret) come from qnCore.
 local lib = qnCore
@@ -190,7 +190,7 @@ ns.OnLoad(function()
 	-- Settings per profile (= Edit Mode layout); ns.db is always the active profile.
 	ns.store = lib.Profiles.Register({
 		ns = ns,
-		sv = "qnMeterDB",
+		sv = "qnThreatMeterDB",
 		defaults = ns.defaults,
 		upgrade = Upgrade,
 		obsolete = OBSOLETE,
@@ -206,7 +206,7 @@ end)
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNMETER", { "/qnm", "/qnmeter" }, function(cmd)
+lib.RegisterSlash("QNTHREATMETER", { "/qnm", "/qnthreatmeter" }, function(cmd)
 	local T = ns.Threat
 	if cmd == "" or cmd == "toggle" then
 		T.Toggle()

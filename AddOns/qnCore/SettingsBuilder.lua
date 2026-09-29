@@ -5,7 +5,7 @@
 -- controls without triggering the callbacks - applying is done by the
 -- profile's onSwitch.
 --
---   local B = qnCore.Settings.New({ store = ns.store, prefix = "QNMETER_", apply = Apply })
+--   local B = qnCore.Settings.New({ store = ns.store, prefix = "QNTHREATMETER_", apply = Apply })
 --   B:Checkbox(category, "shown", "Show window")
 --
 -- A choice among several options always goes through B:Dropdown: a button with
@@ -21,7 +21,7 @@ local Builder = {}
 Builder.__index = Builder
 
 -- opts.store     profile object (qnCore.Profiles.Register)
--- opts.prefix    unique prefix for the variable names, e.g. "QNMETER_"
+-- opts.prefix    unique prefix for the variable names, e.g. "QNTHREATMETER_"
 -- opts.apply     default callback after a change (optional)
 -- opts.source    function() -> table; default: store.db (optional)
 -- opts.defaults  defaults for this table; default: store.defaults (optional)

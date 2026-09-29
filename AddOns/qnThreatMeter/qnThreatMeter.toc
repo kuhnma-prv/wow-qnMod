@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fThreat Meter|r] |cff00aa000.1.1|r
+## Title: qnMod [|cffeda55fThreat Meter|r] |cff00aa000.2.0|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
 ## Notes: Threat meter for your group against the current target (for WoW Classic Forever with secret values).
 ## Notes-deDE: Bedrohungsanzeige für die Gruppe gegen das aktuelle Ziel (für WoW Classic Forever mit Secret-Values).
 ## Author: qn
-## Version: 0.1.1
+## Version: 0.2.0
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
@@ -17,7 +17,7 @@
 ## Category-ruRU: Интерфейс пользователя
 ## Category-zhCN: 用户界面
 ## Category-zhTW: 使用者介面
-## SavedVariables: qnMeterDB
+## SavedVariables: qnThreatMeterDB
 ## Dependencies: qnCore
 ## OptionalDeps: LibSharedMedia-3.0
 

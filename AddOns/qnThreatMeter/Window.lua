@@ -1,4 +1,4 @@
--- qnMeter: window and bars in the look of the built-in Damage Meter
+-- qnThreatMeter: window and bars in the look of the built-in Damage Meter
 -- (Blizzard_DamageMeter: DamageMeterSessionWindow.xml, DamageMeterEntry.xml).
 
 local _, ns = ...

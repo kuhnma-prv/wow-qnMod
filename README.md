@@ -18,7 +18,7 @@ layout (including character-specific ones) has its own profile.
 | Addon | What it does | Slash commands |
 |---|---|---|
 | **qnCore** | Core and library (required by all others): profiles per Edit Mode layout, settings builder, widgets, bag automation, remembers minimap tracking, quest tracker font size, "Profiles" page | `/qncore`, `/qnc` |
-| **qnMeter** | Threat meter for your group against the current target (works with secret values) | `/qnmeter`, `/qnm` |
+| **qnThreatMeter** | Threat meter for your group against the current target (works with secret values) | `/qnthreatmeter`, `/qnm` |
 | **qnNumKeyPad** | Action bar in the shape of a numpad | `/qnnumkeypad`, `/qnnkp`, `/numpad` |
 | **qnViewPort** | Shrinks the area in which the 3D world is rendered, border color/pattern, multi-monitor support; with Titan Panel: bars and tooltips per monitor | `/qnviewport`, `/qnvp`, `/viewport` |
 | **qnInventory** | Remembers bags, bank, mail and gold of all characters, shows item counts in the tooltip and shows bags, bank and mailbox of any character anywhere (windows like Blizzard's, with character selection) | `/qninventory`, `/qninv` |
@@ -27,7 +27,7 @@ layout (including character-specific ones) has its own profile.
 | **qnTooltip** | Customizable tooltips: look, optional position, unit lines built from elements, health bar, target, item level, IDs | `/qntooltip`, `/qntt` |
 
 Optional dependencies: [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0)
-(qnMeter, qnTooltip; qnCore registers its background patterns there as "qn …") and
+(qnThreatMeter, qnTooltip; qnCore registers its background patterns there as "qn …") and
 [Titan Panel](https://www.curseforge.com/wow/addons/titan-panel) (qnViewPort).
 
 ## Installation

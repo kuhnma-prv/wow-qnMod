@@ -1,4 +1,4 @@
--- qnCore: core and library of the qn addons (qnMeter, qnNumKeyPad, qnViewPort, qnInventory, qnBuffMod, qnUnitFrames).
+-- qnCore: core and library of the qn addons (qnThreatMeter, qnNumKeyPad, qnViewPort, qnInventory, qnBuffMod, qnUnitFrames).
 -- Library: shared helper functions, globally reachable as qnCore.
 --
 -- The qn addons (qnCore itself included) call
@@ -324,7 +324,7 @@ end
 -- Slash commands
 ---------------------------------------------------------------------------
 
--- Registers slash commands: id = key in SlashCmdList (e.g. "QNMETER"), commands = { "/qnm", ... }.
+-- Registers slash commands: id = key in SlashCmdList (e.g. "QNTHREATMETER"), commands = { "/qnm", ... }.
 -- handler(cmd, rest, msg): cmd = first word in lower case ("" without input), rest = everything
 -- after it as typed, msg = the whole input; all without surrounding whitespace.
 function lib.RegisterSlash(id, commands, handler)

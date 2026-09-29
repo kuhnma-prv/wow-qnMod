@@ -1,4 +1,4 @@
--- qnMeter: threat window (data collection, calculation, display, warnings).
+-- qnThreatMeter: threat window (data collection, calculation, display, warnings).
 --
 -- Two operating modes, depending on what the client currently provides:
 --   * normal:        values are readable. Sorting, ranks, percent per option
@@ -671,7 +671,7 @@ end
 -- Toggles via ns.store:Set so that the settings window picks up the value.
 local function OpenMenu(owner)
 	MenuUtil.CreateContextMenu(owner, function(_, root)
-		root:CreateTitle("qnMeter")
+		root:CreateTitle("qnThreatMeter")
 		root:CreateCheckbox(LOCK_FRAME, function() return db.locked end, function()
 			ns.store:Set("locked", not db.locked)
 		end)
@@ -718,7 +718,7 @@ end
 
 function T.Init()
 	db = ns.db
-	frame = Window.Create("qnMeterThreatFrame", db)
+	frame = Window.Create("qnThreatMeterFrame", db)
 	T.frame = frame
 	frame.titleText:SetText(TITLE)
 	frame.OnMenu = function(_, owner) OpenMenu(owner) end
