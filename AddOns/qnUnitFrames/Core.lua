@@ -159,9 +159,9 @@ end
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, function(cmd)
-	if cmd == "" or cmd == "config" or cmd == "optionen" then
+	if cmd == "" or cmd == "config" or cmd == "options" then
 		ns.OpenOptions()
-	elseif cmd == "clicks" or cmd == "klicks" then
+	elseif cmd == "clicks" then
 		ns.OpenClicksPage()
 	elseif cmd == "on" then
 		ns.store:Set("enabled", true)

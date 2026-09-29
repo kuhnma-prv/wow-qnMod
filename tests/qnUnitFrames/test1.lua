@@ -286,6 +286,6 @@ Check(qnUnitFramesDB.profiles["account:Raid"].bindings.WARRIOR["shift-1"].value 
 SlashCmdList.QNUNITFRAMES("clicks")
 SlashCmdList.QNUNITFRAMES("")
 printed = {}
-SlashCmdList.QNUNITFRAMES("hilfe")
+SlashCmdList.QNUNITFRAMES("help")
 Check(#printed == 1 and printed[1]:find("/qnuf clicks", 1, true) ~= nil, "help for the commands")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

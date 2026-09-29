@@ -127,7 +127,7 @@ end
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNNUMKEYPAD", { "/qnnumkeypad", "/qnnkp", "/numpad" }, function(cmd)
-	if cmd == "" or cmd == "config" or cmd == "optionen" then
+	if cmd == "" or cmd == "config" or cmd == "options" then
 		ns.OpenOptions()
 	elseif cmd == "lock" then
 		ns.store:Set("locked", true)

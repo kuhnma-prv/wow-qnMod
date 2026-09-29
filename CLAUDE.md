@@ -103,7 +103,8 @@ generated with `tools\New-QnPatterns.ps1`, additionally registered with LibShare
 - Do not piece texts together: whole sentences as one key, values via `%s`/`%d`
   (`L["%s: on open"]:format(name)`). Multi-line help texts as one key.
 - Not translated: slash commands, addon names, setting keys, event names, pure developer hints
-  (mark with `-- do not translate` at the end of the line).
+  (mark with `-- do not translate` at the end of the line). Slash commands and their subcommands are
+  English only – no German aliases.
 - TOC: `## Notes:` English, `## Notes-deDE:` German.
 - Check: `node tests\check-locale.mjs [Addon]` (missing/unused translations, leftover German texts
   outside `L[…]`, TOC) and `Invoke-QnTests.ps1` (runs on deDE **and** enUS; on deDE a scenario fails
