@@ -17,15 +17,15 @@ jobs:
         with:
           node-version: lts/*
           cache: npm
-          cache-dependency-path: qn_DevEnv/test/package-lock.json
+          cache-dependency-path: tests/package-lock.json
 
       - name: fengari installieren
-        working-directory: qn_DevEnv/test
+        working-directory: tests
         run: npm ci --no-fund --no-audit
 
       - name: Testszenarien
         shell: pwsh
-        run: ./qn_DevEnv/test/Invoke-QnTests.ps1
+        run: ./tests/Invoke-QnTests.ps1
 
       - name: Übersetzungen
-        run: node qn_DevEnv/test/check-locale.mjs
+        run: node tests/check-locale.mjs

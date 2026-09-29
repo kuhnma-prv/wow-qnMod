@@ -183,6 +183,31 @@ function Write-QnMonitorLua([string]$Path, $Client, $AllMonitors, [string[]]$Sel
     $false
 }
 
+# Does the folder contain WoW clients (_retail_, _classic_beta_ … with an Interface folder)?
+function Test-QnWowRoot([string]$Path) {
+    if (-not $Path -or -not (Test-Path $Path)) { return $false }
+    [bool](Get-ChildItem $Path -Directory -Filter '_*_' -ErrorAction SilentlyContinue |
+        Where-Object { Test-Path (Join-Path $_.FullName 'Interface') })
+}
+
+# WoW root folder, $null if not found:
+#   1. environment variable QN_WOW_ROOT
+#   2. five levels above the scripts (installed addon: <root>\<client>\Interface\AddOns\qnViewPort\scripts);
+#      not when the AddOns folder is a junction to a repository - then the scripts live there
+#   3. folder of a running WoW client (<root>\<client>\Wow*.exe)
+function Get-QnWowRoot {
+    if (Test-QnWowRoot $env:QN_WOW_ROOT) { return $env:QN_WOW_ROOT }
+    $up = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\..\..'))
+    if (Test-QnWowRoot $up) { return $up }
+    $exe = Get-Process -Name 'Wow*' -ErrorAction SilentlyContinue | Where-Object Path |
+        Select-Object -First 1 -ExpandProperty Path
+    if ($exe) {
+        $root = Split-Path (Split-Path $exe -Parent) -Parent
+        if (Test-QnWowRoot $root) { return $root }
+    }
+    $null
+}
+
 # qnViewPort folders of all installed clients below the WoW root.
 function Get-QnViewPortFolders([string]$WowRoot) {
     Get-ChildItem $WowRoot -Directory -Filter '_*_' -ErrorAction SilentlyContinue |

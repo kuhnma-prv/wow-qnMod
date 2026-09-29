@@ -1,14 +1,15 @@
-# Alle Unterordner ignorieren, außer denen, die mit "qn" beginnen
-/*/
-!/qn*/
-!/.github/
-# Entwicklungsumgebung: Node-Pakete (npm install), Blizzard-GlobalStrings (globalstrings.mjs)
-# und Bildschirmfotos werden bei Bedarf geholt bzw. erzeugt, nicht ins Repo
-/qn_DevEnv/test/node_modules/
-/qn_DevEnv/test/GlobalStrings/*.lua
-/qn_DevEnv/screen.png
-# Monitordaten sind rechnerabhängig (erzeugt von qnViewPort\scripts), optional
-/qnViewPort/Monitors.lua
-# Pläne und Arbeitsnotizen
-Plan-*.md
-Plan.md
+# Addons: nur die eigenen (qn*) im Ordner AddOns; fremde Addons (Titan, Auctionator …) liegen
+# daneben, weil WoW den Ordner über eine Junction lädt, gehören aber nicht ins Repo
+/AddOns/*
+!/AddOns/qn*/
+# Monitordaten sind rechnerabhängig (erzeugt von AddOns\qnViewPort\scripts), optional
+/AddOns/qnViewPort/Monitors.lua
+# Testumgebung: Node-Pakete (npm install) und Blizzard-GlobalStrings (globalstrings.mjs) werden
+# bei Bedarf geholt
+/tests/node_modules/
+/tests/GlobalStrings/*.lua
+# Bildschirmfoto von tools\Get-Screen.ps1
+/tools/screen.png
+# Pläne und Arbeitsnotizen: in docs\plans, nicht im Repo (der Ordner selbst bleibt über .gitkeep)
+/docs/plans/*
+!/docs/plans/.gitkeep

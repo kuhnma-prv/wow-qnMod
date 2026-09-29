@@ -19,11 +19,17 @@ param(
     [string]$ProcessName = 'WowB',
     [switch]$KeepBorder,
     [int]$TimeoutSec = 180,
-    # scripts -> qnViewPort -> AddOns -> Interface -> <Client> -> WoW root
-    [string]$ConfigPath = (Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\..\..'))) 'monitors.json')
+    # WoW root folder (contains _retail_, _classic_beta_ …); default: see Get-QnWowRoot in qnMonitors.ps1
+    [string]$WowRoot,
+    [string]$ConfigPath
 )
 
 . (Join-Path $PSScriptRoot 'qnMonitors.ps1')
+
+if (-not $ConfigPath) {
+    if (-not $WowRoot) { $WowRoot = Get-QnWowRoot }
+    $ConfigPath = if ($WowRoot) { Join-Path $WowRoot 'monitors.json' } else { '' }
+}
 
 $all = @(Get-QnMonitors)
 $fixed = $PSBoundParameters.ContainsKey('Width') -or $PSBoundParameters.ContainsKey('Height')
@@ -32,7 +38,7 @@ $fixed = $PSBoundParameters.ContainsKey('Width') -or $PSBoundParameters.Contains
 $sel = @(); $mainMon = $null
 if ($Select) {
     $sel = @($all | Where-Object Index -in $Select)
-} elseif (-not $fixed -and (Test-Path $ConfigPath)) {
+} elseif (-not $fixed -and $ConfigPath -and (Test-Path $ConfigPath)) {
     $cfg = Get-Content $ConfigPath -Raw | ConvertFrom-Json
     foreach ($c in $cfg.selected) {
         $m = $all | Where-Object Device -eq $c.device
@@ -45,7 +51,7 @@ if ($Select) {
     }
     $mainMon = $sel | Where-Object Device -eq $cfg.main
 } elseif (-not $fixed) {
-    Write-Warning "No $ConfigPath - using all monitors. Run Initialize-WowMonitors.ps1 to choose."
+    Write-Warning "No monitors.json ($(if ($ConfigPath) { $ConfigPath } else { 'WoW folder not found' })) - using all monitors. Run Initialize-WowMonitors.ps1 to choose."
     $sel = $all
 }
 if ($Main) { $mainMon = $sel | Where-Object Index -eq $Main }

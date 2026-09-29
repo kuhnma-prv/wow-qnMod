@@ -8,10 +8,10 @@
 	Die Muster sind überwiegend dunkel und durchscheinend: die Randfarbe von qnViewPort bleibt darunter
 	sichtbar, die Deckkraft regelt das Addon.
 .EXAMPLE
-	pwsh qn_DevEnv\New-QnPatterns.ps1
+	pwsh tools\New-QnPatterns.ps1
 #>
 param(
-	[string]$OutDir = (Join-Path $PSScriptRoot '..\qnCore\Media\Patterns')
+	[string]$OutDir = (Join-Path $PSScriptRoot '..\AddOns\qnCore\Media\Patterns')
 )
 
 $ErrorActionPreference = 'Stop'

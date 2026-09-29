@@ -1,6 +1,6 @@
 // Laedt stub.lua + ein Testszenario in fengari (Lua-VM in JS).
 // Aufruf: node run.mjs [<Addon/Szenario.lua>] [<AddOns-Ordner>]
-//   Vorgaben: qnCore/test1.lua, der AddOns-Ordner, in dem qn_DevEnv liegt
+//   Vorgaben: qnCore/test1.lua, der Ordner AddOns neben tests (im Repo)
 //   Sprache des Clients: Umgebungsvariable QN_LOCALE (deDE, enUS; Vorgabe deDE)
 // Auf nicht-deutschen Clients listet der Lauf zum Schluss alle Texte, die ohne Übersetzung
 // angezeigt wurden (qnCore.missing), und endet dann mit Code 2.
@@ -14,8 +14,8 @@ const fs = require('fs');
 const here = path.dirname(fileURLToPath(import.meta.url)).replace(/\\/g, '/') + '/';
 // Szenario relativ zu diesem Ordner, mit / oder \ getrennt (qnCore/test1.lua)
 const scenario = (process.argv[2] || 'qnCore/test1.lua').replace(/\\/g, '/');
-// qn_DevEnv/test liegt im AddOns-Ordner selbst
-const addons = (process.argv[3] || path.resolve(here, '../..')).replace(/\\/g, '/');
+// tests und AddOns liegen nebeneinander im Repo
+const addons = (process.argv[3] || path.resolve(here, '../AddOns')).replace(/\\/g, '/');
 await ensureGlobalStrings([process.env.QN_LOCALE || 'deDE']);   // stub.lua lädt die der Sprache
 const L = lauxlib.luaL_newstate();
 lualib.luaL_openlibs(L);

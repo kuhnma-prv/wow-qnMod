@@ -1,8 +1,22 @@
 # qn-Addons für WoW Classic Forever
 
-Dieser Ordner ist `_classic_beta_\Interface\AddOns` = **WoW Classic Forever** (Flavor wow_classic_beta,
+Repo `D:\Games\dev\wow-qnMod` für **WoW Classic Forever** (Flavor wow_classic_beta,
 Build 1.60.1, `## Interface: 16001`, Spieltyp **camelot**, Midnight-Engine).
-Gilt für die qn*-Addons. **Auctionator ist ein Fremd-Addon: nicht anfassen, nicht einbeziehen.**
+Gilt für die qn*-Addons. **Auctionator und Titan* sind Fremd-Addons: nicht anfassen, nicht einbeziehen**
+(Titan nur als Schnittstelle für qnViewPort/qnInventory lesen).
+
+## Aufbau
+
+```
+AddOns\        alle Addons des Clients; im Repo nur qn* (Rest per .gitignore ausgenommen)
+tests\         Testumgebung (fengari, stub.lua, Szenarien je Addon)
+tools\         Entwicklerwerkzeuge (Get-Screen, Get-WowWindow, New-QnPatterns)
+docs\plans\    Pläne und Arbeitsnotizen – Pläne immer hier ablegen; Inhalt nicht im Repo
+.github\       Actions: test.yml (Tests + Übersetzungen), release.yml (ZIP bei Tag v*)
+```
+
+WoW lädt die Addons über eine Junction: `…\World of Warcraft\_classic_beta_\Interface\AddOns` →
+`D:\Games\dev\wow-qnMod\AddOns`. Pfade in Addons (TOC, Texturen) bleiben `Interface\AddOns\…`.
 
 Addons in `_retail_`, `_classic_`, `_anniversary_`, `_classic_era_` gehören nicht zu diesem Projekt:
 nicht anfassen, nicht als Vorlage oder Quelle verwenden, im Code nicht erwähnen.
@@ -31,7 +45,7 @@ Bibliothek statt eigener Kopien. Vorhanden u. a.: `qnCore.RegisterSlash`, `qnCor
 `qnCore.Popup.Confirm`/`EditText`, `qnCore.AnchorFactors`/`PointOffset`/`NearestCorner`, `qnCore.PointEntries(cornersOnly)` (Ankerpunkte fürs Dropdown), `qnCore.Visible`
 (Rahmen in den sichtbaren Bereich holen; qnViewPort liefert die Monitore), `qnCore.UI.*` (Canvas-Bausteine, `UI.Page` für jede Canvas-Seite),
 `qnCore.Patterns` (eigene Kachelmuster `{ Schlüssel, Name, Datei, LSM-Name }` in `qnCore\Media\Patterns`,
-erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als „qn …“ angemeldet).
+erzeugt mit `tools\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als „qn …“ angemeldet).
 
 ## Vorgaben des Nutzers
 
@@ -78,15 +92,14 @@ erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als �
   1. **Blizzard-GlobalString**, wenn es einen gibt, dessen **deutscher Text genau dem bisherigen deutschen
      Text entspricht** und dessen Bedeutung passt: dann direkt die Blizzard-Variable im Code
      (`BANK`, `DELETE`, `CANCEL`, `DEFAULT`, `GENERAL` …), kein eigener Schlüssel. Nachschlagen:
-     `node qn_DevEnv\test\gs.mjs "Text"` (Forever-GlobalStrings deDE/enUS in
-     `qn_DevEnv\test\GlobalStrings`).
+     `node tests\gs.mjs "Text"` (Forever-GlobalStrings deDE/enUS in `tests\GlobalStrings`).
   2. Sonst eigene englische Übersetzung (Blizzard-Begriffe verwenden: Edit Mode, Action Bar, Bags …).
 - Keine Texte zusammenstückeln: ganze Sätze als ein Schlüssel, Werte über `%s`/`%d`
   (`L["%s: beim Öffnen"]:format(name)`). Mehrzeilige Hilfetexte als ein Schlüssel.
 - Nicht übersetzt werden: Slash-Befehle, Addon-Namen, Einstellungs-Schlüssel, Ereignisnamen, reine
   Entwicklerhinweise (mit `-- nicht übersetzen` am Zeilenende kennzeichnen).
 - TOC: `## Notes:` Englisch, `## Notes-deDE:` Deutsch.
-- Prüfen: `node qn_DevEnv\test\check-locale.mjs [Addon]` (fehlende/unbenutzte Übersetzungen, vergessene
+- Prüfen: `node tests\check-locale.mjs [Addon]` (fehlende/unbenutzte Übersetzungen, vergessene
   deutsche Texte, TOC) und `Invoke-QnTests.ps1` (läuft auf deDE **und** enUS; auf enUS scheitert ein
   Szenario, wenn ein Text ohne Übersetzung angezeigt wurde). Tests nie auf deutsche Anzeigetexte
   festlegen, sondern `ns.L[...]`/`qnCore.GERMAN` verwenden.
@@ -120,17 +133,16 @@ erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als �
 - Blizzard-Quelltext: `git clone --depth 1 --branch forever https://github.com/Gethe/wow-ui-source`
   (Zweig `classic_beta` ist veraltet). Statische Prüfung liefert nur Kandidaten: GlobalStrings,
   C-Funktionen und Widget-Methoden stehen nicht im Quellbaum.
-- Entwicklungsumgebung: `qn_DevEnv` (im AddOns-Ordner, im Repo; ohne TOC, WoW lädt ihn nicht).
-  `qn_DevEnv\test` – fengari (Lua-VM in Node, lokal in `node_modules`, nicht im Repo; wird von
+- Testumgebung `tests`: fengari (Lua-VM in Node, lokal in `node_modules`, nicht im Repo; wird von
   `Invoke-QnTests.ps1` bei Bedarf per `npm install` geholt) mit WoW-Attrappe `stub.lua` und Szenarien
-  je getestetem Addon in einem Ordner, dort durchnummeriert (`qn_DevEnv\test\qnBuffMod\test3.lua`);
+  je getestetem Addon in einem Ordner, dort durchnummeriert (`tests\qnBuffMod\test3.lua`);
   Szenarien für die gemeinsame Bibliothek (Profile, Migration, Visible …) liegen unter `qnCore`.
-  Alle ausführen: `pwsh qn_DevEnv\test\Invoke-QnTests.ps1` (`-Filter qnBuffMod` oder `-Filter qnCore/test3`,
-  `-Locale enUS`, `-Detail`); einzeln: `node run.mjs qnBuffMod/test3.lua` (AddOns-Ordner = Elternordner
-  von `qn_DevEnv`, Sprache über
+  Alle ausführen: `pwsh tests\Invoke-QnTests.ps1` (`-Filter qnBuffMod` oder `-Filter qnCore/test3`,
+  `-Locale enUS`, `-Detail`); einzeln: `node tests\run.mjs qnBuffMod/test3.lua` (Addons aus `AddOns`
+  neben `tests`, Sprache über
   `$env:QN_LOCALE`). Die Attrappe lädt die echten Forever-GlobalStrings der Sprache (nicht im Repo;
   `run.mjs`/`gs.mjs` laden fehlende über `globalstrings.mjs`, aktualisieren mit
-  `node qn_DevEnv\test\globalstrings.mjs --update`); Testvariablen
+  `node tests\globalstrings.mjs --update`); Testvariablen
   deshalb nie wie GlobalStrings benennen (`COMBAT` war einer → heißt jetzt `QN_COMBAT`).
   Nach jeder Änderung alle Szenarien laufen lassen; neue Funktionen bekommen ein eigenes Szenario
   (nächste freie Nummer im Ordner des Addons).
@@ -140,9 +152,12 @@ erzeugt mit `qn_DevEnv\New-QnPatterns.ps1`, zusätzlich bei LibSharedMedia als �
   gemeinsam `qnMonitors.ps1`) schreiben `qnViewPort\Monitors.lua` (global `qnViewPortMonitors`;
   rechnerabhängig, optional, nicht im Repo; die Attrappe lädt sie nie, Szenarien setzen die Daten selbst);
   die Monitorauswahl liegt in `monitors.json` im WoW-Hauptordner (für alle Clients gemeinsam,
-  außerhalb des Repos). WoW lädt nur Dateien aus der TOC.
-- Hilfen in `qn_DevEnv`: `Get-WowWindow.ps1` (Lage/Rahmen des WoW-Fensters, nur lesen),
-  `Get-Screen.ps1` (Bildschirmfoto aller Monitore nach `screen.png`, nicht im Repo).
+  außerhalb des Repos). WoW lädt nur Dateien aus der TOC. Den WoW-Hauptordner finden die Skripte über
+  `Get-QnWowRoot` (`-WowRoot`, `$env:QN_WOW_ROOT`, fünf Ebenen über den Skripten – nur beim Aufruf über
+  die Junction –, sonst über einen laufenden Client).
+- Werkzeuge in `tools`: `Get-WowWindow.ps1` (Lage/Rahmen des WoW-Fensters, nur lesen),
+  `Get-Screen.ps1` (Bildschirmfoto aller Monitore nach `tools\screen.png`, nicht im Repo),
+  `New-QnPatterns.ps1` (Kachelmuster von qnCore).
 - Gemeinsames Icon: `qnCore\Media\qnIcon.tga` (64×64 TGA).
 
 ## Arbeitsweise

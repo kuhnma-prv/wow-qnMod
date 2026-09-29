@@ -1,5 +1,5 @@
 -- qnCore: eigene kachelbare Hintergrundmuster (Media\Patterns, erzeugt mit
--- qn_DevEnv\New-QnPatterns.ps1). Überwiegend dunkel und durchscheinend, damit eine Farbe darunter
+-- tools\New-QnPatterns.ps1). Überwiegend dunkel und durchscheinend, damit eine Farbe darunter
 -- sichtbar bleibt. Zusätzlich bei LibSharedMedia angemeldet, sobald ein Addon es mitbringt.
 
 local ADDON, ns = ...

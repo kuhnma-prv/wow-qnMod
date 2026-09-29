@@ -11,7 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const ADDONS = path.resolve(here, '../..');   // qn_DevEnv/test liegt im AddOns-Ordner
+const ADDONS = path.resolve(here, '../AddOns');   // tests und AddOns liegen nebeneinander im Repo
 const names = process.argv.slice(2).length ? process.argv.slice(2)
   : fs.readdirSync(ADDONS).filter(d => /^qn/.test(d) && fs.existsSync(path.join(ADDONS, d, d + '.toc')));
 

@@ -37,9 +37,15 @@ Optional dependencies: [LibSharedMedia-3.0](https://www.curseforge.com/wow/addon
 2. Extract the `qn*` addon folders you want into
    `World of Warcraft\_classic_beta_\Interface\AddOns\`. **qnCore is always required.**
 
-When installing from a clone of the repository instead, skip `qn_DevEnv`: it is the development
-environment and is not needed in the game (it has no TOC).
 3. Start the game or `/reload`, then open *Options → AddOns*.
+
+When working from a clone of the repository instead, the addons are in the `AddOns` folder of the
+repository. Link the game's `AddOns` folder to it (move other addons you use into the repository's
+`AddOns` folder first; everything except `qn*` there is ignored by git):
+
+```powershell
+New-Item -ItemType Junction -Path '<WoW>\_classic_beta_\Interface\AddOns' -Target '<repo>\AddOns'
+```
 
 Language: German and English. German clients get German texts, all other clients get English.
 
@@ -58,23 +64,28 @@ pwsh qnViewPort\scripts\Set-WowWindow.ps1
 ```
 
 The selection is stored in `monitors.json` in the WoW root folder. `/reload` after a change.
+The scripts find the WoW root folder from their own location inside the game folder. When you run
+them from a repository clone, pass `-WowRoot <WoW>`, set `QN_WOW_ROOT` or start WoW first.
 
 ## Development
 
 The tests run the addons in [fengari](https://github.com/fengari-lua/fengari) (a Lua VM for
-Node.js) against a stub of the WoW API (`qn_DevEnv\test\stub.lua`). Requirements: PowerShell 7
+Node.js) against a stub of the WoW API (`tests\stub.lua`). Requirements: PowerShell 7
 and Node.js. `node_modules` and Blizzard's GlobalStrings are downloaded on first run.
 
 ```powershell
-pwsh qn_DevEnv\test\Invoke-QnTests.ps1                     # all scenarios, deDE and enUS
-pwsh qn_DevEnv\test\Invoke-QnTests.ps1 -Filter qnBuffMod   # one addon
-node qn_DevEnv\test\check-locale.mjs                       # missing/unused translations
+pwsh tests\Invoke-QnTests.ps1                     # all scenarios, deDE and enUS
+pwsh tests\Invoke-QnTests.ps1 -Filter qnBuffMod   # one addon
+node tests\check-locale.mjs                       # missing/unused translations
 ```
+
+Repository layout: `AddOns` (the addons), `tests` (test environment), `tools` (developer scripts),
+`docs\plans` (local notes, not in the repository).
 
 The same checks run on GitHub Actions for every push and pull request. Pushing a tag `v*`
 builds the release ZIP (all addon folders, each with the license).
 
-Scenarios live in `qn_DevEnv\test\<Addon>\testN.lua`. Blizzard's UI source for Classic Forever:
+Scenarios live in `tests\<Addon>\testN.lua`. Blizzard's UI source for Classic Forever:
 branch `forever` of [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source).
 
 Conventions: code comments are German; every displayed text is localized (German is the source

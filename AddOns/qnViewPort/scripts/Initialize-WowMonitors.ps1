@@ -15,12 +15,19 @@ param(
     [int[]]$Select,
     [int]$Main,
     [switch]$List,
-    # scripts -> qnViewPort -> AddOns -> Interface -> <Client> -> WoW root
-    [string]$WowRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..\..\..')),
-    [string]$ConfigPath = (Join-Path $WowRoot 'monitors.json')
+    # WoW root folder (contains _retail_, _classic_beta_ …); default: see Get-QnWowRoot in qnMonitors.ps1
+    [string]$WowRoot,
+    [string]$ConfigPath
 )
 
 . (Join-Path $PSScriptRoot 'qnMonitors.ps1')
+
+if (-not $WowRoot) { $WowRoot = Get-QnWowRoot }
+if (-not $WowRoot) {
+    Write-Error 'WoW folder not found. Pass -WowRoot, set QN_WOW_ROOT or start WoW first.'
+    exit 1
+}
+if (-not $ConfigPath) { $ConfigPath = Join-Path $WowRoot 'monitors.json' }
 
 $all = @(Get-QnMonitors)
 if (-not $all) { Write-Error 'No monitors found.'; exit 1 }

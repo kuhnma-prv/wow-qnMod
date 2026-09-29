@@ -1,4 +1,4 @@
-# Release bei einem Tag v*: ZIP mit allen qn*-Addon-Ordnern (ohne qn_DevEnv), je Ordner mit LICENSE
+# Release bei einem Tag v*: ZIP mit allen qn*-Addon-Ordnern aus AddOns, je Ordner mit LICENSE
 name: Release
 
 on:
@@ -20,8 +20,8 @@ jobs:
           $tag = $env:GITHUB_REF_NAME
           $out = Join-Path $env:RUNNER_TEMP 'package'
           New-Item -ItemType Directory -Force $out | Out-Null
-          # nur Addon-Ordner mit TOC; qn_DevEnv hat keine
-          $addons = Get-ChildItem -Directory -Filter 'qn*' | Where-Object { Test-Path (Join-Path $_ "$($_.Name).toc") }
+          # nur Addon-Ordner mit TOC
+          $addons = Get-ChildItem AddOns -Directory -Filter 'qn*' | Where-Object { Test-Path (Join-Path $_ "$($_.Name).toc") }
           foreach ($a in $addons) {
             Copy-Item $a.FullName (Join-Path $out $a.Name) -Recurse
             Copy-Item LICENSE (Join-Path $out $a.Name)
