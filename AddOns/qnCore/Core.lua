@@ -54,7 +54,7 @@ end
 lib.RegisterSlash("QNCORE", { "/qncore", "/qnc" }, function(cmd)
 	if cmd == "" or cmd == "config" then
 		ns.OpenOptions()
-	elseif cmd == "profile" or cmd == "profil" then
+	elseif cmd == "profile" then
 		ns.OpenProfiles()
 	elseif cmd == "status" then
 		ns.Print(L["Version %s, active profile: %s"], lib.version, lib.Profiles.GetLabel(lib.Profiles.GetActiveKey()))

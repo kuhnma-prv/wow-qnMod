@@ -552,7 +552,7 @@ function Layout.Describe()
 end
 
 function Layout.Slash(cmd)
-	if cmd == "monitors" or cmd == "monitore" then
+	if cmd == "monitors" then
 		ns.Print((constrained and L["Game window %d × %d, interface on the main monitor:"]
 			or L["Game window %d × %d, interface across the whole window:"]):format(ns.screen[1], ns.screen[2]))
 		for _, line in ipairs(Layout.Describe()) do
