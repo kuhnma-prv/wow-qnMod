@@ -754,7 +754,7 @@ NORMAL_FONT_COLOR = CreateColor(1, 0.82, 0)
 -- combined bags (CVar combinedBags)
 ContainerFrameSettingsManager = { IsUsingCombinedBags = function(_, id) return C_CVar._v.combinedBags == "1" and (not id or (id >= 0 and id <= 4)) end }
 
--- qnMeter needs: built-in damage meter (Blizzard_DamageMeter), bar helpers
+-- qnThreatMeter needs: built-in damage meter (Blizzard_DamageMeter), bar helpers
 AbbreviateLargeNumbers = function(v) if issecretvalue(v) then return v end return tostring(math.floor(v)) end
 Enum.StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 1 }
 QN_DM = { barHeight = 30, spacing = 4, style = 1, textScale = 1.2, bgAlpha = 0.7, windowAlpha = 0.9, icons = false, classColor = true }

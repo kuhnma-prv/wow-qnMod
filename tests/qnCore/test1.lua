@@ -2,11 +2,11 @@
 
 -- old data (before qnCore)
 qnViewPortDB = { viewport = { 10, 0, 0, 0 }, color = { 0, 0, 0, 1 }, dual = { enabled = false, bagsOnMain = true } }
-qnMeterDB = { scale = 1.2, styleVersion = 2, keepVisible = true }
+qnThreatMeterDB = { scale = 1.2, styleVersion = 2, keepVisible = true }
 qnNumKeyPadDB = { scale = 1.5, layout = "Windows" }
 
 local core = LoadAddon("qnCore")
-local meter = LoadAddon("qnMeter")
+local meter = LoadAddon("qnThreatMeter")
 local nkp = LoadAddon("qnNumKeyPad")
 local vp = LoadAddon("qnViewPort")
 local inv = LoadAddon("qnInventory")
@@ -16,31 +16,31 @@ RunTimers()
 
 local P = qnCore.Profiles
 Check(P.GetActiveKey() == nil, "no active profile before EDIT_MODE_LAYOUTS_UPDATED")
-Check(meter.db.scale == 1.2 and meter.db.keepVisible == nil, "qnMeter: provisional table from old format, upgrade ran")
+Check(meter.db.scale == 1.2 and meter.db.keepVisible == nil, "qnThreatMeter: provisional table from old format, upgrade ran")
 Check(nkp.db.scale == 1.5, "qnNumKeyPad: template from SavedVariablesPerCharacter")
 Check(vp.db.suppressMessage == false and vp.db.dual.bagsMonitor == 0 and vp.db.dual.bagsOnMain == nil, "qnViewPort: old format + upgrade (viewport sets Layout.Refresh because of new monitor arrangement)")
 
 SetEditModeLayout(3)
 Check(P.GetActiveKey() == "account:Raid", "active profile = account layout Raid: " .. tostring(P.GetActiveKey()))
-Check(qnMeterDB.profiles["account:Raid"] == meter.db, "qnMeter: provisional table became profile account:Raid")
-Check(qnMeterDB.profiles["account:Raid"].scale == 1.2, "qnMeter: value carried over")
+Check(qnThreatMeterDB.profiles["account:Raid"] == meter.db, "qnThreatMeter: provisional table became profile account:Raid")
+Check(qnThreatMeterDB.profiles["account:Raid"].scale == 1.2, "qnThreatMeter: value carried over")
 Check(qnNumKeyPadDB == nil, "qnNumKeyPad: old char table deleted after first switch")
 Check(qnNumKeyPadProfiles.profiles["account:Raid"].scale == 1.5, "qnNumKeyPad: value in profile")
 Check(qnCoreCharDB.layout == "account:Raid", "qnCoreCharDB remembers the layout")
 
 -- change setting via the settings window
-SETTINGS.QNMETER_SCALE:SetValue(1.3)
-Check(meter.db.scale == 1.3, "qnMeter: proxy writes to the active profile")
+SETTINGS.QNTHREATMETER_SCALE:SetValue(1.3)
+Check(meter.db.scale == 1.3, "qnThreatMeter: proxy writes to the active profile")
 
 -- switch to character-specific layout via Blizzard's SelectLayout (hook)
 SetEditModeLayout(4, true)
 local charKey = "char:Tester-Realm:Solo"
 Check(P.GetActiveKey() == charKey, "switch via SelectLayout detected: " .. tostring(P.GetActiveKey()))
-Check(meter.db.scale == 1.3 and meter.db ~= qnMeterDB.profiles["account:Raid"], "new profile = copy of the previous one")
-SETTINGS.QNMETER_SCALE:SetValue(0.8)
-Check(SETTINGS.QNMETER_SCALE:GetValue() == 0.8, "proxy reads new profile")
+Check(meter.db.scale == 1.3 and meter.db ~= qnThreatMeterDB.profiles["account:Raid"], "new profile = copy of the previous one")
+SETTINGS.QNTHREATMETER_SCALE:SetValue(0.8)
+Check(SETTINGS.QNTHREATMETER_SCALE:GetValue() == 0.8, "proxy reads new profile")
 SetEditModeLayout(3, true)
-Check(meter.db.scale == 1.3 and SETTINGS.QNMETER_SCALE:GetValue() == 1.3, "back to Raid: old value")
+Check(meter.db.scale == 1.3 and SETTINGS.QNTHREATMETER_SCALE:GetValue() == 1.3, "back to Raid: old value")
 Check(P.GetLabel(charKey):find(qnCore.GERMAN and "charakterspezifisch" or "character%-specific"), "display name: " .. P.GetLabel(charKey))
 Check(P.GetLabel("preset:1") == "preset:1", "unknown profile without description shows key")
 
@@ -83,12 +83,12 @@ Check(C_CVar._v.showTimestamps == "none", "CVar showTimestamps untouched")
 -- profile page
 local n = P.CopyToActive(charKey)
 Check(n == 4 and meter.db.scale == 0.8, "copy from char profile to active (all addons incl. qnCore): " .. n)
-Check(meter.db == qnMeterDB.profiles["account:Raid"], "copy keeps the table")
+Check(meter.db == qnThreatMeterDB.profiles["account:Raid"], "copy keeps the table")
 n = P.Delete("preset:1")
-Check(n == 4 and qnMeterDB.profiles["preset:1"] == nil and qnCoreDB.layouts["preset:1"] == nil, "delete preset:1")
+Check(n == 4 and qnThreatMeterDB.profiles["preset:1"] == nil and qnCoreDB.layouts["preset:1"] == nil, "delete preset:1")
 Check(P.Delete("account:Raid") == 0, "active profile cannot be deleted")
-P.ResetActive({ P.stores.qnMeter })
-Check(meter.db.scale == 1 and nkp.db.scale == 1.5, "reset only for qnMeter: " .. meter.db.scale .. " / " .. nkp.db.scale)
+P.ResetActive({ P.stores.qnThreatMeter })
+Check(meter.db.scale == 1 and nkp.db.scale == 1.5, "reset only for qnThreatMeter: " .. meter.db.scale .. " / " .. nkp.db.scale)
 
 -- combat: switch is deferred
 QN_COMBAT = true
@@ -103,7 +103,7 @@ local found = 0
 for _, s in pairs(SETTINGS) do found = found + 1 end
 print("settings registered: " .. found)
 for _, cmd in ipairs({ "", "status", "x" }) do SlashCmdList.QNCORE(cmd) end
-SlashCmdList.QNMETER("lock")
+SlashCmdList.QNTHREATMETER("lock")
 Check(meter.db.locked == true, "/qnm lock via Settings")
 SlashCmdList.QNNUMKEYPAD("lock")
 Check(nkp.db.locked == true, "/qnnkp lock")

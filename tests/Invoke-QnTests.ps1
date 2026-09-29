@@ -20,7 +20,7 @@ if (-not (Test-Path "$here\node_modules\fengari")) {
 }
 
 # order as in CLAUDE.md, further addon folders alphabetically afterwards
-$ORDER = @('qnCore', 'qnMeter', 'qnNumKeyPad', 'qnViewPort', 'qnInventory', 'qnBuffMod', 'qnUnitFrames', 'qnTooltip')
+$ORDER = @('qnCore', 'qnThreatMeter', 'qnNumKeyPad', 'qnViewPort', 'qnInventory', 'qnBuffMod', 'qnUnitFrames', 'qnTooltip')
 $pattern = if ($Filter -match '/') { $Filter } else { "$Filter/*" }
 $files = Get-ChildItem $here -Directory -Filter 'qn*' | ForEach-Object {
 	$addon = $_.Name

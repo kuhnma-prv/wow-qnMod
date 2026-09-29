@@ -1,4 +1,4 @@
--- Scenario 2: qnMeter - collection and display in normal and secret mode (ranks), isMe in raid,
+-- Scenario 2: qnThreatMeter - collection and display in normal and secret mode (ranks), isMe in raid,
 -- TPS and warning, range check in combat, menu toggles via store:Set, link to the
 -- built-in damage meter, title, reset, diagnostics.
 
@@ -96,7 +96,7 @@ QN_THREAT = {
 }
 
 local core = LoadAddon("qnCore")
-local meter = LoadAddon("qnMeter")
+local meter = LoadAddon("qnThreatMeter")
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
@@ -224,7 +224,7 @@ Check(tostring(f.infoText._text):find("|cffffaa00", 1, true) ~= nil, "secret mod
 Check(warn == nil, "secret mode: no warning")
 
 chat = {}
-ok, err = pcall(SlashCmdList.QNMETER, "check")
+ok, err = pcall(SlashCmdList.QNTHREATMETER, "check")
 Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "diagnostics with secret values: " .. tostring(err))
 
 -- Only the status secret (values readable): display and diagnostics do not compute with the status
@@ -232,7 +232,7 @@ QN_SECRET = "state"
 ok, err = pcall(T.Refresh)
 Check(ok and Left(1) == "Tester", "only status secret: restricted mode: " .. tostring(err or Left(1)))
 chat = {}
-ok, err = pcall(SlashCmdList.QNMETER, "check")
+ok, err = pcall(SlashCmdList.QNTHREATMETER, "check")
 Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "diagnostics: secret status detected: " .. tostring(err))
 QN_SECRET = nil
 
@@ -281,7 +281,7 @@ MenuUtil.CreateContextMenu = function(owner, gen)
 end
 local notified = {}
 for _, key in ipairs({ "LOCKED", "USEFOCUS", "SHOWN" }) do
-	SETTINGS["QNMETER_" .. key]:SetValueChangedCallback(function(_, v) notified[key] = v end)
+	SETTINGS["QNTHREATMETER_" .. key]:SetValueChangedCallback(function(_, v) notified[key] = v end)
 end
 f.OnMenu(f, f)
 Check(items[L["Use focus target"]] ~= nil, "menu: same text as in the options (prefer focus target)")
@@ -306,7 +306,7 @@ local applied = 0
 local origApply = T.ApplySettings
 T.ApplySettings = function(...) applied = applied + 1 return origApply(...) end
 db.scale = 1.5
-SlashCmdList.QNMETER("reset")
+SlashCmdList.QNTHREATMETER("reset")
 Check(applied == 1 and meter.db.scale == 1, "reset: applied once (" .. applied .. ")")
 T.ApplySettings = origApply
 db = meter.db

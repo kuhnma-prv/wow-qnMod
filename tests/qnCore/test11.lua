@@ -1,5 +1,5 @@
 -- Scenario 11: pulling frames into the visible area via qnCore.Visible in the addons:
--- qnViewPort as area provider, qnMeter and qnNumKeyPad (button/slash, autoVisible,
+-- qnViewPort as area provider, qnThreatMeter and qnNumKeyPad (button/slash, autoVisible,
 -- combat lockdown), qnViewPort list (Edit Mode frames), uniform messages.
 
 local chat = {}
@@ -17,7 +17,7 @@ end
 SpellFlyout = CreateFrame("Frame", "SpellFlyout")
 
 local core = LoadAddon("qnCore")
-local meter = LoadAddon("qnMeter")
+local meter = LoadAddon("qnThreatMeter")
 local nkp = LoadAddon("qnNumKeyPad")
 local vp = LoadAddon("qnViewPort")
 FireEvent("PLAYER_LOGIN")
@@ -54,17 +54,17 @@ Check(vp.MoveIntoVisible == nil and vp.RegisterLayoutCallback == nil and vp.Layo
 V.SetAreaProvider(function() return { { l = 0, r = 1920, b = 0, t = 1080 } } end)
 
 ---------------------------------------------------------------------------
--- qnMeter
+-- qnThreatMeter
 ---------------------------------------------------------------------------
 local mf = meter.Threat.frame
 local mpos = Place(mf, 1900, 500, 220, 150)
 chat = {}
-SlashCmdList.QNMETER("visible")
+SlashCmdList.QNTHREATMETER("visible")
 local l = mpos()
 Check(l == 1700 and ChatHas(CL["%s moved into the visible area."]:format(meter.L["Window"])), "/qnm visible: moved, message: " .. tostring(l))
 Check(meter.db.point[3] == 1700 and meter.db.point[4] == 650, ("position saved: %s, %s"):format(meter.db.point[3], meter.db.point[4]))
 chat = {}
-SlashCmdList.QNMETER("visible")
+SlashCmdList.QNTHREATMETER("visible")
 Check(ChatHas(CL["%s is already in the visible area."]:format(meter.L["Window"])), "/qnm visible: already visible")
 -- autoVisible: on area change (qnViewPort) and new window size
 mpos = Place(mf, 1900, 500, 220, 150)

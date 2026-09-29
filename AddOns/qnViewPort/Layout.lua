@@ -6,7 +6,7 @@
 --   * the 2nd monitor and the selectable monitors for the placement areas (SecondScreen.lua).
 -- Also: constrain UIParent to the main monitor, find frames outside the monitors.
 -- It provides the visible area to qnCore.Visible (bring frames into the visible area, also for
--- qnMeter, qnNumKeyPad, qnBuffMod) and reports every layout change there.
+-- qnThreatMeter, qnNumKeyPad, qnBuffMod) and reports every layout change there.
 -- Rectangles in window pixels { x, y, w, h }, origin top left. "abs" = units at
 -- effective scale 1, origin bottom left (like GetLeft() * GetEffectiveScale()).
 

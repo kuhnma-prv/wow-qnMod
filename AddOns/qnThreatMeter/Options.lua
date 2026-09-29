@@ -1,4 +1,4 @@
--- qnMeter: options in the Blizzard settings window (Settings API).
+-- qnThreatMeter: options in the Blizzard settings window (Settings API).
 -- The settings belong to the active profile (qnCore); after a profile switch
 -- qnCore reloads the controls.
 
@@ -18,7 +18,7 @@ local function TextureEntries()
 end
 
 local function Build(cat, layout)
-	local B = S.New({ store = ns.store, prefix = "QNMETER_", apply = function() ns.Threat.ApplySettings() end })
+	local B = S.New({ store = ns.store, prefix = "QNTHREATMETER_", apply = function() ns.Threat.ApplySettings() end })
 
 	S.Header(layout, L["Window"])
 	B:Checkbox(cat, "shown", L["Show window"])
@@ -93,5 +93,5 @@ end
 
 -- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
-	S.NewCategory(ns, "qnMeter", Build)
+	S.NewCategory(ns, "qnThreatMeter", Build)
 end

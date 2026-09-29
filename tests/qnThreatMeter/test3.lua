@@ -1,4 +1,4 @@
--- Scenario 3: qnMeter - warning with hidden window (ticker independent of the window, no
+-- Scenario 3: qnThreatMeter - warning with hidden window (ticker independent of the window, no
 -- collecting without need), no warning without a real tank entry, TPS history per enemy (target switch,
 -- limit, clearing after combat), fading of the resize handle only after enter/leave.
 
@@ -42,7 +42,7 @@ QN_PARTY = 1
 QN_THREAT = { ["Mob-A"] = { party1 = { value = 1000, isTanking = true }, player = { value = 500 } } }
 
 LoadAddon("qnCore")
-local meter = LoadAddon("qnMeter")
+local meter = LoadAddon("qnThreatMeter")
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()

@@ -29,7 +29,7 @@ do not touch them, do not use them as template or source, do not mention them in
 | Addon | Purpose | SavedVariables |
 |---|---|---|
 | qnCore | main addon + library (global `qnCore`): profiles, settings builder, widgets, automatic bag handling, remembering minimap tracking, objective tracker font below 12 (per profile, `QuestTracker.lua`), page "Profiles" | qnCoreDB (with its own `profiles`), qnCoreCharDB |
-| qnMeter | threat meter | qnMeterDB |
+| qnThreatMeter | threat meter | qnThreatMeterDB |
 | qnNumKeyPad | numpad action bar | qnNumKeyPadProfiles (old: qnNumKeyPadDB) |
 | qnViewPort | smaller 3D area, border color/pattern, dual-monitor mode; with Titan (OptionalDeps) Titan bars per monitor and tooltips at the monitor edge (`Titan.lua`); bag slot tooltips entirely on the bag's monitor (`Layout.FitToMonitor`, for other bag views `qnViewPort.BagTooltip(tip, owner)`, used by qnInventory) | qnViewPortDB |
 | qnInventory | items/gold per character, tooltip lines; bags/bank/mail views of every character (replicas of Blizzard's windows with character selection, `View*.lua`); with Titan (OptionalDeps) plugins `qnInvBank`/`qnInvGold` (`Titan.lua`, texts from Titan's localization); account bank in `qnInventoryDB.account` (gold always, content at the banker); account-wide options (`qnInventoryDB.options`: other faction in tooltips/views, opt-in), delete character | qnInventoryDB |

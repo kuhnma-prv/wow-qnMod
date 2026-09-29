@@ -1,4 +1,4 @@
--- qnMeter: German texts (deDE clients only). Key = English text in the code.
+-- qnThreatMeter: German texts (deDE clients only). Key = English text in the code.
 
 local ADDON, ns = ...
 local L = qnCore.NewLocale(ns, ADDON)
