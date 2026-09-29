@@ -1,6 +1,6 @@
--- qnCore: Bausteine für frei gestaltete Optionsseiten (Canvas-Layout) und Rückfragen (Popup).
--- Auswahl aus mehreren Möglichkeiten immer über UI.Dropdown: ein Knopf mit
--- Aufklappliste, der die aktive Auswahl anzeigt.
+-- qnCore: building blocks for freely designed options pages (canvas layout) and confirmations (popup).
+-- A choice among several options always goes through UI.Dropdown: a button with
+-- a drop-down list that shows the active choice.
 
 local _, ns = ...
 local lib = qnCore
@@ -17,7 +17,7 @@ function UI.Text(parent, template, text)
 	return fs
 end
 
--- Vorhandene OnEnter/OnLeave (z. B. Hervorhebung des Dropdown-Knopfs) bleiben erhalten.
+-- Existing OnEnter/OnLeave (e.g. highlight of the dropdown button) are kept.
 local function SetOrHook(widget, script, fn)
 	if widget:GetScript(script) then
 		widget:HookScript(script, fn)
@@ -26,7 +26,7 @@ local function SetOrHook(widget, script, fn)
 	end
 end
 
--- title und text: Text oder function(widget), die ihn beim Zeigen liefert
+-- title and text: text or function(widget) that returns it when shown
 function UI.Tooltip(widget, title, text, anchor)
 	local function Value(v, self)
 		if type(v) == "function" then
@@ -56,13 +56,13 @@ function UI.Button(parent, text, width, onClick, tooltip)
 	return b
 end
 
--- Knopf mit Aufklappliste.
---   entries  { { Wert, Text }, … } oder Funktion, die diese Liste liefert (bei jedem Öffnen neu)
---   get()    aktueller Wert
---   set(v)   neuen Wert übernehmen
---   defaultText  Text ohne passende Auswahl (optional)
---   maxHeight    lange Listen ab dieser Höhe mit Bildlauf (optional)
--- dd:Refresh() zeigt nach einer Änderung von außen wieder die aktive Auswahl.
+-- Button with drop-down list.
+--   entries  { { value, text }, ... } or function that returns this list (re-read on every open)
+--   get()    current value
+--   set(v)   take over new value
+--   defaultText  text without a matching choice (optional)
+--   maxHeight    long lists scroll from this height on (optional)
+-- dd:Refresh() shows the active choice again after an outside change.
 function UI.Dropdown(parent, width, entries, get, set, defaultText, maxHeight)
 	local dd = CreateFrame("DropdownButton", nil, parent, "WowStyle1DropdownTemplate")
 	dd:SetWidth(width)
@@ -88,7 +88,7 @@ function UI.Dropdown(parent, width, entries, get, set, defaultText, maxHeight)
 	return dd
 end
 
--- Beschriftung links neben einem Steuerelement
+-- Label to the left of a control
 function UI.Label(parent, widget, text, gap)
 	local fs = UI.Text(parent, "GameFontHighlight", text)
 	fs:SetPoint("RIGHT", widget, "LEFT", -(gap or 10), 0)
@@ -96,22 +96,22 @@ function UI.Label(parent, widget, text, gap)
 end
 
 ---------------------------------------------------------------------------
--- Optionsseite (Canvas) im Aussehen von Blizzards senkrechten Seiten (SettingsListTemplate in
--- Blizzard_Settings_Shared): Überschrift, optional Knopf „Standard“, Trennlinie, darunter der
--- Inhalt mit Scrollbar (MinimalScrollBar, nur sichtbar, wenn der Inhalt nicht passt).
--- Canvas-Seiten liegen in derselben Fläche wie Blizzards Liste, daher dieselben Abstände.
---   title          Überschrift (Name der Seite wie in der Liste links)
---   opts.desc      Beschreibung oben im Inhalt (optional), opts.descWidth ihre Breite
---   opts.defaults  function(): Knopf „Standard“ rechts neben der Überschrift (optional)
--- Liefert eine Tabelle:
---   panel    Rahmen für Settings.RegisterCanvasLayout…; OnShow usw. hier setzen
---   content  Eltern der Steuerelemente
---   top      Anker für das erste Element (Beschreibung bzw. oberer Rand des Inhalts)
---   Fit()    Höhe des Inhalts neu messen (nach dem Ein-/Ausblenden von Elementen)
---   padLeft, padTop  Lage von top im Inhalt (für Elemente, die am Inhalt selbst hängen)
+-- Options page (canvas) looking like Blizzard's vertical pages (SettingsListTemplate in
+-- Blizzard_Settings_Shared): heading, optional "Defaults" button, divider, below it the
+-- content with scroll bar (MinimalScrollBar, only visible if the content does not fit).
+-- Canvas pages sit in the same area as Blizzard's list, hence the same spacing.
+--   title          heading (page name as in the list on the left)
+--   opts.desc      description at the top of the content (optional), opts.descWidth its width
+--   opts.defaults  function(): "Defaults" button to the right of the heading (optional)
+-- Returns a table:
+--   panel    frame for Settings.RegisterCanvasLayout...; set OnShow etc. here
+--   content  parent of the controls
+--   top      anchor for the first element (description or top edge of the content)
+--   Fit()    re-measure the content height (after showing/hiding elements)
+--   padLeft, padTop  position of top in the content (for elements attached to the content itself)
 ---------------------------------------------------------------------------
 
-local PAGE_PAD_LEFT, PAGE_PAD_TOP = 40, 10   -- Inhalt bündig mit Blizzards Abschnittsüberschriften
+local PAGE_PAD_LEFT, PAGE_PAD_TOP = 40, 10   -- content aligned with Blizzard's section headers
 
 function UI.Page(title, opts)
 	opts = opts or {}
@@ -137,7 +137,7 @@ function UI.Page(title, opts)
 		page.defaults:SetScript("OnClick", opts.defaults)
 	end
 
-	-- ScrollFrameTemplate (Blizzard_SharedXML) legt die Scrollbar samt Mausrad an
+	-- ScrollFrameTemplate (Blizzard_SharedXML) creates the scroll bar including mouse wheel
 	local scroll = CreateFrame("ScrollFrame", nil, panel, "ScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", header, "BOTTOMLEFT", -15, -2)
 	scroll:SetPoint("BOTTOMRIGHT", -20, -2)
@@ -159,7 +159,7 @@ function UI.Page(title, opts)
 	end
 	page.top:SetPoint("TOPLEFT", PAGE_PAD_LEFT, -PAGE_PAD_TOP)
 
-	-- Unterste Kante aller sichtbaren Kinder und Texte des Inhalts
+	-- Lowest edge of all visible children and texts of the content
 	local function Lowest(bottom, ...)
 		for i = 1, select("#", ...) do
 			local obj = select(i, ...)
@@ -177,7 +177,7 @@ function UI.Page(title, opts)
 			content:SetHeight(math.max(1, top - bottom + PAGE_PAD_TOP))
 		end
 	end
-	-- sofort und im nächsten Frame (dann stehen Lage und Textgrößen nach dem Auffrischen fest)
+	-- immediately and in the next frame (by then position and text sizes are settled after refreshing)
 	function page.Fit()
 		Measure()
 		C_Timer.After(0, Measure)
@@ -191,8 +191,8 @@ function UI.Page(title, opts)
 end
 
 ---------------------------------------------------------------------------
--- Rückfragen (StaticPopupDialogs); angezeigt mit StaticPopup_Show(name, a1, a2, data),
--- a1/a2 füllen %s im Text.
+-- Confirmations (StaticPopupDialogs); shown with StaticPopup_Show(name, a1, a2, data),
+-- a1/a2 fill %s in the text.
 ---------------------------------------------------------------------------
 
 local Popup = {}
@@ -205,7 +205,7 @@ local function Dialog(t)
 	return t
 end
 
--- Rückfrage mit button1 und Abbrechen; onAccept(data) beim Bestätigen.
+-- Confirmation with button1 and Cancel; onAccept(data) on confirm.
 function Popup.Confirm(name, text, button1, onAccept)
 	StaticPopupDialogs[name] = Dialog({
 		text = text,
@@ -217,8 +217,8 @@ function Popup.Confirm(name, text, button1, onAccept)
 	})
 end
 
--- Eingabe eines Textes: get() liefert den bisherigen Text, set(text) übernimmt ihn (Annehmen oder
--- Enter). Escape schließt ohne Übernahme.
+-- Text input: get() returns the previous text, set(text) takes it over (Accept or
+-- Enter). Escape closes without taking it over.
 function Popup.EditText(name, text, get, set, maxLetters)
 	StaticPopupDialogs[name] = Dialog({
 		text = text,

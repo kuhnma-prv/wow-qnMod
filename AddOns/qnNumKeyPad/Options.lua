@@ -1,17 +1,17 @@
--- qnNumKeyPad: Optionen im Blizzard-Einstellungsfenster (Settings-API).
--- Die Einstellungen gehören zum aktiven Profil (qnCore); nach einem Profilwechsel
--- liest qnCore die Steuerelemente neu ein.
+-- qnNumKeyPad: options in the Blizzard settings window (Settings API).
+-- The settings belong to the active profile (qnCore); after a profile switch
+-- qnCore reloads the controls.
 
 local _, ns = ...
 local L = ns.L
 local S = qnCore.Settings
 
--- Werte aus Slash-Befehlen und Knöpfen setzen ns.store:Set bzw. ns.store:SetValues (qnCore):
--- so zeigt auch das Einstellungsfenster sie an; SetValues wendet mehrere Werte mit nur einem
--- ns.Apply an (sonst stünde die Leiste zwischendurch an einem Zwischenort, z. B. neues x mit altem y).
+-- Values from slash commands and buttons are set via ns.store:Set or ns.store:SetValues (qnCore):
+-- that way the settings window shows them too; SetValues applies several values with a single
+-- ns.Apply (otherwise the bar would briefly sit at an intermediate spot, e.g. new x with old y).
 
 ---------------------------------------------------------------------------
--- Eigene Sichtbarkeitsbedingung (Makrobedingungen für den Zustandstreiber "visibility")
+-- Custom visibility condition (macro conditions for the "visibility" state driver)
 ---------------------------------------------------------------------------
 
 qnCore.Popup.EditText("QNNUMKEYPAD_CUSTOM", L["Custom visibility condition (macro syntax, e.g. [combat] show; hide):"],
@@ -19,7 +19,7 @@ qnCore.Popup.EditText("QNNUMKEYPAD_CUSTOM", L["Custom visibility condition (macr
 	function(text) ns.store:Set("custom", text) end, 500)
 
 ---------------------------------------------------------------------------
--- Aufbau
+-- Layout
 ---------------------------------------------------------------------------
 
 local PAGES = {
@@ -48,10 +48,10 @@ end
 
 local function Build(category, layout)
 	local B = S.New({ store = ns.store, prefix = "QNNKP_", apply = ns.Apply })
-	-- Einstellungen, die bestimmen, welche Seiten benutzt werden: danach Seiten prüfen
+	-- Settings that determine which pages are used: check the pages afterwards
 	local check = ns.ApplyAndCheck
 
-	-- Allgemein -----------------------------------------------------------
+	-- General -------------------------------------------------------------
 	local cat = category
 	S.Header(layout, GENERAL)
 	B:Checkbox(cat, "enabled", L["Numpad enabled"],
@@ -76,7 +76,7 @@ local function Build(category, layout)
 	B:Checkbox(cat, "stance", L["Stance switching"],
 		L["Keys 1–12 follow the stance/form bar like the main action bar does (e.g. Battle Stance, Cat Form, Stealth). Without a stance the bar's own slots apply."])
 
-	-- Darstellung ---------------------------------------------------------
+	-- Appearance ----------------------------------------------------------
 	local look, lookLayout = Settings.RegisterVerticalLayoutSubcategory(category, APPEARANCE_LABEL)
 	S.Header(lookLayout, L["Size and spacing"])
 	B:Slider(look, "scale", L["Scale"], 0.3, 2, 0.05, S.DecimalFormatter)
@@ -85,7 +85,7 @@ local function Build(category, layout)
 	B:Slider(look, "blockGap", L["Gap to extra block"], 0, 80, 1, nil,
 		L["Additional gap between the numpad and the navigation/arrow keys."])
 
-	-- eigene Kopfzeile statt APPEARANCE_LABEL: das hieße auf Englisch wie die Seite ("Appearance")
+	-- own header instead of APPEARANCE_LABEL: in English that would match the page name ("Appearance")
 	S.Header(lookLayout, DISPLAY)
 	B:Slider(look, "alpha", L["Opacity"], 0, 1, 0.05, S.FractionFormatter)
 	B:Slider(look, "bgAlpha", L["Background opacity"], 0, 1, 0.05, S.FractionFormatter)
@@ -111,7 +111,7 @@ local function Build(category, layout)
 	-- Position ------------------------------------------------------------
 	local pos, posLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Position"])
 	S.Header(posLayout, L["Position"])
-	-- dieselbe Einstellung wie unter "Allgemein", nur ein zweites Steuerelement
+	-- the same setting as under "General", just a second control
 	Settings.CreateCheckbox(pos, B.settings.locked)
 	B:Dropdown(pos, "point", L["Anchor"], qnCore.PointEntries(), L["Reference point on the screen and on the bar. The bar stays in place when this changes."],
 		nil, ns.KeepPosition)
@@ -125,7 +125,7 @@ local function Build(category, layout)
 	S.Button(posLayout, L["Find bar"], L["Move into visible area"], ns.MoveIntoVisible,
 		L["Moves the bar onto the nearest visible monitor now (/qnnkp visible)."])
 
-	-- Sichtbarkeit --------------------------------------------------------
+	-- Visibility ----------------------------------------------------------
 	local vis, visLayout = Settings.RegisterVerticalLayoutSubcategory(category, HUD_EDIT_MODE_SETTING_AURA_FRAME_VISIBLE_SETTING)
 	S.Header(visLayout, L["Fading"])
 	local fade = B:Checkbox(vis, "fade", L["Fade out without mouseover"],
@@ -154,7 +154,7 @@ local function Build(category, layout)
 		StaticPopup_Show("QNNUMKEYPAD_CUSTOM")
 	end, L["Macro condition with show/hide, e.g. '[combat] show; [mod:alt] show; hide'."])
 
-	-- Aktionsplätze -------------------------------------------------------
+	-- Action slots --------------------------------------------------------
 	local slots, slotsLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Action slots"])
 	S.Header(slotsLayout, L["Action slots"])
 	local note = L["The actions are stored in the slots of this page. A Blizzard action bar using the same page shows the same actions – hide it in Edit Mode."]
@@ -163,7 +163,7 @@ local function Build(category, layout)
 	B:Dropdown(slots, "page3", L["Keys 25–28"], PAGES, L["The actions are stored in the slots of this page. A Blizzard action bar using the same page shows the same actions – hide it in Edit Mode. Only used when the arrow keys are shown: all four arrow keys with the Macintosh layout, Down and Right Arrow with Windows, Microsoft Office and Natural Elite, Right Arrow with Natural Multimedia, never with Razer Naga."], nil, check)
 end
 
--- setzt ns.category und ns.OpenOptions
+-- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
 	S.NewCategory(ns, "qnNumKeyPad", Build)
 end

@@ -1,18 +1,18 @@
--- qnCore: Kern und Bibliothek der qn-Addons (qnMeter, qnNumKeyPad, qnViewPort, qnInventory, qnBuffMod, qnUnitFrames).
--- Library: gemeinsame Hilfsfunktionen, global erreichbar als qnCore.
+-- qnCore: core and library of the qn addons (qnMeter, qnNumKeyPad, qnViewPort, qnInventory, qnBuffMod, qnUnitFrames).
+-- Library: shared helper functions, globally reachable as qnCore.
 --
--- Die qn-Addons (auch qnCore selbst) rufen beim Laden
+-- The qn addons (qnCore itself included) call
 --   qnCore.NewAddon(ns, ADDON)
--- auf. Das setzt ns.version, ns.L, ns.Print, ns.IsSecret, ns.Plain, ns.AnySecret, ns.events und
+-- when loading. This sets ns.version, ns.L, ns.Print, ns.IsSecret, ns.Plain, ns.AnySecret, ns.events and
 -- ns.OnLoad.
--- Die übrigen Dateien von qnCore erreichen die Bibliothek über das globale qnCore.
+-- The other qnCore files reach the library through the global qnCore.
 
 local ADDON, ns = ...
 
 local lib = {}
 _G.qnCore = lib
 
--- Namen der angemeldeten Addons je Namensraum (nur innerhalb von qnCore, z. B. Profiles.Register)
+-- Names of the registered addons per namespace (only within qnCore, e.g. Profiles.Register)
 ns.addonNames = setmetatable({}, { __mode = "k" })
 
 local function Meta(addon, field)
@@ -22,17 +22,17 @@ end
 lib.version = Meta(ADDON, "Version")
 
 ---------------------------------------------------------------------------
--- Secret-Values
--- Auf Clients mit Midnight-Engine können API-Rückgaben "secret" sein. Mit
--- solchen Werten darf Addon-Code weder rechnen noch vergleichen noch sie
--- auf Wahrheit prüfen. Erlaubt ist nur die Übergabe an bestimmte Widgets
+-- Secret values
+-- On clients with the Midnight engine, API return values can be "secret". Addon
+-- code may neither do arithmetic with such values, nor compare them, nor
+-- test them for truth. Only passing them to certain widgets is allowed
 -- (SetText, SetFormattedText, StatusBar:SetValue, AbbreviateLargeNumbers).
 ---------------------------------------------------------------------------
 
 lib.IsSecret = issecretvalue
 local IsSecret = lib.IsSecret
 
--- Liefert v, oder fallback wenn v secret ist.
+-- Returns v, or fallback if v is secret.
 function lib.Plain(v, fallback)
 	if IsSecret(v) then
 		return fallback
@@ -40,7 +40,7 @@ function lib.Plain(v, fallback)
 	return v
 end
 
--- true, wenn einer der Werte secret ist (nil-Werte dürfen dazwischen stehen)
+-- true if one of the values is secret (nil values may appear in between)
 function lib.AnySecret(...)
 	for i = 1, select("#", ...) do
 		if IsSecret((select(i, ...))) then
@@ -50,7 +50,7 @@ function lib.AnySecret(...)
 	return false
 end
 
--- true, wenn einer der Werte der Tabelle t secret ist
+-- true if one of the values of table t is secret
 function lib.AnySecretIn(t)
 	for _, v in pairs(t) do
 		if IsSecret(v) then
@@ -61,11 +61,11 @@ function lib.AnySecretIn(t)
 end
 
 ---------------------------------------------------------------------------
--- Klassenfarben
+-- Class colors
 ---------------------------------------------------------------------------
 
--- Klassenfarbe (RAID_CLASS_COLORS, Felder r, g, b) zum Klassennamen wie "WARRIOR";
--- nil, wenn die Klasse fehlt, unbekannt oder secret ist.
+-- Class color (RAID_CLASS_COLORS, fields r, g, b) for a class name like "WARRIOR";
+-- nil if the class is missing, unknown or secret.
 function lib.ClassColor(classFile)
 	if IsSecret(classFile) or classFile == nil then
 		return nil
@@ -73,8 +73,8 @@ function lib.ClassColor(classFile)
 	return RAID_CLASS_COLORS[classFile]
 end
 
--- Name in Klassenfarbe; ohne Klassenfarbe in fallback (Farbe mit r, g, b), ohne fallback
--- ungefärbt. Ein secret-Name kommt unverändert zurück (nur für SetText geeignet).
+-- Name in class color; without class color in fallback (color with r, g, b), without fallback
+-- uncolored. A secret name is returned unchanged (only suitable for SetText).
 function lib.ClassColoredName(name, classFile, fallback)
 	if IsSecret(name) then
 		return name
@@ -123,13 +123,13 @@ function lib.NewLocale(addonNS, name)
 end
 
 ---------------------------------------------------------------------------
--- Tabellen
+-- Tables
 ---------------------------------------------------------------------------
 
--- Ergänzt fehlende Schlüssel aus den Vorgaben. Listen ({ 1, 2, 3 }) werden als
--- Ganzes übernommen, Tabellen mit Schlüsseln ({ r = 1, … }) rekursiv ergänzt.
--- Ist die Vorgabe eine Tabelle, der gespeicherte Wert aber keine (beschädigt oder altes
--- Format), wird die Vorgabe kopiert.
+-- Fills in missing keys from the defaults. Lists ({ 1, 2, 3 }) are taken over as
+-- a whole, tables with keys ({ r = 1, ... }) are filled in recursively.
+-- If the default is a table but the saved value is not (corrupted or old
+-- format), the default is copied.
 function lib.MergeDefaults(db, defaults)
 	for k, v in pairs(defaults) do
 		if db[k] == nil or (type(v) == "table" and type(db[k]) ~= "table") then
@@ -141,7 +141,7 @@ function lib.MergeDefaults(db, defaults)
 	return db
 end
 
--- Löscht veraltete Schlüssel aus t; "dual.uiOnMain" steht für t.dual.uiOnMain.
+-- Deletes obsolete keys from t; "dual.uiOnMain" stands for t.dual.uiOnMain.
 function lib.RemoveKeys(t, keys)
 	for _, path in ipairs(keys) do
 		local parts = {}
@@ -160,12 +160,12 @@ function lib.RemoveKeys(t, keys)
 end
 
 ---------------------------------------------------------------------------
--- Ausgabe
+-- Output
 ---------------------------------------------------------------------------
 
--- Liefert eine Print-Funktion mit Präfix. Mit weiteren Argumenten wird fmt
--- über string.format ausgefüllt, sonst unverändert ausgegeben. Mehrzeilige Texte
--- (ein Schlüssel mit \n) erscheinen als einzelne Chatzeilen, jede mit Präfix.
+-- Returns a print function with prefix. With further arguments, fmt is filled in
+-- via string.format, otherwise printed unchanged. Multi-line texts
+-- (a key with \n) appear as separate chat lines, each with prefix.
 function lib.NewPrinter(name)
 	local prefix = "|cff33ff99" .. name .. "|r: "
 	return function(fmt, ...)
@@ -181,11 +181,11 @@ function lib.NewPrinter(name)
 end
 
 ---------------------------------------------------------------------------
--- Ereignisse
+-- Events
 ---------------------------------------------------------------------------
 
--- Kleiner Verteiler: hub.Register(event, fn) ruft fn(event, ...) auf; mehrere
--- Funktionen je Ereignis möglich.
+-- Small dispatcher: hub.Register(event, fn) calls fn(event, ...); several
+-- functions per event possible.
 function lib.NewEventHub()
 	local frame = CreateFrame("Frame")
 	local handlers = {}
@@ -209,19 +209,19 @@ function lib.NewEventHub()
 end
 
 ---------------------------------------------------------------------------
--- Lage von Rahmen relativ zu UIParent
--- Alle Rechnungen über die wirksame Skalierung; UIParent darf verschoben oder verkleinert sein
--- (qnViewPort: Oberfläche auf dem Hauptmonitor).
+-- Position of frames relative to UIParent
+-- All calculations use the effective scale; UIParent may be moved or shrunk
+-- (qnViewPort: UI on the main monitor).
 ---------------------------------------------------------------------------
 
--- Anteil eines Ankerpunkts an Breite und Höhe: TOPLEFT = 0, 1; CENTER = 0.5, 0.5; BOTTOMRIGHT = 1, 0
+-- Share of an anchor point in width and height: TOPLEFT = 0, 1; CENTER = 0.5, 0.5; BOTTOMRIGHT = 1, 0
 function lib.AnchorFactors(point)
 	local fx = point:find("LEFT") and 0 or point:find("RIGHT") and 1 or 0.5
 	local fy = point:find("TOP") and 1 or point:find("BOTTOM") and 0 or 0.5
 	return fx, fy
 end
 
--- Lage des Punkts point von frame in Einheiten bei wirksamer Skalierung 1 (x, y) oder nil
+-- Position of point of frame in units at effective scale 1 (x, y) or nil
 local function PointAbs(frame, point)
 	local l, b = frame:GetLeft(), frame:GetBottom()
 	if not (l and b) then
@@ -232,9 +232,9 @@ local function PointAbs(frame, point)
 	return (l + fx * frame:GetWidth()) * s, (b + fy * frame:GetHeight()) * s
 end
 
--- Versätze für frame:SetPoint(point, UIParent, relPoint, x, y), mit denen frame bleibt, wo er ist.
--- inParentUnits: in Einheiten von UIParent (unabhängig von der Skalierung des Rahmens; beim Setzen
--- durch frame:GetScale() teilen), sonst in Einheiten des Rahmens. nil, solange frame keine Lage hat.
+-- Offsets for frame:SetPoint(point, UIParent, relPoint, x, y) that keep frame where it is.
+-- inParentUnits: in UIParent units (independent of the frame's scale; divide by
+-- frame:GetScale() when setting), otherwise in frame units. nil as long as frame has no position.
 function lib.PointOffset(frame, point, relPoint, inParentUnits)
 	local px, py = PointAbs(frame, point)
 	local rx, ry = PointAbs(UIParent, relPoint)
@@ -245,7 +245,7 @@ function lib.PointOffset(frame, point, relPoint, inParentUnits)
 	return (px - rx) / s, (py - ry) / s
 end
 
--- Ecke von UIParent, die dem Punkt point von frame (Vorgabe CENTER) am nächsten liegt, z. B. "TOPRIGHT".
+-- Corner of UIParent closest to point of frame (default CENTER), e.g. "TOPRIGHT".
 function lib.NearestCorner(frame, point)
 	local px, py = PointAbs(frame, point or "CENTER")
 	local cx, cy = PointAbs(UIParent, "CENTER")
@@ -255,8 +255,8 @@ function lib.NearestCorner(frame, point)
 	return (py > cy and "TOP" or "BOTTOM") .. (px > cx and "RIGHT" or "LEFT")
 end
 
--- Ankerpunkte zur Auswahl (Dropdown): { { "TOPLEFT", "Oben links" }, … }, alle neun oder nur die
--- vier Ecken. Texte aus der Locale von qnCore (erst zur Laufzeit gelesen).
+-- Anchor points for selection (dropdown): { { "TOPLEFT", "Top left" }, ... }, all nine or only the
+-- four corners. Texts from qnCore's locale (read only at runtime).
 function lib.PointEntries(cornersOnly)
 	local L = ns.L
 	if cornersOnly then
@@ -273,13 +273,13 @@ function lib.PointEntries(cornersOnly)
 end
 
 ---------------------------------------------------------------------------
--- Kampf und Zeitsteuerung
+-- Combat and timing
 ---------------------------------------------------------------------------
 
-local deferred, deferredSet = {}, {}   -- nach dem Kampf aufzurufen (Reihenfolge, Menge)
+local deferred, deferredSet = {}, {}   -- to be called after combat (order, set)
 
--- Im Kampf: fn für die Zeit nach dem Kampf vormerken (jede Funktion höchstens einmal) und true
--- liefern. Außerhalb des Kampfes false – dann handelt der Aufrufer sofort:
+-- In combat: queue fn for after combat (each function at most once) and return
+-- true. Outside combat false - then the caller acts immediately:
 --   if qnCore.DeferInCombat(Apply) then return end
 function lib.DeferInCombat(fn)
 	if not InCombatLockdown() then
@@ -292,7 +292,7 @@ function lib.DeferInCombat(fn)
 	return true
 end
 
--- ein gemeinsamer Handler für alle vorgemerkten Funktionen; ein Fehler hält die übrigen nicht auf
+-- one shared handler for all queued functions; an error does not stop the others
 lib.NewEventHub().Register("PLAYER_REGEN_ENABLED", function()
 	local list = deferred
 	deferred, deferredSet = {}, {}
@@ -304,8 +304,8 @@ lib.NewEventHub().Register("PLAYER_REGEN_ENABLED", function()
 	end
 end)
 
--- Liefert eine Funktion, die fn nach delay Sekunden (Vorgabe 0 = im nächsten Frame) aufruft.
--- Weitere Aufrufe bis dahin werden zusammengefasst; Argumente werden nicht weitergereicht.
+-- Returns a function that calls fn after delay seconds (default 0 = in the next frame).
+-- Further calls until then are merged; arguments are not passed on.
 function lib.Debounce(fn, delay)
 	local queued = false
 	return function()
@@ -321,12 +321,12 @@ function lib.Debounce(fn, delay)
 end
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
--- Meldet Slash-Befehle an: id = Schlüssel in SlashCmdList (z. B. "QNMETER"), commands = { "/qnm", … }.
--- handler(cmd, rest, msg): cmd = erstes Wort in Kleinbuchstaben ("" ohne Eingabe), rest = alles
--- danach in der eingegebenen Schreibweise, msg = die ganze Eingabe; alle ohne Leerzeichen am Rand.
+-- Registers slash commands: id = key in SlashCmdList (e.g. "QNMETER"), commands = { "/qnm", ... }.
+-- handler(cmd, rest, msg): cmd = first word in lower case ("" without input), rest = everything
+-- after it as typed, msg = the whole input; all without surrounding whitespace.
 function lib.RegisterSlash(id, commands, handler)
 	for i, command in ipairs(commands) do
 		_G["SLASH_" .. id .. i] = command
@@ -339,7 +339,7 @@ function lib.RegisterSlash(id, commands, handler)
 end
 
 ---------------------------------------------------------------------------
--- Einstellungsfenster
+-- Settings window
 ---------------------------------------------------------------------------
 
 function lib.OpenCategory(category)
@@ -347,7 +347,7 @@ function lib.OpenCategory(category)
 end
 
 ---------------------------------------------------------------------------
--- Anmeldung eines qn-Addons
+-- Registration of a qn addon
 ---------------------------------------------------------------------------
 
 function lib.NewAddon(addonNS, name)
@@ -357,9 +357,9 @@ function lib.NewAddon(addonNS, name)
 	addonNS.Plain = lib.Plain
 	addonNS.AnySecret = lib.AnySecret
 	addonNS.Print = lib.NewPrinter(name)
-	-- ein Ereignisverteiler für alle Dateien des Addons
+	-- one event dispatcher for all files of the addon
 	addonNS.events = lib.NewEventHub()
-	-- fn() einmal beim ADDON_LOADED dieses Addons (gespeicherte Variablen sind dann geladen)
+	-- fn() once on this addon's ADDON_LOADED (saved variables are loaded by then)
 	function addonNS.OnLoad(fn)
 		local done = false
 		addonNS.events.Register("ADDON_LOADED", function(_, loaded)

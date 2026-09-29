@@ -1,7 +1,7 @@
--- Szenario 1: qnNumKeyPad – Layouts, Größe, Aktionsplätze, Seitenwarnungen, Position,
--- Zieh-Fläche nach dem Kampf, Rahmen ausgerüsteter Gegenstände, hintShown kontoweit.
+-- Scenario 1: qnNumKeyPad - layouts, size, action slots, page warnings, position,
+-- drag area after combat, border of equipped items, hintShown account-wide.
 
--- Stand von Layouts.lua vor dem Umbau auf gemeinsame Bausteine (Reihenfolge = Aktionsplätze).
+-- State of Layouts.lua before the refactoring to shared building blocks (order = action slots).
 local OLD_LAYOUTS = [==[
 -- qnNumKeyPad: Tastaturlayouts.
 --
@@ -180,7 +180,7 @@ function ns.GetLayout(id)
 end
 ]==]
 
--- alle Rahmen merken (die Zieh-Fläche hat keinen Namen)
+-- remember all frames (the drag area has no name)
 local created = {}
 local createFrame = CreateFrame
 CreateFrame = function(...)
@@ -192,7 +192,7 @@ StaticPopup_StandardEditBoxOnEscapePressed = function(editBox) editBox:GetParent
 SpellFlyout = CreateFrame("Frame", "SpellFlyout")
 SpellFlyout:Hide()
 
--- Chatausgabe mitschreiben
+-- Record chat output
 local chat = {}
 function DEFAULT_CHAT_FRAME:AddMessage(msg)
 	chat[#chat + 1] = msg
@@ -208,7 +208,7 @@ local function Count(text)
 	return n
 end
 
--- Profil aus Version 1.1.0: Hinweis schon gezeigt (hintShown je Profil)
+-- Profile from version 1.1.0: hint already shown (hintShown per profile)
 qnNumKeyPadProfiles = { version = 1, global = {}, profiles = { ["account:Alt"] = { hintShown = true, scale = 1 } } }
 
 local core = LoadAddon("qnCore")
@@ -216,11 +216,11 @@ local nkp = LoadAddon("qnNumKeyPad")
 local L = nkp.L
 
 ---------------------------------------------------------------------------
--- Layouts: neue Tabellen feldweise gleich den alten
+-- Layouts: new tables equal to the old ones field by field
 ---------------------------------------------------------------------------
 local old = {}
-assert(load(OLD_LAYOUTS, "=Layouts.alt"))("qnNumKeyPad", old)
-local same, why = #old.LAYOUTS == #nkp.LAYOUTS, "Anzahl Layouts"
+assert(load(OLD_LAYOUTS, "=Layouts.old"))("qnNumKeyPad", old)
+local same, why = #old.LAYOUTS == #nkp.LAYOUTS, "number of layouts"
 for li, lay in ipairs(old.LAYOUTS) do
 	local new = nkp.LAYOUTS[li]
 	if not new or new.id ~= lay.id or new.name ~= lay.name or #new.keys ~= #lay.keys then
@@ -229,45 +229,45 @@ for li, lay in ipairs(old.LAYOUTS) do
 		for ki, key in ipairs(lay.keys) do
 			local nk = new.keys[ki]
 			for field, v in pairs(key) do
-				if nk[field] ~= v then same, why = false, ("%s Taste %d Feld %s"):format(lay.id, ki, field) end
+				if nk[field] ~= v then same, why = false, ("%s key %d field %s"):format(lay.id, ki, field) end
 			end
 			for field in pairs(nk) do
-				if key[field] == nil then same, why = false, ("%s Taste %d Zusatzfeld %s"):format(lay.id, ki, field) end
+				if key[field] == nil then same, why = false, ("%s key %d extra field %s"):format(lay.id, ki, field) end
 			end
 		end
 	end
 end
-Check(same, "Layouts unverändert (Reihenfolge, Lage, Typ, Beschriftung, Belegung): " .. why)
-Check(nkp.MAX_BUTTONS == 28 and old.MAX_BUTTONS == 28, "28 Tasten höchstens")
-Check(nkp.GetLayout("Macintosh").keys[19].label == "H?", "Mac-Beschriftung H? unverändert")
+Check(same, "layouts unchanged (order, position, type, label, binding): " .. why)
+Check(nkp.MAX_BUTTONS == 28 and old.MAX_BUTTONS == 28, "28 keys at most")
+Check(nkp.GetLayout("Macintosh").keys[19].label == "H?", "Mac label H? unchanged")
 
 ---------------------------------------------------------------------------
--- hintShown kontoweit
+-- hintShown account-wide
 ---------------------------------------------------------------------------
-Check(qnNumKeyPadProfiles.global.hintShown == true, "hintShown aus dem Profil nach global übernommen")
-Check(qnNumKeyPadProfiles.profiles["account:Alt"].hintShown == nil, "hintShown im Profil entfernt")
-Check(_G.qnNumKeyPad == nil and nkp.Slot == nil and nkp.settings == nil, "keine globale Tabelle, kein ns.Slot, kein ns.settings")
-Check(StaticPopupDialogs.QNNUMKEYPAD_CUSTOM.EditBoxOnEscapePressed == StaticPopup_StandardEditBoxOnEscapePressed, "Escape im Eingabefeld: Blizzard-Standard")
+Check(qnNumKeyPadProfiles.global.hintShown == true, "hintShown moved from the profile to global")
+Check(qnNumKeyPadProfiles.profiles["account:Alt"].hintShown == nil, "hintShown removed from the profile")
+Check(_G.qnNumKeyPad == nil and nkp.Slot == nil and nkp.settings == nil, "no global table, no ns.Slot, no ns.settings")
+Check(StaticPopupDialogs.QNNUMKEYPAD_CUSTOM.EditBoxOnEscapePressed == StaticPopup_StandardEditBoxOnEscapePressed, "Escape in the edit box: Blizzard default")
 
--- Hinweis beim Einloggen: einmal je Konto
+-- Hint on login: once per account
 local HINT = L["Left-click to drag the bar, right-click to open the options. Lock it with /qnnkp lock."]
 local WARN_BLIZZ = L["Warning: page %d is also used by a visible Blizzard action bar."]
 local WARN_MULTI = L["Warning: page %d is assigned to more than one key group."]
 qnNumKeyPadProfiles.global.hintShown = nil
-nkp.db.page1 = 1   -- Seite der Hauptleiste: Warnung
+nkp.db.page1 = 1   -- page of the main bar: warning
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
-Check(Count(HINT) == 1 and qnNumKeyPadProfiles.global.hintShown == true, "Hinweis einmal gezeigt, kontoweit gemerkt")
-Check(Count(WARN_BLIZZ:format(1)) == 1, "Warnung Seite 1 beim Einloggen")
+Check(Count(HINT) == 1 and qnNumKeyPadProfiles.global.hintShown == true, "hint shown once, remembered account-wide")
+Check(Count(WARN_BLIZZ:format(1)) == 1, "warning page 1 on login")
 SetEditModeLayout(3)
 SetEditModeLayout(4)
-Check(nkp.db == qnNumKeyPadProfiles.profiles["char:Tester-Realm:Solo"], "Profilwechsel auf char-Layout")
-Check(Count(WARN_BLIZZ:format(1)) == 1, "gleiche Warnung nach Profilwechsel nicht wiederholt")
-Check(Count(HINT) == 1, "Hinweis nicht wiederholt")
+Check(nkp.db == qnNumKeyPadProfiles.profiles["char:Tester-Realm:Solo"], "profile switch to char layout")
+Check(Count(WARN_BLIZZ:format(1)) == 1, "same warning not repeated after profile switch")
+Check(Count(HINT) == 1, "hint not repeated")
 
 ---------------------------------------------------------------------------
--- Größe nach Layout, Aktionsplätze
+-- Size by layout, action slots
 ---------------------------------------------------------------------------
 local applies = 0
 local applyAll = nkp.ApplyAll
@@ -285,32 +285,32 @@ end
 Set("page1", 13)
 local bar = nkp.bar
 local w, h = bar:GetSize()
-Check(w == 191 and h == 237, ("Windows ohne Zusatztasten: 4x5 Tasten (%s x %s)"):format(w, h))
-Check(not qnNumKeyPadButton16:IsShown() and qnNumKeyPadButton15:IsShown(), "Enter-Taste verborgen, Taste 15 sichtbar")
+Check(w == 191 and h == 237, ("Windows without extra keys: 4x5 keys (%s x %s)"):format(w, h))
+Check(not qnNumKeyPadButton16:IsShown() and qnNumKeyPadButton15:IsShown(), "Enter key hidden, key 15 visible")
 Set("showNav", true)
 Set("showArrow", true)
 w, h = bar:GetSize()
-Check(Near(w, 342.8) and h == 237, ("mit Navigations- und Pfeiltasten breiter (%s x %s)"):format(w, h))
+Check(Near(w, 342.8) and h == 237, ("wider with navigation and arrow keys (%s x %s)"):format(w, h))
 Set("blockGap", 10)
-Check(Near(bar:GetWidth(), 352.8), "Abstand zum Zusatzblock verbreitert: " .. bar:GetWidth())
+Check(Near(bar:GetWidth(), 352.8), "gap to the extra block widened: " .. bar:GetWidth())
 Set("blockGap", 0)
 Set("padH", 5)
-Check(Near(bar:GetWidth(), 342.8 + 3 * 4 + 3.3 * 4), "waagerechter Abstand: " .. bar:GetWidth())
+Check(Near(bar:GetWidth(), 342.8 + 3 * 4 + 3.3 * 4), "horizontal spacing: " .. bar:GetWidth())
 Set("padH", 1)
 Set("layout", "Macintosh")
-Check(qnNumKeyPadButton28:IsShown() and not qnNumKeyPadButton18:IsShown(), "Mac: 28 Tasten, Enter verborgen")
+Check(qnNumKeyPadButton28:IsShown() and not qnNumKeyPadButton18:IsShown(), "Mac: 28 keys, Enter hidden")
 
 local function Own(i)
 	return _G["qnNumKeyPadButton" .. i]:GetAttribute("qn-own")
 end
 Check(Own(1) == 145 and Own(12) == 156 and Own(13) == 157 and Own(24) == 168 and Own(25) == 169 and Own(28) == 172,
-	"Plätze: Seiten 13/14/15 je 12 Tasten")
+	"slots: pages 13/14/15 with 12 keys each")
 Set("page1", 3)
 Set("page3", 6)
-Check(Own(1) == 25 and Own(12) == 36 and Own(13) == 157 and Own(25) == 61 and Own(28) == 64, "Plätze nach Seitenwechsel")
+Check(Own(1) == 25 and Own(12) == 36 and Own(13) == 157 and Own(25) == 61 and Own(28) == 64, "slots after page change")
 
 ---------------------------------------------------------------------------
--- Seitenwarnungen
+-- Page warnings
 ---------------------------------------------------------------------------
 Set("page1", 13)
 Set("page3", 15)
@@ -318,33 +318,33 @@ Set("layout", "Windows")
 Set("showNav", false)
 Set("showArrow", false)
 chat = {}
-local mb6 = CreateFrame("Frame", "MultiBar6")   -- Blizzard-Leiste auf Seite 14
+local mb6 = CreateFrame("Frame", "MultiBar6")   -- Blizzard bar on page 14
 Set("showEnter", true)
-Check(Count(WARN_BLIZZ:format(14)) == 1, "Enter-Taste an: Seiten neu geprüft, Blizzard-Leiste auf Seite 14")
+Check(Count(WARN_BLIZZ:format(14)) == 1, "Enter key on: pages checked again, Blizzard bar on page 14")
 Set("showNav", true)
-Check(Count(WARN_BLIZZ:format(14)) == 1, "gleiche Warnung nicht wiederholt")
+Check(Count(WARN_BLIZZ:format(14)) == 1, "same warning not repeated")
 Set("page1", 14)
-Check(Count(WARN_MULTI:format(14)) == 1 and Count(WARN_BLIZZ:format(14)) == 2, "zwei Gruppen auf Seite 14: je eine Warnung")
+Check(Count(WARN_MULTI:format(14)) == 1 and Count(WARN_BLIZZ:format(14)) == 2, "two groups on page 14: one warning each")
 chat = {}
-Set("showArrow", true)   -- Tasten 25/26 benutzen jetzt Seite 3 (15)
-Check(#chat == 0, "unveränderte Warnungen nicht wiederholt")
+Set("showArrow", true)   -- keys 25/26 now use page 3 (15)
+Check(#chat == 0, "unchanged warnings not repeated")
 mb6:Hide()
 Set("page3", 14)
-Check(Count(WARN_MULTI:format(14)) == 1 and Count(WARN_BLIZZ:format(14)) == 0, "drei Gruppen auf Seite 14: nur eine Warnung")
+Check(Count(WARN_MULTI:format(14)) == 1 and Count(WARN_BLIZZ:format(14)) == 0, "three groups on page 14: only one warning")
 mb6:Show()
 Set("page1", 13)
 Set("page3", 13)
 Set("showArrow", false)
 chat = {}
 Set("showArrow", true)
-Check(Count(WARN_MULTI:format(13)) == 1, "Pfeiltasten an: Gruppe 3 teilt Seite 13 mit Gruppe 1")
+Check(Count(WARN_MULTI:format(13)) == 1, "arrow keys on: group 3 shares page 13 with group 1")
 chat = {}
 Set("layout", "Naga")
-Check(Count(WARN_MULTI:format(13)) == 0 and Count(WARN_BLIZZ:format(14)) == 1, "Layoutwechsel prüft neu (Naga benutzt Gruppe 3 nicht)")
+Check(Count(WARN_MULTI:format(13)) == 0 and Count(WARN_BLIZZ:format(14)) == 1, "layout change checks again (Naga does not use group 3)")
 chat = {}
 QN_COMBAT = true
 Set("layout", "Windows")
-Check(Count(WARN_MULTI:format(13)) == 1, "Prüfung liest die Einstellungen, auch im Kampf")
+Check(Count(WARN_MULTI:format(13)) == 1, "check reads the settings, also in combat")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
 mb6:Hide()
@@ -354,29 +354,29 @@ Set("showArrow", false)
 Set("showEnter", false)
 
 ---------------------------------------------------------------------------
--- Position: SavePosition (Ankerwechsel), CenterBar, ResetPosition – je ein Apply
+-- Position: SavePosition (anchor change), CenterBar, ResetPosition - one Apply each
 ---------------------------------------------------------------------------
 bar.GetLeft = function() return 100 end
 bar.GetBottom = function() return 200 end
 applies = 0
 Set("point", "TOPLEFT")
-Check(nkp.db.x == 100 and nkp.db.y == -643 and applies == 1, ("TOPLEFT: x/y umgerechnet (%s, %s), %d Apply"):format(nkp.db.x, nkp.db.y, applies))
-Check(SETTINGS.QNNKP_X:GetValue() == 100 and SETTINGS.QNNKP_Y:GetValue() == -643, "Einstellungsfenster zeigt neue Werte")
+Check(nkp.db.x == 100 and nkp.db.y == -643 and applies == 1, ("TOPLEFT: x/y converted (%s, %s), %d Apply"):format(nkp.db.x, nkp.db.y, applies))
+Check(SETTINGS.QNNKP_X:GetValue() == 100 and SETTINGS.QNNKP_Y:GetValue() == -643, "settings window shows new values")
 Set("point", "BOTTOMRIGHT")
 Check(nkp.db.x == -1629 and nkp.db.y == 200, ("BOTTOMRIGHT: (%s, %s)"):format(nkp.db.x, nkp.db.y))
 Set("point", "TOPLEFT")
 nkp.CenterBar(true)
-Check(nkp.db.x == 865 and nkp.db.y == -643, "waagerecht zentriert (TOPLEFT): " .. nkp.db.x)
+Check(nkp.db.x == 865 and nkp.db.y == -643, "centered horizontally (TOPLEFT): " .. nkp.db.x)
 Set("point", "CENTER")
 nkp.CenterBar(false)
-Check(nkp.db.y == 0, "senkrecht zentriert (CENTER): " .. nkp.db.y)
+Check(nkp.db.y == 0, "centered vertically (CENTER): " .. nkp.db.y)
 applies = 0
 nkp.ResetPosition()
-Check(nkp.db.point == "CENTER" and nkp.db.x == 300 and nkp.db.y == -100 and applies == 1, "zurückgesetzt mit einem Apply: " .. applies)
-Check(SETTINGS.QNNKP_POINT:GetValue() == "CENTER" and SETTINGS.QNNKP_X:GetValue() == 300, "Einstellungsfenster nach Zurücksetzen")
+Check(nkp.db.point == "CENTER" and nkp.db.x == 300 and nkp.db.y == -100 and applies == 1, "reset with one Apply: " .. applies)
+Check(SETTINGS.QNNKP_POINT:GetValue() == "CENTER" and SETTINGS.QNNKP_X:GetValue() == 300, "settings window after reset")
 
 ---------------------------------------------------------------------------
--- Zieh-Fläche nach dem Kampf
+-- Drag area after combat
 ---------------------------------------------------------------------------
 local overlay
 for _, f in ipairs(created) do
@@ -384,40 +384,40 @@ for _, f in ipairs(created) do
 		overlay = f
 	end
 end
-Check(overlay ~= nil, "Zieh-Fläche gefunden")
+Check(overlay ~= nil, "drag area found")
 Set("locked", false)
-Check(overlay:IsShown(), "entsperrt: Zieh-Fläche sichtbar")
+Check(overlay:IsShown(), "unlocked: drag area visible")
 QN_COMBAT = true
 FireEvent("PLAYER_REGEN_DISABLED")
-Check(not overlay:IsShown(), "im Kampf verborgen")
+Check(not overlay:IsShown(), "hidden in combat")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
-Check(overlay:IsShown(), "nach dem Kampf wieder sichtbar (ohne aufgeschobene Änderung)")
+Check(overlay:IsShown(), "visible again after combat (without deferred change)")
 QN_COMBAT = true
 FireEvent("PLAYER_REGEN_DISABLED")
-Set("scale", 1.2)   -- aufgeschoben
+Set("scale", 1.2)   -- deferred
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
-Check(overlay:IsShown(), "nach dem Kampf wieder sichtbar (mit aufgeschobener Änderung)")
--- Ziehen: Position speichern
+Check(overlay:IsShown(), "visible again after combat (with deferred change)")
+-- Drag: save position
 applies = 0
 overlay:GetScript("OnDragStop")()
-Check(nkp.db.x == math.floor(100 + 95.5 - 960 + 0.5) and applies == 1, "nach dem Ziehen gespeichert: " .. nkp.db.x)
+Check(nkp.db.x == math.floor(100 + 95.5 - 960 + 0.5) and applies == 1, "saved after dragging: " .. nkp.db.x)
 Set("locked", true)
-Check(not overlay:IsShown(), "gesperrt: Zieh-Fläche verborgen")
+Check(not overlay:IsShown(), "locked: drag area hidden")
 
 ---------------------------------------------------------------------------
--- Rahmen ausgerüsteter Gegenstände
+-- Border of equipped items
 ---------------------------------------------------------------------------
 C_ActionBar.IsEquippedAction = function(action) return action == 145 end
 local b1 = qnNumKeyPadButton1
 b1.action = 145
 nkp.ApplyCosmetic()
-Check(b1.Border:IsShown(), "ausgerüstet: Rahmen sichtbar")
+Check(b1.Border:IsShown(), "equipped: border visible")
 Set("hideBorder", true)
-Check(not b1.Border:IsShown(), "Rahmen ausgeblendet")
+Check(not b1.Border:IsShown(), "border hidden")
 Set("hideBorder", false)
-Check(b1.Border:IsShown(), "Rahmen nach dem Zurückschalten wieder sichtbar")
-Check(not qnNumKeyPadButton2.Border:IsShown(), "nicht ausgerüstet: kein Rahmen")
+Check(b1.Border:IsShown(), "border visible again after switching back")
+Check(not qnNumKeyPadButton2.Border:IsShown(), "not equipped: no border")
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

@@ -1,4 +1,4 @@
--- qnBuffMod: Tooltips der Einträge und des Fensterhintergrunds.
+-- qnBuffMod: tooltips of the entries and of the window background.
 
 local _, ns = ...
 local lib = qnCore
@@ -13,14 +13,14 @@ local MIN_WIDTH = 180
 local CASTER_DEFAULT = { r = 0.82, g = 1, b = 0 }
 local GREY = 0.5
 
--- Tooltip rechts vom Eintrag, wenn der Mauszeiger in der linken Bildschirmhälfte ist, sonst links
+-- Tooltip to the right of the entry if the cursor is in the left half of the screen, otherwise to the left
 function Tooltip.Anchor()
 	local x = GetCursorPosition() / UIParent:GetEffectiveScale()
 	local middle = (UIParent:GetLeft() or 0) + UIParent:GetWidth() / 2
 	return x < middle and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
 end
 
--- Besitzer eines Begleiters/Fahrzeugs: pet/vehicle → player, partypetN → partyN, raidpetN → raidN
+-- Owner of a companion/vehicle: pet/vehicle → player, partypetN → partyN, raidpetN → raidN
 function Tooltip.OwnerOf(unit)
 	if unit == "pet" or unit == "vehicle" then
 		return "player"
@@ -45,7 +45,7 @@ local function NameAndColor(unit)
 	return name, lib.ClassColor(classFile) or CASTER_DEFAULT
 end
 
--- Wirker in Klassenfarbe, bei Begleitern/Fahrzeugen zusätzlich "<Besitzer>"
+-- Caster in class color, for companions/vehicles additionally "<owner>"
 local function CasterLines(caster)
 	if type(caster) ~= "string" then
 		return
@@ -61,7 +61,7 @@ local function CasterLines(caster)
 	end
 end
 
--- Nur der Fenstertooltip (mit disableTooltips bei offener Fensterseite, am Hintergrund)
+-- Only the window tooltip (with disableTooltips while a window page is open, on the background)
 local function WindowTip(owner, anchor, id)
 	GameTooltip:SetOwner(owner, anchor)
 	GameTooltip:AddLine(L["Window %d"]:format(id))
@@ -76,7 +76,7 @@ local function OnUpdate(e, elapsed)
 		if GameTooltip:IsOwned(e) then
 			Tooltip.ShowEntry(e)
 		else
-			-- Tooltip gehört inzwischen einem anderen: Mindestbreite nicht stehen lassen
+			-- tooltip now belongs to someone else: do not leave the minimum width in place
 			e:SetScript("OnUpdate", nil)
 			GameTooltip:SetMinimumWidth(0)
 		end
@@ -99,7 +99,7 @@ function Tooltip.ShowEntry(e)
 	if rec.weapon then
 		GameTooltip:SetInventoryItem("player", rec.slot)
 	elseif rec.placeholder or ns.Auras.Restricted() then
-		GameTooltip:SetText(rec.name)   -- während der Sperre nur der zuletzt bekannte Name
+		GameTooltip:SetText(rec.name)   -- during the restriction only the last known name
 	else
 		GameTooltip:SetUnitAura(win.unit, rec.index, rec.filter)
 	end
@@ -126,7 +126,7 @@ function Tooltip.Hide(e)
 	end
 end
 
--- Hintergrund bei offener Fensterseite: Fenstertooltip am Mauszeiger
+-- Background while a window page is open: window tooltip at the cursor
 function Tooltip.ShowBackground(bg, id)
 	if ns.WindowPageOpen() then
 		WindowTip(bg, "ANCHOR_CURSOR", id)

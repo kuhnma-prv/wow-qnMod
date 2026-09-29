@@ -1,11 +1,11 @@
--- qnUnitFrames: Klickzauber auf Blizzards Gruppen- und Schlachtzugsrahmen (wie HealBot).
--- Core: Namensraum, gespeicherte Einstellungen, Belegungsdaten, Slash-Befehle, Ereignisse.
+-- qnUnitFrames: click casting on Blizzard's party and raid frames (like HealBot).
+-- Core: namespace, saved settings, binding data, slash commands, events.
 --
--- Eine Belegung ist Zusatztaste + Maustaste, z. B. "shift-1" (Umschalt + Linksklick). Die Schlüssel
--- folgen Blizzards Attributnamen (SecureTemplates.lua: Präfix "alt-ctrl-shift-", Tasten 1–5), so dass
--- Clicks.lua sie direkt als Attribute setzen kann ("shift-type1", "shift-spell1").
--- Die Belegungen liegen im Profil (= Layout des Bearbeitungsmodus) und darin je Klasse:
---   db.bindings[Klasse][Schlüssel] = { type = "spell", value = "Blitzheilung" }
+-- A binding is modifier + mouse button, e.g. "shift-1" (Shift + left click). The keys
+-- follow Blizzard's attribute names (SecureTemplates.lua: prefix "alt-ctrl-shift-", buttons 1–5), so that
+-- Clicks.lua can set them directly as attributes ("shift-type1", "shift-spell1").
+-- The bindings are stored in the profile (= Edit Mode layout) and within it per class:
+--   db.bindings[class][key] = { type = "spell", value = "Flash Heal" }
 
 local ADDON, ns = ...
 
@@ -14,23 +14,23 @@ lib.NewAddon(ns, ADDON)
 local L = ns.L
 
 ---------------------------------------------------------------------------
--- Standardwerte
+-- Defaults
 ---------------------------------------------------------------------------
 
 ns.defaults = {
 	enabled = true,
-	raidStyle = true,     -- Rahmen im Schlachtzugsstil (Gruppe und Schlachtzug, CompactUnitFrame)
-	party = true,         -- klassische Gruppenrahmen (PartyFrame)
-	pets = true,          -- Begleiterrahmen der Gruppe
-	tooltip = true,       -- Belegung im Tooltip der Rahmen zeigen
-	bindings = {},        -- [Klasse] = { [Schlüssel] = { type, value } }
+	raidStyle = true,     -- raid-style frames (party and raid, CompactUnitFrame)
+	party = true,         -- classic party frames (PartyFrame)
+	pets = true,          -- party pet frames
+	tooltip = true,       -- show bindings in the frames' tooltip
+	bindings = {},        -- [class] = { [key] = { type, value } }
 }
 
 ---------------------------------------------------------------------------
--- Tasten und Aktionen
+-- Buttons and actions
 ---------------------------------------------------------------------------
 
--- Maustasten: Nummer wie in SecureButton_GetButtonSuffix
+-- Mouse buttons: number as in SecureButton_GetButtonSuffix
 ns.BUTTONS = {
 	{ "1", KEY_BUTTON1 },
 	{ "2", KEY_BUTTON2 },
@@ -39,12 +39,12 @@ ns.BUTTONS = {
 	{ "5", KEY_BUTTON5 },
 }
 
--- Zusatztasten in der Reihenfolge von SecureButton_GetModifierPrefix (alt vor ctrl vor shift)
+-- Modifiers in the order of SecureButton_GetModifierPrefix (alt before ctrl before shift)
 ns.MODIFIERS = { "", "shift-", "ctrl-", "alt-", "ctrl-shift-", "alt-shift-", "alt-ctrl-", "alt-ctrl-shift-" }
 
 local MODIFIER_TEXT = { alt = ALT_KEY_TEXT, ctrl = CTRL_KEY_TEXT, shift = SHIFT_KEY_TEXT }
 
--- "alt-shift-" → "ALT+UMSCHALT"; ohne Zusatztaste ein eigener Text
+-- "alt-shift-" → "ALT+SHIFT"; without modifier a text of its own
 function ns.ModifierText(prefix)
 	if prefix == "" then
 		return L["No modifier"]
@@ -56,7 +56,7 @@ function ns.ModifierText(prefix)
 	return table.concat(parts, "+")
 end
 
--- Kurzform für Tooltips: "UMSCHALT+Linke Maustaste"
+-- Short form for tooltips: "SHIFT+Left Mouse Button"
 function ns.BindingText(key)
 	local prefix, button = key:match("^(.-)(%d)$")
 	local buttonText = KEY_BUTTON1
@@ -71,8 +71,8 @@ function ns.BindingText(key)
 	return ns.ModifierText(prefix) .. "+" .. buttonText
 end
 
--- Aktionen; "" = nichts setzen, Blizzards Verhalten bleibt (Linksklick: Ziel, Rechtsklick: Menü).
--- value: "spell" = Zaubername, "macro" = Makrotext
+-- Actions; "" = set nothing, Blizzard's behavior stays (left click: target, right click: menu).
+-- value: "spell" = spell name, "macro" = macro text
 ns.TYPES = {
 	{ "", L["Blizzard default"] },
 	{ "spell", L["Spell"] },
@@ -91,7 +91,7 @@ function ns.TypeText(kind)
 	return KNOWN_TYPE[kind] or kind
 end
 
--- gültige Schlüssel: jede Zusatztaste mit jeder Maustaste ("", "shift-" … × "1" … "5")
+-- valid keys: every modifier with every mouse button ("", "shift-" … × "1" … "5")
 local VALID_KEY = {}
 for _, prefix in ipairs(ns.MODIFIERS) do
 	for _, b in ipairs(ns.BUTTONS) do
@@ -99,8 +99,8 @@ for _, prefix in ipairs(ns.MODIFIERS) do
 	end
 end
 
--- Klasse des Spielers ("PRIEST"); die Belegungen gelten je Klasse. Erst bei Bedarf gelesen und nur
--- ein lesbarer Wert gemerkt (UnitClass ist SecretWhenUnitIdentityRestricted).
+-- Class of the player ("PRIEST"); the bindings apply per class. Read only when needed and only
+-- a readable value is remembered (UnitClass is SecretWhenUnitIdentityRestricted).
 local function ClassKey()
 	if not ns.class then
 		ns.class = lib.Plain(select(2, UnitClass("player")), nil)
@@ -108,7 +108,7 @@ local function ClassKey()
 	return ns.class or "?"
 end
 
--- Belegungen der eigenen Klasse im aktiven Profil
+-- Bindings of the player's class in the active profile
 function ns.Bindings()
 	local all = ns.db.bindings
 	local class = ClassKey()
@@ -120,7 +120,7 @@ function ns.Bindings()
 	return list
 end
 
--- Setzt oder löscht (kind "" oder nil) eine Belegung der eigenen Klasse und wendet sie an.
+-- Sets or clears (kind "" or nil) a binding of the player's class and applies it.
 function ns.SetBinding(key, kind, value)
 	local list = ns.Bindings()
 	if not kind or kind == "" then
@@ -131,7 +131,7 @@ function ns.SetBinding(key, kind, value)
 	ns.ApplyChange()   -- Clicks.lua
 end
 
--- Entfernt kaputte Einträge (unbekannte Aktion, falscher Schlüssel).
+-- Removes broken entries (unknown action, wrong key).
 local function Upgrade(db)
 	if type(db.bindings) ~= "table" then
 		db.bindings = nil
@@ -155,7 +155,7 @@ local function Upgrade(db)
 end
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, function(cmd)
@@ -174,7 +174,7 @@ lib.RegisterSlash("QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, function(cmd)
 end)
 
 ---------------------------------------------------------------------------
--- Ereignisse
+-- Events
 ---------------------------------------------------------------------------
 
 ns.OnLoad(function()

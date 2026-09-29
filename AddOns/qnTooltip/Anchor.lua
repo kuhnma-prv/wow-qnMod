@@ -1,7 +1,7 @@
--- qnTooltip: Position des GameTooltip an Blizzards Standardstelle (GameTooltip_SetDefaultAnchor).
--- Nur auf Wunsch: in der Vorgabe "blizzard" bleibt die Stelle von Blizzard bzw. aus dem
--- Bearbeitungsmodus unverändert. Sonst am Mauszeiger, rechts davon oder an einem festen Punkt;
--- Spieler und NSC können eine eigene Art haben. Im Kampf ausblenden, mit Zusatztaste doch zeigen.
+-- qnTooltip: position of the GameTooltip at Blizzard's default spot (GameTooltip_SetDefaultAnchor).
+-- Only on request: with the default "blizzard" the spot from Blizzard or from
+-- Edit Mode stays unchanged. Otherwise at the cursor, to the right of it or at a fixed point;
+-- players and NPCs can have their own mode. Hide in combat, show anyway with a modifier key.
 
 local _, ns = ...
 local L = ns.L
@@ -36,7 +36,7 @@ function Anchor.ModifierEntries()
 	}
 end
 
--- Rahmen unter der Maus und seine Einheit
+-- frame under the mouse and its unit
 local function Focus()
 	local foci = GetMouseFoci()
 	local focus = foci and foci[1]
@@ -46,7 +46,7 @@ local function Focus()
 	return focus, focus.unit
 end
 
--- Art für die Einheit unter der Maus
+-- mode for the unit under the mouse
 local function Mode(unit)
 	local db = ns.db
 	local mode = db.anchorMode
@@ -66,7 +66,7 @@ local function ModifierDown()
 	return m and _G[m[1]]() or false
 end
 
--- im Kampf ausblenden?
+-- hide in combat?
 local function ShouldHide(tip)
 	return tip.qnDefaultAnchor and ns.db.hideInCombat and InCombatLockdown() and not ModifierDown()
 end
@@ -89,7 +89,7 @@ local function OnDefaultAnchor(tip, parent)
 		tip:ClearAllPoints()
 		tip:SetPoint(db.anchorPoint, UIParent, db.anchorPoint, db.anchorX, db.anchorY)
 	end
-	-- nach dem eigenen SetOwner setzen (SetOwner löscht die Markierung)
+	-- set after our own SetOwner (SetOwner clears the marker)
 	tip.qnDefaultAnchor = true
 end
 
@@ -103,7 +103,7 @@ function Anchor.Init()
 			tip:Hide()
 		end
 	end)
-	-- Zusatztaste im Kampf: Tooltip der Einheit unter der Maus zeigen bzw. wieder ausblenden
+	-- modifier key in combat: show the tooltip of the unit under the mouse, or hide it again
 	ns.events.Register("MODIFIER_STATE_CHANGED", function(_, key, down)
 		local db = ns.db
 		local m = MODIFIER[db.combatModifier]

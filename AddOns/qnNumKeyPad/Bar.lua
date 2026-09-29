@@ -1,11 +1,11 @@
--- qnNumKeyPad: Leiste, Tasten, Tastenbelegung, Sichtbarkeit, Haltungswechsel.
+-- qnNumKeyPad: bar, buttons, key bindings, visibility, stance switching.
 --
--- Aufbau: ein sicherer Kopf-Rahmen
--- (SecureHandlerStateTemplate) mit Blizzards ActionBarButtonTemplate-Tasten.
--- Sichtbarkeit und Haltungswechsel laufen über Zustandstreiber, damit sie
--- auch im Kampf funktionieren; ebenso Tastenbelegung und Ziehsperre (sichere
--- Schnipsel am Kopf-Rahmen). Alles, was geschützte Rahmen verändert,
--- läuft über ns.Apply() und wird im Kampf aufgeschoben.
+-- Structure: a secure header frame
+-- (SecureHandlerStateTemplate) with Blizzard's ActionBarButtonTemplate buttons.
+-- Visibility and stance switching run through state drivers so that they
+-- also work in combat; likewise key bindings and the drag lock (secure
+-- snippets on the header frame). Everything that changes protected frames
+-- goes through ns.Apply() and is deferred in combat.
 
 local _, ns = ...
 local L = ns.L
@@ -15,21 +15,21 @@ local INSET = 4
 
 local bar, overlay, fader
 local buttons = {}
-local keys = {}             -- Tastenindex -> unsichtbarer Stellvertreter für die Tastenbelegung
-local visibleKeys = {}      -- Tastenindex -> Taste des aktuellen Layouts
-local cursorGrid = false    -- Spieler hält gerade eine Aktion am Mauszeiger
-local keepPending = false   -- Ankerwechsel im Kampf: Versätze noch nicht umgerechnet
+local keys = {}             -- button index -> invisible proxy for the key binding
+local visibleKeys = {}      -- button index -> key of the current layout
+local cursorGrid = false    -- player is currently holding an action on the cursor
+local keepPending = false   -- anchor change in combat: offsets not yet converted
 
--- Versätze werden auf ganze Einheiten von UIParent gerundet gespeichert.
+-- Offsets are stored rounded to whole UIParent units.
 local function Round(v)
 	return math.floor(v + 0.5)
 end
 
 ---------------------------------------------------------------------------
--- Aktionsplätze
+-- Action slots
 ---------------------------------------------------------------------------
 
--- Tastengruppe: Taste 1-12 liegt auf page1, 13-24 auf page2, 25-28 auf page3.
+-- Key group: keys 1-12 are on page1, 13-24 on page2, 25-28 on page3.
 local function Group(i)
 	return (i <= 12 and 1) or (i <= 24 and 2) or 3
 end
@@ -39,8 +39,8 @@ local function Slot(i)
 	return (page - 1) * NUM_ACTIONBAR_BUTTONS + (i - 1) % NUM_ACTIONBAR_BUTTONS + 1
 end
 
--- Im sicheren Umfeld: Tasten 1-12 spiegeln bei aktivem Haltungswechsel die
--- Haltungsseite (7-11) der Hauptleiste, sonst gilt der eigene Platz.
+-- In the secure environment: with stance switching active, keys 1-12 mirror the
+-- stance page (7-11) of the main action bar, otherwise their own slot applies.
 local CHILD_PAGE = [[
 	local page = tonumber(message) or 0
 	local index = self:GetAttribute("qn-index")
@@ -51,9 +51,9 @@ local CHILD_PAGE = [[
 	end
 ]]
 
--- Im sicheren Umfeld (OnDragStart jeder Taste, control = Leiste): zusätzliche Sperre gegen
--- versehentliches Herausziehen. false bricht ab; sonst läuft Blizzards Handler unverändert
--- (dort gilt weiter die Blizzard-Einstellung „Aktionsleisten sperren“).
+-- In the secure environment (OnDragStart of each button, control = bar): additional lock against
+-- accidental dragging out. false aborts; otherwise Blizzard's handler runs unchanged
+-- (where the Blizzard option "Lock Action Bars" still applies).
 local DRAG_LOCK = [[
 	if (control:GetAttribute("qn-lockall") or (control:GetAttribute("qn-lockcombat") and PlayerInCombat()))
 		and not IsModifiedClick("PICKUPACTION") then
@@ -61,9 +61,9 @@ local DRAG_LOCK = [[
 	end
 ]]
 
--- Im sicheren Umfeld (self = Leiste): Tastenbelegung nur, solange der Ziffernblock aktiv und die
--- Leiste nicht vom Sichtbarkeitstreiber verborgen ist (statehidden; unabhängig von UIParent, also
--- auch bei ausgeblendeter Oberfläche). qn-bound verhindert Neubelegen bei jedem Treiberdurchlauf.
+-- In the secure environment (self = bar): key bindings only while the numpad is enabled and the
+-- bar is not hidden by the visibility driver (statehidden; independent of UIParent, so
+-- also with the UI hidden). qn-bound prevents rebinding on every driver pass.
 local BIND = [[
 	local want = self:GetAttribute("qn-enabled") and not self:GetAttribute("statehidden") and true or false
 	if want == self:GetAttribute("qn-bound") then
@@ -83,7 +83,7 @@ local BIND = [[
 	end
 ]]
 
--- OnAttributeChanged der Leiste: der Sichtbarkeitstreiber setzt statehidden bei jedem Zeigen/Verbergen
+-- OnAttributeChanged of the bar: the visibility driver sets statehidden on every show/hide
 local ON_HIDDEN = [[
 	if name == "statehidden" then
 ]] .. BIND .. [[
@@ -91,7 +91,7 @@ local ON_HIDDEN = [[
 ]]
 
 ---------------------------------------------------------------------------
--- Tastendarstellung (auch im Kampf erlaubt)
+-- Button display (allowed in combat too)
 ---------------------------------------------------------------------------
 
 local function UpdateHotkey(button)
@@ -121,8 +121,8 @@ end
 local function UpdateLook(button)
 	local db = ns.db
 	button.Name:SetShown(not db.hideMacro)
-	-- grüner Rahmen für ausgerüstete Gegenstände (wie ActionButton:Update)
-	-- button.action setzt Blizzard schon beim Erzeugen (UpdateAction, CalculateAction liefert immer einen Platz)
+	-- green border for equipped items (like ActionButton:Update)
+	-- Blizzard sets button.action already on creation (UpdateAction, CalculateAction always returns a slot)
 	button.Border:SetShown(not db.hideBorder and C_ActionBar.IsEquippedAction(button.action))
 	if db.zoom then
 		button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
@@ -135,7 +135,7 @@ local function UpdateLook(button)
 end
 
 ---------------------------------------------------------------------------
--- Aufbau
+-- Setup
 ---------------------------------------------------------------------------
 
 local function CreateButton(i)
@@ -151,13 +151,13 @@ local function CreateButton(i)
 	hooksecurefunc(button, "UpdateHotkeys", UpdateHotkey)
 	hooksecurefunc(button, "Update", UpdateLook)
 
-	-- zusätzliche Sperre gegen versehentliches Herausziehen: sicher umhüllt, damit Blizzards
-	-- Handler (PickupAction, SpellFlyout:Hide) auch im Kampf ungetaintet läuft
+	-- additional lock against accidental dragging out: securely wrapped so that Blizzard's
+	-- handler (PickupAction, SpellFlyout:Hide) runs untainted in combat too
 	SecureHandlerWrapScript(button, "OnDragStart", bar, DRAG_LOCK)
 
-	-- Tastenbelegung über einen Stellvertreter: Seine Vorlage (SecureActionButton_OnClick) beachtet
-	-- „Aktion beim Drücken“ (CVar ActionButtonUseKeyDown); die Taste selbst behandelt jeden Klick
-	-- als Mausklick und handelt erst beim Loslassen. type=click klickt dann die Taste (einmal).
+	-- Key binding via a proxy: its template (SecureActionButton_OnClick) respects
+	-- "cast on key down" (CVar ActionButtonUseKeyDown); the button itself treats every click
+	-- as a mouse click and acts only on release. type=click then clicks the button (once).
 	local key = CreateFrame("Button", "qnNumKeyPadKey" .. i, button, "SecureActionButtonTemplate")
 	key:EnableMouse(false)
 	key:RegisterForClicks("AnyDown", "AnyUp")
@@ -169,8 +169,8 @@ local function CreateButton(i)
 	return button
 end
 
--- Lage am eingestellten Anker speichern: relativ zu UIParent (liegt mit qnViewPort evtl. nicht
--- bei 0,0), in Einheiten von UIParent
+-- Save the position at the configured anchor: relative to UIParent (with qnViewPort possibly not
+-- at 0,0), in UIParent units
 local function SavePosition()
 	local point = ns.db.point
 	local x, y = qnCore.PointOffset(bar, point, point, true)
@@ -203,7 +203,7 @@ local function CreateOverlay()
 	overlay:SetScript("OnDragStop", function()
 		bar:StopMovingOrSizing()
 		if not InCombatLockdown() then
-			SavePosition()   -- über ns.Apply folgt die Prüfung auf den sichtbaren Bereich
+			SavePosition()   -- ns.Apply then triggers the visible-area check
 		end
 	end)
 	overlay:SetScript("OnMouseUp", function(_, mouse)
@@ -226,9 +226,9 @@ end
 local function CreateFader()
 	fader = CreateFrame("Frame")
 	local elapsed, lastOver = 0, 0
-	local lastAlpha   -- zuletzt gesetzte Deckkraft; nil = beim nächsten Durchlauf setzen
+	local lastAlpha   -- last opacity set; nil = set on the next pass
 	fader:SetScript("OnShow", function()
-		lastAlpha = nil   -- ohne Ausblenden setzt ApplyCosmetic die Deckkraft selbst
+		lastAlpha = nil   -- without fading, ApplyCosmetic sets the opacity itself
 	end)
 	fader:SetScript("OnUpdate", function(_, e)
 		elapsed = elapsed + e
@@ -262,7 +262,7 @@ function ns.CreateBar()
 	bar:SetSize(BUTTON_SIZE * 4, BUTTON_SIZE * 5)
 	bar:SetPoint("CENTER")
 	bar:SetAttribute("_onstate-page", [[ self:ChildUpdate("page", newstate) ]])
-	-- Tastenbelegung folgt der Sichtbarkeit, auch im Kampf (Fahrzeug, eigene Bedingung)
+	-- key bindings follow visibility, in combat too (vehicle, custom condition)
 	SecureHandlerWrapScript(bar, "OnAttributeChanged", bar, ON_HIDDEN)
 
 	bar.bg = bar:CreateTexture(nil, "BACKGROUND")
@@ -275,9 +275,9 @@ function ns.CreateBar()
 	CreateOverlay()
 	CreateFader()
 
-	-- Option autoVisible (qnCore): nach dem Laden, bei neuer Fenstergröße und Monitoranordnung;
-	-- ns.Apply prüft zusätzlich nach jeder Änderung. Verschiebt es die Leiste, folgt über
-	-- SavePosition und ns.Apply noch eine (dann leere) Prüfung.
+	-- Option autoVisible (qnCore): after loading, on a new window size and monitor arrangement;
+	-- ns.Apply additionally checks after every change. If it moves the bar, SavePosition and
+	-- ns.Apply trigger one more (then empty) check.
 	ns.QueueVisibleCheck = qnCore.Visible.Keep(bar, function() return ns.db.autoVisible end, SavePosition)
 
 	ns.events.Register("ACTIONBAR_SHOWGRID", function()
@@ -288,15 +288,15 @@ function ns.CreateBar()
 		cursorGrid = false
 		ns.ApplyCosmetic()
 	end)
-	-- Zieh-Fläche im Kampf verbergen (hier kein ApplyCosmetic: InCombatLockdown() ist bei
-	-- PLAYER_REGEN_DISABLED evtl. noch falsch); nach dem Kampf zeigt Core sie wieder.
+	-- Hide the drag area in combat (no ApplyCosmetic here: InCombatLockdown() may still be false
+	-- at PLAYER_REGEN_DISABLED); after combat Core shows it again.
 	ns.events.Register("PLAYER_REGEN_DISABLED", function()
 		overlay:Hide()
 	end)
 end
 
 ---------------------------------------------------------------------------
--- Anwenden
+-- Apply
 ---------------------------------------------------------------------------
 
 local function IsKeyShown(key)
@@ -345,7 +345,7 @@ end
 
 local function ApplyPosition()
 	if keepPending then
-		return   -- ns.KeepPosition rechnet nach dem Kampf erst die Versätze um
+		return   -- ns.KeepPosition converts the offsets first, after combat
 	end
 	local db = ns.db
 	bar:SetScale(db.scale)
@@ -361,12 +361,12 @@ local function ApplyStance()
 		UnregisterStateDriver(bar, "page")
 		bar:SetAttribute("state-page", "0")
 	end
-	-- eigene Plätze können sich geändert haben, ohne dass der Zustand wechselt
+	-- own slots may have changed without the state changing
 	SecureHandlerExecute(bar, [[ self:ChildUpdate("page", self:GetAttribute("state-page")) ]])
 end
 
--- Legt die Belegung als Attribute der Leiste ab; gesetzt wird sie im sicheren Umfeld (BIND), damit
--- der Sichtbarkeitstreiber sie auch im Kampf aufheben und wiederherstellen kann.
+-- Stores the bindings as attributes of the bar; they are set in the secure environment (BIND) so
+-- that the visibility driver can clear and restore them in combat too.
 local function ApplyBindings()
 	local db = ns.db
 	local n = 0
@@ -378,7 +378,7 @@ local function ApplyBindings()
 	bar:SetAttribute("qn-count", n)
 	bar:SetAttribute("qn-shift", db.bindShift)
 	bar:SetAttribute("qn-enabled", db.enabled)
-	bar:SetAttribute("qn-bound", nil)   -- neu belegen, auch wenn sich die Sichtbarkeit nicht ändert
+	bar:SetAttribute("qn-bound", nil)   -- rebind even if visibility does not change
 	SecureHandlerExecute(bar, BIND)
 end
 
@@ -416,17 +416,17 @@ end
 
 local function ApplyButtons()
 	local db = ns.db
-	-- für DRAG_LOCK (liest die Leiste als control)
+	-- for DRAG_LOCK (reads the bar as control)
 	bar:SetAttribute("qn-lockall", db.lockActions)
 	bar:SetAttribute("qn-lockcombat", db.lockInCombat)
 	for _, button in ipairs(buttons) do
 		button:EnableMouse(not db.clickThrough)
-		-- OnAttributeChanged der Vorlage ruft UpdateFlyout auf
+		-- the template's OnAttributeChanged calls UpdateFlyout
 		button:SetAttribute("flyoutDirection", db.flyout)
 	end
 end
 
--- Nur ungeschützte Darstellung, darf auch im Kampf laufen.
+-- Unprotected display only; may run in combat too.
 function ns.ApplyCosmetic()
 	if not bar then
 		return
@@ -454,9 +454,9 @@ function ns.ApplyAll()
 	ns.ApplyCosmetic()
 end
 
--- Nach einem Ankerwechsel die Versätze so umrechnen, dass die Leiste bleibt, wo sie ist.
--- Im Kampf nach dem Kampf; bis dahin setzt ApplyPosition die Leiste nicht neu (sonst stünde sie
--- mit neuem Anker und alten Versätzen woanders, falls vorher schon ein ns.Apply wartete).
+-- After an anchor change, convert the offsets so that the bar stays where it is.
+-- In combat: after combat; until then ApplyPosition does not reposition the bar (otherwise it would
+-- end up elsewhere with the new anchor and old offsets if an ns.Apply was already pending).
 function ns.KeepPosition()
 	if qnCore.DeferInCombat(ns.KeepPosition) then
 		keepPending = true
@@ -470,20 +470,20 @@ function ns.KeepPosition()
 	end
 end
 
--- Seite -> Blizzard-Leiste, die dieselben Plätze benutzt
+-- page -> Blizzard action bar that uses the same slots
 local PAGE_BARS = {
 	[3] = "MultiBarRight", [4] = "MultiBarLeft", [5] = "MultiBarBottomRight",
 	[6] = "MultiBarBottomLeft", [13] = "MultiBar5", [14] = "MultiBar6", [15] = "MultiBar7",
 }
 
-local lastWarning = ""   -- zuletzt ausgegebene Warnungen
+local lastWarning = ""   -- last warnings printed
 
--- Warnt, wenn benutzte Seiten doppelt vergeben oder von einer sichtbaren Blizzard-Leiste belegt sind.
--- Liest die Einstellungen direkt (nicht die angewendete Leiste), damit es auch im Kampf stimmt.
--- Dieselben Warnungen erscheinen nur einmal hintereinander (z. B. Einloggen und Profilwechsel).
+-- Warns when used pages are assigned twice or occupied by a visible Blizzard action bar.
+-- Reads the settings directly (not the applied bar) so that it is correct in combat too.
+-- The same warnings appear only once in a row (e.g. login and profile switch).
 function ns.CheckPages()
 	local db = ns.db
-	local used = {}   -- Tastengruppe -> Seite
+	local used = {}   -- key group -> page
 	for i, key in ipairs(ns.GetLayout(db.layout).keys) do
 		if IsKeyShown(key) then
 			used[Group(i)] = db["page" .. Group(i)]
@@ -515,11 +515,11 @@ function ns.CheckPages()
 	end
 end
 
--- Knopf und Slash-Befehl: Leiste in den sichtbaren Bereich holen (mit qnViewPort auf einen
--- Monitor), mit Rückmeldung. Nicht im Kampf (geschützt).
+-- Button and slash command: move the bar into the visible area (with qnViewPort onto one
+-- monitor), with feedback. Not in combat (protected).
 function ns.MoveIntoVisible()
 	if bar and qnCore.Visible.MoveAndReport(bar, L["Bar"], ns.Print) then
-		SavePosition()   -- rechnet auf den eingestellten Anker um
+		SavePosition()   -- converts to the configured anchor
 	end
 end
 
@@ -528,9 +528,9 @@ function ns.ResetPosition()
 	ns.store:SetValues({ point = d.point, x = d.x, y = d.y })
 end
 
--- Zentriert die Leiste waagerecht bzw. senkrecht, unabhängig vom Anker.
+-- Centers the bar horizontally or vertically, independent of the anchor.
 function ns.CenterBar(horizontal)
-	-- mittig liegt der Ankerpunkt der Leiste um (0.5 - Anteil) × (Platz neben der Leiste) vom Anker entfernt
+	-- when centered, the bar's anchor point lies (0.5 - fraction) x (space beside the bar) away from the anchor
 	local fx, fy = qnCore.AnchorFactors(ns.db.point)
 	local s = bar:GetScale()
 	local pw, ph = UIParent:GetSize()

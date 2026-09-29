@@ -1,39 +1,39 @@
--- qnCore: kleinere Schrift in der Questzielverfolgung, je Profil (= Layout des Bearbeitungsmodus).
+-- qnCore: smaller font in the Objective Tracker, per profile (= Edit Mode layout).
 --
--- Blizzards Regler im Bearbeitungsmodus reicht von 12 bis 20: ObjectiveTrackerManager:SetTextSize
--- lehnt kleinere Werte ab, Schriftvorlagen gibt es erst ab ObjectiveTrackerFont12. qnCore setzt
--- deshalb die Größe der beiden Schriften ObjectiveTrackerLineFont und ObjectiveTrackerHeaderFont
--- direkt (Überschrift wie bei Blizzard 2 größer). Blizzards Regler bleibt unangetastet.
--- Setzt Blizzard die Schrift neu (Layoutwechsel, Regler), stellt ein Hook auf SetFontObject die
--- eigene Größe wieder her – noch vor Blizzards Neuaufbau der Verfolgung.
--- Die Verfolgung wird NIE von qnCore neu aufgebaut: ein Aufruf von ObjectiveTrackerManager:UpdateAll
--- aus Addon-Code verseucht (Taint) ihre Daten; Blizzards spätere Aktualisierung (z. B. über den
--- Bearbeitungsmodus beim Spezialisierungswechsel) liest dann im Szenario-Modul Auren
--- (ShouldShowMawBuffs → C_UnitAuras.GetAuraDataByIndex) und scheitert an Secret-Values.
--- Zeilenabstände passt Blizzard beim nächsten eigenen Neuaufbau an (Questfortschritt, Zonenwechsel,
--- spätestens /reload).
+-- Blizzard's slider in Edit Mode ranges from 12 to 20: ObjectiveTrackerManager:SetTextSize
+-- rejects smaller values, font templates only exist from ObjectiveTrackerFont12. qnCore therefore
+-- sets the size of the two fonts ObjectiveTrackerLineFont and ObjectiveTrackerHeaderFont
+-- directly (header 2 larger, as with Blizzard). Blizzard's slider stays untouched.
+-- If Blizzard resets the font (layout switch, slider), a hook on SetFontObject restores the
+-- own size - even before Blizzard rebuilds the tracker.
+-- The tracker is NEVER rebuilt by qnCore: calling ObjectiveTrackerManager:UpdateAll
+-- from addon code taints its data; Blizzard's later update (e.g. via
+-- Edit Mode on a specialization change) then reads auras in the scenario module
+-- (ShouldShowMawBuffs -> C_UnitAuras.GetAuraDataByIndex) and fails on secret values.
+-- Blizzard adjusts line spacing on its next own rebuild (quest progress, zone change,
+-- at the latest /reload).
 
 local _, ns = ...
 
 local QT = {}
 ns.QuestTracker = QT
 
-QT.SIZES = { 8, 9, 10, 11 }   -- Auswahl unterhalb von Blizzards Minimum
+QT.SIZES = { 8, 9, 10, 11 }   -- choices below Blizzard's minimum
 
-local LINE_BASE, HEADER_BASE = 12, 14   -- Vorlagen, von denen Datei und Höhe stammen
-local HEADER_EXTRA = 2                  -- wie headerExtraSize in Blizzard_ObjectiveTrackerManager.lua
+local LINE_BASE, HEADER_BASE = 12, 14   -- templates that file and height come from
+local HEADER_EXTRA = 2                  -- like headerExtraSize in Blizzard_ObjectiveTrackerManager.lua
 
--- zuletzt von Blizzard gesetzte Schriftvorlagen (Vorgabe aus Blizzard_ObjectiveTrackerFonts.xml)
+-- font templates last set by Blizzard (default from Blizzard_ObjectiveTrackerFonts.xml)
 local blizzLine, blizzHeader = "ObjectiveTrackerFont12", "ObjectiveTrackerFont14"
-local applied = 0   -- zurzeit von qnCore gesetzte Größe, 0 = Blizzards Schrift
+local applied = 0   -- size currently set by qnCore, 0 = Blizzard's font
 local hooked = false
 
 local function Wanted()
 	return ns.db and ns.db.questTextSize or 0
 end
 
--- font auf size setzen. Datei und Höhe kommen aus Blizzards Vorlage der Größe base: je Alphabet
--- andere Datei und Höhe (z. B. Chinesisch 15 bei Größe 12), deshalb im Verhältnis umrechnen.
+-- Set font to size. File and height come from Blizzard's template of size base: each alphabet has
+-- a different file and height (e.g. Chinese 15 at size 12), hence scale proportionally.
 local function SetSize(font, base, size)
 	local template = _G["ObjectiveTrackerFont" .. base]
 	local path, height, flags = template:GetFont()
@@ -48,7 +48,7 @@ local function Override(size)
 	SetSize(ObjectiveTrackerHeaderFont, HEADER_BASE, size + HEADER_EXTRA)
 end
 
--- Blizzard hat eine Schriftvorlage gesetzt: merken und die eigene Größe wiederherstellen
+-- Blizzard has set a font template: remember it and restore the own size
 local function OnLineFont(_, font)
 	blizzLine = font
 	if applied > 0 then
@@ -73,7 +73,7 @@ local function Hook()
 	return true
 end
 
--- Größe des aktiven Profils anwenden (Option, Profilwechsel, Start)
+-- Apply the size of the active profile (option, profile switch, start)
 function QT.Apply()
 	if not hooked then
 		return
@@ -96,7 +96,7 @@ function QT.Init()
 		QT.Apply()
 		return
 	end
-	-- Blizzard_ObjectiveTracker lädt vor den Addons; falls nicht, beim eigenen ADDON_LOADED
+	-- Blizzard_ObjectiveTracker loads before the addons; if not, on its own ADDON_LOADED
 	ns.events.Register("ADDON_LOADED", function(_, name)
 		if name == "Blizzard_ObjectiveTracker" and Hook() then
 			QT.Apply()

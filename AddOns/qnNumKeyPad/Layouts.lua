@@ -1,15 +1,15 @@
--- qnNumKeyPad: Tastaturlayouts.
+-- qnNumKeyPad: keyboard layouts.
 --
--- row/col: Lage der Taste in Tastenbreiten, 1/1 = oben links im Ziffernblock.
--- Negative Spalten liegen links davon (Navigations- und Pfeilblock).
--- type: Numeric = immer sichtbar, Enter/Nav/Arrow = zuschaltbar.
--- Die Position einer Taste in der Liste bestimmt ihren Aktionsplatz;
--- deshalb darf die Reihenfolge nicht geändert werden (Szenario qnNumKeyPad/test1 vergleicht mit dem alten Stand).
+-- row/col: key position in key widths, 1/1 = top left of the numeric keypad.
+-- Negative columns lie to the left of it (navigation and arrow block).
+-- type: Numeric = always visible, Enter/Nav/Arrow = optional.
+-- A key's position in the list determines its action slot;
+-- therefore the order must not change (scenario qnNumKeyPad/test1 compares against the old state).
 
 local _, ns = ...
 
--- Tasten eines Typs aus { row, col, label, binding }; shift rückt den Block um so viele
--- Tastenbreiten nach links (Zusatzblöcke links vom Ziffernblock).
+-- Keys of one type from { row, col, label, binding }; shift moves the block that many
+-- key widths to the left (extra blocks left of the numeric keypad).
 local function Keys(kind, shift, list)
 	local keys = {}
 	for i, k in ipairs(list) do
@@ -18,7 +18,7 @@ local function Keys(kind, shift, list)
 	return keys
 end
 
--- Hängt mehrere Tastenlisten aneinander.
+-- Concatenates several key lists.
 local function Join(...)
 	local list = {}
 	for i = 1, select("#", ...) do
@@ -29,7 +29,7 @@ local function Join(...)
 	return list
 end
 
--- Ziffern 1-9, 0 und Komma in der üblichen Anordnung (1 unten links)
+-- Digits 1-9, 0 and decimal point in the usual arrangement (1 bottom left)
 local function Digits()
 	return Keys("Numeric", 0, {
 		{ 4, 1, "1", "NUMPAD1" }, { 4, 2, "2", "NUMPAD2" }, { 4, 3, "3", "NUMPAD3" },
@@ -39,7 +39,7 @@ local function Digits()
 	})
 end
 
--- Rechenzeichen (Windows-Anordnung: + hoch in der rechten Spalte)
+-- Operators (Windows arrangement: tall + in the right column)
 local function Operators()
 	return Keys("Numeric", 0, {
 		{ 2.5, 4, "+", "NUMPADPLUS" }, { 1, 4, "-", "NUMPADMINUS" },
@@ -51,7 +51,7 @@ local function Enter()
 	return Keys("Enter", 0, { { 4.5, 4, "E", "ENTER" } })
 end
 
--- Sechserblock über den Pfeiltasten (Einfg, Pos1, Bild auf / Entf, Ende, Bild ab)
+-- Six-key block above the arrow keys (Insert, Home, Page Up / Delete, End, Page Down)
 local function Nav6(insertLabel)
 	return Keys("Nav", 3.3, {
 		{ 1, 1, insertLabel, "INSERT" }, { 1, 2, "H", "HOME" }, { 1, 3, "P^", "PAGEUP" },
@@ -59,7 +59,7 @@ local function Nav6(insertLabel)
 	})
 end
 
--- Fünferblock der Microsoft-Tastaturen
+-- Five-key block of Microsoft keyboards
 local function Nav5()
 	return Keys("Nav", 3.3, {
 		{ 1, 2, "H", "HOME" }, { 1, 3, "E", "END" }, { 2, 3, "P^", "PAGEUP" },
@@ -67,7 +67,7 @@ local function Nav5()
 	})
 end
 
--- Pfeiltasten als umgedrehtes T; top/bottom: Zeile der oberen bzw. unteren Tasten
+-- Arrow keys as an inverted T; top/bottom: row of the upper and lower keys
 local function Arrows(top, bottom)
 	return Keys("Arrow", 3.3, {
 		{ top, 2, "^", "UP" }, { bottom, 1, "<", "LEFT" }, { bottom, 2, "v", "DOWN" }, { bottom, 3, ">", "RIGHT" },
@@ -82,7 +82,7 @@ ns.LAYOUTS = {
 	{
 		id = "MicrosoftOffice", name = "Microsoft Office",
 		keys = Join(Digits(), Operators(), Enter(), Nav5(),
-			-- Zusatztaste der Office-Tastatur, liegt im Ziffernblock
+			-- Extra key of the Office keyboard, located in the numeric keypad
 			Keys("Nav", 0, { { 1, 1, "T", "TAB" } }),
 			Arrows(4.3, 5.3)),
 	},
@@ -98,7 +98,7 @@ ns.LAYOUTS = {
 				{ 2, 1, "E", "END" }, { 2, 2, "Pv", "PAGEDOWN" },
 				{ 3, 1, "D", "DELETE" }, { 3, 2, "I", "INSERT" },
 			}),
-			-- Pfeiltasten als Raute
+			-- Arrow keys as a diamond
 			Keys("Arrow", 3.1, {
 				{ 4.3, 2, "^", "UP" }, { 4.8, 1, "<", "LEFT" }, { 5.3, 2, "v", "DOWN" }, { 4.8, 3, ">", "RIGHT" },
 			})),
@@ -106,7 +106,7 @@ ns.LAYOUTS = {
 	{
 		id = "Macintosh", name = "Macintosh",
 		keys = Join(Digits(),
-			-- Rechenzeichen eine Spalte weiter rechts, dazu die Zusatztasten der Mac-Tastatur
+			-- Operators one column further right, plus the extra keys of the Mac keyboard
 			Keys("Numeric", 0, {
 				{ 3, 4, "+", "NUMPADPLUS" }, { 2, 4, "-", "NUMPADMINUS" },
 				{ 1, 4, "*", "NUMPADMULTIPLY" }, { 1, 3, "/", "NUMPADDIVIDE" },
@@ -116,7 +116,7 @@ ns.LAYOUTS = {
 	},
 	{
 		id = "Naga", name = "Razer Naga",
-		-- Seitentasten der Maus 1-12 (1 oben links), belegt mit Ziffernblock 1-9, 0, -, +
+		-- Mouse side buttons 1-12 (1 top left), bound to numeric keypad 1-9, 0, -, +
 		keys = Join(Keys("Numeric", 0, {
 			{ 4, 1, "7", "NUMPAD7" }, { 4, 2, "8", "NUMPAD8" }, { 4, 3, "9", "NUMPAD9" },
 			{ 3, 1, "4", "NUMPAD4" }, { 3, 2, "5", "NUMPAD5" }, { 3, 3, "6", "NUMPAD6" },

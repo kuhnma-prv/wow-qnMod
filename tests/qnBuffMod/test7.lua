@@ -1,4 +1,4 @@
--- Szenario 7: qnBuffMod – Tooltips, Maus (Ziehen, Sperren, Alt-Klick), Fenstertitel
+-- Scenario 7: qnBuffMod – tooltips, mouse (drag, lock, Alt-click), window titles
 local clicks = {}
 local orig = CreateSettingsButtonInitializer
 function CreateSettingsButtonInitializer(n, bt, click, ...) clicks[bt] = click return orig(n, bt, click, ...) end
@@ -47,63 +47,63 @@ local function Texts()
 end
 
 ---------------------------------------------------------------------------
--- Aurentooltip, Wirker, Fußzeile, Seite (Kriterium 42)
+-- aura tooltip, caster, footer, side (criterion 42)
 ---------------------------------------------------------------------------
 GetCursorPosition = function() return 100, 500 end
 local b = Entry("Segen")
 b._scripts.OnEnter(b)
 local win = bm.GetWindow(1)
-Check(TOOLTIP.owner == b and TOOLTIP.anchor == "ANCHOR_RIGHT", "linke Bildschirmhälfte: Tooltip rechts")
-Check(TOOLTIP.aura and TOOLTIP.aura[1] == "player" and TOOLTIP.aura[2] == 1 and TOOLTIP.aura[3] == "HELPFUL|CANCELABLE", "Blizzards Aurentooltip mit Einheit, Index, Filter")
+Check(TOOLTIP.owner == b and TOOLTIP.anchor == "ANCHOR_RIGHT", "left half of the screen: tooltip on the right")
+Check(TOOLTIP.aura and TOOLTIP.aura[1] == "player" and TOOLTIP.aura[2] == 1 and TOOLTIP.aura[3] == "HELPFUL|CANCELABLE", "Blizzard's aura tooltip with unit, index, filter")
 local l1, last = TOOLTIP.lines[1], TOOLTIP.lines[#TOOLTIP.lines]
-Check(l1.text == "Tester" and l1.r == 0.78 and l1.g == 0.61, "Wirker in Klassenfarbe")
-Check(last.text == L["Spell ID: %d"]:format(19740) and last.right == L["/qnbuff for options"], "Fußzeile: Zauber-ID und /qnbuff: " .. Texts())
-Check(TOOLTIP.minWidth == 180, "mindestens 180 breit")
--- alle 0,5 s erneuert
+Check(l1.text == "Tester" and l1.r == 0.78 and l1.g == 0.61, "caster in class color")
+Check(last.text == L["Spell ID: %d"]:format(19740) and last.right == L["/qnbuff for options"], "footer: spell ID and /qnbuff: " .. Texts())
+Check(TOOLTIP.minWidth == 180, "at least 180 wide")
+-- refreshed every 0.5 s
 local before = TOOLTIP
 b._scripts.OnUpdate(b, 0.3)
-Check(TOOLTIP == before, "vor 0,5 s nicht erneuert")
+Check(TOOLTIP == before, "not refreshed before 0.5 s")
 b._scripts.OnUpdate(b, 0.3)
-Check(TOOLTIP ~= before and TOOLTIP.owner == b, "nach 0,5 s erneuert")
+Check(TOOLTIP ~= before and TOOLTIP.owner == b, "refreshed after 0.5 s")
 b._scripts.OnLeave(b)
-Check(TOOLTIP.hidden and TOOLTIP.minWidth == 0 and b._scripts.OnUpdate == nil, "Verlassen: Tooltip weg, Mindestbreite zurück")
+Check(TOOLTIP.hidden and TOOLTIP.minWidth == 0 and b._scripts.OnUpdate == nil, "leave: tooltip gone, minimum width reset")
 GetCursorPosition = function() return 1500, 500 end
 b = Entry("Knurren")
 b._scripts.OnEnter(b)
-Check(TOOLTIP.anchor == "ANCHOR_LEFT", "rechte Bildschirmhälfte: Tooltip links")
-Check(TOOLTIP.lines[1].text == "Wuffi" and TOOLTIP.lines[2].text == "<Tester>" and TOOLTIP.lines[2].r == 0.78, "Begleiter: Besitzer in dessen Klassenfarbe: " .. Texts())
+Check(TOOLTIP.anchor == "ANCHOR_LEFT", "right half of the screen: tooltip on the left")
+Check(TOOLTIP.lines[1].text == "Wuffi" and TOOLTIP.lines[2].text == "<Tester>" and TOOLTIP.lines[2].r == 0.78, "pet: owner in the owner's class color: " .. Texts())
 b._scripts.OnLeave(b)
 b = Entry("Fremd")
 b._scripts.OnEnter(b)
-Check(TOOLTIP.lines[1].text == "Gegner" and TOOLTIP.lines[1].r == 0.82 and TOOLTIP.lines[1].g == 1 and TOOLTIP.lines[1].b == 0, "ohne Klasse: Vorgabefarbe")
-Check(TOOLTIP.lines[#TOOLTIP.lines].text == " ", "ohne Zauber-ID: keine ID-Zeile")
+Check(TOOLTIP.lines[1].text == "Gegner" and TOOLTIP.lines[1].r == 0.82 and TOOLTIP.lines[1].g == 1 and TOOLTIP.lines[1].b == 0, "without class: default color")
+Check(TOOLTIP.lines[#TOOLTIP.lines].text == " ", "without spell ID: no ID line")
 b._scripts.OnLeave(b)
 Check(bm.Tooltip.OwnerOf("vehicle") == "player" and bm.Tooltip.OwnerOf("partypet2") == "party2" and bm.Tooltip.OwnerOf("raidpet12") == "raid12"
-	and bm.Tooltip.OwnerOf("target") == nil, "Besitzer von Begleitern/Fahrzeugen")
+	and bm.Tooltip.OwnerOf("target") == nil, "owners of pets/vehicles")
 b = Entry("Sofortgift")
 b._scripts.OnEnter(b)
-Check(TOOLTIP.item and TOOLTIP.item[1] == "player" and TOOLTIP.item[2] == 16 and TOOLTIP.aura == nil, "Waffe: Tooltip des Gegenstands")
+Check(TOOLTIP.item and TOOLTIP.item[1] == "player" and TOOLTIP.item[2] == 16 and TOOLTIP.aura == nil, "weapon: item tooltip")
 b._scripts.OnLeave(b)
 
 ---------------------------------------------------------------------------
--- offene Fensterseite: Titel, Fensterzeile, Hintergrund (Kriterien 42, 55)
+-- open window page: titles, window line, background (criteria 42, 55)
 ---------------------------------------------------------------------------
 clicks[ADD]()
 local win2 = bm.GetWindow(2)
-Check(not win.title:IsShown() and not win2.title:IsShown(), "ohne offene Fensterseite keine Titel")
+Check(not win.title:IsShown() and not win2.title:IsShown(), "no titles without an open window page")
 local current = cats[L["Window"]]
 SettingsPanel.GetCurrentCategory = function() return current end
 SettingsPanel:Show()
 EventRegistry:TriggerEvent("Settings.CategoryChanged")
-Check(win.title:IsShown() and win.title:GetText() == L["Window %d"]:format(1) and win2.title:IsShown(), "Titel über jedem Fenster")
-Check(win2.title._textColor[1] == 1 and win2.title._textColor[3] == 1 and win.title._textColor[3] == 0, "ausgewähltes Fenster weiß, andere gold")
+Check(win.title:IsShown() and win.title:GetText() == L["Window %d"]:format(1) and win2.title:IsShown(), "title above every window")
+Check(win2.title._textColor[1] == 1 and win2.title._textColor[3] == 1 and win.title._textColor[3] == 0, "selected window white, others gold")
 b = Entry("Segen")
 b._scripts.OnEnter(b)
-Check(TOOLTIP.lines[#TOOLTIP.lines].text == L["Window %d (Alt-click: select the window in the options.)"]:format(1), "Fensterzeile statt Fußzeile: " .. Texts())
+Check(TOOLTIP.lines[#TOOLTIP.lines].text == L["Window %d (Alt-click: select the window in the options.)"]:format(1), "window line instead of footer: " .. Texts())
 b._scripts.OnLeave(b)
 win.bg._scripts.OnEnter(win.bg)
 Check(TOOLTIP.owner == win.bg and TOOLTIP.anchor == "ANCHOR_CURSOR" and TOOLTIP.lines[1].text == L["Window %d"]:format(1)
-	and TOOLTIP.lines[2].text == L["Alt-click: select the window in the options."], "Hintergrund: Fenstertooltip am Mauszeiger")
+	and TOOLTIP.lines[2].text == L["Alt-click: select the window in the options."], "background: window tooltip at the cursor")
 win.bg._scripts.OnLeave(win.bg)
 -- disableTooltips
 SETTINGS.QNBUFFMOD_EDITWINDOW:SetValue(1)
@@ -111,62 +111,62 @@ SETTINGS.QNBUFFMOD_W_DISABLETOOLTIPS:SetValue(true)
 b = Entry("Segen")
 b._scripts.OnEnter(b)
 Check(TOOLTIP.aura == nil and TOOLTIP.lines[1].text == L["Window %d"]:format(1) and TOOLTIP.lines[2].text == L["Alt-click: select the window in the options."],
-	"disableTooltips bei offener Fensterseite: nur Fenstertooltip")
+	"disableTooltips with open window page: window tooltip only")
 b._scripts.OnLeave(b)
 current = cats[APPEARANCE_LABEL]
 EventRegistry:TriggerEvent("Settings.CategoryChanged")
-Check(win.title:IsShown(), "auch andere Fensterseiten zeigen die Titel")
+Check(win.title:IsShown(), "other window pages show the titles too")
 current = nil
 EventRegistry:TriggerEvent("Settings.CategoryChanged")
-Check(not win.title:IsShown() and not win2.title:IsShown(), "andere Seite: Titel weg")
+Check(not win.title:IsShown() and not win2.title:IsShown(), "other page: titles gone")
 TOOLTIP = { lines = {} }
 b._scripts.OnEnter(b)
-Check(TOOLTIP.owner == nil, "disableTooltips ohne Fensterseite: kein Tooltip")
+Check(TOOLTIP.owner == nil, "disableTooltips without window page: no tooltip")
 SETTINGS.QNBUFFMOD_W_DISABLETOOLTIPS:SetValue(false)
 
 ---------------------------------------------------------------------------
--- Ziehen und Sperren (Kriterium 54)
+-- dragging and locking (criterion 54)
 ---------------------------------------------------------------------------
 local f = win.frame
-Check(win.bg:IsMouseEnabled(), "entsperrt: Hintergrund nimmt die Maus")
+Check(win.bg:IsMouseEnabled(), "unlocked: background takes the mouse")
 win.bg._scripts.OnMouseDown(win.bg, "LeftButton")
-Check(f._moving, "Ziehen am Hintergrund")
+Check(f._moving, "dragging by the background")
 f.GetLeft = function() return 300 end
 f.GetBottom = function() return 200 end
 win.bg._scripts.OnMouseUp(win.bg, "LeftButton")
 local pos = bm.db.windows[1].position
-Check(not f._moving and pos[1] == "TOPLEFT" and pos[3] == "BOTTOMLEFT" and pos[4] == 300 and pos[5] == 200 + f._h, "Loslassen: neu verankert und gespeichert")
+Check(not f._moving and pos[1] == "TOPLEFT" and pos[3] == "BOTTOMLEFT" and pos[4] == 300 and pos[5] == 200 + f._h, "release: re-anchored and saved")
 b = Entry("Segen")
 b._scripts.OnMouseDown(b, "LeftButton")
-Check(f._moving, "Ziehen am Eintrag")
+Check(f._moving, "dragging by the entry")
 b._scripts.OnMouseUp(b, "LeftButton")
 SETTINGS.QNBUFFMOD_W_LOCKWINDOW:SetValue(true)
-Check(not win.bg:IsMouseEnabled() and b:IsMouseEnabled(), "gesperrt, Optionen zu: Hintergrund ohne Maus, Einträge mit")
+Check(not win.bg:IsMouseEnabled() and b:IsMouseEnabled(), "locked, options closed: background without mouse, entries with")
 b._scripts.OnMouseDown(b, "LeftButton")
-Check(not f._moving, "gesperrt: kein Ziehen am Eintrag")
+Check(not f._moving, "locked: no dragging by the entry")
 current = cats[L["Window"]]
 EventRegistry:TriggerEvent("Settings.CategoryChanged")
-Check(win.bg:IsMouseEnabled(), "gesperrt, Fensterseite offen: Hintergrund nimmt die Maus")
+Check(win.bg:IsMouseEnabled(), "locked, window page open: background takes the mouse")
 win.bg._scripts.OnMouseDown(win.bg, "LeftButton")
-Check(not f._moving, "gesperrt: auch bei offenen Optionen kein Ziehen")
+Check(not f._moving, "locked: no dragging even with options open")
 SETTINGS.QNBUFFMOD_W_LOCKWINDOW:SetValue(false)
 
 ---------------------------------------------------------------------------
--- Alt-Klick (Kriterium 55)
+-- Alt-click (criterion 55)
 ---------------------------------------------------------------------------
 IsAltKeyDown = function() return true end
 LOG = {}
 printed = {}
 b = Entry("Segen")
 b._scripts.OnMouseDown(b, "LeftButton")
-Check(bm.SelectedID() == 1 and printed[1] == L["%s selected."]:format(L["Window %d"]:format(1)) and not f._moving, "Alt-Klick wählt das Fenster und meldet es")
+Check(bm.SelectedID() == 1 and printed[1] == L["%s selected."]:format(L["Window %d"]:format(1)) and not f._moving, "Alt-click selects the window and reports it")
 local opened = false
 for _, line in ipairs(LOG) do if line == "Öffne " .. current.name then opened = true end end
-Check(opened, "Alt-Klick öffnet die Seite Fenster")
-Check(SETTINGS.QNBUFFMOD_EDITWINDOW:GetValue() == 1, "Auswahl in den Optionen")
+Check(opened, "Alt-click opens the Window page")
+Check(SETTINGS.QNBUFFMOD_EDITWINDOW:GetValue() == 1, "selection in the options")
 win2.bg._scripts.OnMouseDown(win2.bg, "LeftButton")
-Check(bm.SelectedID() == 2 and win2.title._textColor[3] == 1 and win.title._textColor[3] == 0, "Alt-Klick am Hintergrund; Titelfarben folgen")
+Check(bm.SelectedID() == 2 and win2.title._textColor[3] == 1 and win.title._textColor[3] == 0, "Alt-click on the background; title colors follow")
 IsAltKeyDown = function() return false end
 SettingsPanel:Hide()
-Check(not win.title:IsShown(), "Einstellungsfenster zu: Titel weg")
+Check(not win.title:IsShown(), "settings window closed: titles gone")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

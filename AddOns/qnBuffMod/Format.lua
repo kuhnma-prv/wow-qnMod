@@ -1,4 +1,4 @@
--- qnBuffMod: Zeitformate, Sichtbarkeitsbedingungen, Blinktakt.
+-- qnBuffMod: time formats, visibility conditions, flash timing.
 
 local _, ns = ...
 local L = ns.L
@@ -6,11 +6,11 @@ local L = ns.L
 local floor, ceil = math.floor, math.ceil
 
 ---------------------------------------------------------------------------
--- Restzeit als Text
--- t = Restzeit in Sekunden, aufgerundet. Ohne showDays gibt es keine Tage (Stunden auch über 24 h).
+-- Time remaining as text
+-- t = time remaining in seconds, rounded up. Without showDays there are no days (hours even beyond 24 h).
 ---------------------------------------------------------------------------
 
--- größte Einheit, aufgerundet (Formate 1–3)
+-- largest unit, rounded up (formats 1–3)
 local function Largest(t, showDays)
 	if showDays and t > 86340 then
 		return "d", ceil(t / 86400)
@@ -31,7 +31,7 @@ local ABBREV = { d = "%dd", h = "%dh", m = "%dm", s = "%ds" }
 
 local FORMATS = {}
 
--- 1: "1 Stunde / 22 Minuten"
+-- 1: "1 hour / 22 minutes"
 FORMATS[1] = function(t, showDays)
 	local unit, n = Largest(t, showDays)
 	if n == 1 then
@@ -40,7 +40,7 @@ FORMATS[1] = function(t, showDays)
 	return LONG[unit][2]:format(n)
 end
 
--- 2: "1 Stunde / 22 Min"
+-- 2: "1 hour / 22 min"
 FORMATS[2] = function(t, showDays)
 	local unit, n = Largest(t, showDays)
 	return SHORT[unit]:format(n)
@@ -74,18 +74,18 @@ FORMATS[5] = function(t, showDays)
 	return ("%d:%02d"):format(floor(t / 60), t % 60)
 end
 
--- Restzeit sec (Sekunden, auch gebrochen) im Format fmt (1–5)
+-- Time remaining sec (seconds, may be fractional) in format fmt (1–5)
 function ns.FormatTime(sec, fmt, showDays)
 	local t = ceil(math.max(0, sec))
 	return (FORMATS[fmt] or FORMATS[1])(t, showDays)
 end
 
--- Format 4 mit Tagen (Regler der Warn- und Blinkzeiten)
+-- Format 4 with days (sliders of the warning and flash times)
 function ns.humanizeTime(sec)
 	return ns.FormatTime(sec, 4, true)
 end
 
--- Beschriftung der Regler: 0 = Aus
+-- Slider labels: 0 = Off
 function ns.SecondsLabel(v)
 	if v == 0 then
 		return OFF
@@ -93,7 +93,7 @@ function ns.SecondsLabel(v)
 	return ns.humanizeTime(v)
 end
 
--- Auswahltexte der Zeitformate
+-- Dropdown texts of the time formats
 function ns.TimeFormatEntries()
 	return {
 		{ 1, L["1 hour / 22 minutes"] },
@@ -105,10 +105,10 @@ function ns.TimeFormatEntries()
 end
 
 ---------------------------------------------------------------------------
--- Aktualisierung und Blinken
+-- Updating and flashing
 ---------------------------------------------------------------------------
 
--- Abstand bis zur nächsten Aktualisierung einer Restzeit
+-- Interval until the next update of a time remaining
 function ns.UpdateInterval(remaining, flashing)
 	if flashing or remaining <= 60 then
 		return 0.05
@@ -120,7 +120,7 @@ function ns.UpdateInterval(remaining, flashing)
 	return 1
 end
 
--- Deckkraft blinkender Symbole zum Zeitpunkt t: linear 0 → 1 in 1 s, 1 → 0 in 1 s (für alle gleich)
+-- Opacity of flashing icons at time t: linear 0 → 1 in 1 s, 1 → 0 in 1 s (the same for all)
 function ns.Pulse(t)
 	local phase = t % 2
 	if phase < 1 then
@@ -130,11 +130,11 @@ function ns.Pulse(t)
 end
 
 ---------------------------------------------------------------------------
--- Sichtbarkeitsbedingungen (Makro-Syntax für den Zustandstreiber "visibility")
+-- Visibility conditions (macro syntax for the "visibility" state driver)
 ---------------------------------------------------------------------------
 
--- Erweiterte Bedingung aufbereiten: Zeilenumbrüche werden ";", mehrfache ";" eines,
--- abschließendes ";" entfällt; [bonusbar:5] heißt heute [possessbar].
+-- Prepare the extended condition: line breaks become ";", multiple ";" become one,
+-- a trailing ";" is dropped; [bonusbar:5] is now called [possessbar].
 function ns.buildCondition(text)
 	local s = tostring(text or "")
 	s = s:gsub("\r?\n", ";")
@@ -144,7 +144,7 @@ function ns.buildCondition(text)
 	return s
 end
 
--- Standardbedingungen aus den Schaltern eines Fensters (o = wirksame Einstellungen)
+-- Basic conditions from the toggles of a window (o = effective settings)
 function ns.BasicCondition(o)
 	local s = ""
 	if o.visHideInVehicle then
@@ -162,7 +162,7 @@ function ns.BasicCondition(o)
 	return s .. "show"
 end
 
--- Bedingung des Fensters oder nil (Modus "Immer anzeigen")
+-- Condition of the window or nil ("Always show" mode)
 function ns.WindowCondition(o)
 	if o.visWindow == ns.enum.vis.BASIC then
 		return ns.BasicCondition(o)

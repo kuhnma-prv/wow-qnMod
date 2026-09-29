@@ -1,5 +1,5 @@
 -- qnViewPort: German texts (deDE clients only). Key = English text in the code.
--- Apply/Reset kommen als APPLY/RESET von Blizzard.
+-- Apply/Reset come from Blizzard as APPLY/RESET.
 
 local ADDON, ns = ...
 local L = qnCore.NewLocale(ns, ADDON)

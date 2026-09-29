@@ -1,6 +1,6 @@
--- qnBuffMod: ein Fenster. Die Symbolfläche (frame) trägt die Einträge und ist an ihrer Ankerecke
--- an der nächsten Ecke von UIParent verankert; der Hintergrund (bg) umschließt sie mit Rand.
--- Ein abgeschaltetes Fenster hat keine Rahmen (frame = nil); freie Rahmensätze werden wiederverwendet.
+-- qnBuffMod: one window. The icon area (frame) holds the entries and is anchored at its anchor corner
+-- to the nearest corner of UIParent; the background (bg) surrounds it with a border.
+-- A disabled window has no frames (frame = nil); free frame sets are reused.
 
 local _, ns = ...
 local lib = qnCore
@@ -21,15 +21,15 @@ local INSET = 4
 local GROW_LEFT = { [2] = true, [4] = true, [7] = true, [8] = true }
 local GROW_UP = { [3] = true, [4] = true, [6] = true, [8] = true }
 
-local pool = {}          -- freie Rahmensätze (nie mit Sichtbarkeitstreiber)
-local retired = {}       -- abgegebene Rahmensätze mit Treiber: erst nach dem Kampf in den Pool
+local pool = {}          -- free frame sets (never with a visibility driver)
+local retired = {}       -- released frame sets with a driver: into the pool only after combat
 local lookVersion = 0
 
 function Window.New(id)
 	return setmetatable({ id = id, items = {} }, Window)
 end
 
--- gespeicherte (dünne) Einstellungstabelle
+-- saved (sparse) settings table
 function Window:Settings()
 	local windows = ns.db.windows
 	local t = windows[self.id]
@@ -45,7 +45,7 @@ function Window:Label()
 end
 
 ---------------------------------------------------------------------------
--- Darstellung (aus den wirksamen Einstellungen)
+-- Appearance (from the effective settings)
 ---------------------------------------------------------------------------
 
 local function ComputeLook(o)
@@ -78,7 +78,7 @@ local function ComputeLook(o)
 	else
 		look.size = o.buffSize1
 		look.bar = o.detailWidth1 >= 1 and o.detailWidth1 or 0
-		-- Standard: Symbol auf der Seite der Ankerecke (rechts bei Layout 2, 4, 7, 8)
+		-- default: icon on the side of the anchor corner (right for layouts 2, 4, 7, 8)
 		local defaultRight = growLeft
 		if o.rightAlign1 == E.side.DEFAULT then
 			look.iconRight = defaultRight
@@ -102,7 +102,7 @@ local function ComputeLook(o)
 		look.timerBackground = o.showTimerBackground1
 		look.padLeft = o.spacingOnLeft1
 		look.padRight = o.spacingOnRight1
-		-- Leiste außerhalb der Symbolfläche: Spalten ohne Begrenzung oder Symbol auf der anderen Seite
+		-- bar outside the icon area: columns without limit or icon on the other side
 		look.barOutside = look.bar > 0 and ((look.columns and o.maxWraps == 0) or look.iconRight ~= defaultRight)
 	end
 	look.cellW = look.size + look.bar
@@ -110,7 +110,7 @@ local function ComputeLook(o)
 end
 
 ---------------------------------------------------------------------------
--- Rahmen
+-- Frames
 ---------------------------------------------------------------------------
 
 local function NewFrames()
@@ -126,7 +126,7 @@ local function NewFrames()
 	return { frame = f, bg = bg, title = title, entries = {} }
 end
 
--- Abgegebene Rahmensätze mit Treiber: Treiber abbauen (geschützt), verbergen, in den Pool
+-- Released frame sets with a driver: remove the driver (protected), hide, put into the pool
 local function ReleaseRetired()
 	for _, set in ipairs(retired) do
 		UnregisterStateDriver(set.frame, "visibility")
@@ -137,8 +137,8 @@ local function ReleaseRetired()
 	wipe(retired)
 end
 
--- Rahmensatz zurückgeben. Mit Treiber im Kampf erst danach; bis dahin kann der Treiber den Rahmen
--- wieder einblenden, deshalb unsichtbar und ohne Maus.
+-- Release a frame set. With a driver in combat only afterwards; until then the driver may show the frame
+-- again, therefore invisible and without mouse.
 local function Release(set)
 	if not set.driver then
 		pool[#pool + 1] = set
@@ -157,7 +157,7 @@ function Window:IsEnabled()
 	return self.frame ~= nil
 end
 
--- Rahmen anlegen und anzeigen (an der gespeicherten Position bzw. in der Bildschirmmitte)
+-- Create and show the frames (at the saved position or in the center of the screen)
 function Window:Enable()
 	if self.frame then
 		return
@@ -182,11 +182,11 @@ function Window:Enable()
 		self.center = true
 	end
 	f:Show()
-	self:WireScripts()   -- erst nach dem Show: das erste Einblenden liest nichts neu
+	self:WireScripts()   -- only after Show: the first show does not re-read anything
 	self:Apply()
 end
 
--- Rahmen freigeben; die Einstellungen bleiben unverändert
+-- Release the frames; the settings stay unchanged
 function Window:Disable()
 	local f = self.frame
 	if not f then
@@ -213,7 +213,7 @@ function Window:Disable()
 end
 
 ---------------------------------------------------------------------------
--- Maus
+-- Mouse
 ---------------------------------------------------------------------------
 
 function Window:StartDrag()
@@ -234,7 +234,7 @@ function Window:StopDrag()
 	self:SavePosition()
 end
 
--- Linke Taste: Alt = Fenster in den Optionen wählen, sonst ziehen
+-- Left button: Alt = select the window in the options, otherwise drag
 function Window:MouseDown(button)
 	if button ~= "LeftButton" then
 		return
@@ -252,8 +252,8 @@ function Window:MouseUp(button)
 	end
 end
 
--- Rechtsklick: aufhebbare Stärkungszauber/Auren entfernen – nur in Fenstern für den Spieler,
--- außerhalb des Kampfes und ohne Aurensperre
+-- Right-click: remove cancelable buffs/auras – only in windows for the player,
+-- out of combat and without aura restriction
 function Window:Cancel(e)
 	local rec = e.rec
 	if not rec or rec.weapon or InCombatLockdown() or ns.Auras.Restricted() or self.unit ~= "player" then
@@ -300,7 +300,7 @@ function Window:WireScripts()
 	f:SetScript("OnUpdate", function(_, elapsed)
 		win:OnUpdate(elapsed)
 	end)
-	-- beim Einblenden (Sichtbarkeitstreiber) neu lesen
+	-- re-read when shown (visibility driver)
 	f:SetScript("OnShow", function()
 		ns.RefreshWindowUnit(win)
 	end)
@@ -319,7 +319,7 @@ function Window:WireScripts()
 	end
 end
 
--- Maus am Hintergrund und Fenstertitel (hängen an der offenen Fensterseite der Optionen)
+-- Mouse on the background and window title (depend on the open window page of the options)
 function Window:ApplyMouse()
 	if not self.frame then
 		return
@@ -340,11 +340,11 @@ function Window:ApplyMouse()
 end
 
 ---------------------------------------------------------------------------
--- Lage
+-- Position
 ---------------------------------------------------------------------------
 
--- An der Ankerecke point (Vorgabe: die des Layouts) an der nächsten Ecke von UIParent verankern.
--- clampIn: liegt der Ankerpunkt außerhalb von UIParent, wird er hereingeholt.
+-- Anchor at the anchor corner point (default: that of the layout) to the nearest corner of UIParent.
+-- clampIn: if the anchor point lies outside UIParent, it is pulled in.
 function Window:Reanchor(clampIn, point)
 	local f = self.frame
 	point = point or self.look.point
@@ -374,7 +374,7 @@ function Window:SavePosition()
 	self:Settings().position = { a[1], "UIParent", a[2], a[3], a[4], self.frame:GetWidth(), self.frame:GetHeight() }
 end
 
--- Bildschirmmitte
+-- Center of the screen
 function Window:ResetPosition()
 	if not self.frame then
 		return
@@ -385,7 +385,7 @@ function Window:ResetPosition()
 	self:SavePosition()
 end
 
--- In den sichtbaren Bereich holen (samt Hintergrund und Rand); Meldung von qnCore
+-- Bring into the visible area (including background and border); message from qnCore
 function Window:BringIntoView()
 	if not self.frame then
 		return false
@@ -399,7 +399,7 @@ function Window:BringIntoView()
 end
 
 ---------------------------------------------------------------------------
--- Einstellungen anwenden
+-- Apply settings
 ---------------------------------------------------------------------------
 
 function Window:ShownUnit()
@@ -413,7 +413,7 @@ function Window:ShownUnit()
 	return ns.UNITS[o.unitType] or "player"
 end
 
--- Hintergrundfarbe, Rand, Bildschirmhaltung
+-- Background color, border, clamping to screen
 function Window:ApplyBackground()
 	if not self.frame then
 		return
@@ -432,7 +432,7 @@ function Window:ApplyBackground()
 	self.frame:SetClampedToScreen(o.clampWindow)
 end
 
--- Sichtbarkeitstreiber (geschützt: im Kampf erst danach)
+-- Visibility driver (protected: in combat only afterwards)
 function Window:ApplyVisibility()
 	local f = self.frame
 	if not f then
@@ -457,7 +457,7 @@ function Window:ApplyVisibility()
 	end
 end
 
--- Alle Einstellungen des Fensters anwenden
+-- Apply all settings of the window
 function Window:Apply()
 	if not self.frame then
 		return
@@ -470,7 +470,7 @@ function Window:Apply()
 	self:ApplyBackground()
 	self:ApplyMouse()
 	self:ApplyVisibility()
-	-- neue Ankerecke: erst an ihr verankern, dann wächst das Fenster von dort (kein Sprung)
+	-- new anchor corner: anchor to it first, then the window grows from there (no jump)
 	if oldPoint and oldPoint ~= self.look.point then
 		self:Reanchor(false, self.look.point)
 	end
@@ -484,7 +484,7 @@ function Window:Apply()
 	self:SavePosition()
 end
 
--- Neue Einheit (Fahrzeug) übernehmen; true, wenn sie sich geändert hat
+-- Take over a new unit (vehicle); true if it has changed
 function Window:UpdateUnit()
 	if not self.frame then
 		return false
@@ -498,7 +498,7 @@ function Window:UpdateUnit()
 end
 
 ---------------------------------------------------------------------------
--- Einträge auswählen und sortieren
+-- Select and sort entries
 ---------------------------------------------------------------------------
 
 local HUGE = math.huge
@@ -534,11 +534,11 @@ local COMPARE = {
 
 local SORTS = { E.sort.NAME, E.sort.TIME, E.sort.INDEX }
 
--- Hilfstabellen und Sortierstand, je Arrange wiederverwendet (Sortieren läuft ohne Unterbrechung)
+-- Helper tables and sort state, reused per Arrange (sorting runs without interruption)
 local slotOf, seq, used, sorts = {}, {}, {}, {}
 local sortO, sortOrder, sortReverse
 
--- Gruppierung c ("F" = Fensterplatz, "E" = eigene, sonst ohne Ablauf) von a und b: -1, 0, 1
+-- Grouping c ("F" = window slot, "E" = own, otherwise non-expiring) of a and b: -1, 0, 1
 local function Group(c, a, b)
 	local o = sortO
 	if c == "F" then
@@ -565,7 +565,7 @@ local function Group(c, a, b)
 	end
 end
 
--- Gruppierung (nicht umgekehrt), dann Haupt- und Nachsortierung (umkehrbar), sonst Lesereihenfolge
+-- Grouping (not reversed), then primary and secondary sort (reversible), otherwise read order
 local function Before(a, b)
 	for _, c in ipairs(sortOrder) do
 		local r = Group(c, a, b)
@@ -585,7 +585,7 @@ local function Before(a, b)
 	return seq[a] < seq[b]
 end
 
--- Einträge des Fensters in Anzeigereihenfolge (ohne Begrenzung durch maxWraps); füllt self.items
+-- Entries of the window in display order (without the maxWraps limit); fills self.items
 function Window:CollectItems()
 	local o = self.o
 	local unit = self.unit
@@ -625,7 +625,7 @@ function Window:CollectItems()
 	table.sort(items, Before)
 	sortO = nil
 
-	-- Waffenverzauberungen als Block vor die erste Gruppe hinter dem Waffenplatz (nur beim Spieler)
+	-- weapon enchants as a block before the first group after the weapon slot (player only)
 	if weaponSlot and unit == "player" then
 		local weapons = ns.Weapons.List()
 		if #weapons > 0 then
@@ -645,10 +645,10 @@ function Window:CollectItems()
 end
 
 ---------------------------------------------------------------------------
--- Raster
+-- Grid
 ---------------------------------------------------------------------------
 
--- Einträge neu auswählen, anordnen und zeichnen
+-- Re-select, arrange and paint the entries
 function Window:Arrange()
 	local f = self.frame
 	if not f then
@@ -667,7 +667,7 @@ function Window:Arrange()
 	local n = #items
 	local wraps = o.maxWraps > 0 and o.maxWraps or math.max(1, math.ceil(n / along))
 
-	-- Raster: Spalten (Layout 1–4) oder Zeilen (5–8)
+	-- grid: columns (layouts 1–4) or rows (5–8)
 	local nH, nV, hGap, vGap
 	if look.columns then
 		nH, nV, hGap, vGap = wraps, along, o.wrapSpacing, o.buffSpacing
@@ -677,7 +677,7 @@ function Window:Arrange()
 	local cellW, cellH = look.cellW, look.size
 	local width = nH * cellW + (nH - 1) * hGap
 	local height = nV * cellH + (nV - 1) * vGap
-	-- Leiste außerhalb: gehört nicht zur Symbolfläche, verbreitert den Hintergrund
+	-- bar outside: not part of the icon area, widens the background
 	local barLeft, barRight, shift = 0, 0, 0
 	if look.barOutside then
 		width = width - look.bar
@@ -730,7 +730,7 @@ function Window:Arrange()
 	end
 	f:SetSize(width, height)
 
-	-- Hintergrund: 4 px plus Randabstände plus ggf. Leiste
+	-- background: 4 px plus border offsets plus the bar if any
 	local left = INSET + o.userEdgeLeft + barLeft
 	local right = INSET + o.userEdgeRight + barRight
 	local top = INSET + o.userEdgeTop
@@ -745,14 +745,14 @@ function Window:Arrange()
 	f:SetClampRectInsets(-left, right, top, -bottom)
 end
 
--- Einträge neu zeichnen, ohne neu anzuordnen (Farben, Texte, Waffen-Takt)
+-- Repaint the entries without rearranging (colors, texts, weapon tick)
 function Window:Refresh()
 	if not self.frame then
 		return
 	end
 	local now = GetTime()
 	for i, rec in ipairs(self.items) do
-		-- Waffen werden bei jedem Lesen neu erzeugt: den aktuellen Stand desselben Platzes zeichnen
+		-- weapons are recreated on every read: paint the current state of the same slot
 		if rec.weapon and ns.Weapons.slots[rec.slot] then
 			rec = ns.Weapons.slots[rec.slot]
 			self.items[i] = rec
@@ -764,7 +764,7 @@ function Window:Refresh()
 	end
 end
 
--- Restzeiten und Blinken (nur für angezeigte Einträge; läuft nur, solange das Fenster sichtbar ist)
+-- Time remaining and flashing (only for displayed entries; runs only while the window is visible)
 function Window:OnUpdate()
 	local now = GetTime()
 	local pulse = ns.Pulse(now)

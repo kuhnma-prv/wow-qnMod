@@ -1,4 +1,4 @@
--- Szenario 5: qnBuffMod – Blizzards Aurenfenster ausblenden, Sichtbarkeitsbedingungen, "Bedingung prüfen"
+-- Scenario 5: qnBuffMod – hide Blizzard's aura frames, visibility conditions, "Test condition"
 local clicks = {}
 local orig = CreateSettingsButtonInitializer
 function CreateSettingsButtonInitializer(n, bt, click, ...) clicks[bt] = click return orig(n, bt, click, ...) end
@@ -19,90 +19,90 @@ FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
 
 ---------------------------------------------------------------------------
--- Blizzards Aurenfenster (Kriterium 35)
+-- Blizzard's aura frames (criterion 35)
 ---------------------------------------------------------------------------
-Check(not BuffFrame:IsShown() and not DebuffFrame:IsShown(), "Vorgabe: BuffFrame und DebuffFrame ausgeblendet")
+Check(not BuffFrame:IsShown() and not DebuffFrame:IsShown(), "default: BuffFrame and DebuffFrame hidden")
 BuffFrame:Show()
-Check(not BuffFrame:IsShown(), "erneutes Einblenden sofort rückgängig")
-BuffFrame.Hide = function() end   -- überschriebene Hide-Methode
+Check(not BuffFrame:IsShown(), "showing again is undone immediately")
+BuffFrame.Hide = function() end   -- overridden Hide method
 BuffFrame:Show()
-Check(not BuffFrame:IsShown(), "auch mit überschriebenem Hide ausgeblendet")
+Check(not BuffFrame:IsShown(), "hidden even with overridden Hide")
 BuffFrame.Hide = nil
 SETTINGS.QNBUFFMOD_HIDEBLIZZARDBUFFS:SetValue(false)
-Check(BuffFrame:IsShown() and DebuffFrame:IsShown(), "aus: beide wieder eingeblendet")
-DebuffFrame:Hide()   -- von jemand anderem ausgeblendet
+Check(BuffFrame:IsShown() and DebuffFrame:IsShown(), "off: both shown again")
+DebuffFrame:Hide()   -- hidden by someone else
 SETTINGS.QNBUFFMOD_HIDEBLIZZARDBUFFS:SetValue(true)
-Check(not BuffFrame:IsShown(), "an: BuffFrame ausgeblendet")
+Check(not BuffFrame:IsShown(), "on: BuffFrame hidden")
 SETTINGS.QNBUFFMOD_HIDEBLIZZARDBUFFS:SetValue(false)
-Check(BuffFrame:IsShown() and not DebuffFrame:IsShown(), "aus: nur selbst ausgeblendete wieder gezeigt")
-Check(BuffFrame._points == nil and DebuffFrame._points == nil, "Blizzard-Rahmen nie verschoben")
+Check(BuffFrame:IsShown() and not DebuffFrame:IsShown(), "off: only self-hidden ones shown again")
+Check(BuffFrame._points == nil and DebuffFrame._points == nil, "Blizzard frames never moved")
 
 ---------------------------------------------------------------------------
--- Sichtbarkeit (Kriterium 36)
+-- visibility (criterion 36)
 ---------------------------------------------------------------------------
 local win = bm.GetWindow(1)
 local function Last() return drivers[#drivers] end
 SETTINGS.QNBUFFMOD_W_VISWINDOW:SetValue(E.vis.BASIC)
-Check(Last()[1] == "reg" and Last()[2] == win.frame and Last()[3] == "visibility" and Last()[4] == "show", "Standardbedingungen ohne Schalter: show")
+Check(Last()[1] == "reg" and Last()[2] == win.frame and Last()[3] == "visibility" and Last()[4] == "show", "standard conditions without switches: show")
 SETTINGS.QNBUFFMOD_W_VISHIDEINCOMBAT:SetValue(true)
 SETTINGS.QNBUFFMOD_W_VISHIDENOTCOMBAT:SetValue(true)
 SETTINGS.QNBUFFMOD_W_VISHIDEINVEHICLE:SetValue(true)
 SETTINGS.QNBUFFMOD_W_VISHIDENOTVEHICLE:SetValue(true)
-Check(Last()[4] == "[vehicleui]hide; [novehicleui]hide; [combat]hide; [nocombat]hide; show", "feste Reihenfolge: " .. tostring(Last()[4]))
+Check(Last()[4] == "[vehicleui]hide; [novehicleui]hide; [combat]hide; [nocombat]hide; show", "fixed order: " .. tostring(Last()[4]))
 SETTINGS.QNBUFFMOD_W_VISHIDENOTVEHICLE:SetValue(false)
 SETTINGS.QNBUFFMOD_W_VISHIDENOTCOMBAT:SetValue(false)
-Check(Last()[4] == "[vehicleui]hide; [combat]hide; show", "nur gesetzte Schalter: " .. tostring(Last()[4]))
+Check(Last()[4] == "[vehicleui]hide; [combat]hide; show", "only set switches: " .. tostring(Last()[4]))
 win.frame:Hide()
 SETTINGS.QNBUFFMOD_W_VISWINDOW:SetValue(E.vis.ALWAYS)
-Check(Last()[1] == "unreg" and Last()[2] == win.frame and win.frame:IsShown(), "Modus 1 entfernt den Treiber und zeigt das Fenster")
+Check(Last()[1] == "unreg" and Last()[2] == win.frame and win.frame:IsShown(), "mode 1 removes the driver and shows the window")
 
--- Erweiterte Bedingung über den Dialog
+-- advanced condition via the dialog
 SETTINGS.QNBUFFMOD_W_VISWINDOW:SetValue(E.vis.CUSTOM)
-Check(Last()[4] == "show", "leere erweiterte Bedingung: show")
+Check(Last()[4] == "show", "empty advanced condition: show")
 local text = ""
 local editBox = { SetText = function(_, t) text = t end, GetText = function() return text end, SetFocus = function() end }
 local dialog = { GetEditBox = function() return editBox end }
 clicks[L["Edit …"]]()
-Check(LAST_POPUP.which == "QNBUFFMOD_CONDITION" and LAST_POPUP.a1 == L["Window %d"]:format(1), "Dialog für Fenster 1")
+Check(LAST_POPUP.which == "QNBUFFMOD_CONDITION" and LAST_POPUP.a1 == L["Window %d"]:format(1), "dialog for window 1")
 StaticPopupDialogs.QNBUFFMOD_CONDITION.OnShow(dialog)
-Check(text == "", "Dialog vorbelegt mit gespeichertem Text")
+Check(text == "", "dialog prefilled with saved text")
 text = "[combat] hide\n\n[bonusbar:5] show;\n"
 StaticPopupDialogs.QNBUFFMOD_CONDITION.OnAccept(dialog)
-Check(bm.db.windows[1].visCondition == text, "Text gespeichert")
-Check(Last()[1] == "reg" and Last()[4] == "[combat] hide;[possessbar] show", "Modus 3 nutzt den aufbereiteten Text: " .. tostring(Last()[4]))
+Check(bm.db.windows[1].visCondition == text, "text saved")
+Check(Last()[1] == "reg" and Last()[4] == "[combat] hide;[possessbar] show", "mode 3 uses the prepared text: " .. tostring(Last()[4]))
 StaticPopupDialogs.QNBUFFMOD_CONDITION.OnShow(dialog)
-Check(text == bm.db.windows[1].visCondition, "Dialog zeigt den gespeicherten Text")
+Check(text == bm.db.windows[1].visCondition, "dialog shows the saved text")
 
--- im Kampf erst danach (geschützter Zustandstreiber)
+-- in combat only afterwards (protected state driver)
 local n = #drivers
 QN_COMBAT = true
 SETTINGS.QNBUFFMOD_W_VISWINDOW:SetValue(E.vis.BASIC)
-Check(#drivers == n, "im Kampf kein neuer Treiber")
+Check(#drivers == n, "no new driver in combat")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
-Check(#drivers == n + 1 and Last()[4] == "[vehicleui]hide; [combat]hide; show", "nach dem Kampf angewandt")
+Check(#drivers == n + 1 and Last()[4] == "[vehicleui]hide; [combat]hide; show", "applied after combat")
 
--- Einblenden liest die Auren neu
+-- showing re-reads the auras
 AURAS.player[2] = { name = "Neu", icon = 2, applications = 0, duration = 0, expirationTime = 0, sourceUnit = "player", spellId = 6 }
 win.frame:Hide()
 win.frame:Show()
 local names = {}
 for _, e in ipairs(bm.GetEntries(1)) do names[#names + 1] = e.name end
-Check(table.concat(names, ",") == "Segen,Neu", "Einblenden liest neu: " .. table.concat(names, ","))
+Check(table.concat(names, ",") == "Segen,Neu", "showing re-reads: " .. table.concat(names, ","))
 
 ---------------------------------------------------------------------------
--- Bedingung prüfen (Kriterium 37)
+-- test condition (criterion 37)
 ---------------------------------------------------------------------------
 SETTINGS.QNBUFFMOD_W_VISWINDOW:SetValue(E.vis.CUSTOM)
 local parsed
 SecureCmdOptionParse = function(c) parsed = c return "hide", "target" end
 printed = {}
 clicks[L["Test"]]()
-Check(parsed == "[combat] hide;[possessbar] show", "geprüft wird die aufbereitete Bedingung")
+Check(parsed == "[combat] hide;[possessbar] show", "the prepared condition is tested")
 Check(printed[1] == L["Condition: %s"]:format(parsed) and printed[2] == L["Target: %s"]:format("target")
-	and printed[3] == L["Result: |cFF66FF66%s|r"]:format("hide"), "Bedingung, Ziel, Ergebnis ausgegeben")
+	and printed[3] == L["Result: |cFF66FF66%s|r"]:format("hide"), "condition, target, result printed")
 SecureCmdOptionParse = function() return "blau", nil end
 printed = {}
 clicks[L["Test"]]()
-Check(#printed == 2 and printed[2] == L["Invalid result: |cFFFF3333%s|r"]:format("blau"), "ungültiges Ergebnis, ohne Ziel")
+Check(#printed == 2 and printed[2] == L["Invalid result: |cFFFF3333%s|r"]:format("blau"), "invalid result, without target")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

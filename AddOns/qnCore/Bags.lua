@@ -1,10 +1,10 @@
--- qnCore: Taschen-Automatik.
--- Öffnet bzw. schließt die Taschen, wenn Auktionshaus, Bank, Händler usw. auf- und
--- zugehen. Je Ort eine Auswahl für das Öffnen und ein Schalter für das Schließen.
+-- qnCore: bag automation.
+-- Opens or closes the bags when the auction house, bank, merchant etc. open and
+-- close. Per location one choice for opening and one switch for closing.
 --
--- "An allen Orten gleich" (sameEverywhere): eine Auswahl gilt für jeden Ort.
--- Die Einstellungen gelten immer kontoweit (qnCoreDB.global.bags), ohne Profil und
--- ohne Charakterbezug.
+-- "Same at every location" (sameEverywhere): one choice applies to every location.
+-- The settings always apply account-wide (qnCoreDB.global.bags), without profile and
+-- without character binding.
 
 local _, ns = ...
 local L = ns.L
@@ -12,7 +12,7 @@ local L = ns.L
 local Bags = {}
 ns.Bags = Bags
 
--- Beim Öffnen des Ortes
+-- When the location opens
 Bags.OPEN_MODES = {
 	{ "none", L["Do nothing"] },
 	{ "all", BINDING_NAME_OPENALLBAGS },
@@ -20,7 +20,7 @@ Bags.OPEN_MODES = {
 	{ "closed", L["Close all bags"] },
 }
 
--- Orte (Ereignisse des Forever-Clients)
+-- Locations (events of the Forever client)
 Bags.VENUES = {
 	{ key = "auction", label = BUTTON_LAG_AUCTIONHOUSE, open = "AUCTION_HOUSE_SHOW", close = "AUCTION_HOUSE_CLOSED" },
 	{ key = "bank", label = BANK, open = "BANKFRAME_OPENED", close = "BANKFRAME_CLOSED" },
@@ -35,7 +35,7 @@ Bags.defaults = {
 	sameEverywhere = false,
 	allOpen = "all",
 	allClose = true,
-	openProfessionBags = true,   -- beim Öffnen aller eigenen Taschen auch Berufstaschen (wie Blizzard)
+	openProfessionBags = true,   -- when opening all own bags, also open profession bags (like Blizzard)
 }
 for _, v in ipairs(Bags.VENUES) do
 	Bags.defaults[v.key .. "Open"] = "all"
@@ -43,7 +43,7 @@ for _, v in ipairs(Bags.VENUES) do
 end
 
 ---------------------------------------------------------------------------
--- Einstellungen (kontoweit)
+-- Settings (account-wide)
 ---------------------------------------------------------------------------
 
 function Bags.Config()
@@ -51,15 +51,15 @@ function Bags.Config()
 end
 
 ---------------------------------------------------------------------------
--- Berufstaschen (Kräuter-, Verzauberer-, Bergbautasche …, Reagenzientasche)
--- Blizzard öffnet sie mit "Alle Taschen öffnen" mit. Ist das abgewählt, werden sie
--- danach wieder geschlossen. Einzeln angeklickt öffnen sie sich weiterhin.
--- Mit zusammengefassten Taschen stecken Berufstaschen in den Plätzen 1–4 im gemeinsamen
--- Fenster und lassen sich nicht getrennt schließen (CloseBag schlösse das ganze Fenster);
--- dann wirkt es nur auf die Reagenzientasche.
+-- Profession bags (herb, enchanting, mining bag ..., reagent bag)
+-- Blizzard opens them along with "Open All Bags". If that is unchecked, they are
+-- closed again afterwards. Clicked individually they still open.
+-- With combined bags, profession bags in slots 1-4 sit in the shared
+-- window and cannot be closed separately (CloseBag would close the whole window);
+-- then it only affects the reagent bag.
 ---------------------------------------------------------------------------
 
--- Wie ContainerFrame_IsProfessionBag / ContainerFrame_IsReagentBag in Blizzards ContainerFrame.lua
+-- Like ContainerFrame_IsProfessionBag / ContainerFrame_IsReagentBag in Blizzard's ContainerFrame.lua
 local function IsProfessionBag(id)
 	if id == Enum.BagIndex.ReagentBag then
 		return true
@@ -80,15 +80,15 @@ local function CloseProfessionBags()
 end
 
 local function HookOpenAllBags()
-	-- Blizzard meldet jedes "Alle Taschen öffnen" (Taste B, Händler, Bank, qnCore …) hier
+	-- Blizzard reports every "Open All Bags" (B key, merchant, bank, qnCore ...) here
 	EventRegistry:RegisterCallback("ContainerFrame.OpenAllBags", CloseProfessionBags, Bags)
 end
 
 ---------------------------------------------------------------------------
--- Ausführen
+-- Execution
 ---------------------------------------------------------------------------
 
--- Einstellung eines Ortes (what = "Open" oder "Close"), bei "An allen Orten gleich" die gemeinsame
+-- Setting of a location (what = "Open" or "Close"); with "Same at every location" the shared one
 local function Setting(cfg, venue, what)
 	return cfg[(cfg.sameEverywhere and "all" or venue.key) .. what]
 end
@@ -100,7 +100,7 @@ local function OnOpen(venue)
 	end
 	local mode = Setting(cfg, venue, "Open")
 	if mode == "all" or mode == "backpack" or mode == "closed" then
-		-- Erst alles schließen: OpenAllBags tut nichts, solange eine Tasche offen ist.
+		-- Close everything first: OpenAllBags does nothing while a bag is open.
 		CloseAllBags()
 		if mode == "backpack" then
 			OpenBackpack()
@@ -124,8 +124,8 @@ end
 function Bags.Init()
 	HookOpenAllBags()
 
-	-- einen Frame später (Blizzards eigene Fenster haben dann schon Taschen geöffnet), mehrere
-	-- Meldungen im selben Frame nur einmal
+	-- one frame later (Blizzard's own windows have already opened bags by then), several
+	-- events in the same frame only once
 	for _, v in ipairs(Bags.VENUES) do
 		ns.events.Register(v.open, qnCore.Debounce(function() OnOpen(v) end))
 		ns.events.Register(v.close, qnCore.Debounce(function() OnClose(v) end))

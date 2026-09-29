@@ -1,26 +1,26 @@
--- Szenario 6: Berufstaschen beim Öffnen aller Taschen
+-- Scenario 6: profession bags when opening all bags
 local core = LoadAddon("qnCore")
 FireEvent("PLAYER_LOGIN") RunTimers()
 LOG = {}
 OpenAllBags()
-Check(table.concat(LOG, ";") == "OpenAllBags(nil)", "Standard: Berufstaschen bleiben offen: " .. table.concat(LOG, ";"))
+Check(table.concat(LOG, ";") == "OpenAllBags(nil)", "default: profession bags stay open: " .. table.concat(LOG, ";"))
 SETTINGS.QNCORE_BAGS_OPENPROFESSIONBAGS:SetValue(false)
-Check(qnCoreDB.global.bags.openProfessionBags == false, "kontoweit gespeichert")
+Check(qnCoreDB.global.bags.openProfessionBags == false, "saved account-wide")
 LOG = {}
 OpenAllBags()
-Check(table.concat(LOG, ";") == "OpenAllBags(nil);CloseBag(3);CloseBag(5)", "abgewählt: Platz 3 (Beruf) und 5 (Reagenzien) zu: " .. table.concat(LOG, ";"))
-Check(OPEN[1] and OPEN[2] and OPEN[4] and OPEN[0], "normale Taschen bleiben offen")
+Check(table.concat(LOG, ";") == "OpenAllBags(nil);CloseBag(3);CloseBag(5)", "deselected: slot 3 (profession) and 5 (reagents) closed: " .. table.concat(LOG, ";"))
+Check(OPEN[1] and OPEN[2] and OPEN[4] and OPEN[0], "normal bags stay open")
 LOG = {}
 FireEvent("MERCHANT_SHOW") RunTimers()
-Check(table.concat(LOG, ";") == "CloseAllBags(nil);OpenAllBags(nil);CloseBag(3);CloseBag(5)", "auch bei Automatik: " .. table.concat(LOG, ";"))
--- Zusammengefasste Taschen: Platz 3 steckt im gemeinsamen Fenster, nur die Reagenzientasche schließen
+Check(table.concat(LOG, ";") == "CloseAllBags(nil);OpenAllBags(nil);CloseBag(3);CloseBag(5)", "also with automation: " .. table.concat(LOG, ";"))
+-- combined bags: slot 3 is in the shared window, close only the reagent bag
 C_CVar._v.combinedBags = "1"
 LOG = {}
 OpenAllBags()
-Check(table.concat(LOG, ";") == "OpenAllBags(nil);CloseBag(5)", "zusammengefasst: nur Reagenzientasche zu: " .. table.concat(LOG, ";"))
+Check(table.concat(LOG, ";") == "OpenAllBags(nil);CloseBag(5)", "combined: only reagent bag closed: " .. table.concat(LOG, ";"))
 C_CVar._v.combinedBags = "0"
 SETTINGS.QNCORE_BAGS_ENABLED:SetValue(false)
 LOG = {}
 OpenAllBags()
-Check(table.concat(LOG, ";") == "OpenAllBags(nil)", "Automatik aus: qnCore fasst keine Tasche an")
+Check(table.concat(LOG, ";") == "OpenAllBags(nil)", "automation off: qnCore touches no bag")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

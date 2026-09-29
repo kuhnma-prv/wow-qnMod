@@ -1,6 +1,6 @@
--- qnTooltip: anpassbare Tooltips (Aussehen, Position, Einheiten-Zeilen aus Bausteinen,
--- Lebensbalken, Ziel, Gegenstandsstufe, IDs).
--- Core: Namensraum, Vorgaben, Bausteine der Einheiten-Zeilen, Medien, Zeilenhilfen, Laden, Slash.
+-- qnTooltip: customizable tooltips (look, position, unit lines built from elements,
+-- health bar, target, item level, IDs).
+-- Core: namespace, defaults, unit line elements, media, line helpers, loading, slash.
 
 local ADDON, ns = ...
 _G.qnTooltip = ns
@@ -11,13 +11,13 @@ local L = ns.L
 local IsSecret = ns.IsSecret
 
 ---------------------------------------------------------------------------
--- Bausteine der Einheiten-Zeilen
--- Je Einheitenart eine Liste { Schlüssel, Anzeigename, Art, Vorgabe }. Art:
---   "icon"    Symbol: an/aus, Zeile, Reihenfolge, Filter
---   "text"    Text: dazu Farbe und Format (genau ein %s)
---   "number"  Zahl: Format mit %d oder %s
---   "fixed"   ohne eigene Zeile (NSC-Titel steht immer in Blizzards Titelzeile)
--- Farbe: Name einer Farbfunktion (ns.UnitData.COLORS) oder sechsstelliger Hexwert.
+-- Elements of the unit lines
+-- Per unit kind a list { key, display name, kind, default }. Kind:
+--   "icon"    icon: on/off, line, order, filter
+--   "text"    text: plus color and format (exactly one %s)
+--   "number"  number: format with %d or %s
+--   "fixed"   no line of its own (the NPC title is always in Blizzard's title line)
+-- Color: name of a color function (ns.UnitData.COLORS) or a six-digit hex value.
 ---------------------------------------------------------------------------
 
 local function Icon(line, order, enable)
@@ -74,7 +74,7 @@ ns.ELEMENTS = {
 	},
 }
 
--- Vorgaben der Bausteine: { Schlüssel = Vorgabe }
+-- element defaults: { key = default }
 local function ElementDefaults(list)
 	local t = {}
 	for _, e in ipairs(list) do
@@ -83,7 +83,7 @@ local function ElementDefaults(list)
 	return t
 end
 
--- Eintrag der Liste zu einem Schlüssel
+-- list entry for a key
 function ns.Element(kind, key)
 	for _, e in ipairs(ns.ELEMENTS[kind]) do
 		if e[1] == key then
@@ -93,45 +93,45 @@ function ns.Element(kind, key)
 end
 
 ---------------------------------------------------------------------------
--- Vorgaben
--- Die Einstellungen der Einheitenarten liegen in player/npc (je eigene Seite).
+-- Defaults
+-- The settings of the unit kinds are in player/npc (each on its own page).
 ---------------------------------------------------------------------------
 
 ns.defaults = {
-	-- Aussehen
+	-- Appearance
 	scale = 1,
 	bgFile = "rock",
 	bgColor = { 0, 0, 0, 0.7 },
 	borderStyle = "default",     -- default | angular | none
-	borderSize = 1,              -- nur "angular"
+	borderSize = 1,              -- "angular" only
 	borderColor = { 0.6, 0.6, 0.6, 0.8 },
-	mask = true,                 -- heller Verlauf über der Kopfzeile
+	mask = true,                 -- light gradient over the header line
 	headerFont = "default",
-	headerSize = 0,              -- 0 = Blizzard-Größe
+	headerSize = 0,              -- 0 = Blizzard size
 	headerFlag = "default",
 	bodyFont = "default",
 	bodySize = 0,
 	bodyFlag = "default",
-	moreTooltips = true,         -- auch ItemRef-, Vergleichs- und Freundes-Tooltip
-	hideUnitFrameHint = true,    -- "Mit Rechtsklick die Rahmen-Einstellungen aufrufen" entfernen
-	chatHover = true,            -- Tooltip beim Überfahren von Chat-Links
-	modifierShowsAll = true,     -- Alt oder Strg: alle Bausteine zeigen
+	moreTooltips = true,         -- also ItemRef, comparison and friends tooltips
+	hideUnitFrameHint = true,    -- remove the "right-click for frame settings" hint
+	chatHover = true,            -- tooltip when hovering chat links
+	modifierShowsAll = true,     -- Alt or Ctrl: show all elements
 
-	-- Position (nur auf Wunsch: "blizzard" lässt Blizzard bzw. den Bearbeitungsmodus bestimmen)
+	-- Position (only on request: "blizzard" lets Blizzard or Edit Mode decide)
 	anchorMode = "blizzard",     -- blizzard | cursor | cursorRight | static
 	anchorPoint = "BOTTOMRIGHT",
 	anchorX = -60,
 	anchorY = 120,
-	returnInCombat = true,       -- im Kampf an Blizzards Stelle
-	returnOnUnitFrame = false,   -- über Einheitenrahmen an Blizzards Stelle
+	returnInCombat = true,       -- at Blizzard's spot in combat
+	returnOnUnitFrame = false,   -- at Blizzard's spot over unit frames
 	hideInCombat = false,
-	combatModifier = "none",     -- none | alt | ctrl | shift: zeigt ausgeblendete Tooltips
+	combatModifier = "none",     -- none | alt | ctrl | shift: shows hidden tooltips
 
-	-- Lebensbalken
+	-- Health bar
 	barHide = false,
 	barHeight = 4,
 	barPosition = "bottom",      -- default | bottom | top
-	barOffsetX = 0,              -- 0 = passend zum Rahmen
+	barOffsetX = 0,              -- 0 = matching the border
 	barTexture = "Blizzard",
 	barText = true,
 	barPercent = true,
@@ -140,7 +140,7 @@ ns.defaults = {
 	barSize = 10,
 	barFlag = "THINOUTLINE",
 
-	-- Einheiten
+	-- Units
 	player = {
 		borderColor = "class",
 		bgColor = "class",
@@ -166,7 +166,7 @@ ns.defaults = {
 		elements = ElementDefaults(ns.ELEMENTS.npc),
 	},
 
-	-- Gegenstände, Zauber, Quests
+	-- Items, spells, quests
 	itemBorder = true,
 	itemIcon = true,
 	itemId = true,
@@ -179,18 +179,18 @@ ns.defaults = {
 	spellBgColor = { 0, 0, 0, 0.8 },
 	questBorder = true,
 	questId = true,
-	idsWithModifier = false,     -- IDs nur mit gedrückter Umschalt-, Strg- oder Alt-Taste
+	idsWithModifier = false,     -- IDs only while Shift, Ctrl or Alt is held
 }
 
 ---------------------------------------------------------------------------
--- Medien
+-- Media
 ---------------------------------------------------------------------------
 
 function ns.LSM()
 	return LibStub and LibStub("LibSharedMedia-3.0", true)
 end
 
--- Einträge einer LSM-Art als { Name, Name } (für Dropdowns), ohne die Namen in skip
+-- entries of an LSM media type as { name, name } (for dropdowns), without the names in skip
 function ns.LSMEntries(kind, skip)
 	local list = {}
 	local lsm = ns.LSM()
@@ -204,14 +204,14 @@ function ns.LSMEntries(kind, skip)
 	return list
 end
 
--- Pfad einer LSM-Datei oder nil
+-- path of an LSM file or nil
 function ns.LSMFetch(kind, name)
 	local lsm = ns.LSM()
 	return lsm and lsm:IsValid(kind, name) and lsm:Fetch(kind, name) or nil
 end
 
 ---------------------------------------------------------------------------
--- Zeilen eines Tooltips
+-- Tooltip lines
 ---------------------------------------------------------------------------
 
 function ns.Left(tip, i)
@@ -222,7 +222,7 @@ function ns.Right(tip, i)
 	return _G[tip:GetName() .. "TextRight" .. i]
 end
 
--- Zeile leeren (links und rechts)
+-- clear a line (left and right)
 function ns.Blank(tip, i)
 	local left, right = ns.Left(tip, i), ns.Right(tip, i)
 	if left then
@@ -233,13 +233,13 @@ function ns.Blank(tip, i)
 	end
 end
 
--- Hängt eine leere Zeile an und liefert ihren linken Text
+-- Appends an empty line and returns its left text
 function ns.NewLine(tip)
 	tip:AddLine(" ")
 	return ns.Left(tip, tip:NumLines())
 end
 
--- Zeile, deren linker Text genau text ist (secret-Texte werden übersprungen)
+-- line whose left text is exactly text (secret texts are skipped)
 function ns.FindLine(tip, text)
 	for i = 1, tip:NumLines() do
 		local left = ns.Left(tip, i)
@@ -250,12 +250,12 @@ function ns.FindLine(tip, text)
 	end
 end
 
--- Farbe 0–1 als sechsstelliger Hexwert
+-- color 0-1 as a six-digit hex value
 function ns.Hex(r, g, b)
 	return ("%02x%02x%02x"):format(math.floor(r * 255 + 0.5), math.floor(g * 255 + 0.5), math.floor(b * 255 + 0.5))
 end
 
--- Hexwert als r, g, b (nil bei ungültigem Wert)
+-- hex value as r, g, b (nil for an invalid value)
 function ns.RGB(hex)
 	if type(hex) ~= "string" or not hex:match("^%x%x%x%x%x%x$") then
 		return nil
@@ -263,8 +263,8 @@ function ns.RGB(hex)
 	return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
 end
 
--- UnitIsUnit als true/false. Nicht vergleichbare Einheiten (RequiresComparableUnitTokens) werfen im
--- Client einen Fehler, secret-Ergebnisse sind nicht lesbar: beides gilt als false.
+-- UnitIsUnit as true/false. Non-comparable units (RequiresComparableUnitTokens) raise an error in
+-- the client, secret results are not readable: both count as false.
 function ns.IsUnit(a, b)
 	local ok, same = pcall(UnitIsUnit, a, b)
 	if not ok or IsSecret(same) then
@@ -273,15 +273,15 @@ function ns.IsUnit(a, b)
 	return same and true or false
 end
 
--- Umschalt, Strg oder Alt gedrückt
+-- Shift, Ctrl or Alt held
 function ns.AnyModifier()
 	return IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown()
 end
 
 ---------------------------------------------------------------------------
--- Gestaltete Tooltips
--- GameTooltip immer, die übrigen mit moreTooltips. Manche entstehen erst mit ihrem Addon
--- (FriendsTooltip mit Blizzard_FriendsFrame): bei jedem ADDON_LOADED erneut suchen.
+-- Styled tooltips
+-- GameTooltip always, the others with moreTooltips. Some only come into existence with their addon
+-- (FriendsTooltip with Blizzard_FriendsFrame): look them up again on every ADDON_LOADED.
 ---------------------------------------------------------------------------
 
 ns.MORE_TOOLTIPS = { "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1",
@@ -299,12 +299,12 @@ function ns.Tooltips()
 	return list
 end
 
--- gehört tip zu den gestalteten Tooltips?
+-- is tip one of the styled tooltips?
 function ns.IsStyled(tip)
 	return tip and tip.qnStyled or false
 end
 
--- Einstellungen auf alle Tooltips anwenden
+-- apply the settings to all tooltips
 function ns.Apply()
 	for _, tip in ipairs(ns.Tooltips()) do
 		ns.Style.Setup(tip)
@@ -314,11 +314,11 @@ function ns.Apply()
 end
 
 ---------------------------------------------------------------------------
--- Laden
+-- Loading
 ---------------------------------------------------------------------------
 
 ns.OnLoad(function()
-	-- Einstellungen je Profil (= Layout des Bearbeitungsmodus); ns.db ist immer das aktive Profil.
+	-- Settings per profile (= Edit Mode layout); ns.db is always the active profile.
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnTooltipDB",
@@ -339,14 +339,14 @@ ns.OnLoad(function()
 	ns.Chat.Init()
 	ns.Apply()
 	ns.InitOptions()
-	-- später geladene Tooltips (FriendsTooltip) nachziehen
+	-- pick up tooltips loaded later (FriendsTooltip)
 	ns.events.Register("ADDON_LOADED", function()
 		ns.Apply()
 	end)
 end)
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNTOOLTIP", { "/qntt", "/qntooltip" }, function(cmd)

@@ -1,8 +1,8 @@
--- qnCore: Optionen im Blizzard-Einstellungsfenster (Settings-API).
--- Hauptseite "qnCore" (Profil, Minikarte, Questzielverfolgung) und Unterseite "Taschen-Automatik".
--- Taschen und der Schalter der Verfolgung gelten immer kontoweit (qnCoreDB.global), nie je Profil oder Charakter.
--- Die Schrift der Questzielverfolgung gilt je Profil (ns.store).
--- Die Seite "Profile" baut ProfilesPage.lua.
+-- qnCore: options in Blizzard's settings window (Settings API).
+-- Main page "qnCore" (profile, Minimap, Objective Tracker) and subpage "Bag Automation".
+-- Bags and the tracking switch always apply account-wide (qnCoreDB.global), never per profile or character.
+-- The Objective Tracker font applies per profile (ns.store).
+-- The "Profiles" page is built by ProfilesPage.lua.
 
 local _, ns = ...
 local lib = qnCore
@@ -12,7 +12,7 @@ local S = lib.Settings
 local function Build(category, layout)
 	local Bags = ns.Bags
 
-	-- Hauptseite ----------------------------------------------------------
+	-- Main page ----------------------------------------------------------
 	local B = S.New({ prefix = "QNCORE_", source = function() return ns.global end, defaults = ns.defaults })
 
 	S.Header(layout, L["Profile"])
@@ -24,7 +24,7 @@ local function Build(category, layout)
 		L["Remembers per character what is checked or unchecked in the Minimap tracking menu (e.g. Find Herbs, Find Minerals, Find Treasure) and restores it after logging in, /reload, changing zones and resurrection. This switch applies to all characters."],
 		function(_, value) ns.Tracking.OnOptionChanged(value) end)
 
-	-- Questzielverfolgung (je Profil) ----------------------------------------
+	-- Objective Tracker (per profile) ----------------------------------------
 	local QB = S.New({ store = ns.store, prefix = "QNCORE_", apply = function() ns.QuestTracker.Apply() end })
 	local sizes = { { 0, L["As in Edit Mode"] } }
 	for _, size in ipairs(ns.QuestTracker.SIZES) do
@@ -35,7 +35,7 @@ local function Build(category, layout)
 		L["Objective Tracker text size below Blizzard's minimum of 12 (headers 2 larger). \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."],
 		Settings.VarType.Number)
 
-	-- Taschen-Automatik ---------------------------------------------------
+	-- Bag Automation ---------------------------------------------------
 	local bags, bagsLayout = Settings.RegisterVerticalLayoutSubcategory(category, L["Bag Automation"])
 
 	local BB = S.New({
@@ -68,7 +68,7 @@ local function Build(category, layout)
 	end
 end
 
--- setzt ns.category und ns.OpenOptions
+-- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
 	S.NewCategory(ns, "qnCore", Build)
 end

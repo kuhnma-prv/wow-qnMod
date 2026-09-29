@@ -1,6 +1,6 @@
--- qnBuffMod: Optionen im Blizzard-Einstellungsfenster (Settings-API über qnCore).
--- Hauptseite "qnBuffMod" (allgemein, Profil) und vier Fensterseiten, die alle das in
--- QNBUFFMOD_EDITWINDOW gewählte Fenster zeigen (Quelle der Einstellungen: ns.SelectedSettings).
+-- qnBuffMod: options in the Blizzard settings panel (Settings API via qnCore).
+-- Main page "qnBuffMod" (general, profile) and four window pages that all show the window
+-- selected in QNBUFFMOD_EDITWINDOW (source of the settings: ns.SelectedSettings).
 
 local _, ns = ...
 local L = ns.L
@@ -12,7 +12,7 @@ local windowCategories = {}
 local editSetting
 local windowPage
 
--- Farblegende der Schwächungszauberarten (Tooltip)
+-- Color legend of the debuff types (tooltip)
 local LEGEND = L["Colors: |cFF9600FFcurse|r, |cFF966400disease|r, |cFF3296FFmagic|r, |cFF009600poison|r, |cFFc80000others (e.g. physical)|r."]
 
 ---------------------------------------------------------------------------
@@ -32,10 +32,10 @@ qnCore.Popup.EditText("QNBUFFMOD_CONDITION", L["Visibility condition for %s (mac
 	end, 1000)
 
 ---------------------------------------------------------------------------
--- Fensterseiten: offen? neu einlesen?
+-- Window pages: open? refresh?
 ---------------------------------------------------------------------------
 
--- Wird gerade eine Fensterseite im geöffneten Einstellungsfenster angezeigt?
+-- Is a window page currently shown in the open settings panel?
 function ns.WindowPageOpen()
 	if not (SettingsPanel and SettingsPanel:IsShown()) then
 		return false
@@ -50,7 +50,7 @@ local function PagesChanged()
 	end
 end
 
--- Alle Fensterseiten aus dem gewählten Fenster neu einlesen (ohne Rückrufe)
+-- Refresh all window pages from the selected window (without callbacks)
 function ns.RefreshWindowPages(fromSetting)
 	for _, b in ipairs(windowBuilders) do
 		b:Refresh()
@@ -78,10 +78,10 @@ local function WindowEntries()
 end
 
 ---------------------------------------------------------------------------
--- Bausteine der Fensterseiten
+-- Building blocks of the window pages
 ---------------------------------------------------------------------------
 
--- Wert des gewählten Fensters (für Abhängigkeiten)
+-- Value of the selected window (for dependencies)
 local function Value(key)
 	return ns.WindowValue(ns.SelectedSettings(), key)
 end
@@ -98,7 +98,7 @@ local function On(key)
 	end
 end
 
--- Baukasten einer Fensterseite mit den Kurzformen Check/Slide/Choose/Color
+-- Builder of a window page with the shorthands Check/Slide/Choose/Color
 local function WindowBuilder(prefix)
 	local B = S.New({ store = ns.store, prefix = prefix, source = ns.SelectedSettings, defaults = ns.windowDefaults })
 	windowBuilders[#windowBuilders + 1] = B
@@ -114,7 +114,7 @@ local function WindowBuilder(prefix)
 	return B
 end
 
--- Kopf jeder Fensterseite: Auswahl des Fensters (eine Einstellung für alle Seiten)
+-- Head of every window page: window selection (one setting for all pages)
 local function WindowHead(cat, layout)
 	windowCategories[cat] = true
 	S.Header(layout, L["Window"])
@@ -136,7 +136,7 @@ local function Window()
 end
 
 ---------------------------------------------------------------------------
--- Auswahllisten
+-- Dropdown lists
 ---------------------------------------------------------------------------
 
 local JUSTIFY = {
@@ -163,7 +163,7 @@ local function WrapsLabel(v)
 end
 
 ---------------------------------------------------------------------------
--- Seiten
+-- Pages
 ---------------------------------------------------------------------------
 
 local function BuildGeneral(category, layout)
@@ -249,7 +249,7 @@ local function BuildWindowPage(category)
 	S.Depends(W:Check(cat, "visHideNotCombat", L["Hide out of combat"]), vis, basic)
 	S.Depends(W:Check(cat, "visHideInVehicle", L["Hide in vehicle"]), vis, basic)
 	S.Depends(W:Check(cat, "visHideNotVehicle", L["Hide out of vehicle"]), vis, basic)
-	-- der Text selbst hat kein eigenes Steuerelement (Dialog)
+	-- the text itself has no control of its own (dialog)
 	W:Register(cat, "visCondition", L["Custom condition"], nil, On("visCondition"))
 	local custom = Is("visWindow", E.vis.CUSTOM)
 	S.Depends(S.Button(layout, L["Custom condition"], L["Edit …"], function()
@@ -368,7 +368,7 @@ local function BuildButtonsPage(category)
 	Dep(W:Slide(cat, "spacingFromIcon2", L["Offset from icon"], 0, 50, nil, L["No effect with 'Center'."]), two)
 end
 
--- Doppelte Zauberart: der andere Platz wird "keine", seine Anzeige folgt sofort
+-- Duplicate aura type: the other slot becomes "none", its display follows immediately
 local function GroupSlotChanged(slot)
 	return function(_, value)
 		local t = ns.SelectedSettings()
@@ -424,7 +424,7 @@ local function BuildGroupingPage(category)
 end
 
 ---------------------------------------------------------------------------
--- Bedingung prüfen
+-- Test condition
 ---------------------------------------------------------------------------
 
 function ns.TestCondition(id)
@@ -442,7 +442,7 @@ function ns.TestCondition(id)
 end
 
 ---------------------------------------------------------------------------
--- Anmeldung
+-- Registration
 ---------------------------------------------------------------------------
 
 function ns.InitOptions()
@@ -453,7 +453,7 @@ function ns.InitOptions()
 		BuildButtonsPage(category)
 		BuildGroupingPage(category)
 	end)
-	-- Fenstertitel und Maus am Hintergrund hängen an der angezeigten Seite
+	-- window title and mouse on the background depend on the page shown
 	EventRegistry:RegisterCallback("Settings.CategoryChanged", PagesChanged, ns)
 	SettingsPanel:HookScript("OnShow", PagesChanged)
 	SettingsPanel:HookScript("OnHide", PagesChanged)

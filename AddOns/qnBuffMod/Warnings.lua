@@ -1,8 +1,8 @@
--- qnBuffMod: Ablaufwarnungen im Chat und die Taste "Stärkungszauber erneuern".
--- Gewarnte, selbst wirkbare Zauber des Spielers kommen in die Erneuerungsliste. Ein sicherer
--- Aktionsknopf (QNBUFFMOD_RECASTBUFFFRAME) wirkt den zuletzt eingereihten; ohne Eintrag die eigene
--- Aura mit der kürzesten Restzeit, die der Spieler selbst wirken kann. Die Taste liegt per
--- Override-Belegung auf dem Knopf.
+-- qnBuffMod: expiration warnings in chat and the "Recast Buffs" key.
+-- Warned spells of the player that they can cast themselves go into the recast list. A secure
+-- action button (QNBUFFMOD_RECASTBUFFFRAME) casts the most recently queued one; without an entry, the player's own
+-- aura with the shortest time remaining that the player can cast. The key is bound to the button via an
+-- override binding.
 
 local _, ns = ...
 local lib = qnCore
@@ -17,7 +17,7 @@ local BINDING = "QNBUFFMOD_RECASTBUFFS"
 local BUTTON = "QNBUFFMOD_RECASTBUFFFRAME"
 
 ---------------------------------------------------------------------------
--- Erneuerungsliste
+-- Recast list
 ---------------------------------------------------------------------------
 
 local Recast = { list = {} }
@@ -25,7 +25,7 @@ ns.Recast = Recast
 
 local button
 
--- Zauber per Name wirkbar (nutzbar oder nur zu wenig Ressource)?
+-- Spell castable by name (usable or only lacking resources)?
 function Recast.IsCastable(name)
 	if type(name) ~= "string" or name == "?" then
 		return false
@@ -34,7 +34,7 @@ function Recast.IsCastable(name)
 	return Plain(usable, false) == true or Plain(noPower, false) == true
 end
 
--- Zauber für den Knopf: der zuletzt eingereihte, sonst die eigene Aura mit der kürzesten Restzeit
+-- Spell for the button: the most recently queued one, otherwise the own aura with the shortest time remaining
 function Recast.Next()
 	local list = Recast.list
 	if #list > 0 then
@@ -50,7 +50,7 @@ function Recast.Next()
 	return best
 end
 
--- Zauber am Knopf neu setzen (geschützt: erst nach dem Kampf)
+-- Set the button's spell again (protected: only after combat)
 function Recast.UpdateButton()
 	if not button or lib.DeferInCombat(Recast.UpdateButton) then
 		return
@@ -58,7 +58,7 @@ function Recast.UpdateButton()
 	button:SetAttribute("spell", Recast.Next())
 end
 
--- true, wenn der Zauber neu eingereiht wurde
+-- true if the spell was newly queued
 function Recast.Add(name)
 	for _, v in ipairs(Recast.list) do
 		if v == name then
@@ -83,7 +83,7 @@ function Recast.Forget(name)
 	end
 end
 
--- Text der belegten Taste oder nil
+-- Text of the bound key or nil
 function Recast.BoundKey()
 	local key = GetBindingKey(BINDING)
 	if not key then
@@ -93,13 +93,13 @@ function Recast.BoundKey()
 end
 
 ---------------------------------------------------------------------------
--- Knopf und Tastenbelegung
+-- Button and key binding
 ---------------------------------------------------------------------------
 
 local appliedKeys
 
--- Taste per Override auf den Knopf legen (nur außerhalb des Kampfes); nur bei geänderter Belegung,
--- damit das dadurch ausgelöste UPDATE_BINDINGS nichts wiederholt.
+-- Bind the key to the button via override (only out of combat); only when the binding changed,
+-- so that the UPDATE_BINDINGS this triggers does not repeat anything.
 function Recast.ApplyBindings()
 	if lib.DeferInCombat(Recast.ApplyBindings) then
 		return
@@ -117,7 +117,7 @@ function Recast.ApplyBindings()
 end
 
 local function PostClick(self, _, down)
-	-- im Kampf ändert die Taste die Liste nicht; nur die auslösende Hälfte des Tastendrucks zählt
+	-- in combat the key does not change the list; only the triggering half of the key press counts
 	if InCombatLockdown() or (down and true or false) ~= GetCVarBool("ActionButtonUseKeyDown") then
 		return
 	end
@@ -141,13 +141,13 @@ function Recast.Init()
 end
 
 ---------------------------------------------------------------------------
--- Ablaufwarnungen (Sekundentakt)
+-- Expiration warnings (one-second tick)
 ---------------------------------------------------------------------------
 
 local Warnings = {}
 ns.Warnings = Warnings
 
--- Schwelle nach (abgerundeter) Dauer; nil = keine Warnung
+-- Threshold by (rounded down) duration; nil = no warning
 local function Threshold(duration)
 	local d, db = math.floor(duration), ns.db
 	if d < 120 then
@@ -178,7 +178,7 @@ local function Consider(unit, rec, now)
 	if remaining <= 0 or not threshold or threshold <= 0 or remaining > threshold then
 		return
 	end
-	-- je Anwendung höchstens eine Warnung (Auren: auch über einen Zielwechsel hinweg)
+	-- at most one warning per application (auras: also across a target change)
 	if rec.weapon then
 		st.warned = true
 	else
@@ -205,8 +205,8 @@ local function Consider(unit, rec, now)
 	end
 end
 
--- Stärkungszauber und Auren mit Dauer aller beobachteten Einheiten sowie Waffenverzauberungen.
--- Während der Aurensperre sind die Listen eingefroren (evtl. längst entfernte Zauber): nur Waffen.
+-- Buffs and auras with duration of all watched units as well as weapon enchants.
+-- During the aura restriction the lists are frozen (possibly spells removed long ago): weapons only.
 function Warnings.Check()
 	if not ns.db.enableExpiration then
 		return

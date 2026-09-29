@@ -1,11 +1,11 @@
--- qnTooltip: Tooltip beim Überfahren von Links im Chat (Gegenstände, Zauber, Quests …), am Mauszeiger.
+-- qnTooltip: tooltip when hovering links in chat (items, spells, quests, ...), at the cursor.
 
 local _, ns = ...
 
 local Chat = {}
 ns.Chat = Chat
 
--- Link-Arten, die GameTooltip:SetHyperlink anzeigen kann
+-- link types that GameTooltip:SetHyperlink can display
 local TYPES = { item = true, spell = true, enchant = true, quest = true, talent = true, achievement = true, currency = true }
 
 local hooked = {}

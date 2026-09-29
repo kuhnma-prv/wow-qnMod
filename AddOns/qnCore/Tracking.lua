@@ -1,14 +1,14 @@
--- qnCore: Verfolgung an der Minikarte merken (Kräutersuche, Mineraliensuche, Schatzsucher,
--- Briefkasten …). WoW verliert besonders die Verfolgungszauber nach dem Tod, beim Neuladen
--- oder nach dem Neustart. qnCore merkt sich, was an- oder abgewählt wurde, und stellt es nach dem Einloggen, /reload, Zonenwechsel und der Wiederbelebung wieder her.
+-- qnCore: remember Minimap tracking (Find Herbs, Find Minerals, Find Treasure,
+-- Mailbox ...). WoW loses especially the tracking spells after death, on reload
+-- or after a restart. qnCore remembers what was checked or unchecked and restores it after logging in, /reload, changing zones and resurrection.
 --
--- Gemerkt wird, was über C_Minimap.SetTracking / ClearAllTracking geht (Menü der Minikarte,
--- Optionen), und jede andere Änderung der Verfolgung (MINIMAP_UPDATE_TRACKING), z. B. ein
--- Verfolgungszauber von der Aktionsleiste oder aus dem Zauberbuch. Ausgenommen sind die Zeit
--- kurz nach dem Einloggen, /reload, Zonenwechsel und der Wiederbelebung (dann meldet WoW den
--- Verlust), solange der Charakter tot ist und solange qnCore selbst wiederherstellt: dann wird
--- gegen die gemerkte Auswahl geprüft. Der Schalter gilt kontoweit (qnCoreDB.global.tracking),
--- die gemerkte Auswahl je Charakter (qnCoreCharDB.tracking), weil jeder andere Zauber kennt.
+-- Remembered is what goes through C_Minimap.SetTracking / ClearAllTracking (Minimap menu,
+-- options), and every other change of tracking (MINIMAP_UPDATE_TRACKING), e.g. a
+-- tracking spell from the action bar or the spellbook. Excluded are the time
+-- shortly after logging in, /reload, changing zones and resurrection (then WoW reports the
+-- loss), while the character is dead and while qnCore itself is restoring: then it is
+-- checked against the remembered selection. The switch applies account-wide (qnCoreDB.global.tracking),
+-- the remembered selection per character (qnCoreCharDB.tracking), because each one knows different spells.
 
 local _, ns = ...
 local lib = qnCore
@@ -16,26 +16,26 @@ local lib = qnCore
 local Tracking = {}
 ns.Tracking = Tracking
 
-local FIRST_DELAY = 3   -- Sekunden nach dem Ladebildschirm: vorher fehlen die Verfolgungsdaten
-local STEP_DELAY = 2    -- zwischen zwei Zaubern (globale Abklingzeit, Wirken bis "aktiv")
-local MAX_TRIES = 3     -- Versuche je Eintrag bis zum nächsten Einloggen bzw. Wiederbeleben
-local DEAD_POLL = 2     -- solange tot: so oft erneut prüfen (Sekunden)
-local RESTORE_WINDOW = 15   -- so lange nach Einloggen/Wiederbelebung gelten Änderungen als Verlust (Sekunden)
-local OWN_WINDOW = STEP_DELAY + 2   -- so lange nach einem eigenen SetTracking kommt dessen Meldung
+local FIRST_DELAY = 3   -- seconds after the loading screen: before that the tracking data is missing
+local STEP_DELAY = 2    -- between two spells (global cooldown, cast until "active")
+local MAX_TRIES = 3     -- attempts per entry until the next login or resurrection
+local DEAD_POLL = 2     -- while dead: check again this often (seconds)
+local RESTORE_WINDOW = 15   -- this long after login/resurrection, changes count as loss (seconds)
+local OWN_WINDOW = STEP_DELAY + 2   -- this long after an own SetTracking its event arrives
 
-local restoring = false   -- eigene Aufrufe von SetTracking nicht als Auswahl merken
-local running = false     -- Durchlauf läuft (Timer-Kette)
-local waiting = false     -- tot: Prüfung läuft im Takt DEAD_POLL
-local deferred = false    -- Kampf: Durchlauf nach dem Kampf vorgemerkt
-local windowUntil = 0     -- bis GetTime() = windowUntil wird wiederhergestellt statt gemerkt
+local restoring = false   -- do not remember own SetTracking calls as selection
+local running = false     -- pass is running (timer chain)
+local waiting = false     -- dead: check runs every DEAD_POLL
+local deferred = false    -- combat: pass queued for after combat
+local windowUntil = 0     -- until GetTime() = windowUntil, restore instead of remember
 local tries = {}
 
 local function OpenWindow(seconds)
 	windowUntil = math.max(windowUntil, GetTime() + seconds)
 end
 
--- Schlüssel eines Eintrags: Zauber über die Zauber-ID, alles andere über die Filter-ID.
--- Die Position im Menü (index) ändert sich, wenn Zauber hinzukommen.
+-- Key of an entry: spells by spell ID, everything else by filter ID.
+-- The position in the menu (index) changes when spells are added.
 local function Key(index)
 	local filter = C_Minimap.GetTrackingFilter(index)
 	if not filter then
@@ -58,7 +58,7 @@ function Tracking.Enabled()
 	return ns.global and ns.global.tracking
 end
 
--- Alle Einträge des Verfolgungsmenüs: index, Schlüssel (oder nil), aktiv (oder nil)
+-- All entries of the tracking menu: index, key (or nil), active (or nil)
 local function Entries()
 	local index, count = 0, C_Minimap.GetNumTrackingTypes()
 	return function()
@@ -70,13 +70,13 @@ local function Entries()
 	end
 end
 
--- Auswahl des Spielers merken (nicht die eigenen Aufrufe beim Wiederherstellen)
+-- Remember the player's selection (not the own calls while restoring)
 local function CanRemember()
 	return not restoring and Tracking.Enabled()
 end
 
 ---------------------------------------------------------------------------
--- Auswahl merken
+-- Remember selection
 ---------------------------------------------------------------------------
 
 local function Remember(index, on)
@@ -93,7 +93,7 @@ local function RememberClearAll()
 	if not CanRemember() then
 		return
 	end
-	-- "Alle abwählen": Blizzard wählt die immer aktiven Filter danach einzeln wieder an
+	-- "Uncheck all": Blizzard then re-checks the always-active filters one by one
 	local saved = Saved()
 	for _, key in Entries() do
 		if key then
@@ -103,18 +103,18 @@ local function RememberClearAll()
 end
 
 ---------------------------------------------------------------------------
--- Wiederherstellen
+-- Restore
 ---------------------------------------------------------------------------
 
--- nach dem Kampf nachholen (Versuche nicht zurücksetzen)
+-- catch up after combat (do not reset attempts)
 local function RestoreAfterCombat()
 	deferred = false
 	Tracking.Restore(0, true)
 end
 
--- Kampf: nach dem Kampf nachholen (qnCore.DeferInCombat). Tot: im Takt prüfen, bis der Charakter
--- lebt – beim Ereignis der Wiederbelebung gilt er mitunter noch als tot, und nicht jede
--- Wiederbelebung meldet sich zuverlässig.
+-- Combat: catch up after combat (qnCore.DeferInCombat). Dead: check periodically until the character
+-- is alive - at the resurrection event it sometimes still counts as dead, and not every
+-- resurrection is reported reliably.
 local function Blocked()
 	if lib.DeferInCombat(RestoreAfterCombat) then
 		deferred = true
@@ -133,7 +133,7 @@ local function Blocked()
 	return false
 end
 
--- Erster Eintrag, dessen Zustand nicht der gemerkten Auswahl entspricht
+-- First entry whose state does not match the remembered selection
 local function NextMismatch()
 	local saved = Saved()
 	for index, key, active in Entries() do
@@ -160,18 +160,18 @@ Step = function()
 		return
 	end
 	tries[key] = (tries[key] or 0) + 1
-	OpenWindow(OWN_WINDOW)   -- die Meldung zum eigenen Zauber kommt mitunter erst später
+	OpenWindow(OWN_WINDOW)   -- the event for the own spell sometimes arrives only later
 	restoring = true
 	local ok, err = pcall(C_Minimap.SetTracking, index, wanted)
 	restoring = false
 	if not ok then
 		geterrorhandler()(err)
 	end
-	-- Zauber einzeln: der nächste erst nach der globalen Abklingzeit
+	-- spells one at a time: the next only after the global cooldown
 	C_Timer.After(STEP_DELAY, Step)
 end
 
--- keepTries: Versuche nicht zurücksetzen (Nachprüfungen), sonst beginnt die Zählung neu
+-- keepTries: do not reset attempts (re-checks), otherwise counting starts over
 function Tracking.Restore(delay, keepTries)
 	if not Tracking.Enabled() or running or Blocked() then
 		return
@@ -183,7 +183,7 @@ function Tracking.Restore(delay, keepTries)
 	C_Timer.After(delay or 0, Step)
 end
 
--- Aktuellen Zustand als Auswahl übernehmen (beim Einschalten der Option)
+-- Take the current state as selection (when the option is turned on)
 function Tracking.Capture()
 	local saved = Saved()
 	for _, key, active in Entries() do
@@ -199,10 +199,10 @@ function Tracking.OnOptionChanged(value)
 	end
 end
 
--- Änderung der Verfolgung ohne C_Minimap.SetTracking (Zauber von der Aktionsleiste, Verlust):
--- kurz nach dem Einloggen bzw. der Wiederbelebung, solange tot und solange qnCore selbst
--- wiederherstellt, ist es ein Verlust (Tod-Verlust meldet WoW oft erst nach der Wiederbelebung)
--- → gegen die gemerkte Auswahl prüfen. Sonst hat der Spieler gewählt → als Auswahl merken.
+-- Tracking change without C_Minimap.SetTracking (spell from the action bar, loss):
+-- shortly after logging in or resurrection, while dead and while qnCore itself is
+-- restoring, it is a loss (WoW often reports the death loss only after resurrection)
+-- -> check against the remembered selection. Otherwise the player chose -> remember as selection.
 local function OnTrackingUpdate()
 	if restoring or not Tracking.Enabled() then
 		return
@@ -223,12 +223,12 @@ function Tracking.Init()
 	hooksecurefunc(C_Minimap, "ClearAllTracking", RememberClearAll)
 
 	local events = ns.events
-	-- Einloggen, /reload, Zonenwechsel
+	-- login, /reload, zone change
 	events.Register("PLAYER_ENTERING_WORLD", function()
 		OpenWindow(FIRST_DELAY + RESTORE_WINDOW)
 		Tracking.Restore(FIRST_DELAY)
 	end)
-	-- Wiederbelebung als Geist bzw. am Leichnam (auch Freilassen)
+	-- resurrection as ghost or at the corpse (including release)
 	for _, event in ipairs({ "PLAYER_UNGHOST", "PLAYER_ALIVE" }) do
 		events.Register(event, function()
 			OpenWindow(RESTORE_WINDOW)

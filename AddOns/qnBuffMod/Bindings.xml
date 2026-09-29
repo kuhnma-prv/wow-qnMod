@@ -1,5 +1,5 @@
 <Bindings>
 	<Binding name="QNBUFFMOD_RECASTBUFFS" runOnUp="true" header="QNBUFFMOD" category="ADDONS">
-		-- Platzhalter: qnBuffMod belegt die Taste selbst (SetOverrideBindingClick)
+		-- Placeholder: qnBuffMod binds the key itself (SetOverrideBindingClick)
 	</Binding>
 </Bindings>

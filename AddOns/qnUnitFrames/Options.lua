@@ -1,7 +1,7 @@
--- qnUnitFrames: Optionen im Blizzard-Einstellungsfenster (Settings-API).
--- Hauptseite: Schalter und Auswahl der Rahmen; die Klickbelegung selbst baut ClicksPage.lua.
--- Die Einstellungen gehören zum aktiven Profil (qnCore); nach einem Profilwechsel liest qnCore die
--- Steuerelemente neu ein.
+-- qnUnitFrames: options in the Blizzard settings panel (Settings API).
+-- Main page: toggles and frame selection; the click bindings themselves are built by ClicksPage.lua.
+-- The settings belong to the active profile (qnCore); after a profile switch qnCore re-reads the
+-- controls.
 
 local _, ns = ...
 local L = ns.L
@@ -29,7 +29,7 @@ local function Build(category, layout)
 	ns.InitClicksPage(category)
 end
 
--- setzt ns.category und ns.OpenOptions
+-- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
 	S.NewCategory(ns, "qnUnitFrames", Build)
 end

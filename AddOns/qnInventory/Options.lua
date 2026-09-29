@@ -1,9 +1,9 @@
--- qnInventory: Optionen im Blizzard-Einstellungsfenster (Settings-API), Seite "qnInventory".
--- Die Optionen gelten kontoweit (qnInventoryDB.options), nicht je Profil: Bestandsdaten
--- hängen an keinem Profil.
---   * Fraktionen: andere Fraktion in den Tooltips der Titan-Plugins bzw. in der Charakterauswahl
---     der Ansichten (beides Opt-in)
---   * Charakter löschen: gespeicherte Daten eines Charakters (dieser oder verbundener Realm)
+-- qnInventory: options in the Blizzard settings window (Settings API), page "qnInventory".
+-- The options apply account-wide (qnInventoryDB.options), not per profile: inventory data
+-- are not tied to any profile.
+--   * Factions: other faction in the tooltips of the Titan plugins or in the character selection
+--     of the views (both opt-in)
+--   * Delete character: stored data of a character (this or a connected realm)
 
 local _, ns = ...
 local L = ns.L
@@ -11,10 +11,10 @@ local S = qnCore.Settings
 
 local DELETE_POPUP = "QNINVENTORY_DELETE_CHAR"
 
--- Auswahl zum Löschen (nicht gespeichert); "" = keiner
+-- Selection for deletion (not saved); "" = none
 local pick = { deleteChar = "" }
 
--- Alle gespeicherten Charaktere außer dem eingeloggten, beide Fraktionen
+-- All stored characters except the logged-in one, both factions
 local function DeleteEntries()
 	local entries = { { "", NONE } }
 	for _, e in ipairs(ns.CharEntries(true)) do
@@ -59,7 +59,7 @@ local function Build(category, layout)
 	end, L["Deletes the stored data of the character selected above after confirmation."])
 end
 
--- setzt ns.category und ns.OpenOptions
+-- sets ns.category and ns.OpenOptions
 function ns.InitOptions()
 	S.NewCategory(ns, "qnInventory", Build)
 end

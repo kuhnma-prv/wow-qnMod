@@ -1,8 +1,8 @@
--- qnTooltip: Daten einer Einheit und Aufbau der Zeilen aus den Bausteinen.
--- Viele Einheiten-Werte können secret sein (Name, Gilde, Stufe …). Solche Werte werden weder
--- verglichen noch verknüpft: jede Zeile ist ein Formatmuster mit Werten und geht als Ganzes an
--- SetFormattedText. Farben und Filter brauchen lesbare Werte; fehlen sie, entfällt die Farbe bzw.
--- der Baustein.
+-- qnTooltip: data of a unit and building the lines from the elements.
+-- Many unit values may be secret (name, guild, level, ...). Such values are neither
+-- compared nor concatenated: every line is a format pattern with values and goes as a whole to
+-- SetFormattedText. Colors and filters need readable values; if they are missing, the color or
+-- the element is dropped.
 
 local _, ns = ...
 local L = ns.L
@@ -11,7 +11,7 @@ local IsSecret = ns.IsSecret
 local UD = {}
 ns.UnitData = UD
 
--- Wert vorhanden? secret gilt als vorhanden (nur SetFormattedText sieht ihn)
+-- value present? secret counts as present (only SetFormattedText sees it)
 local function Has(v)
 	return IsSecret(v) or (v ~= nil and v ~= "")
 end
@@ -25,7 +25,7 @@ local function Plain(v)
 end
 
 ---------------------------------------------------------------------------
--- Symbole
+-- Icons
 ---------------------------------------------------------------------------
 
 local ROLE_ICON = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES:14:14:0:0:64:64:%s|t"
@@ -38,14 +38,14 @@ local FRIEND_ICON = "|A:friendslist-favorite:14:14|a"
 UD.BIG_FACTION = { Alliance = "Interface\\Timer\\Alliance-Logo", Horde = "Interface\\Timer\\Horde-Logo" }
 
 ---------------------------------------------------------------------------
--- Rohdaten
+-- Raw data
 ---------------------------------------------------------------------------
 
 function UD.Collect(unit)
 	local raw = { unit = unit }
 	raw.isPlayer = Plain(UnitIsPlayer(unit))
-	-- Forever (camelot): UnitName liefert Vor- und Nachname (NameUtil.GetUnitFirstName, IsPlayerMe),
-	-- nicht den Realm. Den Realm liefert GetPlayerInfoByGUID ("" = eigener Realm).
+	-- Forever (camelot): UnitName returns first name and surname (NameUtil.GetUnitFirstName, IsPlayerMe),
+	-- not the realm. The realm comes from GetPlayerInfoByGUID ("" = own realm).
 	raw.name, raw.surname = UnitName(unit)
 	raw.pvpName = UnitPVPName(unit)
 	raw.level = UnitLevel(unit)
@@ -69,7 +69,7 @@ function UD.Collect(unit)
 	return raw
 end
 
--- Text ohne das erste Vorkommen von part (reiner Textvergleich); pos = Fundstelle
+-- text without the first occurrence of part (plain text match); pos = position found
 local function Without(text, part)
 	local pos = text:find(part, 1, true)
 	if not pos then
@@ -78,7 +78,7 @@ local function Without(text, part)
 	return text:sub(1, pos - 1) .. text:sub(pos + #part), pos
 end
 
--- Titel aus UnitPVPName ohne Vor- und Nachname; zweiter Wert: steht der Titel vor dem Namen?
+-- title from UnitPVPName without first name and surname; second value: is the title before the name?
 local function Title(raw)
 	local name, pvpName = Plain(raw.name), Plain(raw.pvpName)
 	if not (name and pvpName) or name == pvpName then
@@ -99,7 +99,7 @@ local function Title(raw)
 	return title, pos > 1
 end
 
--- Zone eines Schlachtzugsmitglieds
+-- zone of a raid member
 local function Zone(unit)
 	local index = Plain(UnitInRaid(unit))
 	if index then
@@ -107,7 +107,7 @@ local function Zone(unit)
 	end
 end
 
--- Bewegungstempo in Prozent (nur lesbare Werte)
+-- movement speed in percent (readable values only)
 local function Speed(unit)
 	local speed = Plain(GetUnitSpeed(unit))
 	if not speed or speed == 0 then
@@ -117,7 +117,7 @@ local function Speed(unit)
 end
 
 ---------------------------------------------------------------------------
--- Werte der Bausteine (nil = nicht anzeigen)
+-- Element values (nil = do not show)
 ---------------------------------------------------------------------------
 
 local VALUES = {}
@@ -298,8 +298,8 @@ function VALUES.reactionName(raw)
 end
 
 ---------------------------------------------------------------------------
--- Beispielwerte für die Vorschau auf den Optionsseiten: der lesbare Wert der Einheit, sonst ein
--- Beispiel (Blizzard-Texte), sonst der Name des Bausteins. raw darf nil sein.
+-- Sample values for the preview on the options pages: the unit's readable value, otherwise a
+-- sample (Blizzard texts), otherwise the element's name. raw may be nil.
 ---------------------------------------------------------------------------
 
 local SAMPLES = {
@@ -334,7 +334,7 @@ function UD.Sample(key, raw, label)
 end
 
 ---------------------------------------------------------------------------
--- Farbfunktionen: liefern r, g, b oder nil
+-- Color functions: return r, g, b or nil
 ---------------------------------------------------------------------------
 
 local COLORS = {}
@@ -382,7 +382,7 @@ function COLORS.selection(raw)
 	end
 end
 
--- Auswahl im Dropdown: { Schlüssel, Anzeigename }
+-- dropdown choices: { key, display name }
 function UD.ColorEntries()
 	return {
 		{ "default", DEFAULT },
@@ -394,7 +394,7 @@ function UD.ColorEntries()
 	}
 end
 
--- r, g, b zu einer Farbe (Funktion oder Hexwert) oder nil
+-- r, g, b for a color (function or hex value) or nil
 function UD.Color(key, raw)
 	local fn = COLORS[key]
 	if fn then
@@ -404,7 +404,7 @@ function UD.Color(key, raw)
 end
 
 ---------------------------------------------------------------------------
--- Filter: "none", "<name>" oder "!<name>" (verneint)
+-- Filter: "none", "<name>" or "!<name>" (negated)
 ---------------------------------------------------------------------------
 
 local FILTERS = {}
@@ -458,10 +458,10 @@ local function Pass(filter, raw)
 end
 
 ---------------------------------------------------------------------------
--- Formate
+-- Formats
 ---------------------------------------------------------------------------
 
--- Gültiges Format: genau ein Platzhalter (%s; bei Zahlen auch %d), sonst nur %%.
+-- Valid format: exactly one placeholder (%s; for numbers also %d), otherwise only %%.
 function UD.ValidFormat(fmt, kind)
 	if type(fmt) ~= "string" then
 		return false
@@ -478,7 +478,7 @@ function UD.ValidFormat(fmt, kind)
 	return n == 1
 end
 
--- Wert mit einem Format (nur lesbare Werte, für die Vorschau auf den Optionsseiten); nil = ungültig
+-- value with a format (readable values only, for the preview on the options pages); nil = invalid
 function UD.FormatValue(fmt, kind, value)
 	if not UD.ValidFormat(fmt, kind) then
 		return nil
@@ -499,7 +499,7 @@ local function Format(cfg, default, kind)
 	return default.format
 end
 
--- Beschriftungen vor dem Wert (Gegenstandsstufe); % im Text maskiert
+-- labels before the value (item level); % in the text escaped
 local LABELS = {
 	itemLevel = function()
 		return "|cffffd100" .. STAT_AVERAGE_ITEM_LEVEL:gsub("%%", "%%%%") .. ":|r "
@@ -507,8 +507,8 @@ local LABELS = {
 }
 
 ---------------------------------------------------------------------------
--- Zeilen
--- Liefert eine Liste { pattern, args } in Zeilenfolge; opts.gray: alles grau (tote Einheiten)
+-- Lines
+-- Returns a list { pattern, args } in line order; opts.gray: everything gray (dead units)
 ---------------------------------------------------------------------------
 
 function UD.Rows(kind, elements, raw, opts)
@@ -554,9 +554,9 @@ function UD.Rows(kind, elements, raw, opts)
 		return a.index < b.index
 	end)
 
-	-- Titel direkt vor oder hinter den Namen (wie im Spiel), wenn beide in derselben Zeile stehen
+	-- title directly before or after the name (as in the game) if both are on the same line
 	local _, prefix = Title(raw)
-	-- ein nachgestellter Titel folgt auf den Nachnamen, wenn dieser direkt hinter dem Namen steht
+	-- a trailing title follows the surname if the surname comes directly after the name
 	local ti, ni, si
 	for i, item in ipairs(items) do
 		if item.key == "title" then ti = i elseif item.key == "name" then ni = i elseif item.key == "surname" then si = i end

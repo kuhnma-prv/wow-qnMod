@@ -1,10 +1,10 @@
--- Szenario 10: qnBuffMod – Umrechnung des alten Datenformats, Bereinigung beim Laden, Fensterverwaltung,
--- Position, abgeschaltete Fenster, keine doppelte Anzeige
+-- Scenario 10: qnBuffMod – conversion of the old data format, cleanup on load, window management,
+-- position, disabled windows, no duplicate display
 local clicks = {}
 local orig = CreateSettingsButtonInitializer
 function CreateSettingsButtonInitializer(n, bt, click, ...) clicks[bt] = click return orig(n, bt, click, ...) end
 
--- Profile im alten, verschachtelten Format bzw. schon im neuen
+-- profiles in the old nested format or already in the new one
 qnCoreCharDB = { layout = "preset:1" }
 qnBuffModDB = { global = {}, profiles = {
 	["preset:1"] = {
@@ -30,27 +30,27 @@ local oldPrint = bm.Print
 bm.Print = function(fmt, ...) printed[#printed + 1] = tostring(fmt):format(...) oldPrint(fmt, ...) end
 
 ---------------------------------------------------------------------------
--- Umrechnung (Entscheidung 6) und Bereinigung (Kriterium 59)
+-- conversion (decision 6) and cleanup (criterion 59)
 ---------------------------------------------------------------------------
 local db = qnBuffModDB.profiles["preset:1"]
-Check(bm.db == db, "letztes Profil des Charakters aktiv")
-Check(db.windowOptionsList == nil and type(db.windows) == "table", "alter Schlüssel gelöscht, flaches Format")
+Check(bm.db == db, "character's last profile active")
+Check(db.windowOptionsList == nil and type(db.windows) == "table", "old key deleted, flat format")
 local w1 = db.windows[1]
-Check(w1 and w1.lockWindow == true and w1.clampWindow == false, "Booleans 1/0 als true/false übernommen")
-Check(w1.sortSeq1 == 3 and w1.sortSeq2 == E.group.NONE and w1.sortSeq3 == 6, "doppelte Gruppe: der spätere Platz wird keine")
-Check(w1.buffSize1 == 45 and w1.buffSize2 == 15 and w1.detailWidth1 == 400, "Symbolgröße und Leistenbreite begrenzt")
-Check(w1.windowBackgroundColor == nil and w1.unitType == nil and w1.layoutType == nil, "ungültige Farbe und Auswahlwerte → Vorgabe")
-Check(w1.position and w1.position[4] == 100 and w1.position[5] == 200, "Position übernommen")
-Check(db.windows[3].disableWindow == true and db.windows[3].unitType == 4 and type(db.windows[4]) == "table", "weitere Fenster übernommen (auch leere)")
-Check(type(db.bgColorBUFF) == "table" and db.bgColorBUFF[3] == bm.defaults.bgColorBUFF[3], "ungültige allgemeine Farbe → Vorgabe")
-Check(db.flashTime == 60 and db.expirationTime2 == 0 and db.enableExpiration == true, "allgemeine Werte begrenzt, Booleans übernommen")
-Check(qnBuffModDB.profiles["account:Raid"].windows[2].buffSize1 == 25 and qnBuffModDB.profiles["account:Raid"].windowOptionsList == nil, "Profil im neuen Format unverändert")
-Check(bm.store.seed == nil and bm.store.migrating == nil, "keine Übernahme fremder Einstellungen (kein legacy)")
--- einmalig: ein zweiter Durchlauf ändert nichts mehr
+Check(w1 and w1.lockWindow == true and w1.clampWindow == false, "booleans 1/0 taken over as true/false")
+Check(w1.sortSeq1 == 3 and w1.sortSeq2 == E.group.NONE and w1.sortSeq3 == 6, "duplicate group: the later slot becomes none")
+Check(w1.buffSize1 == 45 and w1.buffSize2 == 15 and w1.detailWidth1 == 400, "icon size and bar width clamped")
+Check(w1.windowBackgroundColor == nil and w1.unitType == nil and w1.layoutType == nil, "invalid color and selection values → default")
+Check(w1.position and w1.position[4] == 100 and w1.position[5] == 200, "position taken over")
+Check(db.windows[3].disableWindow == true and db.windows[3].unitType == 4 and type(db.windows[4]) == "table", "further windows taken over (empty ones too)")
+Check(type(db.bgColorBUFF) == "table" and db.bgColorBUFF[3] == bm.defaults.bgColorBUFF[3], "invalid general color → default")
+Check(db.flashTime == 60 and db.expirationTime2 == 0 and db.enableExpiration == true, "general values clamped, booleans taken over")
+Check(qnBuffModDB.profiles["account:Raid"].windows[2].buffSize1 == 25 and qnBuffModDB.profiles["account:Raid"].windowOptionsList == nil, "profile in the new format unchanged")
+Check(bm.store.seed == nil and bm.store.migrating == nil, "no takeover of foreign settings (no legacy)")
+-- one-time: a second pass changes nothing anymore
 bm.store:Prepare(db)
-Check(db.windows[1].buffSize1 == 45 and db.windows[1].sortSeq2 == E.group.NONE, "Umrechnung wiederholbar ohne Wirkung")
+Check(db.windows[1].buffSize1 == 45 and db.windows[1].sortSeq2 == E.group.NONE, "conversion repeatable without effect")
 
--- Lage vor der ersten Anordnung: gespeicherte Position
+-- position before the first arrangement: saved position
 local points = {}
 local origOffset = qnCore.PointOffset
 qnCore.PointOffset = function(frame, point, rel, ...)
@@ -65,80 +65,80 @@ AURAS.player = {
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
-Check(points[1] and points[1][1] == "TOPLEFT" and points[1][3] == "BOTTOMLEFT" and points[1][4] == 100 and points[1][5] == 200, "gespeicherte Position wiederhergestellt")
+Check(points[1] and points[1][1] == "TOPLEFT" and points[1][3] == "BOTTOMLEFT" and points[1][4] == 100 and points[1][5] == 200, "saved position restored")
 
 ---------------------------------------------------------------------------
--- Abgeschaltetes Fenster (Kriterium 62)
+-- disabled window (criterion 62)
 ---------------------------------------------------------------------------
 local ids = bm.WindowIDs()
-Check(#ids == 3 and ids[1] == 1 and ids[2] == 3 and ids[3] == 4, "Fenster 1, 3, 4 (IDs nicht lückenlos)")
+Check(#ids == 3 and ids[1] == 1 and ids[2] == 3 and ids[3] == 4, "windows 1, 3, 4 (IDs not contiguous)")
 local w3 = bm.GetWindow(3)
-Check(w3.frame == nil and not bm.Auras.IsWatched("target"), "abgeschaltet: keine Rahmen, Einheit nicht beobachtet")
+Check(w3.frame == nil and not bm.Auras.IsWatched("target"), "disabled: no frames, unit not watched")
 AURAS.target = { { name = "Zielsegen", icon = 5, applications = 0, duration = 300, expirationTime = 1200, spellId = 9 } }
 FireEvent("PLAYER_TARGET_CHANGED") RunTimers()
 FireEvent("UNIT_AURA", "target") RunTimers()
 RunTickers()
-Check(w3.frame == nil and #bm.GetEntries(3) == 0 and bm.Auras.units.target == nil, "abgeschaltet: reagiert auf keine Ereignisse und Takte")
+Check(w3.frame == nil and #bm.GetEntries(3) == 0 and bm.Auras.units.target == nil, "disabled: reacts to no events and ticks")
 SETTINGS.QNBUFFMOD_EDITWINDOW:SetValue(3)
-Check(SETTINGS.QNBUFFMOD_W_UNITTYPE:GetValue() == E.unit.TARGET, "abgeschaltet: Einstellungen bleiben, Fenster auswählbar")
+Check(SETTINGS.QNBUFFMOD_W_UNITTYPE:GetValue() == E.unit.TARGET, "disabled: settings stay, window selectable")
 SETTINGS.QNBUFFMOD_W_DISABLEWINDOW:SetValue(false)
-Check(w3.frame ~= nil and bm.Auras.IsWatched("target") and #bm.GetEntries(3) == 1, "wieder an: Anzeige mit Einträgen")
+Check(w3.frame ~= nil and bm.Auras.IsWatched("target") and #bm.GetEntries(3) == 1, "enabled again: display with entries")
 SETTINGS.QNBUFFMOD_W_DISABLEWINDOW:SetValue(true)
 
 ---------------------------------------------------------------------------
--- Keine doppelte Anzeige (Entscheidung 1)
+-- no duplicate display (decision 1)
 ---------------------------------------------------------------------------
 SETTINGS.QNBUFFMOD_EDITWINDOW:SetValue(1)
 SETTINGS.QNBUFFMOD_G_SORTSEQ1:SetValue(E.group.ALLBUFFS)
 SETTINGS.QNBUFFMOD_G_SORTSEQ2:SetValue(E.group.CANCELABLE)
 local names = {}
 for _, e in ipairs(bm.GetEntries(1)) do names[#names + 1] = e.name .. "@" .. e.rec.filter end
-Check(table.concat(names, ",") == "Arkane Intelligenz@HELPFUL,Bärenform@HELPFUL", "jeder Zauber einmal, im ersten passenden Platz: " .. table.concat(names, ","))
+Check(table.concat(names, ",") == "Arkane Intelligenz@HELPFUL,Bärenform@HELPFUL", "each spell once, in the first matching slot: " .. table.concat(names, ","))
 SETTINGS.QNBUFFMOD_G_SORTSEQ1:SetValue(E.group.CANCELABLE)
 SETTINGS.QNBUFFMOD_G_SORTSEQ2:SetValue(E.group.ALLBUFFS)
 names = {}
 for _, e in ipairs(bm.GetEntries(1)) do names[#names + 1] = e.name .. "@" .. e.rec.filter end
-Check(table.concat(names, ",") == "Arkane Intelligenz@HELPFUL|CANCELABLE,Bärenform@HELPFUL", "Reihenfolge der Plätze entscheidet: " .. table.concat(names, ","))
+Check(table.concat(names, ",") == "Arkane Intelligenz@HELPFUL|CANCELABLE,Bärenform@HELPFUL", "order of the slots decides: " .. table.concat(names, ","))
 
 ---------------------------------------------------------------------------
--- Fensterverwaltung (Kriterien 56, 57)
+-- window management (criteria 56, 57)
 ---------------------------------------------------------------------------
 points = {}
 clicks[ADD]()
-Check(bm.SelectedID() == 2 and printed[#printed] == L["Window %d added."]:format(2), "kleinste freie ID, Meldung, ausgewählt")
-Check(points[1] and points[1][1] == "CENTER" and points[1][2] == UIParent and points[1][3] == "CENTER", "neues Fenster in der Bildschirmmitte")
-Check(bm.db.windows[2].position ~= nil, "Position des neuen Fensters gespeichert")
+Check(bm.SelectedID() == 2 and printed[#printed] == L["Window %d added."]:format(2), "smallest free ID, message, selected")
+Check(points[1] and points[1][1] == "CENTER" and points[1][2] == UIParent and points[1][3] == "CENTER", "new window in the screen center")
+Check(bm.db.windows[2].position ~= nil, "position of the new window saved")
 SETTINGS.QNBUFFMOD_B_BUFFSIZE1:SetValue(33)
 points = {}
 clicks[L["Clone"]]()
-Check(bm.SelectedID() == 5 and bm.db.windows[5].buffSize1 == 33 and printed[#printed] == L["Window %d added, copying settings from window %d."]:format(5, 2), "Kopie mit Einstellungen")
-Check(points[1] and points[1][1] == "CENTER", "Kopie in der Bildschirmmitte")
--- Zurücksetzen
+Check(bm.SelectedID() == 5 and bm.db.windows[5].buffSize1 == 33 and printed[#printed] == L["Window %d added, copying settings from window %d."]:format(5, 2), "clone with settings")
+Check(points[1] and points[1][1] == "CENTER", "clone in the screen center")
+-- reset
 bm.GetWindow(5).frame.GetLeft = function() return 1500 end
 points = {}
 clicks[RESET]()
-Check(points[1] and points[1][1] == "CENTER" and points[1][3] == "CENTER", "Zurücksetzen: Bildschirmmitte")
--- im Kampf abgelehnt
+Check(points[1] and points[1][1] == "CENTER" and points[1][3] == "CENTER", "reset: screen center")
+-- refused in combat
 QN_COMBAT = true
 printed = {}
 clicks[ADD]()
 clicks[L["Clone"]]()
 StaticPopupDialogs.QNBUFFMOD_DELETE_WINDOW.OnAccept()
 QN_COMBAT = false
-Check(#printed == 3 and printed[1] == L["Not possible in combat."] and printed[3] == L["Not possible in combat."] and #bm.WindowIDs() == 5, "Anlegen, Kopieren, Löschen im Kampf abgelehnt")
--- höchstens 10 Fenster
+Check(#printed == 3 and printed[1] == L["Not possible in combat."] and printed[3] == L["Not possible in combat."] and #bm.WindowIDs() == 5, "create, clone, delete refused in combat")
+-- at most 10 windows
 for _ = 1, 5 do clicks[ADD]() end
-Check(#bm.WindowIDs() == 10, "zehn Fenster")
+Check(#bm.WindowIDs() == 10, "ten windows")
 printed = {}
 clicks[ADD]()
-Check(#bm.WindowIDs() == 10 and printed[1] == L["No more than %d windows are possible."]:format(10), "elftes abgelehnt")
--- Löschen: Auswahl an derselben Listenposition
+Check(#bm.WindowIDs() == 10 and printed[1] == L["No more than %d windows are possible."]:format(10), "eleventh refused")
+-- delete: selection at the same list position
 SETTINGS.QNBUFFMOD_EDITWINDOW:SetValue(4)
 clicks[L["Delete …"]]()
-Check(LAST_POPUP.which == "QNBUFFMOD_DELETE_WINDOW" and LAST_POPUP.a1 == L["Window %d"]:format(4), "Rückfrage mit Fensternamen")
+Check(LAST_POPUP.which == "QNBUFFMOD_DELETE_WINDOW" and LAST_POPUP.a1 == L["Window %d"]:format(4), "confirmation with window name")
 StaticPopupDialogs.QNBUFFMOD_DELETE_WINDOW.OnAccept()
-Check(bm.db.windows[4] == nil and bm.SelectedID() == 5 and printed[#printed] == L["Window %d deleted."]:format(4), "gelöscht, nächstes an derselben Position gewählt")
--- alle löschen: das letzte legt sofort ein neues an
+Check(bm.db.windows[4] == nil and bm.SelectedID() == 5 and printed[#printed] == L["Window %d deleted."]:format(4), "deleted, next one at the same position selected")
+-- delete all: the last one immediately creates a new one
 for _ = 1, 20 do
 	if #bm.WindowIDs() == 1 then break end
 	StaticPopupDialogs.QNBUFFMOD_DELETE_WINDOW.OnAccept()
@@ -147,9 +147,9 @@ local last = bm.WindowIDs()[1]
 StaticPopupDialogs.QNBUFFMOD_DELETE_WINDOW.OnAccept()
 ids = bm.WindowIDs()
 Check(#ids == 1 and printed[#printed] == L["No window left – window %d added."]:format(ids[1]) and bm.GetWindow(ids[1]).o.buffSize1 == bm.windowDefaults.buffSize1,
-	"letztes gelöscht: neues mit Vorgaben (" .. tostring(last) .. " → " .. tostring(ids[1]) .. ")")
+	"last one deleted: new one with defaults (" .. tostring(last) .. " → " .. tostring(ids[1]) .. ")")
 
--- Position nach dem Ziehen gespeichert und beim Wiederaufbau (Profilwechsel) wiederhergestellt
+-- position saved after dragging and restored on rebuild (profile switch)
 local win = bm.GetWindow(ids[1])
 win.frame.GetLeft = function() return 400 end
 win.frame.GetBottom = function() return 300 end
@@ -163,8 +163,8 @@ SETTINGS.QNBUFFMOD_EDITWINDOW:SetValue(ids[1])
 SETTINGS.QNBUFFMOD_W_DISABLEWINDOW:SetValue(true)
 SETTINGS.QNBUFFMOD_W_DISABLEWINDOW:SetValue(false)
 local p = points[1]
-Check(p and p[1] == pos[1] and p[3] == pos[3] and p[4] == pos[4] and p[5] == pos[5], "Position nach dem Ziehen gespeichert und wiederhergestellt")
--- Profilwechsel im Kampf: erst danach; das alte Profil bleibt unverändert (Kriterium 58)
+Check(p and p[1] == pos[1] and p[3] == pos[3] and p[4] == pos[4] and p[5] == pos[5], "position saved after dragging and restored")
+-- profile switch in combat: only afterwards; the old profile stays unchanged (criterion 58)
 local function Same(a, b)
 	if type(a) ~= type(b) then return false end
 	if type(a) ~= "table" then return a == b end
@@ -176,9 +176,9 @@ local before = CopyTable(bm.db)
 local oldDB = bm.db
 QN_COMBAT = true
 SetEditModeLayout(3)
-Check(bm.db == oldDB, "im Kampf: noch das alte Profil")
+Check(bm.db == oldDB, "in combat: still the old profile")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED") RunTimers()
-Check(bm.db == qnBuffModDB.profiles["account:Raid"] and bm.WindowIDs()[1] == 2 and bm.GetWindow(2).o.buffSize1 == 25, "nach dem Kampf gewechselt, Fenster des neuen Profils")
-Check(Same(before, oldDB), "Abbau ändert das alte Profil nicht")
+Check(bm.db == qnBuffModDB.profiles["account:Raid"] and bm.WindowIDs()[1] == 2 and bm.GetWindow(2).o.buffSize1 == 25, "switched after combat, windows of the new profile")
+Check(Same(before, oldDB), "teardown does not change the old profile")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

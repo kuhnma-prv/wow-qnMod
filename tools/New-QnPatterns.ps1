@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-	Erzeugt die kachelbaren Hintergrundmuster von qnCore (qnCore\Media\Patterns\*.tga).
+	Generates the tileable background patterns of qnCore (qnCore\Media\Patterns\*.tga).
 .DESCRIPTION
-	Jedes Muster ist eine Funktion (x, y) -> (Grauwert, Deckkraft) mit Werten 0–1. Die Kachel wird mit
-	4×4 Abtastpunkten je Pixel geglättet und als unkomprimiertes 32-Bit-TGA (BGRA, Ursprung unten links)
-	geschrieben. Kantenlängen sind Zweierpotenzen und die Muster nahtlos, damit WoW sie kacheln kann.
-	Die Muster sind überwiegend dunkel und durchscheinend: die Randfarbe von qnViewPort bleibt darunter
-	sichtbar, die Deckkraft regelt das Addon.
+	Each pattern is a function (x, y) -> (gray value, opacity) with values 0-1. The tile is smoothed with
+	4x4 samples per pixel and written as an uncompressed 32-bit TGA (BGRA, origin bottom left).
+	Edge lengths are powers of two and the patterns are seamless so WoW can tile them.
+	The patterns are mostly dark and translucent: the border color of qnViewPort stays visible
+	underneath, the addon controls the opacity.
 .EXAMPLE
 	pwsh tools\New-QnPatterns.ps1
 #>
@@ -18,12 +18,12 @@ $ErrorActionPreference = 'Stop'
 
 function Wrap([double]$v, [double]$p) { $v - $p * [math]::Floor($v / $p) }
 
-# Deterministisches Rauschen (gleiche Datei bei jedem Lauf)
+# Deterministic noise (same file on every run)
 $rng = [System.Random]::new(4711)
 $noise = [double[]]::new(128 * 128)
 for ($i = 0; $i -lt $noise.Length; $i++) { $noise[$i] = $rng.NextDouble() }
 
-# Name = Dateiname; Size = Kantenlänge; Samples = Glättung (1 = pixelgenau); Fn = Muster
+# Name = file name; Size = edge length; Samples = smoothing (1 = pixel-exact); Fn = pattern
 $patterns = @(
 	@{ Name = 'Stripes'; Size = 64; Samples = 4; Fn = {
 		param($x, $y)
@@ -39,7 +39,7 @@ $patterns = @(
 	} }
 	@{ Name = 'Dots'; Size = 64; Samples = 4; Fn = {
 		param($x, $y)
-		# versetzte Reihen: jede zweite Reihe um eine halbe Zelle verschoben
+		# staggered rows: every second row shifted by half a cell
 		$row = [math]::Floor($y / 16)
 		$dx = (Wrap ($x + ($row % 2) * 8) 16) - 8
 		$dy = (Wrap $y 16) - 8
@@ -59,9 +59,9 @@ $patterns = @(
 		$row = [math]::Floor($y / 16)
 		$bx = Wrap ($x + ($row % 2) * 16) 32
 		$by = Wrap $y 16
-		if ($by -lt 2 -or $bx -lt 2) { 0, 0.85 }                  # Fuge
-		elseif ($by -lt 3 -or $bx -lt 3) { 1, 0.2 }               # Lichtkante oben/links
-		elseif ($by -ge 15 -or $bx -ge 31) { 0, 0.35 }            # Schattenkante unten/rechts
+		if ($by -lt 2 -or $bx -lt 2) { 0, 0.85 }                  # joint
+		elseif ($by -lt 3 -or $bx -lt 3) { 1, 0.2 }               # highlight edge top/left
+		elseif ($by -ge 15 -or $bx -ge 31) { 0, 0.35 }            # shadow edge bottom/right
 		else { 0, 0 }
 	} }
 	@{ Name = 'Scanlines'; Size = 64; Samples = 1; Fn = {
@@ -75,7 +75,7 @@ $patterns = @(
 	} }
 	@{ Name = 'Weave'; Size = 64; Samples = 1; Fn = {
 		param($x, $y)
-		# Geflecht: 8er-Zellen im Schachbrett, abwechselnd waagrecht und senkrecht schattiert
+		# weave: 8px cells in a checkerboard, shaded alternately horizontally and vertically
 		$cx = Wrap $x 8; $cy = Wrap $y 8
 		$t = if (([math]::Floor($x / 8) + [math]::Floor($y / 8)) % 2 -eq 0) { $cy / 7 } else { $cx / 7 }
 		$v = [math]::Sin($t * [math]::PI)
@@ -85,11 +85,11 @@ $patterns = @(
 
 function Write-Tga([string]$Path, [int]$Size, [byte[]]$Pixels) {
 	$header = [byte[]]::new(18)
-	$header[2] = 2                                      # unkomprimiert, Echtfarben
+	$header[2] = 2                                      # uncompressed, true color
 	$header[12] = $Size -band 0xFF; $header[13] = $Size -shr 8
 	$header[14] = $Size -band 0xFF; $header[15] = $Size -shr 8
-	$header[16] = 32                                    # Bit je Pixel
-	$header[17] = 8                                     # 8 Alpha-Bits, Ursprung unten links
+	$header[16] = 32                                    # bits per pixel
+	$header[17] = 8                                     # 8 alpha bits, origin bottom left
 	[System.IO.File]::WriteAllBytes($Path, $header + $Pixels)
 }
 
@@ -109,7 +109,7 @@ foreach ($p in $patterns) {
 			$a = $sumA / ($n * $n)
 			$v = if ($sumA -gt 0) { $sumVA / $sumA } else { 0 }
 			$g = [byte][math]::Round(255 * [math]::Min(1, [math]::Max(0, $v)))
-			# Zeile y (oben = 0) liegt im TGA mit Ursprung unten links bei size-1-y
+			# row y (top = 0) is at size-1-y in a TGA with origin bottom left
 			$i = (($size - 1 - $y) * $size + $x) * 4
 			$pixels[$i] = $g; $pixels[$i + 1] = $g; $pixels[$i + 2] = $g
 			$pixels[$i + 3] = [byte][math]::Round(255 * $a)
@@ -117,5 +117,5 @@ foreach ($p in $patterns) {
 	}
 	$file = Join-Path $OutDir "$($p.Name).tga"
 	Write-Tga $file $size $pixels
-	Write-Host "$($p.Name).tga ($size×$size)"
+	Write-Host "$($p.Name).tga (${size}x$size)"
 }

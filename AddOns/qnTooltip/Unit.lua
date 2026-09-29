@@ -1,9 +1,9 @@
--- qnTooltip: Einheiten-Tooltips. Nach Blizzards Aufbau (TooltipDataProcessor, Typ Unit) werden die
--- Kopfzeilen durch die Zeilen aus den Bausteinen ersetzt:
---   Spieler: Zeile 1 bis zur Stufenzeile (Name, Gilde, Stufe) und direkt folgende Fraktions-/PvP-Zeilen
---   NSC:     Zeile 1 und die Stufenzeile; die Titelzeile dazwischen bleibt und wird nur umformatiert
--- Welche Zeile die Stufenzeile ist, steht in den Tooltipdaten (Zeilentyp UnitLevel, lineIndex).
--- Übrige Zeilen (Quest-Ziele, Hinweise) bleiben. Dazu Rahmen-/Hintergrundfarbe und Fraktionswappen.
+-- qnTooltip: unit tooltips. After Blizzard has built the tooltip (TooltipDataProcessor, type Unit) the
+-- header lines are replaced by the lines built from the elements:
+--   Player: line 1 up to the level line (name, guild, level) and directly following faction/PvP lines
+--   NPC:    line 1 and the level line; the title line in between stays and is only reformatted
+-- Which line is the level line is stored in the tooltip data (line type UnitLevel, lineIndex).
+-- Other lines (quest objectives, hints) stay. Plus border/background color and faction emblem.
 
 local _, ns = ...
 local IsSecret = ns.IsSecret
@@ -31,7 +31,7 @@ local function TextIs(text, ...)
 	return false
 end
 
--- Einheit des Tooltips. Ist die GUID secret, ist es bei Weltobjekten die Einheit unter der Maus.
+-- Unit of the tooltip. If the GUID is secret, for world objects it is the unit under the mouse.
 local function ResolveUnit(data)
 	local guid = data.guid
 	if not IsSecret(guid) and guid then
@@ -54,10 +54,10 @@ local function LineIndex(data, lineType)
 	end
 end
 
--- Anfang der Stufenzeile ("Stufe ", aus TOOLTIP_UNIT_LEVEL = "Stufe %s") als Muster
+-- start of the level line ("Level ", from TOOLTIP_UNIT_LEVEL = "Level %s") as a pattern
 local LEVEL_PREFIX = "^" .. (TOOLTIP_UNIT_LEVEL:match("^(.-)%%") or ""):gsub("%p", "%%%0")
 
--- Stufenzeile: Zeilentyp UnitLevel, sonst (Forever setzt ihn nicht immer) am Text erkennen
+-- level line: line type UnitLevel, otherwise (Forever does not always set it) detect by text
 local function LevelLine(data)
 	local index = LineIndex(data, Enum.TooltipDataLineType.UnitLevel)
 	if index then
@@ -71,21 +71,21 @@ local function LevelLine(data)
 	end
 end
 
--- Zeilen, die die Bausteine ersetzen, und die Titelzeile eines NSC
+-- lines replaced by the elements, and the title line of an NPC
 local function Slots(data, isPlayer, raw)
 	local level = LevelLine(data)
 	local slots = { 1 }
 	if isPlayer then
 		local last = level or 1
 		if not level then
-			-- Texte secret (Instanzen): feste Folge in Forever – Name, [Gilde], Stufe, Klasse, Fraktion
+			-- texts secret (instances): fixed order in Forever - name, [guild], level, class, faction
 			last = math.min(#(data.lines or {}), (UD.Has(raw.guildName) and 3 or 2) + 2)
 		end
 		for i = 2, last do
 			slots[#slots + 1] = i
 		end
-		-- direkt folgende Zeilen mit Klasse (Forever: eigene Zeile), Fraktion oder PvP; secret-Texte
-		-- dort sind ebenfalls Klasse bzw. Fraktion
+		-- directly following lines with class (Forever: own line), faction or PvP; secret texts
+		-- there are likewise class or faction
 		local className, factionName = Plain(raw.className), Plain(raw.factionName)
 		for _, line in ipairs(data.lines or {}) do
 			if level and line.lineIndex == last + 1 and last < level + 3 and (IsSecret(line.leftText)
@@ -129,7 +129,7 @@ local function Write(tip, slots, rows)
 	end
 end
 
--- NSC-Titel ("<Gastwirt>") nach dem Baustein npcTitle formatieren
+-- format the NPC title ("<Innkeeper>") according to the npcTitle element
 local function NpcTitle(tip, index, cfg, raw, gray)
 	local e = ns.Element("npc", "npcTitle")
 	local c = cfg.elements.npcTitle or e[4]
@@ -157,7 +157,7 @@ local function NpcTitle(tip, index, cfg, raw, gray)
 	left:SetFormattedText(fmt, text)
 end
 
--- Rahmen- und Hintergrundfarbe nach den Einstellungen der Einheitenart
+-- border and background color according to the settings of the unit kind
 local function Colors(tip, cfg, raw, gray)
 	local db = ns.db
 	local borderAlpha = db.borderColor[4] or 1
@@ -182,7 +182,7 @@ local function Colors(tip, cfg, raw, gray)
 	ns.Style.SetColors(tip, { r, g, b, cfg.bgAlpha }, border)
 end
 
--- großes Fraktionswappen oben rechts
+-- large faction emblem at the top right
 local function BigFaction(tip, cfg, raw)
 	local file = cfg.bigFaction and UD.BIG_FACTION[Plain(raw.factionGroup) or ""]
 	if not file then
@@ -224,7 +224,7 @@ local function OnUnit(tip, data)
 	if title then
 		NpcTitle(tip, title, cfg, raw, gray)
 	end
-	-- PvP-Zeile eines NSC
+	-- PvP line of an NPC
 	for _, line in ipairs(data.lines or {}) do
 		if not isPlayer and line.lineIndex and TextIs(line.leftText, PVP) then
 			ns.Blank(tip, line.lineIndex)
@@ -237,7 +237,7 @@ local function OnUnit(tip, data)
 	ns.StatusBar.Update()
 end
 
--- "<Mit Rechtsklick die Rahmen-Einstellungen aufrufen>" samt Leerzeile davor (UnitFrame_UpdateTooltip)
+-- the right-click hint for frame settings (UNIT_POPUP_RIGHT_CLICK) including the empty line before it (UnitFrame_UpdateTooltip)
 local function OnInstruction(tip, text)
 	if tip ~= GameTooltip or not ns.db.hideUnitFrameHint or text ~= UNIT_POPUP_RIGHT_CLICK then
 		return

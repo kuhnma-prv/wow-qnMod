@@ -1,6 +1,6 @@
--- qnTooltip: Lebensbalken des GameTooltip (GameTooltip.StatusBar, Blizzard setzt Wert 0–1 über
--- UnitPercentHealthFromGUID). Lage, Höhe, Textur, Text (Wert/Prozent/Tot) und Farbe.
--- Lebenswerte können secret sein: sie gehen nur an SetFormattedText bzw. AbbreviateLargeNumbers.
+-- qnTooltip: health bar of the GameTooltip (GameTooltip.StatusBar, Blizzard sets the value 0-1 via
+-- UnitPercentHealthFromGUID). Placement, height, texture, text (value/percent/dead) and color.
+-- Health values may be secret: they are only passed to SetFormattedText or AbbreviateLargeNumbers.
 
 local _, ns = ...
 local L = ns.L
@@ -9,7 +9,7 @@ local IsSecret = ns.IsSecret
 local SB = {}
 ns.StatusBar = SB
 
--- { Schlüssel, Anzeigename, Datei }
+-- { key, display name, file }
 SB.TEXTURES = {
 	{ "Blizzard", "Blizzard", "Interface\\TargetingFrame\\UI-StatusBar" },
 	{ "Flat", L["Flat"], "Interface\\Buttons\\WHITE8X8" },
@@ -41,13 +41,13 @@ local function Bar()
 	return GameTooltip.StatusBar
 end
 
--- soll der Balken sichtbar sein dürfen?
+-- may the bar be visible?
 local function Allowed()
 	return not ns.db.barHide and ns.db.barHeight > 0
 end
 
 ---------------------------------------------------------------------------
--- Text und Farbe
+-- Text and color
 ---------------------------------------------------------------------------
 
 local function UpdateText(bar)
@@ -114,7 +114,7 @@ SB.Update = function()
 end
 
 ---------------------------------------------------------------------------
--- Lage
+-- Placement
 ---------------------------------------------------------------------------
 
 local function Place(bar)
@@ -123,17 +123,17 @@ local function Place(bar)
 	local default = db.borderStyle == "default"
 	local edge = db.borderStyle == "angular" and db.borderSize or 0
 	if db.barPosition == "bottom" then
-		-- auf dem unteren Rand, seitlich innerhalb des Rahmens
+		-- on the bottom edge, horizontally inside the border
 		local x = db.barOffsetX ~= 0 and db.barOffsetX or (default and 5 or edge + 1)
 		bar:SetPoint("TOPLEFT", GameTooltip, "BOTTOMLEFT", x, 2)
 		bar:SetPoint("TOPRIGHT", GameTooltip, "BOTTOMRIGHT", -x, 2)
 	elseif db.barPosition == "top" then
-		-- auf dem oberen Rand
+		-- on the top edge
 		local x = db.barOffsetX ~= 0 and db.barOffsetX or (default and 4 or edge)
 		bar:SetPoint("BOTTOMLEFT", GameTooltip, "TOPLEFT", x, -4)
 		bar:SetPoint("BOTTOMRIGHT", GameTooltip, "TOPRIGHT", -x, -4)
 	else
-		-- unter dem Tooltip (wie Blizzard)
+		-- below the tooltip (like Blizzard)
 		local x = db.barOffsetX ~= 0 and db.barOffsetX or (default and 2 or 0)
 		bar:SetPoint("TOPLEFT", GameTooltip, "BOTTOMLEFT", x, -1)
 		bar:SetPoint("TOPRIGHT", GameTooltip, "BOTTOMRIGHT", -x, -1)

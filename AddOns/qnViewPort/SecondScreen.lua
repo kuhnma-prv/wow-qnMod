@@ -1,12 +1,12 @@
--- qnViewPort: Zwei-Monitor-Modus.
--- Voraussetzung: Das Spielfenster ist über mehrere Monitore gezogen (z. B. 5760 × 2160
--- bei 3840 × 2160 + 1920 × 1200). Dieses Modul
---   * berechnet daraus den Viewport, so dass die 3D-Welt nur auf dem Hauptmonitor liegt,
---   * legt auf Wunsch Taschen und Zonenkarte an eine Ecke eines wählbaren Monitors
---     und zeigt/verbirgt die Zonenkarte,
---   * legt auf Wunsch die maximierte Weltkarte auf einen Monitor und bietet ein paar
---     Einstellungen für die Weltkarte.
--- Der Chat wird nicht verschoben. Alle Angaben in Bildschirmpixeln des Spielfensters.
+-- qnViewPort: dual monitor mode.
+-- Prerequisite: the game window spans several monitors (e.g. 5760 × 2160
+-- with 3840 × 2160 + 1920 × 1200). This module
+--   * computes the viewport from it so that the 3D world lies only on the main monitor,
+--   * optionally moves bags and the Zone Map to a corner of a selectable monitor
+--     and shows/hides the Zone Map,
+--   * optionally puts the maximized World Map on one monitor and offers a few
+--     World Map settings.
+-- The chat is not moved. All values in screen pixels of the game window.
 
 local _, ns = ...
 local L = ns.L
@@ -18,23 +18,23 @@ ns.Dual = Dual
 local DB = ns.DualDB
 
 ---------------------------------------------------------------------------
--- Geometrie
+-- Geometry
 ---------------------------------------------------------------------------
 
--- Viewport-Versätze { links, rechts, oben, unten }: 3D-Welt nur auf dem Hauptmonitor
+-- Viewport offsets { left, right, top, bottom }: 3D world only on the main monitor
 function Dual.GetViewport()
 	local r = ns.Layout.GetMainRect()
 	return r and ns.Layout.ViewportFor(r) or { 0, 0, 0, 0 }
 end
 
--- Umrechnung Pixel -> UIParent-Einheiten (unabhängig davon, ob UIParent verkleinert ist)
+-- Conversion pixels -> UIParent units (regardless of whether UIParent is shrunk)
 local function Scale()
 	local ux, uy = ns.UnitsPerPixel()
 	local s = UIParent:GetEffectiveScale()
 	return ux / s, uy / s
 end
 
--- Passt das Spielfenster zur eingestellten Monitoranordnung?
+-- Does the game window match the configured monitor layout?
 function Dual.CheckWindow()
 	if ns.Layout.Active() then
 		return true
@@ -42,7 +42,7 @@ function Dual.CheckWindow()
 	local W = ns.screen[1]
 	local d = DB()
 	local problem = d.useMonitorData and ns.Layout.GetProblem()
-	-- Grobe Prüfung: Der Hauptmonitor ist mindestens halb so breit wie der 2. Monitor.
+	-- Rough check: the main monitor is at least half as wide as the 2nd monitor.
 	if W < d.width * 1.5 then
 		return false, L["The game window is only %d × %d pixels. It must span both monitors (main monitor width + %d).%s"]:format(
 			ns.screen[1], ns.screen[2], d.width, problem and ("\n" .. problem) or "")
@@ -51,15 +51,15 @@ function Dual.CheckWindow()
 end
 
 ---------------------------------------------------------------------------
--- Platzierungsbereiche: Ecke eines Monitors, nach innen versetzt.
--- Gleicher Aufbau für Taschen („bags“) und Zonenkarte („zoneMap“). Einstellungen je Präfix:
---   <p> (an/aus), <p>Monitor (0 = Hauptmonitor), <p>Point (Ecke), <p>OffsetX, <p>OffsetY (Pixel)
+-- Placement areas: corner of a monitor, offset inward.
+-- Same structure for bags ("bags") and Zone Map ("zoneMap"). Settings per prefix:
+--   <p> (on/off), <p>Monitor (0 = main monitor), <p>Point (corner), <p>OffsetX, <p>OffsetY (pixels)
 ---------------------------------------------------------------------------
 
--- { Ecke, Text } – zugleich die Einträge des Auswahlknopfs
+-- { corner, text } – also the entries of the dropdown button
 local CORNERS = qnCore.PointEntries(true)
 
--- Gewählte Ecke; unbekannter Wert: unten rechts
+-- Chosen corner; unknown value: bottom right
 local function Corner(prefix)
 	local p = DB()[prefix .. "Point"]
 	for _, c in ipairs(CORNERS) do
@@ -70,13 +70,13 @@ local function Corner(prefix)
 	return "BOTTOMRIGHT"
 end
 
--- Liegt die Ecke rechts bzw. oben?
+-- Is the corner on the right or at the top?
 local function CornerDirs(p)
 	local fx, fy = qnCore.AnchorFactors(p)
 	return fx == 1, fy == 1
 end
 
--- Auswählbare Monitore: [0] = Hauptmonitor, dann alle Monitore mit sichtbarem Teil im Fenster
+-- Selectable monitors: [0] = main monitor, then all monitors with a visible part in the window
 local function Monitors()
 	local list = { [0] = ns.Layout.GetMainRect() or ns.Layout.Full() }
 	for i, r in ipairs(ns.Layout.GetVisible()) do
@@ -87,7 +87,7 @@ end
 
 local function MonitorIndex(prefix)
 	local i = DB()[prefix .. "Monitor"] or 0
-	return Monitors()[i] and i or 0   -- gewählter Monitor nicht mehr vorhanden: Hauptmonitor
+	return Monitors()[i] and i or 0   -- chosen monitor no longer present: main monitor
 end
 
 local placements = {}
@@ -115,11 +115,11 @@ end
 
 local bagPlace = NewPlacement("bags", HUD_EDIT_MODE_BAGS_LABEL, 0, 0.8, 1)
 local mapPlace = NewPlacement("zoneMap", L["Zone Map"], 1, 0.8, 0)
--- ganze Monitore (ohne …Point/…Offset: Ecke unten rechts, Abstände 0)
+-- whole monitors (without …Point/…Offset: bottom right corner, offsets 0)
 local worldPlace = NewPlacement("worldMap", WORLDMAP_BUTTON, 0.3, 1, 0.3)
 local questPlace = NewPlacement("questLog", MAP_AND_QUEST_LOG, 1, 0.5, 1)
 
--- Legt einen Bereich fest: Monitor, Ecke, Abstände von den Rändern dieser Ecke.
+-- Defines an area: monitor, corner, offsets from the edges of that corner.
 local function UpdatePlacement(pl)
 	local d = DB()
 	local prefix = pl.prefix
@@ -131,7 +131,7 @@ local function UpdatePlacement(pl)
 	local w, h = r.w - ox, r.h - oy
 	local sx, sy = Scale()
 	pl.area:ClearAllPoints()
-	-- am ganzen Fenster verankert, nicht an UIParent (der liegt evtl. nur über dem Hauptmonitor)
+	-- anchored to the whole window, not to UIParent (it may only cover the main monitor)
 	pl.area:SetPoint("TOPLEFT", ns.screenRef, "TOPLEFT", x * sx, -y * sy)
 	pl.area:SetSize(w * sx, h * sy)
 	pl.guide:SetShown(d[prefix] and d.guides)
@@ -144,7 +144,7 @@ function Dual.UpdateArea()
 end
 
 ---------------------------------------------------------------------------
--- Taschen platzieren (nur wenn „Taschen beim Öffnen platzieren“ gewählt ist)
+-- Place bags (only if "Place bags when opened" is checked)
 ---------------------------------------------------------------------------
 
 local BAG_GAP = 6
@@ -164,8 +164,8 @@ local function ShownBags()
 	return list
 end
 
--- Stapelt die offenen Taschen ab der gewählten Ecke senkrecht und dann spaltenweise
--- zur Mitte des Monitors hin.
+-- Stacks the open bags vertically from the chosen corner and then column by column
+-- towards the center of the monitor.
 function Dual.DockBags()
 	if not DB().bags then
 		return
@@ -193,20 +193,20 @@ function Dual.DockBags()
 end
 
 ---------------------------------------------------------------------------
--- Tooltips auf Taschenplätzen: immer ganz auf dem Monitor des Platzes.
--- Blizzard hängt den Tooltip mit BOTTOMLEFT an TOPRIGHT bzw. BOTTOMRIGHT an TOPLEFT des Platzes,
--- je nachdem, ob der Platz links oder rechts der Mitte des ganzen Fensters liegt
--- (ContainerFrameItemButton_CalculateItemTooltipAnchors, GetScreenWidth), und füllt ihn danach
--- mit GameTooltip:SetBagItem – bei jeder Auffrischung (UpdateTooltip) wieder beides.
--- Vergleichs-Tooltips: TooltipComparisonManager:AnchorShoppingTooltips, teils aus SetBagItem
--- heraus, teils später über ein Ereignis.
+-- Tooltips on bag slots: always fully on the slot's monitor.
+-- Blizzard attaches the tooltip with BOTTOMLEFT to TOPRIGHT or BOTTOMRIGHT to TOPLEFT of the slot,
+-- depending on whether the slot lies left or right of the center of the whole window
+-- (ContainerFrameItemButton_CalculateItemTooltipAnchors, GetScreenWidth), and then fills it
+-- with GameTooltip:SetBagItem – both again on every refresh (UpdateTooltip).
+-- Comparison tooltips: TooltipComparisonManager:AnchorShoppingTooltips, partly from within SetBagItem,
+-- partly later via an event.
 ---------------------------------------------------------------------------
 
-local bagTipOwner   -- Taschenplatz, an dem GameTooltip zuletzt per SetBagItem hing
+local bagTipOwner   -- bag slot GameTooltip was last attached to via SetBagItem
 
--- withCompare: auch die Vergleichs-Tooltips – nur direkt nach Blizzards Anlegen (AnchorShoppingTooltips).
--- Beim Auffrischen (SetBagItem) nicht: Blizzard legt sie danach ohnehin neu an, teils erst über das
--- Ereignis TOOLTIP_SHOW_ITEM_COMPARISON; ein eigener Eingriff dazwischen ließ sie flackern.
+-- withCompare: also the comparison tooltips – only right after Blizzard creates them (AnchorShoppingTooltips).
+-- Not on refresh (SetBagItem): Blizzard recreates them afterwards anyway, partly only via the
+-- event TOOLTIP_SHOW_ITEM_COMPARISON; interfering in between made them flicker.
 local function FitBagTooltip(tip, owner, withCompare)
 	if tip:GetOwner() ~= owner then
 		return
@@ -224,28 +224,28 @@ local function OnSetBagItem(tip)
 		return
 	end
 	FitBagTooltip(tip, owner)
-	-- im nächsten Frame noch einmal: dann hat der Tooltip seine endgültige Größe
+	-- once more in the next frame: then the tooltip has its final size
 	C_Timer.After(0, function()
 		FitBagTooltip(tip, owner)
 	end)
 end
 
--- Öffentlich für Taschenansichten anderer Addons (qnInventory), die ihre Tooltips nicht über
--- SetBagItem füllen: nach dem Füllen aufrufen; tip muss an owner verankert sein.
+-- Public for bag views of other addons (qnInventory) that do not fill their tooltips via
+-- SetBagItem: call after filling; tip must be anchored to owner.
 function ns.BagTooltip(tip, owner)
 	bagTipOwner = owner
 	if not owner then
 		return
 	end
-	-- Vergleichs-Tooltips hier gleich mit: Blizzard hat sie beim Füllen schon angelegt
+	-- comparison tooltips right away as well: Blizzard already created them while filling
 	FitBagTooltip(tip, owner, TooltipComparisonManager.tooltip == tip)
 	C_Timer.After(0, function()
 		FitBagTooltip(tip, owner)
 	end)
 end
 
--- Blizzard kann den Tooltip beim Vergleich seitlich verschieben (SetAnchorType mit slide):
--- dann beides neu an den Monitor.
+-- Blizzard may shift the tooltip sideways when comparing (SetAnchorType with slide):
+-- then fit both to the monitor again.
 local function OnAnchorShoppingTooltips(manager)
 	local tip = manager.tooltip
 	if tip and manager.anchorFrame == tip
@@ -255,13 +255,13 @@ local function OnAnchorShoppingTooltips(manager)
 end
 
 ---------------------------------------------------------------------------
--- Zonenkarte (BattlefieldMapFrame aus Blizzard_BattlefieldMap, lädt bei Bedarf)
--- Blizzard hängt die Karte mit TOPLEFT an BattlefieldMapTab BOTTOMLEFT (y -5) und merkt sich
--- nur die Lage des Reiters. Deshalb wird der Reiter gesetzt; die Karte folgt.
+-- Zone Map (BattlefieldMapFrame from Blizzard_BattlefieldMap, loads on demand)
+-- Blizzard attaches the map with TOPLEFT to BattlefieldMapTab BOTTOMLEFT (y -5) and only remembers
+-- the position of the tab. Hence the tab is placed; the map follows.
 ---------------------------------------------------------------------------
 
 local ZONEMAP_ADDON = "Blizzard_BattlefieldMap"
-local TAB_GAP = 5   -- Abstand Reiter -> Karte in Blizzards XML
+local TAB_GAP = 5   -- gap tab -> map in Blizzard's XML
 
 local function ZoneMapLoaded()
 	return _G.BattlefieldMapFrame ~= nil and _G.BattlefieldMapTab ~= nil
@@ -275,7 +275,7 @@ local function LoadZoneMap()
 	return ZoneMapLoaded()
 end
 
--- Legt Reiter + Karte als Block an die gewählte Ecke (nur mit Option „zoneMap“).
+-- Places tab + map as a block at the chosen corner (only with option "zoneMap").
 function Dual.PlaceZoneMap()
 	local f, tab = _G.BattlefieldMapFrame, _G.BattlefieldMapTab
 	if not (DB().zoneMap and f and tab and f:IsShown()) then
@@ -283,7 +283,7 @@ function Dual.PlaceZoneMap()
 	end
 	local area = mapPlace.area
 	local fs, ts, as = f:GetEffectiveScale(), tab:GetEffectiveScale(), area:GetEffectiveScale()
-	-- Block in abs-Einheiten: Reiter oben, darunter die Karte
+	-- Block in abs units: tab on top, map below
 	local bw = f:GetWidth() * fs
 	local th = tab:GetHeight() * ts
 	local bh = th + TAB_GAP * fs + f:GetHeight() * fs
@@ -294,23 +294,23 @@ function Dual.PlaceZoneMap()
 		local left = right and (al + aw - bw) or al
 		local upper = top and (ab + ah) or (ab + bh)
 		tab:ClearAllPoints()
-		-- Versätze in Einheiten des Reiters, bezogen auf die untere linke Ecke des Bereichs
+		-- Offsets in the tab's units, relative to the bottom left corner of the area
 		tab:SetPoint("BOTTOMLEFT", area, "BOTTOMLEFT", (left - al) / ts, (upper - th - ab) / ts)
 	end
 end
 
--- Gewählte Größe, auf 5 % gerundet und begrenzt wie der Regler (50–200 %)
+-- Chosen size, rounded to 5 % and clamped like the slider (50–200 %)
 local function ZoneMapScale()
 	local s = tonumber(DB().zoneMapScale) or 1
 	return math.max(0.5, math.min(2, math.floor(s * 20 + 0.5) / 20))
 end
 
--- Größe von Reiter + Karte (Blizzard selbst bietet keine). Bei 100 % fasst qnViewPort die Größe
--- nicht an, außer um eine eigene Änderung zurückzunehmen.
--- Blizzard verankert den Reiter mit CENTER an UIParent BOTTOMLEFT und merkt sich die Mitte in
--- Einheiten des Reiters (BattlefieldMapOptions.position) – beim Laden passt sie also zur gleichen
--- Größe. keepCenter (Regler, Profilwechsel): Reiter behält seine Mitte auf dem Bildschirm, die
--- gemerkte Lage wird wie nach Blizzards Ziehen nachgeführt. Mit Platzierung legt PlaceZoneMap ihn.
+-- Size of tab + map (Blizzard itself offers none). At 100 % qnViewPort does not touch the size,
+-- except to undo its own change.
+-- Blizzard anchors the tab with CENTER to UIParent BOTTOMLEFT and remembers the center in
+-- the tab's units (BattlefieldMapOptions.position) – so on load it matches the same
+-- size. keepCenter (slider, profile switch): the tab keeps its center on screen, the
+-- remembered position is updated as after Blizzard's dragging. With placement, PlaceZoneMap positions it.
 local zoneMapScaled = false
 function Dual.ScaleZoneMap(keepCenter)
 	local f, tab = _G.BattlefieldMapFrame, _G.BattlefieldMapTab
@@ -345,8 +345,8 @@ function Dual.IsZoneMapShown()
 	return ZoneMapLoaded() and _G.BattlefieldMapFrame:IsShown() or false
 end
 
--- Zeigt/verbirgt die Zonenkarte über Blizzards eigenen Umschalter (setzt auch den CVar
--- showBattlefieldMinimap, mit dem Blizzard sich den Zustand über das Einloggen hinaus merkt).
+-- Shows/hides the Zone Map via Blizzard's own toggle (also sets the CVar
+-- showBattlefieldMinimap, which Blizzard uses to remember the state across logins).
 function Dual.SetZoneMapShown(on)
 	if InCombatLockdown() and not ZoneMapLoaded() then
 		ns.Print(L["The Zone Map cannot be loaded in combat."])
@@ -372,7 +372,7 @@ local function HookZoneMap()
 	end
 	zoneMapHooked = true
 	Dual.ScaleZoneMap()
-	-- im nächsten Frame (nach Blizzards eigener Anordnung), Zeigen und Verbergen zusammengefasst
+	-- in the next frame (after Blizzard's own layout), show and hide combined
 	local Changed = qnCore.Debounce(function()
 		Dual.PlaceZoneMap()
 		if Dual.IsOptionsShown() then
@@ -385,8 +385,8 @@ local function HookZoneMap()
 end
 
 ---------------------------------------------------------------------------
--- Weltkarte (verschiebt die Karte nicht). Beim Öffnen zeigt Blizzard selbst die Karte
--- der aktuellen Zone (WorldMapMixin:OnShow); hier nur der Zonenwechsel bei offener Karte.
+-- World Map (does not move the map). On open, Blizzard itself shows the map
+-- of the current zone (WorldMapMixin:OnShow); here only the zone change while the map is open.
 ---------------------------------------------------------------------------
 
 local function MapToCurrentZone()
@@ -406,11 +406,11 @@ function Dual.OpenMap()
 	end
 end
 
--- mapNoFade an: bisherigen Wert von mapFade merken (mapFadeSaved) und 0 setzen.
--- Aus: gemerkten Wert zurückschreiben; wurde nichts gemerkt, beim Ausschalten (toggled)
--- Blizzards Vorgabe, sonst den CVar nicht anfassen.
--- Der gemerkte Wert ist kontoweit (ns.global): der CVar hängt an keinem Profil, beim Wechsel
--- auf ein Profil ohne mapNoFade wird er so zurückgeschrieben.
+-- mapNoFade on: remember the previous value of mapFade (mapFadeSaved) and set 0.
+-- Off: write back the remembered value; if nothing was remembered, Blizzard's default when
+-- turning it off (toggled), otherwise leave the CVar alone.
+-- The remembered value is account-wide (ns.global): the CVar belongs to no profile, so when switching
+-- to a profile without mapNoFade it is written back.
 local function ApplyMapFade(toggled)
 	local g = ns.global
 	local value = C_CVar.GetCVar("mapFade")
@@ -427,19 +427,19 @@ end
 Dual.ApplyMapFade = ApplyMapFade
 
 ---------------------------------------------------------------------------
--- Weltkarte auf einem Monitor (nur mit ihren Optionen)
--- Maximiert („worldMap“): Blizzard rechnet die Größe aus der Größe von UIParent und setzt die Karte
--- oben mittig an UIParent (WorldMapMixin:UpdateMaximizedSize, maximizePoint "TOP"); die schwarze
--- Fläche (BlackoutFrame) liegt über ganz UIParent. Bei einem Fenster über mehrere Monitore reicht
--- beides über alle. Hier dieselbe Rechnung mit dem Bereich des Monitors statt UIParent.
--- Verkleinert = „Karte & Questlog“ („questLog“; ToggleQuestLog öffnet in Forever diese Ansicht):
--- Blizzards Fensterverwaltung setzt sie als linkes Fenster an UIParent TOPLEFT
--- (FramePositionDelegate:UpdateUIPanelPositions). Hier derselbe Anker am Bereich des Monitors.
+-- World Map on one monitor (only with its options)
+-- Maximized ("worldMap"): Blizzard computes the size from the size of UIParent and puts the map
+-- at the top center of UIParent (WorldMapMixin:UpdateMaximizedSize, maximizePoint "TOP"); the black
+-- area (BlackoutFrame) covers all of UIParent. With a window across several monitors both reach
+-- across all of them. Here the same computation with the monitor's area instead of UIParent.
+-- Minimized = "Map & Quest Log" ("questLog"; ToggleQuestLog opens this view in Forever):
+-- Blizzard's window management places it as the left window at UIParent TOPLEFT
+-- (FramePositionDelegate:UpdateUIPanelPositions). Here the same anchor on the monitor's area.
 ---------------------------------------------------------------------------
 
-local SPACER_HEIGHT = 67   -- TITLE_CANVAS_SPACER_FRAME_HEIGHT (lokal in Blizzard_WorldMap.lua)
+local SPACER_HEIGHT = 67   -- TITLE_CANVAS_SPACER_FRAME_HEIGHT (local in Blizzard_WorldMap.lua)
 local SCREEN_BORDER = 30   -- SCREEN_BORDER_PIXELS in UpdateMaximizedSize
-local worldMapPlaced       -- "max" bzw. "min", solange die Karte von uns gesetzt ist
+local worldMapPlaced       -- "max" or "min" while the map is placed by us
 
 local function SetBlackout(f, target)
 	if f.BlackoutFrame then
@@ -448,7 +448,7 @@ local function SetBlackout(f, target)
 	end
 end
 
--- Blizzards Anker (an UIParent) unverändert an target hängen; unbekannte Anker nicht anfassen
+-- Re-attach Blizzard's anchor (on UIParent) unchanged to target; do not touch unknown anchors
 local function Reanchor(f, target)
 	local point, rel, relPoint, x, y = f:GetPoint(1)
 	rel = rel or UIParent
@@ -459,7 +459,7 @@ local function Reanchor(f, target)
 	f:SetPoint(point, target, relPoint, x, y)
 end
 
--- Größe und Lage wie Blizzards UpdateMaximizedSize, bezogen auf area
+-- Size and position like Blizzard's UpdateMaximizedSize, relative to area
 local function FitWorldMap(f, area)
 	local k = area:GetEffectiveScale() / f:GetEffectiveScale()
 	local pw, ph = area:GetWidth() * k - SCREEN_BORDER, area:GetHeight() * k
@@ -489,10 +489,10 @@ function Dual.PlaceWorldMap()
 		worldMapPlaced = "max"
 	elseif shown and not maximized and d.questLog then
 		Reanchor(f, questPlace.area)
-		SetBlackout(f, UIParent)   -- evtl. noch vom maximierten Zustand am Monitor
+		SetBlackout(f, UIParent)   -- possibly still on the monitor from the maximized state
 		worldMapPlaced = "min"
 	elseif worldMapPlaced then
-		-- Option aus (oder Ansicht gewechselt): zurück an UIParent wie bei Blizzard
+		-- option off (or view switched): back to UIParent as in Blizzard's code
 		if worldMapPlaced == "max" and maximized then
 			FitWorldMap(f, UIParent)
 		elseif worldMapPlaced == "min" and shown and not maximized then
@@ -503,9 +503,9 @@ function Dual.PlaceWorldMap()
 	end
 end
 
--- Nach Blizzards eigener Anordnung: Maximieren/Verkleinern, Fenstergröße, Öffnen und jede
--- Neuanordnung der Fenster (ShowUIPanel/HideUIPanel/UpdateUIPanelPositions setzen die verkleinerte
--- Karte wieder an UIParent). Sofort und noch einmal im nächsten Frame.
+-- After Blizzard's own layout: maximize/minimize, window size, opening and every
+-- re-layout of the windows (ShowUIPanel/HideUIPanel/UpdateUIPanelPositions put the minimized
+-- map back on UIParent). Immediately and once more in the next frame.
 local worldMapHooked = false
 local function HookWorldMap()
 	local f = _G.WorldMapFrame
@@ -529,11 +529,11 @@ local function HookWorldMap()
 end
 
 ---------------------------------------------------------------------------
--- Anwenden
+-- Apply
 ---------------------------------------------------------------------------
 
--- Eigene Rahmen, Taschen, Zonenkarte und maximierte Weltkarte (je nur mit ihrer Option); Chat
--- und andere Blizzard-Fenster bleiben, wo sie sind.
+-- Own frames, bags, Zone Map and maximized World Map (each only with its option); chat
+-- and other Blizzard windows stay where they are.
 function Dual.ApplyAll()
 	Dual.UpdateArea()
 	Dual.DockBags()
@@ -542,12 +542,12 @@ function Dual.ApplyAll()
 	Dual.PlaceWorldMap()
 end
 
--- Nach geänderten Einstellungen alles neu anwenden, ohne Chatmeldung. Mit withViewport (und
--- eingeschaltetem Modus) wird auch der Viewport auf den Hauptmonitor gelegt und gespeichert.
+-- Reapply everything after changed settings, without a chat message. With withViewport (and
+-- the mode turned on) the viewport is also put on the main monitor and saved.
 function Dual.Reapply(withViewport)
 	ns.UpdateScreenSize()
 	if withViewport and DB().enabled then
-		-- ohne 20-s-Bestätigung: Rückweg ist /qnvp dual off
+		-- without the 20 s confirmation: the way back is /qnvp dual off
 		ns.EndKeep()
 		ns.ApplyViewport(Dual.GetViewport())
 	end
@@ -556,8 +556,8 @@ function Dual.Reapply(withViewport)
 	Dual.RefreshOptions()
 end
 
--- Schaltet den Modus ein/aus und setzt den passenden Viewport (die 3D-Welt, keine Oberfläche).
--- Meldung nur, wenn sich der Zustand tatsächlich ändert.
+-- Turns the mode on/off and sets the matching viewport (the 3D world, not the interface).
+-- Message only if the state actually changes.
 function Dual.SetEnabled(on)
 	on = on and true or false
 	local d = DB()
@@ -610,28 +610,28 @@ function Dual.Slash(msg)
 		ns.Print((ns.Layout.Active() and L["Second monitor: %d × %d, top offset %d (only used without monitor data)"]
 			or L["Second monitor: %d × %d, top offset %d"]):format(DB().width, DB().height, DB().offsetY))
 	else
-		-- ein Schlüssel; Print gibt jede Zeile als eigene Chatzeile aus
+		-- one key; Print outputs each line as its own chat line
 		ns.Print(L["/qnvp dual – options   |   on / off   |   left / right\n/qnvp dual W H [Y] – size of the second monitor in pixels, Y = distance from the top (only without monitor data)\n/qnvp dual guides – show placement areas   |   map – open the World Map   |   zonemap – toggle the Zone Map"])
 	end
 end
 
 ---------------------------------------------------------------------------
--- Bausteine der Optionsseiten
+-- Building blocks of the options pages
 ---------------------------------------------------------------------------
 
 local sub
-local page           -- Seite, auf der Check/NumBox/Choice gerade bauen (NewPage)
+local page           -- page that Check/NumBox/Choice are currently building on (NewPage)
 local pages = {}
 local widgets = {}
 
--- Eingaben in den Feldern übernehmen, bevor ein Knopf wirkt
+-- Commit the input fields before a button acts
 local function ClearFocusAll()
 	for _, wdg in ipairs(widgets) do
 		if wdg.ClearFocus then wdg:ClearFocus() end
 	end
 end
 
--- Kontrollkästchen auf DB()[key]; mit getter/setter statt eines Schlüssels (z. B. Blizzard-Zustand).
+-- Checkbox for DB()[key]; with getter/setter instead of a key (e.g. Blizzard state).
 local function Check(label, key, tooltip, onChange, getter, setter)
 	local cb = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
 	local fs = UI.Text(page, "GameFontHighlight", label)
@@ -648,7 +648,7 @@ local function Check(label, key, tooltip, onChange, getter, setter)
 	if tooltip then
 		UI.Tooltip(cb, label, tooltip)
 	end
-	-- Auffrischen (Dual.RefreshOptions): Haken nach getter bzw. DB()[key]
+	-- Refresh (Dual.RefreshOptions): check mark from getter or DB()[key]
 	function cb:Refresh()
 		if getter then
 			self:SetChecked(getter())
@@ -660,17 +660,17 @@ local function Check(label, key, tooltip, onChange, getter, setter)
 	return cb
 end
 
--- Handwerte des 2. Monitors; mit Monitordaten stattdessen die gemessenen Werte (nur Anzeige).
+-- Manual values of the 2nd monitor; with monitor data the measured values instead (display only).
 local MANUAL = { width = "w", height = "h", offsetY = "y" }
 
--- Auffrischen eines Zahlenfelds: DB()[key], außer während der Eingabe
+-- Refreshing a number field: DB()[key], except while typing
 local function RefreshBox(box)
 	if not box:HasFocus() then
 		box:SetText(DB()[box.key])
 	end
 end
 
--- Auffrischen eines Felds des 2. Monitors: mit Monitordaten (ctx.data) gemessener Wert, gesperrt
+-- Refreshing a field of the 2nd monitor: with monitor data (ctx.data) the measured value, locked
 local function RefreshManualBox(box, ctx)
 	local data, second = ctx.data, ctx.second
 	if data and second then
@@ -684,7 +684,7 @@ local function RefreshManualBox(box, ctx)
 	box.label:SetFontObject(data and "GameFontDisable" or "GameFontHighlight")
 end
 
--- Zahlenfeld mit Beschriftung links auf DB()[key]
+-- Number field with a label on the left for DB()[key]
 local function NumBox(label, key, onCommit)
 	local box = ns.NumBox(page, 60, function() return DB()[key] end, function(v)
 		if v and v ~= DB()[key] then
@@ -699,9 +699,9 @@ local function NumBox(label, key, onCommit)
 	return box
 end
 
--- Knopf mit Aufklappliste (qnCore), zeigt die aktive Auswahl.
--- entries() liefert { { Wert, Text }, … }, get() den aktuellen Wert, set(v) übernimmt ihn.
--- enabled() (optional): nur dann bedienbar.
+-- Button with a dropdown list (qnCore), shows the active selection.
+-- entries() returns { { value, text }, … }, get() the current value, set(v) applies it.
+-- enabled() (optional): only usable then.
 local function Choice(label, width, entries, get, set, onChange, enabled)
 	local dd = UI.Dropdown(page, width, entries, get, function(v)
 		set(v)
@@ -709,7 +709,7 @@ local function Choice(label, width, entries, get, set, onChange, enabled)
 		Dual.RefreshOptions()
 	end)
 	dd.label = UI.Label(page, dd, label)
-	-- Auffrischen: aktive Auswahl zeigen (qnCore), mit enabled() auch sperren bzw. freigeben
+	-- Refresh: show the active selection (qnCore); with enabled() also disable or enable
 	local showSelection = dd.Refresh
 	function dd:Refresh()
 		showSelection(self)
@@ -723,7 +723,7 @@ local function Choice(label, width, entries, get, set, onChange, enabled)
 	return dd
 end
 
--- Übernehmen-Knopf einer Unterseite unter anchor
+-- Apply button of a subpage below anchor
 local function ApplyButton(anchor, withViewport)
 	local b = UI.Button(page, APPLY, 160, function()
 		ClearFocusAll()
@@ -733,9 +733,9 @@ local function ApplyButton(anchor, withViewport)
 	return b
 end
 
--- Unterseite anlegen (qnCore.UI.Page: Überschrift, Trennlinie, Inhalt mit Scrollbar):
--- build(top) baut auf „page“ (= Inhalt) unter top (Beschreibung), danach Anmeldung im
--- Einstellungsfenster. Liefert Kategorie und Seite (für Fit nach dem Ein-/Ausblenden).
+-- Create a subpage (qnCore.UI.Page: heading, divider, content with scroll bar):
+-- build(top) builds on "page" (= content) below top (description), then it is registered in the
+-- settings window. Returns category and page (for Fit after showing/hiding).
 local function NewPage(name, desc, build)
 	local ui = UI.Page(name, { desc = desc })
 	ui.panel:SetScript("OnShow", Dual.RefreshOptions)
@@ -756,7 +756,7 @@ function Dual.IsOptionsShown()
 	return false
 end
 
--- Info-Text der Seite „Zweiter Monitor“: Spielfenster, 2. Monitor, Welt, Monitordaten, Fensterprüfung
+-- Info text of the "Second Monitor" page: game window, 2nd monitor, world, monitor data, window check
 local function RefreshInfoText(ctx)
 	local data, main, second = ctx.data, ctx.main, ctx.second
 	local ok, msg = Dual.CheckWindow()
@@ -768,7 +768,7 @@ local function RefreshInfoText(ctx)
 		ok and "" or ("\n|cffff8080" .. msg .. "|r")))
 end
 
--- Monitorliste der Seite „Monitore“ samt Lage der Blizzard-Oberfläche
+-- Monitor list of the "Monitors" page including the position of the Blizzard interface
 local function RefreshMonitorText()
 	local lines = ns.Layout.Describe()
 	lines[#lines + 1] = ""
@@ -777,8 +777,8 @@ local function RefreshMonitorText()
 	monInfo:SetText(table.concat(lines, "\n"))
 end
 
--- Alle Steuerelemente und Texte der Optionsseiten neu anzeigen.
--- ctx: data (Monitordaten, sonst nil), main und second (Rechtecke von Haupt- und 2. Monitor).
+-- Redisplay all controls and texts of the options pages.
+-- ctx: data (monitor data, otherwise nil), main and second (rectangles of the main and 2nd monitor).
 function Dual.RefreshOptions()
 	ns.UpdateScreenSize()
 	local data = ns.Layout.Active()
@@ -792,7 +792,7 @@ function Dual.RefreshOptions()
 end
 
 ---------------------------------------------------------------------------
--- Optionsseite (Unterkategorie „Zweiter Monitor“)
+-- Options page (subcategory "Second Monitor")
 ---------------------------------------------------------------------------
 
 local function BuildPage(desc)
@@ -800,7 +800,7 @@ local function BuildPage(desc)
 		function() return DB().enabled end, Dual.SetEnabled)
 	enable:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", -4, -14)
 
-	-- Lage des 2. Monitors: Handwerte ohne Monitordaten, sonst gemessene Werte (gesperrt)
+	-- Position of the 2nd monitor: manual values without monitor data, otherwise measured values (locked)
 	local side = Choice(L["Position of the second monitor"], 220, {
 		{ "RIGHT", L["Right of the main monitor"] },
 		{ "LEFT", L["Left of the main monitor"] },
@@ -825,7 +825,7 @@ local function BuildPage(desc)
 	local yBox = NumBox(L["Distance from top"], "offsetY")
 	yBox:SetPoint("LEFT", hBox, "RIGHT", 150, 0)
 
-	-- linksbündig mit dem Kontrollkästchen oben (wBox steht 70 weiter rechts)
+	-- left-aligned with the checkbox above (wBox is 70 further to the right)
 	local apply = ApplyButton(wBox, true)
 	apply:ClearAllPoints()
 	apply:SetPoint("TOPLEFT", wBox, "BOTTOMLEFT", -70, -22)
@@ -836,10 +836,10 @@ local function BuildPage(desc)
 end
 
 ---------------------------------------------------------------------------
--- Optionsseite (Unterkategorie „Platzierung“): Taschen und Zonenkarte
+-- Options page (subcategory "Placement"): bags and Zone Map
 ---------------------------------------------------------------------------
 
--- Monitore zur Auswahl: 0 = Hauptmonitor, dann die Nummern wie auf der Seite „Monitore“
+-- Monitors to choose from: 0 = main monitor, then the numbers as on the "Monitors" page
 local function MonitorEntries()
 	local list, main = {}, ns.Layout.GetMainRect()
 	local monitors = Monitors()
@@ -856,9 +856,9 @@ local function MonitorEntries()
 	return list
 end
 
--- Abschnitt „Monitor, Ecke, Abstände“ für eine Platzierung; liefert den Monitor-Knopf und das Feld
--- „Abstand waagerecht“ (zum Verankern).
--- monitorTitle/cornerTitle: Tooltip-Überschriften der beiden Auswahlknöpfe.
+-- Section "monitor, corner, offsets" for a placement; returns the monitor button and the field
+-- "Horizontal offset" (for anchoring).
+-- monitorTitle/cornerTitle: tooltip headings of the two dropdown buttons.
 local function PlacementControls(prefix, anchor, monitorTitle, cornerTitle)
 	local monitor = Choice(PRIMARY_MONITOR, 240, MonitorEntries,
 		function() return MonitorIndex(prefix) end,
@@ -879,7 +879,7 @@ local function PlacementControls(prefix, anchor, monitorTitle, cornerTitle)
 	return monitor, offsetX
 end
 
--- Regler für die Größe der Zonenkarte (50–200 % in 5-%-Schritten, wie die Titan-Skalierung)
+-- Slider for the Zone Map size (50–200 % in 5 % steps, like the Titan scale)
 local function ZoneMapScaleSlider()
 	local s = CreateFrame("Frame", nil, page, "MinimalSliderWithSteppersTemplate")
 	s:SetSize(220, 20)
@@ -904,7 +904,7 @@ local function ZoneMapScaleSlider()
 end
 
 local function BuildPlacementPage(desc)
-	-- Taschen
+	-- Bags
 	local bagHead = UI.Text(page, "GameFontNormal", HUD_EDIT_MODE_BAGS_LABEL)
 	bagHead:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -16)
 	local cBags = Check(L["Place bags when opened"], "bags",
@@ -913,7 +913,7 @@ local function BuildPlacementPage(desc)
 	cBags:SetPoint("TOPLEFT", bagHead, "BOTTOMLEFT", -4, -4)
 	local bagMonitor = PlacementControls("bags", cBags, L["Monitor for the bags"], L["Corner for the bags"])
 
-	-- Zonenkarte
+	-- Zone Map
 	local mapHead = UI.Text(page, "GameFontNormal", L["Zone Map (Shift+M)"])
 	mapHead:SetPoint("TOPLEFT", bagMonitor, "BOTTOMLEFT", -90, -52)
 	local cShow = Check(L["Show Zone Map"], nil,
@@ -925,11 +925,11 @@ local function BuildPlacementPage(desc)
 		Dual.ApplyAll)
 	cPlace:SetPoint("TOPLEFT", cShow, "BOTTOMLEFT", 0, -2)
 	local mapMonitor, mapOffsetX = PlacementControls("zoneMap", cPlace, L["Monitor for the Zone Map"], L["Corner for the Zone Map"])
-	-- Größe gilt auch ohne Platzierung; linksbündig mit dem Monitor-Knopf
+	-- The size also applies without placement; left-aligned with the monitor button
 	local mapScale = ZoneMapScaleSlider()
 	mapScale:SetPoint("TOPLEFT", mapOffsetX, "BOTTOMLEFT", -80, -14)
 
-	-- Weltkarte: maximiert und verkleinert („Karte & Questlog“) je auf einen ganzen Monitor
+	-- World Map: maximized and minimized ("Map & Quest Log") each on a whole monitor
 	local worldHead = UI.Text(page, "GameFontNormal", WORLDMAP_BUTTON)
 	worldHead:SetPoint("TOPLEFT", mapScale, "BOTTOMLEFT", -90, -20)
 	local cWorld = Check(L["Maximized World Map on"], "worldMap",
@@ -972,14 +972,14 @@ local function BuildPlacementPage(desc)
 end
 
 ---------------------------------------------------------------------------
--- Liste der Elemente außerhalb der Monitore, je Element ein eigener Knopf
+-- List of elements outside the monitors, one button per element
 ---------------------------------------------------------------------------
 
 local ROW_HEIGHT = 26
-local listPage, listContent, listHeader, listChecked   -- listPage: UI.Page der Seite „Monitore“
+local listPage, listContent, listHeader, listChecked   -- listPage: UI.Page of the "Monitors" page
 local rows = {}
 
--- Markiert das Element, über dessen Knopf die Maus steht
+-- Marks the element whose button the mouse is over
 local marker = CreateFrame("Frame", nil, UIParent)
 marker.qnViewPortIgnore = true
 marker:SetFrameStrata("TOOLTIP")
@@ -1056,7 +1056,7 @@ local function Row(i)
 	return row
 end
 
--- Prüft alle Oberflächenelemente und füllt die Liste. Verschiebt nichts.
+-- Checks all interface elements and fills the list. Moves nothing.
 function Dual.CheckVisible()
 	listChecked = true
 	local list = ns.Layout.CheckFrames()
@@ -1083,7 +1083,7 @@ function Dual.CheckVisible()
 	listPage.Fit()
 end
 
--- Liste im Inhalt der Seite (blättert mit der Seite)
+-- List in the page content (scrolls with the page)
 local function BuildVisibleList(parent, anchor)
 	listHeader = UI.Text(parent, "GameFontNormal", L["Not checked yet – press \"Check visibility\"."])
 	listHeader:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -14)
@@ -1100,7 +1100,7 @@ local function BuildVisibleList(parent, anchor)
 end
 
 ---------------------------------------------------------------------------
--- Optionsseite (Unterkategorie „Monitore“)
+-- Options page (subcategory "Monitors")
 ---------------------------------------------------------------------------
 
 local function BuildMonitorPage(desc, ui)
@@ -1118,7 +1118,7 @@ local function BuildMonitorPage(desc, ui)
 
 	local apply = ApplyButton(cData, true)
 
-	-- Blizzard-Oberfläche nur auf Knopfdruck verschieben (bis zum Zurücksetzen oder /reload)
+	-- Move the Blizzard interface only on button press (until reset or /reload)
 	local uiMain = UI.Button(page, L["Interface to main monitor"], 220, function()
 		ns.Layout.ConstrainUI()
 		Dual.RefreshOptions()
@@ -1141,7 +1141,7 @@ local function BuildMonitorPage(desc, ui)
 
 	ui.panel:HookScript("OnShow", function()
 		if listChecked then
-			Dual.CheckVisible()   -- Lage kann sich seit der letzten Prüfung geändert haben
+			Dual.CheckVisible()   -- the position may have changed since the last check
 		end
 	end)
 end
@@ -1151,7 +1151,7 @@ function Dual.OpenOptions()
 end
 
 ---------------------------------------------------------------------------
--- Start (aus Core.lua nach ADDON_LOADED); angewendet wird danach über ns.ApplyGeometry.
+-- Start (from Core.lua after ADDON_LOADED); applied afterwards via ns.ApplyGeometry.
 ---------------------------------------------------------------------------
 
 function ns.InitSecondScreen()
@@ -1165,19 +1165,19 @@ function ns.InitSecondScreen()
 		L["Places bags and the Zone Map in a corner of a monitor and the World Map on a monitor. Offsets are counted in pixels inward from the edges of the corner. Unless checked, qnViewPort does not touch that window."],
 		BuildPlacementPage)
 
-	-- Taschen: Blizzard setzt die Anker in UpdateContainerFrameAnchors – beim Öffnen und Schließen
-	-- jeder Tasche und der kombinierten Tasche (ContainerFrame.lua). Unser Hook läuft danach,
-	-- das Anlegen im nächsten Frame und für mehrere Aufrufe nur einmal.
+	-- Bags: Blizzard sets the anchors in UpdateContainerFrameAnchors – on opening and closing
+	-- each bag and the combined bag (ContainerFrame.lua). Our hook runs afterwards,
+	-- docking in the next frame and only once for several calls.
 	local dockLater = qnCore.Debounce(Dual.DockBags)
 	hooksecurefunc("UpdateContainerFrameAnchors", function()
 		if DB().bags then
 			dockLater()
 		end
 	end)
-	-- Tooltips auf Taschenplätzen
+	-- Tooltips on bag slots
 	hooksecurefunc(GameTooltip, "SetBagItem", OnSetBagItem)
 	hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", OnAnchorShoppingTooltips)
-	-- Zonenkarte und Weltkarte: schon geladen oder später per ADDON_LOADED
+	-- Zone Map and World Map: already loaded or later via ADDON_LOADED
 	HookZoneMap()
 	HookWorldMap()
 
@@ -1194,7 +1194,7 @@ function ns.InitSecondScreen()
 			Dual.UpdateArea()
 			Dual.PlaceZoneMap()
 			ApplyMapFade()
-			-- nur beim Einloggen bzw. /reload, nicht nach jedem Ladebildschirm
+			-- only on login or /reload, not after every loading screen
 			if DB().mapAutoOpen and (isInitialLogin or isReloadingUi) then
 				Dual.OpenMap()
 			end

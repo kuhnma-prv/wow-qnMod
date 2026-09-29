@@ -1,5 +1,5 @@
--- Minimaler WoW-Nachbau für Ladetests der qn-Addons (Forever-Client). Kein Anspruch auf Treue:
--- unbekannte Methoden sind No-ops, Fehler zeigen Lücken des Nachbaus ODER echte Fehler.
+-- Minimal WoW emulation for load tests of the qn addons (Forever client). No claim to fidelity:
+-- unknown methods are no-ops, errors reveal gaps in the emulation OR real bugs.
 
 LOG = {}
 local function log(fmt, ...) LOG[#LOG + 1] = string.format(fmt, ...) end
@@ -21,7 +21,7 @@ function nop() end
 function Mixin(obj, ...) for i = 1, select("#", ...) do for k, v in pairs((select(i, ...))) do obj[k] = v end end return obj end
 function CreateFromMixins(...) return Mixin({}, ...) end
 function GetClassAtlas(class) return "classicon-" .. tostring(class):lower() end
--- Kontextmenü: MENU_LOG hält die Einträge des zuletzt erzeugten Menüs ({ art, text })
+-- Context menu: MENU_LOG holds the entries of the most recently created menu ({ kind, text })
 MENU_LOG = {}
 local function MenuRoot()
 	local root = {}
@@ -33,21 +33,21 @@ end
 MenuUtil = { CreateContextMenu = function(owner, gen) MENU_LOG = {} gen(owner, MenuRoot()) return {} end }
 function geterrorhandler() return function(e) error(e, 0) end end
 function securecallfunction(f, ...) return f(...) end
--- Sprache des nachgebauten Clients (run.mjs: Umgebungsvariable QN_LOCALE, Vorgabe deDE) und die
--- echten Blizzard-GlobalStrings von Forever in dieser Sprache (GlobalStrings/<Sprache>.lua)
+-- Locale of the emulated client (run.mjs: environment variable QN_LOCALE, default deDE) and the
+-- real Blizzard GlobalStrings of Forever in this locale (GlobalStrings/<locale>.lua)
 LOCALE = LOCALE or "deDE"
 function GetLocale() return LOCALE end
 do
 	local src = READFILE(TESTDIR .. "GlobalStrings/" .. LOCALE .. ".lua")
-	assert(src, "GlobalStrings fehlen: " .. LOCALE)
-	-- nur gültige Zuweisungen (die Datei enthält vereinzelt Müllzeilen wie `Tests Iacobellis = "Hallo";`)
+	assert(src, "GlobalStrings missing: " .. LOCALE)
+	-- only valid assignments (the file contains occasional junk lines like `Tests Iacobellis = "Hallo";`)
 	local ok = {}
 	for line in src:gmatch("[^\n]+") do
 		if line:match("^[%a_][%w_]* = \"") or line:match("^_G%[\"") then
 			ok[#ok + 1] = line
 		end
 	end
-	-- GlobalStrings enthält u. a. ADDONS = "AddOns"; den Ordnerpfad der Attrappe behalten
+	-- GlobalStrings contains among others ADDONS = "AddOns"; keep the stub's folder path
 	local addonsPath = ADDONS
 	assert(load(table.concat(ok, "\n"), "=GlobalStrings/" .. LOCALE))()
 	ADDONS = addonsPath
@@ -56,16 +56,16 @@ NUM_CONTAINER_FRAMES = 13
 NUM_ACTIONBAR_BUTTONS = 12
 NUM_TOTAL_BAG_FRAMES = 5
 
--- Zeit und Timer -------------------------------------------------------------
+-- Time and timers -------------------------------------------------------------
 local now = 1000
 function GetTime() return now end
--- Zeit der Attrappe setzen bzw. vorstellen (Szenarien mit Restzeiten)
+-- Set or advance the stub's time (scenarios with remaining times)
 function SetTime(t) now = t end
 function AdvanceTime(dt) now = now + dt end
 local timers = {}
 C_Timer = {}
 function C_Timer.After(s, fn) timers[#timers + 1] = fn end
--- Ticker laufen nur über RunTickers() (je ein Durchlauf aller nicht abgebrochenen)
+-- Tickers only run via RunTickers() (one pass over all non-cancelled ones)
 local tickers = {}
 function C_Timer.NewTicker(s, fn) local t = { fn = fn } function t:Cancel() self.cancelled = true end tickers[#tickers + 1] = t return t end
 function RunTickers() for _, t in ipairs(tickers) do if not t.cancelled then t.fn() end end end
@@ -78,7 +78,7 @@ function RunTimers()
 	end
 end
 
--- Ereignisse und Rahmen ---------------------------------------------------------
+-- Events and frames ---------------------------------------------------------
 local frames = {}
 local VALID = {}
 for _, e in ipairs({ "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_DEAD", "MINIMAP_UPDATE_TRACKING",
@@ -100,9 +100,9 @@ C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
 local Frame = {}
 local FrameMT
 local ChildMT
--- Unbekannte Großbuchstaben-Schlüssel: aufrufbarer Kindrahmen (Methode = No-op, Feld = parentKey-Kind)
+-- Unknown capitalized keys: callable child frame (method = no-op, field = parentKey child)
 FrameMT = { __index = function(t, k)
-	-- Eingabefelder haben keine Methoden von Kontrollkästchen
+	-- Edit boxes have no checkbox methods
 	if (k == "SetChecked" or k == "GetChecked") and rawget(t, "_kind") == "EditBox" then return nil end
 	local v = Frame[k]
 	if v ~= nil then return v end
@@ -128,7 +128,7 @@ function Frame:HookScript(s, fn)
 	self._scripts[s] = function(...) if old then old(...) end fn(...) end
 end
 function Frame:RegisterEvent(e)
-	if not VALID[e] then error("Unbekanntes Ereignis: " .. tostring(e), 2) end
+	if not VALID[e] then error("Unknown event: " .. tostring(e), 2) end
 	self._events[e] = true
 end
 function Frame:UnregisterEvent(e) self._events[e] = nil end
@@ -169,7 +169,7 @@ function Frame:IsForbidden() return false end
 function Frame:IsMouseOver() return false end
 function Frame:GetAlpha() return self._alpha or 1 end
 function Frame:SetAlpha(a) self._alpha = a end
--- Darstellung protokollieren (Farben, Zuschnitt, Schrift, Ausrichtung, Maus, Bildschirmhaltung)
+-- Record appearance (colors, tex coords, font, justification, mouse, clamping)
 function Frame:SetVertexColor(r, g, b, a) self._color = { r, g, b, a or 1 } end
 function Frame:SetColorTexture(r, g, b, a) self._color = { r, g, b, a or 1 } end
 function Frame:SetTextColor(r, g, b, a) self._textColor = { r, g, b, a or 1 } end
@@ -199,7 +199,7 @@ function Frame:GetChecked() return self._checked end
 function Frame:SetChecked(v) self._checked = v end
 function Frame:GetText() return self._text end
 function Frame:SetText(v) self._text = v end
--- secret-Zahlen (Tabellen der Szenarien) formatiert der Client auch mit %d/%f: dann als %s ausgeben
+-- The client also formats secret numbers (tables in the scenarios) with %d/%f: output them as %s then
 function Frame:SetFormattedText(f, ...)
 	local ok, text = pcall(string.format, f, ...)
 	if not ok then
@@ -219,9 +219,9 @@ function Frame:GetUnboundedStringWidth() return 50 end
 function Frame:GetVerticalScroll() return 0 end
 function Frame:GetVerticalScrollRange() return 0 end
 function Frame:GetAttribute(k) return self._attr and self._attr[k] end
--- geschützte Rahmen: Attribute im Kampf gesperrt (ADDON_ACTION_BLOCKED im Client)
+-- protected frames: attributes locked in combat (ADDON_ACTION_BLOCKED in the client)
 function Frame:SetAttribute(k, v)
-	if self._protected and InCombatLockdown() then error("ADDON_ACTION_BLOCKED: SetAttribute(" .. tostring(k) .. ") im Kampf", 2) end
+	if self._protected and InCombatLockdown() then error("ADDON_ACTION_BLOCKED: SetAttribute(" .. tostring(k) .. ") in combat", 2) end
 	self._attr = self._attr or {} self._attr[k] = v
 end
 function Frame:GetObjectType() return self._kind end
@@ -258,11 +258,11 @@ function Frame:PickRadio(i) self._radios[i].setSel() self:GenerateMenu() end
 function CreateFrame(kind, name, parent, template)
 	local f = NewFrame(kind, name, parent)
 	f._template = template
-	-- Secure*-Vorlagen erben SecureFrameTemplate (protected="true", SecureTemplatesBase.xml)
+	-- Secure* templates inherit SecureFrameTemplate (protected="true", SecureTemplatesBase.xml)
 	if template and template:find("Secure") then f._protected = true end
-	-- Vorlagen mit hidden="true" in qnBuffMod
+	-- templates with hidden="true" in qnBuffMod
 	if template and (template:find("Header") or template:find("Consolidated")) then f._shown = false end
-	-- ScrollFrameTemplate (SecureUIPanelTemplates.xml): ScrollFrame_OnLoad hängt die Scrollbar an
+	-- ScrollFrameTemplate (SecureUIPanelTemplates.xml): ScrollFrame_OnLoad attaches the scroll bar
 	if template == "ScrollFrameTemplate" then
 		f.ScrollBar = NewFrame("EventFrame", nil, f)
 	end
@@ -291,7 +291,7 @@ end
 
 UIParent = NewFrame("Frame", "UIParent")
 UIParent._w, UIParent._h = 1920, 1080
--- Blizzard_UIParentUtil/UIParentUtil.lua (bei PLAYER_ENTERING_WORLD): TOPLEFT um Notch/Debug-Leisten versetzt
+-- Blizzard_UIParentUtil/UIParentUtil.lua (on PLAYER_ENTERING_WORLD): TOPLEFT offset by notch/debug bars
 function UpdateUIParentPosition() UIParent:SetPoint("TOPLEFT", 0, -0) end
 WorldFrame = NewFrame("Frame", "WorldFrame")
 GameTooltip = NewFrame("GameTooltip", "GameTooltip")
@@ -301,7 +301,7 @@ ColorPickerFrame = NewFrame("Frame", "ColorPickerFrame")
 SettingsPanel = NewFrame("Frame", "SettingsPanel")
 Minimap = NewFrame("Frame", "Minimap")
 function GameTooltip_Hide() end
--- Tooltip protokollieren: TOOLTIP.owner/anchor, TOOLTIP.lines (Texte in Reihenfolge), TOOLTIP.aura
+-- Record tooltip: TOOLTIP.owner/anchor, TOOLTIP.lines (texts in order), TOOLTIP.aura
 TOOLTIP = { lines = {} }
 function GameTooltip:SetOwner(owner, anchor) TOOLTIP = { owner = owner, anchor = anchor, lines = {} } self._shown = false end
 function GameTooltip:IsOwned(f) return TOOLTIP.owner == f and TOOLTIP.owner ~= nil end
@@ -313,9 +313,9 @@ function GameTooltip:SetUnitAura(unit, index, filter) TOOLTIP.aura = { unit, ind
 function GameTooltip:SetInventoryItem(unit, slot) TOOLTIP.item = { unit, slot } end
 function GameTooltip:SetMinimumWidth(w) TOOLTIP.minWidth = w end
 function GameTooltip:Hide() self._shown = false TOOLTIP.hidden = true end
--- Taschenplatz (ContainerFrameItemButtonMixin:OnUpdate) und Vergleichs-Tooltips (GameTooltip.xml:
--- shoppingTooltips; SharedXMLGame\Tooltip\TooltipComparisonManager.lua). EnableTooltips ersetzt die
--- Tooltips durch vollständigere und setzt beides dort erneut.
+-- Bag slot (ContainerFrameItemButtonMixin:OnUpdate) and comparison tooltips (GameTooltip.xml:
+-- shoppingTooltips; SharedXMLGame\Tooltip\TooltipComparisonManager.lua). EnableTooltips replaces the
+-- tooltips with more complete ones and sets both again there.
 function GameTooltip:SetBagItem(bag, slot) TOOLTIP.bagItem = { bag, slot } self:Show() end
 function GameTooltip:SetAnchorType(anchor, x, y) TOOLTIP.anchorType = { anchor, x, y } end
 -- Blizzard_UIPanels_Game\Mainline\ContainerFrame.lua
@@ -332,8 +332,8 @@ ShoppingTooltip1 = NewFrame("GameTooltip", "ShoppingTooltip1")
 ShoppingTooltip2 = NewFrame("GameTooltip", "ShoppingTooltip2")
 GameTooltip.shoppingTooltips = { ShoppingTooltip1, ShoppingTooltip2 }
 TooltipComparisonManager = {}
--- nur Anzeigen und Anker wie bei Blizzard; Seite aus TooltipComparisonManager.testSide
--- ("left"/"right", Vorgabe "right"; Blizzard wählt sie nach GetScreenWidth())
+-- only showing and anchors as in Blizzard's code; side from TooltipComparisonManager.testSide
+-- ("left"/"right", default "right"; Blizzard picks it by GetScreenWidth())
 function TooltipComparisonManager:AnchorShoppingTooltips(primaryShown, secondaryShown)
 	local tip = self.tooltip
 	local p, s = tip.shoppingTooltips[1], tip.shoppingTooltips[2]
@@ -364,13 +364,13 @@ function hooksecurefunc(a, b, c)
 	if type(a) == "string" then tbl, name, fn = _G, a, b end
 	local old = tbl[name]
 	if type(old) ~= "function" then
-		assert(tbl ~= _G and type(old) == "table", "hooksecurefunc: " .. tostring(name) .. " ist keine Funktion")
-		old = nop   -- Methode, die der Nachbau nicht kennt
+		assert(tbl ~= _G and type(old) == "table", "hooksecurefunc: " .. tostring(name) .. " is not a function")
+		old = nop   -- method the emulation does not know
 	end
 	tbl[name] = function(...) local r = { old(...) } fn(...) return unpack(r) end
 end
 
--- Spieler / Client --------------------------------------------------------------
+-- Player / client --------------------------------------------------------------
 function UnitName(u) return "Tester" end
 function GetRealmName() return "Realm" end
 function UnitClass() return "Krieger", "WARRIOR" end
@@ -380,8 +380,8 @@ function UnitGUID() return "Player-1" end
 function InCombatLockdown() return QN_COMBAT or false end
 function UnitIsDeadOrGhost() return QN_DEAD or false end
 
--- Verfolgung an der Minikarte (Felder wie MinimapScriptTrackingFilter/-Info in Forever).
--- QN_TRACKING_BLOCKED: SetTracking bewirkt nichts (Zauber scheitert).
+-- Minimap tracking (fields as in MinimapScriptTrackingFilter/-Info in Forever).
+-- QN_TRACKING_BLOCKED: SetTracking has no effect (spell fails).
 QN_TRACKING = {
 	{ name = "Briefkasten", filterID = 12, active = true },
 	{ name = "Kräutersuche", spellID = 2383, active = false },
@@ -465,7 +465,7 @@ Enum = {
 	TooltipDataType = { Item = 0 },
 }
 
--- Taschenfunktionen protokollieren
+-- Record bag functions
 for _, fn in ipairs({ "CloseAllBags", "OpenBackpack", "OpenBag", "ToggleAllBags", "ToggleBackpack", "ToggleBag", "UpdateContainerFrameAnchors" }) do
 	_G[fn] = function(a) log("%s(%s)", fn, tostring(a)) end
 end
@@ -482,19 +482,19 @@ function IsInventoryItemProfessionBag(u, inv) return PROF_BAGS[inv - 30] or fals
 C_Container.ContainerIDToInventoryID = function(id) return id + 30 end
 Enum.BagIndex.ReagentBag = 5
 
--- qnInventory-Bedarf: Blizzards Fenster, an die die Kopfleisten der Ansichten kommen
+-- qnInventory needs: Blizzard's windows that receive the view header bars
 ContainerFrameCombinedBags = NewFrame("Frame", "ContainerFrameCombinedBags", UIParent)
 BankFrame = NewFrame("Frame", "BankFrame", UIParent)
 MailFrame = NewFrame("Frame", "MailFrame", UIParent)
 UISpecialFrames = {}
--- Blizzard-Addons sind in der Attrappe immer schon geladen
+-- Blizzard addons are always already loaded in the stub
 EventUtil = { ContinueOnAddOnLoaded = function(name, fn) fn() end }
 C_Bank.FetchMaxNumBankTabs = function() return 1 end
 C_Bank.FetchNextPurchasableBankTabData = function() return nil end
 function GetInventoryItemLink() return nil end
 function GetInboxItemLink() return nil end
 
--- qnBuffMod-Bedarf
+-- qnBuffMod needs
 BuffFrame = NewFrame("Frame", "BuffFrame")
 DebuffFrame = NewFrame("Frame", "DebuffFrame")
 ChatFontNormal = NewFrame("Font", "ChatFontNormal")
@@ -503,8 +503,8 @@ GameFontNormal = NewFrame("Font", "GameFontNormal")
 function GameFontNormal:GetFont() return "Fonts\\FRIZQT__.TTF", 12, "" end
 function CreateFont(name) local f = NewFrame("Font", name) f.GetFont = function() return "x", 12, "" end return f end
 
--- Questzielverfolgung (Blizzard_ObjectiveTracker) --------------------------------
--- Schriften mit Datei/Höhe; SetFontObject übernimmt wie im Client Datei und Höhe der Vorlage
+-- Objective tracker (Blizzard_ObjectiveTracker) --------------------------------
+-- Fonts with file/height; SetFontObject copies file and height of the template as in the client
 local function TrackerFont(name, height)
 	local f = NewFrame("Font", name)
 	f._path, f._height, f._flags = "Fonts\\FRIZQT__.TTF", height, ""
@@ -521,7 +521,7 @@ end
 for size = 12, 22 do TrackerFont("ObjectiveTrackerFont" .. size, size) end
 TrackerFont("ObjectiveTrackerLineFont", 12)
 TrackerFont("ObjectiveTrackerHeaderFont", 14)
--- wie Blizzard_ObjectiveTrackerManager.lua (Grenzen 12–20, Überschrift 2 größer)
+-- as in Blizzard_ObjectiveTrackerManager.lua (limits 12-20, header 2 larger)
 ObjectiveTrackerManager = { updates = 0 }
 function ObjectiveTrackerManager:UpdateAll() self.updates = self.updates + 1 end
 function ObjectiveTrackerManager:SetTextSize(textSize)
@@ -533,9 +533,9 @@ end
 GameFontNormalSmall = NewFrame("Font", "GameFontNormalSmall")
 ChatFontSmall = NewFrame("Font", "ChatFontSmall")
 NumberFontNormal = NewFrame("Font", "NumberFontNormal")
--- Tastentext zur Taste (C-Funktion)
+-- Key text for a key (C function)
 function GetBindingText(key) return key end
--- Tooltipdaten eines Inventarplatzes: QN_TOOLTIP[Platz] = { "Zeile", … } (leftText je Zeile)
+-- Tooltip data of an inventory slot: QN_TOOLTIP[slot] = { "line", ... } (leftText per line)
 QN_TOOLTIP = {}
 C_TooltipInfo = { GetInventoryItem = function(unit, slot)
 	local lines = QN_TOOLTIP[slot]
@@ -548,7 +548,7 @@ INVSLOT_MAINHAND, INVSLOT_OFFHAND, INVSLOT_RANGED = 16, 17, 18
 ENCHANTS = {}
 C_PaperDollInfo = { GetTemporaryEnchantmentInfo = function(slot) return ENCHANTS[slot] end }
 AURAS = {}
--- Filter wie im Client: HELPFUL/HARMFUL (isHarmful), CANCELABLE bzw. !CANCELABLE (Feld cancelable)
+-- Filter as in the client: HELPFUL/HARMFUL (isHarmful), CANCELABLE or !CANCELABLE (field cancelable)
 local function MatchesFilter(a, filter)
 	filter = filter or "HELPFUL"
 	if (a.isHarmful or false) ~= (filter:find("HARMFUL") ~= nil) then return false end
@@ -556,8 +556,8 @@ local function MatchesFilter(a, filter)
 	if filter:find("CANCELABLE", 1, true) then return a.cancelable or false end
 	return true
 end
--- QN_AURAS_SECRET: Aurendaten gesperrt (Kampf); dann bricht die Abfrage ab wie im Client.
--- Auren mit locked = true sind einzeln gesperrt.
+-- QN_AURAS_SECRET: aura data locked (combat); the query then aborts as in the client.
+-- Auras with locked = true are locked individually.
 C_UnitAuras = { GetAuraDataByIndex = function(unit, i, filter)
 	if QN_AURAS_SECRET then error("GetAuraDataByIndex(): Auras cannot be accessed when secret while tainted") end
 	local n = 0
@@ -605,7 +605,7 @@ AuraUtil = {
 }
 function UnitInRange() return false end
 
--- direkt genutzte Blizzard-Globals (Forever)
+-- Blizzard globals used directly (Forever)
 issecretvalue = function() return false end
 TIMESTAMP_FORMAT_NONE = "Keine"
 TIMESTAMP_FORMAT_HHMM, TIMESTAMP_FORMAT_HHMMSS = "%I:%M ", "%I:%M:%S "
@@ -615,7 +615,7 @@ TimeUtil = { BetterDate = function(f, t) return os.date(f, t) end }
 C_Secrets = { ShouldAurasBeSecret = function() return QN_AURAS_SECRET or false end, ShouldUnitThreatValuesBeSecret = function() return false end, ShouldUnitThreatStateBeSecret = function() return false end }
 NUM_TOTAL_EQUIPPED_BAG_SLOTS = 5
 Enum.BankType = { Character = 0, Guild = 1, Account = 2 }
--- Accountbank (BankDocumentation): Inhalt nur, wenn CanViewBank; Gold über FetchDepositedMoney
+-- Account bank (BankDocumentation): contents only if CanViewBank; gold via FetchDepositedMoney
 QN_ACCOUNT_BANK = { view = false, money = 0 }
 C_Bank.CanViewBank = function(t) return t == Enum.BankType.Account and QN_ACCOUNT_BANK.view or t == Enum.BankType.Character end
 C_Bank.FetchDepositedMoney = function(t) return t == Enum.BankType.Account and QN_ACCOUNT_BANK.money or 0 end
@@ -627,7 +627,7 @@ function ToggleWorldMap() end
 function FCF_SavePositionAndDimensions() end
 function GetSendMailMoney() return 0 end
 function GetSendMailCOD() return 0 end
--- verbundene Realms (C_AutoComplete, AutoCompleteDocumentation); Szenarien setzen QN_CONNECTED_REALMS
+-- connected realms (C_AutoComplete, AutoCompleteDocumentation); scenarios set QN_CONNECTED_REALMS
 C_AutoComplete = C_AutoComplete or {}
 function C_AutoComplete.GetAutoCompleteRealms() return QN_CONNECTED_REALMS or {} end
 C_Item = { IsItemInRange = function() return nil end }
@@ -659,14 +659,14 @@ function Settings.RegisterCanvasLayoutCategory(f, n) return Category(n) end
 function Settings.RegisterCanvasLayoutSubcategory(p, f, n) return Category(p.name .. "/" .. n) end
 function Settings.RegisterAddOnCategory(c) log("Kategorie %s", c.name) end
 function Settings.OpenToCategory(id) log("Öffne %s", tostring(id)) end
-function Settings.RegisterAddOnSetting() error("RegisterAddOnSetting sollte nicht mehr benutzt werden") end
+function Settings.RegisterAddOnSetting() error("RegisterAddOnSetting should no longer be used") end
 function Settings.RegisterProxySetting(cat, var, vt, name, default, get, set)
-	assert(not variables[var], "Variable doppelt: " .. var)
-	assert(default ~= nil, "Proxy ohne Vorgabe: " .. var)
+	assert(not variables[var], "Duplicate variable: " .. var)
+	assert(default ~= nil, "Proxy without default: " .. var)
 	local s = { var = var, cbs = {}, vt = vt }
 	function s:GetValue() return get() end
 	function s:SetValue(v)
-		assert(type(v) == vt, ("Typfehler %s: %s statt %s"):format(var, type(v), vt))
+		assert(type(v) == vt, ("Type error %s: %s instead of %s"):format(var, type(v), vt))
 		set(v)
 		for _, cb in ipairs(self.cbs) do cb(self, v) end
 	end
@@ -675,14 +675,14 @@ function Settings.RegisterProxySetting(cat, var, vt, name, default, get, set)
 	function s:GetDefaultValue() return default end
 	variables[var] = s
 	local dv = get()
-	assert(type(dv) == vt, ("Typfehler beim Lesen %s: %s statt %s"):format(var, type(dv), vt))
+	assert(type(dv) == vt, ("Type error on read %s: %s instead of %s"):format(var, type(dv), vt))
 	return s
 end
 function Settings.CreateCheckbox(cat, s, tip) return Initializer({ setting = s }) end
 function Settings.CreateSlider(cat, s, o, tip) return Initializer({ setting = s }) end
 function Settings.CreateDropdown(cat, s, getOptions, tip)
 	local opts = getOptions()
-	assert(type(opts) == "table" and #opts > 0, "Dropdown ohne Einträge: " .. s.var)
+	assert(type(opts) == "table" and #opts > 0, "Dropdown without entries: " .. s.var)
 	return Initializer({ setting = s, getOptions = getOptions })
 end
 function Settings.CreateSliderOptions() return { SetLabelFormatter = nop } end
@@ -696,7 +696,7 @@ end
 function CreateSettingsListSectionHeaderInitializer(t) return Initializer({ header = t }) end
 function CreateSettingsButtonInitializer(n, bt, click) return Initializer({ button = bt, click = click }) end
 
--- Bearbeitungsmodus -------------------------------------------------------------
+-- Edit mode -------------------------------------------------------------
 EditModeManagerFrame = NewFrame("Frame", "EditModeManagerFrame")
 EDIT_LAYOUTS = {
 	{ layoutType = 0, layoutName = "Modern" },
@@ -717,17 +717,17 @@ function SetEditModeLayout(i, viaSelect)
 	RunTimers()
 end
 
--- Addons laden ------------------------------------------------------------------
+-- Loading addons ------------------------------------------------------------------
 function LoadAddon(name)
 	local ns = {}
 	local toc = READFILE(ADDONS .. "/" .. name .. "/" .. name .. ".toc")
-	assert(toc, "keine TOC: " .. name)
+	assert(toc, "no TOC: " .. name)
 	for line in toc:gmatch("[^\n]+") do
 		line = line:gsub("\r", "")
 		if line ~= "" and not line:match("^#") and not line:match("%.xml$") then
 			local path = ADDONS .. "/" .. name .. "/" .. line:gsub("\\", "/")
-			-- fehlende Dateien überspringt WoW; qnViewPort\Monitors.lua ist rechnerabhängig (nicht im
-			-- Repo), die Szenarien setzen qnViewPortMonitors selbst
+			-- WoW skips missing files; qnViewPort\Monitors.lua is machine-specific (not in the
+			-- repo), the scenarios set qnViewPortMonitors themselves
 			if line ~= "Monitors.lua" and READFILE(path) then
 				local chunk, err = loadfile(path)
 				assert(chunk, err)
@@ -743,7 +743,7 @@ function Check(cond, msg)
 	if cond then print("OK    " .. msg) else print("FAIL  " .. msg) FAILS = (FAILS or 0) + 1 end
 end
 
--- qnInventory-Bedarf
+-- qnInventory needs
 local UMLAUT = { ["Ä"] = "ä", ["Ö"] = "ö", ["Ü"] = "ü" }
 local function lowerUtf8(s) return (s:lower():gsub("\195[\132\150\156]", UMLAUT)) end
 function strcmputf8i(a, b) a, b = lowerUtf8(a), lowerUtf8(b) return a == b and 0 or (a < b and -1 or 1) end
@@ -751,10 +751,10 @@ function GetNormalizedRealmName() return (GetRealmName():gsub("[%s%-]", "")) end
 ATTACHMENTS_MAX_SEND, ATTACHMENTS_MAX_RECEIVE = 12, 16
 NORMAL_FONT_COLOR = CreateColor(1, 0.82, 0)
 
--- zusammengefasste Taschen (CVar combinedBags)
+-- combined bags (CVar combinedBags)
 ContainerFrameSettingsManager = { IsUsingCombinedBags = function(_, id) return C_CVar._v.combinedBags == "1" and (not id or (id >= 0 and id <= 4)) end }
 
--- qnMeter-Bedarf: eingebauter Damage Meter (Blizzard_DamageMeter), Balken-Hilfen
+-- qnMeter needs: built-in damage meter (Blizzard_DamageMeter), bar helpers
 AbbreviateLargeNumbers = function(v) if issecretvalue(v) then return v end return tostring(math.floor(v)) end
 Enum.StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 1 }
 QN_DM = { barHeight = 30, spacing = 4, style = 1, textScale = 1.2, bgAlpha = 0.7, windowAlpha = 0.9, icons = false, classColor = true }
@@ -767,13 +767,13 @@ function DamageMeter:ShouldShowBarIcons() return QN_DM.icons end
 function DamageMeter:SetShowBarIcons(v) QN_DM.icons = v end
 function DamageMeter:ShouldUseClassColor() return QN_DM.classColor end
 function DamageMeter:SetUseClassColor(v) QN_DM.classColor = v end
--- qnViewPort-Bedarf: Weltkarte (Blizzard_WorldMap lädt nicht bei Bedarf), CVar-Vorgaben
+-- qnViewPort needs: world map (Blizzard_WorldMap is not load-on-demand), CVar defaults
 WorldMapFrame = NewFrame("Frame", "WorldMapFrame")
 WorldMapFrame._shown = false
 function WorldMapFrame:SetMapID(id) self.mapID = id end
--- Maximieren/Verkleinern (Blizzard_WorldMap.lua): Fensterverwaltung setzt die maximierte Karte mit
--- maximizePoint "TOP" an UIParent, die verkleinerte als linkes Fenster an UIParent TOPLEFT
--- (UIParentPanelManager.lua, UpdateUIPanelPositions); die schwarze Fläche liegt über UIParent (XML).
+-- Maximize/minimize (Blizzard_WorldMap.lua): the panel manager places the maximized map with
+-- maximizePoint "TOP" at UIParent, the minimized one as a left panel at UIParent TOPLEFT
+-- (UIParentPanelManager.lua, UpdateUIPanelPositions); the blackout area covers UIParent (XML).
 WorldMapFrame.minimizedWidth, WorldMapFrame.minimizedHeight = 702, 534
 WorldMapFrame.isMaximized = false
 WorldMapFrame.BlackoutFrame = NewFrame("Frame", nil, WorldMapFrame)
@@ -792,17 +792,17 @@ function WorldMapFrame:SynchronizeDisplayState()
 end
 function WorldMapFrame:Maximize() self.isMaximized = true self:UpdateMaximizedSize() self:SynchronizeDisplayState() end
 function WorldMapFrame:Minimize() self.isMaximized = false self:SetSize(self.minimizedWidth, self.minimizedHeight) self:SynchronizeDisplayState() end
--- Fensterverwaltung (UIParentPanelManager.lua): zeigt/verbirgt; Lage setzt die Karte oben selbst
+-- Panel manager (UIParentPanelManager.lua): shows/hides; the map above sets its position itself
 function ShowUIPanel(frame) if frame then frame:Show() if frame.SynchronizeDisplayState then frame:SynchronizeDisplayState() end end end
 function HideUIPanel(frame) if frame then frame:Hide() end end
 function UpdateUIPanelPositions(frame) if frame and frame.SynchronizeDisplayState then frame:SynchronizeDisplayState() end end
 C_CVar.GetCVarDefault = function(k) return ({ mapFade = "1" })[k] end
 
--- qnUnitFrames-Bedarf: Rahmen im Schlachtzugsstil (Blizzard_UnitFrame\Shared\CompactUnitFrame.lua),
--- klassische Gruppenrahmen (Shared\PartyFrame.lua: Pool aus PartyMemberFrameTemplate), Zauberbuch
+-- qnUnitFrames needs: raid-style frames (Blizzard_UnitFrame\Shared\CompactUnitFrame.lua),
+-- classic party frames (Shared\PartyFrame.lua: pool of PartyMemberFrameTemplate), spellbook
 function CompactUnitFrame_SetUpFrame(frame, func, ...) if func then func(frame, ...) end end
 PartyFrame = NewFrame("Frame", "PartyFrame")
-QN_PARTY_FRAMES = {}   -- aktive Rahmen des Pools
+QN_PARTY_FRAMES = {}   -- active frames of the pool
 PartyFrame.PartyMemberFramePool = { EnumerateActive = function()
 	local i = 0
 	return function() i = i + 1 return QN_PARTY_FRAMES[i] end
@@ -811,7 +811,7 @@ function PartyFrame:InitializePartyMemberFrames() end
 Enum.TooltipDataType.Unit = 2
 Enum.SpellBookSpellBank = { Player = 0, Pet = 1 }
 Enum.SpellBookItemType = { None = 0, Spell = 1, FutureSpell = 2, PetAction = 3, Flyout = 4 }
--- QN_SPELLBOOK[Fähigkeitenlinie] = { info = SpellBookSkillLineInfo-Felder, items = { SpellBookItemInfo, … } }
+-- QN_SPELLBOOK[skill line] = { info = SpellBookSkillLineInfo fields, items = { SpellBookItemInfo, ... } }
 QN_SPELLBOOK = {}
 C_SpellBook = {}
 function C_SpellBook.GetNumSpellBookSkillLines() return #QN_SPELLBOOK end
@@ -838,20 +838,20 @@ function C_SpellBook.GetSpellBookItemInfo(slot, bank)
 	end
 end
 
--- Sicheres Umfeld (Blizzard_RestrictedAddOnEnvironment), nur auf Anforderung eines Szenarios:
--- EnableRestrictedEnvironment() vor LoadAddon aufrufen. Nachgebaut nach dem Forever-Quelltext:
+-- Restricted environment (Blizzard_RestrictedAddOnEnvironment), only on request of a scenario:
+-- call EnableRestrictedEnvironment() before LoadAddon. Modeled on the Forever source:
 --   SecureHandlerWrapScript (SecureHandlers.lua: Wrapped_Drag, Wrapped_Attribute, Wrapped_ShowHide;
---   false aus dem Vor-Schnipsel bricht ab), SecureHandlerExecute, Rahmen-Handles (RestrictedFrames.lua:
---   Get/SetAttribute, Show/Hide mit statehidden, ClearBindings, SetBindingClick, ChildUpdate nur direkte
---   Kinder), Umfang (RestrictedEnvironment.lua, Auszug; PlayerInCombat = UnitAffectingCombat),
---   Zustandstreiber (SecureStateDriver.lua: resolveDriver, visibility setzt statehidden),
---   _onstate-<Zustand> (SecureHandlerStateTemplate), Klick über Tastenbelegung (SecureTemplates.lua:
---   SecureActionButton_OnClick mit useOnKeyDown/CVar ActionButtonUseKeyDown, SECURE_ACTIONS.click).
--- Unsicherer Code darf Belegungen, Zustandstreiber und Umhüllungen im Kampf nicht ändern (Fehler).
--- Makrobedingungen: QN_CONDITIONS[Name] = true (vehicleui, combat, bonusbar:1 …), dann UpdateStateDrivers().
--- Belegungen: BINDINGS[Besitzer][Taste] = "Rahmenname:Maustaste"; PressBinding(Taste, down) drückt bzw.
--- lässt los (Klick nur, wenn der Rahmen die Richtung mit RegisterForClicks angemeldet hat).
--- WRAPPED[Rahmen][Skript] = { header, pre }: angelegte Umhüllungen.
+--   false from the pre-snippet aborts), SecureHandlerExecute, frame handles (RestrictedFrames.lua:
+--   Get/SetAttribute, Show/Hide with statehidden, ClearBindings, SetBindingClick, ChildUpdate only direct
+--   children), scope (RestrictedEnvironment.lua, excerpt; PlayerInCombat = UnitAffectingCombat),
+--   state drivers (SecureStateDriver.lua: resolveDriver, visibility sets statehidden),
+--   _onstate-<state> (SecureHandlerStateTemplate), click via key binding (SecureTemplates.lua:
+--   SecureActionButton_OnClick with useOnKeyDown/CVar ActionButtonUseKeyDown, SECURE_ACTIONS.click).
+-- Insecure code must not change bindings, state drivers and wraps in combat (error).
+-- Macro conditions: QN_CONDITIONS[name] = true (vehicleui, combat, bonusbar:1 ...), then UpdateStateDrivers().
+-- Bindings: BINDINGS[owner][key] = "frameName:mouseButton"; PressBinding(key, down) presses or
+-- releases (click only if the frame registered that direction with RegisterForClicks).
+-- WRAPPED[frame][script] = { header, pre }: installed wraps.
 function EnableRestrictedEnvironment()
 	BINDINGS, WRAPPED = {}, {}
 	QN_CONDITIONS = QN_CONDITIONS or {}
@@ -861,11 +861,11 @@ function EnableRestrictedEnvironment()
 
 	local function Blocked(what)
 		if InCombatLockdown() and secureDepth == 0 then
-			error("ADDON_ACTION_BLOCKED: " .. what .. " im Kampf", 3)
+			error("ADDON_ACTION_BLOCKED: " .. what .. " in combat", 3)
 		end
 	end
 
-	-- Attribut aus sicherem Code setzen (keine Kampfsperre) und OnAttributeChanged nachbilden
+	-- Set an attribute from secure code (no combat lock) and emulate OnAttributeChanged
 	local function RawSet(frame, k, v)
 		frame._attr = frame._attr or {}
 		frame._attr[k] = v
@@ -915,7 +915,7 @@ function EnableRestrictedEnvironment()
 			IsModifiedClick = IsModifiedClick, SecureCmdOptionParse = SecureCmdOptionParse,
 			PlayerInCombat = function() return UnitAffectingCombat("player") or UnitAffectingCombat("pet") end,
 		}
-		local chunk = assert(load("local " .. signature .. " = ...\n" .. body, "=Schnipsel", "t", env))
+		local chunk = assert(load("local " .. signature .. " = ...\n" .. body, "=snippet", "t", env))
 		secureDepth = secureDepth + 1
 		local r = table.pack(pcall(chunk, Handle(frame), ...))
 		secureDepth = secureDepth - 1
@@ -933,7 +933,7 @@ function EnableRestrictedEnvironment()
 		if body then Run(body, frame, frame, "self,stateid,newstate", id, v) end
 	end
 
-	-- Rahmen merken (ChildUpdate), Attribute melden, Klicks anmelden, Click()
+	-- Remember frames (ChildUpdate), report attributes, register clicks, Click()
 	local create = CreateFrame
 	CreateFrame = function(...)
 		local f = create(...)
@@ -957,7 +957,7 @@ function EnableRestrictedEnvironment()
 		WRAPPED[frame] = WRAPPED[frame] or {}
 		WRAPPED[frame][script] = { header = header, pre = pre }
 		if script == "OnAttributeChanged" then
-			return   -- führt Changed() aus
+			return   -- handled by Changed()
 		end
 		local orig = frame._scripts[script]
 		local drag = script == "OnDragStart" or script == "OnReceiveDrag"
@@ -996,7 +996,7 @@ function EnableRestrictedEnvironment()
 		BINDINGS[owner] = nil
 	end
 
-	-- Makrobedingung (Auszug aus SecureCmdOptionParse): "[a,b][c] Wert; Wert", noX verneint
+	-- Macro condition (excerpt of SecureCmdOptionParse): "[a,b][c] value; value", noX negates
 	local function Parse(values)
 		for clause in (values .. ";"):gmatch("([^;]*);") do
 			clause = strtrim(clause)
@@ -1068,7 +1068,7 @@ function EnableRestrictedEnvironment()
 				local f = _G[name]
 				if f and Registered(f, button, down) then
 					if f._template == "SecureActionButtonTemplate" then
-						-- SecureActionButton_OnClick ohne isKeyPress/isSecureAction (Addon-Rahmen)
+						-- SecureActionButton_OnClick without isKeyPress/isSecureAction (addon frames)
 						local useOnKeyDown = f:GetAttribute("useOnKeyDown")
 						if useOnKeyDown == nil then useOnKeyDown = GetCVarBool("ActionButtonUseKeyDown") end
 						if (down and useOnKeyDown) or (not down and not useOnKeyDown) then
@@ -1086,16 +1086,16 @@ function EnableRestrictedEnvironment()
 	end
 end
 
--- qnTooltip-Bedarf: vollständige Tooltips, nur auf Anforderung eines Szenarios: EnableTooltips() vor
--- LoadAddon aufrufen. Nachgebaut nach dem Forever-Quelltext:
---   Tooltipdaten (TooltipDataHandler.lua InternalProcessInfo): Zeilen anlegen, lineIndex setzen,
---   PostCalls je Typ, Show; Typen und Zeilentypen aus TooltipInfoSharedDocumentation.
---   GameTooltipTemplate (Mainline\GameTooltip.xml): Zeilen $parentTextLeftN/RightN, NineSlice, StatusBar.
--- Einheiten: QN_UNITS[Einheit] = { name, realm, class, className, level, raceName, factionGroup,
---   factionName, reaction, classif, creature, isPlayer, guid, guild = { Name, Rang, Nr., Realm }, surname,
---   dead, health, maxHealth, pvpName, afk, raidIcon, role, title (NSC), target = Einheit }.
---   "<Einheit>target" löst sich über .target auf; QN_GUIDS[GUID] = Einheit (UnitTokenFromGUID).
--- ProcessTooltip(tip, data) verarbeitet Tooltipdaten; tip:SetUnit(Einheit) baut sie aus QN_UNITS.
+-- qnTooltip needs: complete tooltips, only on request of a scenario: call EnableTooltips() before
+-- LoadAddon. Modeled on the Forever source:
+--   tooltip data (TooltipDataHandler.lua InternalProcessInfo): add lines, set lineIndex,
+--   post calls per type, Show; types and line types from TooltipInfoSharedDocumentation.
+--   GameTooltipTemplate (Mainline\GameTooltip.xml): lines $parentTextLeftN/RightN, NineSlice, StatusBar.
+-- Units: QN_UNITS[unit] = { name, realm, class, className, level, raceName, factionGroup,
+--   factionName, reaction, classif, creature, isPlayer, guid, guild = { name, rank, index, realm }, surname,
+--   dead, health, maxHealth, pvpName, afk, raidIcon, role, title (NPC), target = unit }.
+--   "<unit>target" resolves via .target; QN_GUIDS[GUID] = unit (UnitTokenFromGUID).
+-- ProcessTooltip(tip, data) processes tooltip data; tip:SetUnit(unit) builds it from QN_UNITS.
 function EnableTooltips()
 	for _, e in ipairs({ "MODIFIER_STATE_CHANGED", "INSPECT_READY", "UPDATE_CHAT_WINDOWS" }) do VALID[e] = true end
 	Enum.TooltipDataType = { Item = 0, Spell = 1, Unit = 2, Corpse = 3, Object = 4, Currency = 5, UnitAura = 7, Mount = 10, Quest = 23, Macro = 25 }
@@ -1107,7 +1107,7 @@ function EnableTooltips()
 		table.insert(POSTCALLS[t], fn)
 	end
 
-	-- Schriften
+	-- Fonts
 	local function Font(name, file, size, flag)
 		local f = NewFrame("Font", name)
 		f._fontInfo = { file, size, flag }
@@ -1122,7 +1122,7 @@ function EnableTooltips()
 	Font("Tooltip_Small", "Fonts\\FRIZQT__.TTF", 10, "")
 	function NumberFontNormal:GetFont() return "Fonts\\ARIALN.TTF", 12, "" end
 
-	-- Tooltip mit Zeilen
+	-- Tooltip with lines
 	local function Tooltip(name)
 		local tip = NewFrame("GameTooltip", name, UIParent)
 		tip._shown = false
@@ -1165,7 +1165,7 @@ function EnableTooltips()
 				return unit and UnitName(unit), unit, d.guid
 			end
 		end
-		-- linke Texte aller Zeilen (leere als "")
+		-- left texts of all lines (empty ones as "")
 		function tip:Texts()
 			local t = {}
 			for i = 1, self._lines do t[i] = Line("Left", i)._text or "" end
@@ -1177,11 +1177,11 @@ function EnableTooltips()
 	for _, n in ipairs({ "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2" }) do
 		Tooltip(n)
 	end
-	-- Vergleichs-Tooltips (GameTooltip.xml: shoppingTooltips)
+	-- Comparison tooltips (GameTooltip.xml: shoppingTooltips)
 	GameTooltip.shoppingTooltips = { ShoppingTooltip1, ShoppingTooltip2 }
 	ItemRefTooltip.shoppingTooltips = { ItemRefShoppingTooltip1, ItemRefShoppingTooltip2 }
 	function GameTooltip:SetBagItem(bag, slot) self._bagItem = { bag, slot } self:Show() end
-	-- Lebensbalken (GameTooltipUnitHealthBarMixin: Wert 0–1)
+	-- Health bar (GameTooltipUnitHealthBarMixin: value 0-1)
 	local bar = NewFrame("StatusBar", "GameTooltipStatusBar", GameTooltip)
 	bar._shown = false
 	bar._value = 0
@@ -1211,7 +1211,7 @@ function EnableTooltips()
 	function GameTooltip_AddInstructionLine(tip, text) tip:AddLine(text) end
 	function GameTooltip_AddBlankLineToTooltip(tip) tip:AddLine(" ") end
 
-	-- Einheiten
+	-- Units
 	QN_UNITS = QN_UNITS or {}
 	QN_GUIDS = QN_GUIDS or {}
 	local function Resolve(u)
@@ -1228,7 +1228,7 @@ function EnableTooltips()
 	function UnitTokenFromGUID(guid) return QN_GUIDS[guid] end
 	function UnitExists(u) return U(u) ~= nil end
 	function UnitIsUnit(a, b) local ra, rb = Resolve(a), Resolve(b) return ra ~= nil and ra == rb end
-	-- Forever (camelot): Vor- und Nachname (NameUtil.GetUnitFirstName); Realm über GetPlayerInfoByGUID
+	-- Forever (camelot): first and last name (NameUtil.GetUnitFirstName); realm via GetPlayerInfoByGUID
 	function UnitName(u) local d = U(u) if d then return d.name, d.surname end end
 	function GetPlayerInfoByGUID(guid) local d = U(QN_GUIDS[guid]) if d then return d.className, d.class, d.raceName, nil, d.sex, d.name, d.realm or "" end end
 	function UnitPVPName(u) local d = U(u) return d and (d.pvpName or d.name) end
@@ -1267,15 +1267,15 @@ function EnableTooltips()
 	QN_UNITS.player = QN_UNITS.player or { name = "Tester", class = "WARRIOR", className = "Krieger", level = 60, isPlayer = true, guid = "Player-1", factionGroup = "Alliance", factionName = FACTION_ALLIANCE, raceName = "Mensch" }
 	QN_GUIDS["Player-1"] = "player"
 	C_FriendList = { IsFriend = function(guid) return QN_FRIENDS and QN_FRIENDS[guid] or false end }
-	-- Betrachten
-	QN_INSPECT = {}   -- Protokoll der NotifyInspect-Aufrufe
+	-- Inspect
+	QN_INSPECT = {}   -- log of NotifyInspect calls
 	function CanInspect(u) return U(u) ~= nil end
 	function NotifyInspect(u) QN_INSPECT[#QN_INSPECT + 1] = u end
 	function ClearInspectPlayer() QN_INSPECT.cleared = true end
 	C_PaperDollInfo.GetInspectItemLevel = function(u) local d = U(u) return d and d.itemLevel end
 	function GetAverageItemLevel() return 70.4, 65.6 end
 
-	-- Blizzard-Tabellen und -Funktionen
+	-- Blizzard tables and functions
 	ICON_LIST = {}
 	for i = 1, 8 do ICON_LIST[i] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_" .. i .. ":" end
 	CLASS_ICON_TCOORDS = setmetatable({}, { __index = function() return { 0, 0.25, 0, 0.25 } end })
@@ -1298,18 +1298,18 @@ function EnableTooltips()
 	C_QuestLog = { GetQuestDifficultyLevel = function(id) return 12 end }
 	function ColorPickerFrame:SetupColorPickerAndShow(info) self._info = info end
 	function ColorPickerFrame:GetColorRGB() return unpack(self._rgb or { 1, 1, 1 }) end
-	-- wie ColorPickerFrameMixin: GetPreviousValues liefert Einzelwerte, OnCancel übergibt die Tabelle
+	-- as in ColorPickerFrameMixin: GetPreviousValues returns single values, OnCancel passes the table
 	function ColorPickerFrame:GetPreviousValues() local i = self._info return i.r, i.g, i.b, i.a end
 	function ColorPickerFrame:Cancel() local i = self._info if i.cancelFunc then i.cancelFunc({ r = i.r, g = i.g, b = i.b, a = i.a }) end end
 end
 
--- Tooltipdaten einer Einheit wie in Forever: Name, (Gilde), (NSC-Titel), Stufe, (Fraktion, PvP)
+-- Tooltip data of a unit as in Forever: name, (guild), (NPC title), level, (faction, PvP)
 function UnitTooltipData(unit)
 	local d = QN_UNITS[UNIT_RESOLVE(unit)]
 	local lines = { { type = Enum.TooltipDataLineType.UnitName, leftText = d.pvpName or d.name } }
 	if d.guild then lines[#lines + 1] = { type = 0, leftText = d.guild[1] } end
 	if d.title then lines[#lines + 1] = { type = 0, leftText = "<" .. d.title .. ">" } end
-	-- Forever: Stufenzeile ohne Zeilentyp (levelType = true: mit Typ UnitLevel), Klasse in eigener Zeile
+	-- Forever: level line without line type (levelType = true: with type UnitLevel), class on its own line
 	local levelText = TOOLTIP_UNIT_LEVEL:format(tostring(d.level)) .. (d.isPlayer and (" " .. tostring(d.raceName) .. " (" .. PLAYER .. ")") or "")
 	lines[#lines + 1] = { type = d.levelType and Enum.TooltipDataLineType.UnitLevel or 0, leftText = levelText }
 	if d.isPlayer then lines[#lines + 1] = { type = 0, leftText = d.className } end

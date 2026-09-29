@@ -1,7 +1,7 @@
--- qnInventory: Taschenansicht eines anderen Charakters, nachgebaut wie Blizzards kombinierte
--- Taschen (ContainerFrameCombinedBags): 10 Spalten, Plätze von unten rechts nach oben links,
--- Rucksack unten, Gold darunter. Reagenzientasche und Schlüsselbund zeigt Blizzard dort nicht,
--- daher auch hier nicht.
+-- qnInventory: bags view of another character, recreated like Blizzard's combined
+-- bags (ContainerFrameCombinedBags): 10 columns, slots from bottom right to top left,
+-- backpack at the bottom, gold below. Blizzard does not show the reagent bag and keyring there,
+-- so neither do we.
 
 local _, ns = ...
 
@@ -14,7 +14,7 @@ local view = {}
 ns.RegisterView("bags", view)
 
 local frame, money, notice, search
-local buttons = {}   -- Knopf-Vorrat; die ersten shown sind belegt
+local buttons = {}   -- button pool; the first `shown` are in use
 local shown = 0
 
 local function Button(i)
@@ -47,7 +47,7 @@ local function Create()
 
 	money = CreateFrame("Frame", "qnInventoryBagsFrameMoneyFrame", frame, "ContainerMoneyFrameTemplate")
 	MoneyFrame_SetType(money, "STATIC")
-	money:UnregisterAllEvents()   -- zeigt nicht das Gold des eingeloggten Charakters
+	money:UnregisterAllEvents()   -- does not show the gold of the logged-in character
 	money:SetPoint("BOTTOMLEFT", 8, 8)
 	money:SetPoint("BOTTOMRIGHT", -8, 8)
 
@@ -61,7 +61,7 @@ local function Create()
 	ns.AttachHeader(frame, "bags")
 end
 
--- An die Stelle von Blizzards Taschen, sonst deren Vorgabeplatz
+-- At the position of Blizzard's bags, otherwise their default position
 local function Place()
 	local live = ContainerFrameCombinedBags
 	frame:ClearAllPoints()
@@ -77,7 +77,7 @@ function view:Refresh()
 	local char = ns.CharFromKey(self.key)
 	local containers = char and char.containers
 	shown = 0
-	-- wie Blizzard: letzte Tasche zuerst, Plätze rückwärts; das Raster beginnt unten rechts
+	-- like Blizzard: last bag first, slots backwards; the grid starts at the bottom right
 	if containers then
 		for bag = Constants.InventoryConstants.NumBagSlots, Enum.BagIndex.Backpack, -1 do
 			local c = containers[bag]
@@ -103,7 +103,7 @@ function view:Refresh()
 			AnchorUtil.CreateGridLayout(GridLayoutMixin.Direction.BottomRightToTopLeft, COLUMNS, SPACING, SPACING))
 	end
 
-	-- Größe wie ContainerFrameCombinedBagsMixin (ohne Währungsleiste)
+	-- size like ContainerFrameCombinedBagsMixin (without currency bar)
 	local rows = math.max(math.ceil(shown / COLUMNS), 3)
 	local width = COLUMNS * BUTTON_SIZE + (COLUMNS - 1) * SPACING + PADDING_WIDTH
 	local height = rows * BUTTON_SIZE + (rows - 1) * SPACING + PADDING_HEIGHT + money:GetHeight() + 12
@@ -117,7 +117,7 @@ function view:Show(key)
 	self.key = key
 	local wasShown = frame:IsShown()
 	if not wasShown then Place() end
-	-- Blizzards Taschen erst nach dem Platzieren schließen
+	-- close Blizzard's bags only after placing
 	CloseAllBags()
 	self:Refresh()
 	frame:Show()

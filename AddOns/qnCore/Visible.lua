@@ -1,13 +1,13 @@
--- qnCore: Rahmen in den sichtbaren Bereich holen.
--- Sichtbarer Bereich: Liste von Rechtecken in Einheiten bei wirksamer Skalierung 1, Ursprung unten
--- links ({ l, r, t, b }, wie GetLeft() * GetEffectiveScale()). Ohne Anbieter ist es UIParent; qnViewPort
--- meldet sich mit SetAreaProvider an (Teile des Spielfensters, die auf einem Monitor zu sehen sind)
--- und ruft nach jeder Änderung der Anordnung Notify auf.
+-- qnCore: bring frames into the visible area.
+-- Visible area: list of rectangles in units at effective scale 1, origin bottom
+-- left ({ l, r, t, b }, like GetLeft() * GetEffectiveScale()). Without a provider it is UIParent; qnViewPort
+-- registers with SetAreaProvider (parts of the game window that are visible on a monitor)
+-- and calls Notify after every change of the arrangement.
 --
 --   qnCore.Visible.Move(frame, opts)                    -> true | false, "combat"/"visible"/"forbidden"
---   qnCore.Visible.MoveAndReport(frame, label, print, opts)  dasselbe mit Chatmeldung
---   check = qnCore.Visible.Keep(frame, enabledFn, onMoved, opts)   für "Automatisch im sichtbaren Bereich halten"
--- opts.insets = true: ClampRectInsets des Rahmens einrechnen (Rand außerhalb des Rahmens).
+--   qnCore.Visible.MoveAndReport(frame, label, print, opts)  the same with chat message
+--   check = qnCore.Visible.Keep(frame, enabledFn, onMoved, opts)   for "Keep in visible area automatically"
+-- opts.insets = true: include the frame's ClampRectInsets (margin outside the frame).
 
 local _, ns = ...
 local lib = qnCore
@@ -16,18 +16,18 @@ local L = ns.L
 local Visible = {}
 lib.Visible = Visible
 
-local TOLERANCE = 2   -- Einheiten, die ein Rahmen überstehen darf (Schatten, Ränder)
-local KEEP_DELAY = 1.5   -- nach dem Laden bzw. einer neuen Fenstergröße (qnViewPort ordnet vorher an)
+local TOLERANCE = 2   -- units a frame may stick out (shadows, borders)
+local KEEP_DELAY = 1.5   -- after loading or a new window size (qnViewPort arranges first)
 
 ---------------------------------------------------------------------------
--- Bereich
+-- Area
 ---------------------------------------------------------------------------
 
 local provider
 local listeners = {}
 
--- Rechteck eines Rahmens { l, r, t, b } oder nil, solange er keine Lage hat.
--- insets = true: ClampRectInsets einrechnen; eine Tabelle { links, rechts, oben, unten } ebenso.
+-- Rectangle of a frame { l, r, t, b } or nil as long as it has no position.
+-- insets = true: include ClampRectInsets; a table { left, right, top, bottom } likewise.
 function Visible.FrameAbs(frame, insets)
 	local l, b = frame:GetLeft(), frame:GetBottom()
 	if not (l and b) then
@@ -44,7 +44,7 @@ function Visible.FrameAbs(frame, insets)
 	return { l = (l + (il or 0)) * s, r = (l + w + (ir or 0)) * s, t = (b + h + (it or 0)) * s, b = (b + (ib or 0)) * s }
 end
 
--- fn() liefert die Rechtecke des sichtbaren Bereichs (qnViewPort); nil = wieder UIParent.
+-- fn() returns the rectangles of the visible area (qnViewPort); nil = back to UIParent.
 function Visible.SetAreaProvider(fn)
 	provider = fn
 end
@@ -56,12 +56,12 @@ function Visible.Area()
 	return { Visible.FrameAbs(UIParent) }
 end
 
--- fn() nach jeder Änderung des Bereichs
+-- fn() after every change of the area
 function Visible.OnAreaChanged(fn)
 	listeners[#listeners + 1] = fn
 end
 
--- Der Anbieter meldet einen geänderten Bereich; ein Fehler hält die übrigen nicht auf.
+-- The provider reports a changed area; an error does not stop the others.
 function Visible.Notify()
 	for _, fn in ipairs(listeners) do
 		local ok, err = pcall(fn)
@@ -72,7 +72,7 @@ function Visible.Notify()
 end
 
 ---------------------------------------------------------------------------
--- Rechnen
+-- Calculation
 ---------------------------------------------------------------------------
 
 local function Inside(x, y, rects)
@@ -84,7 +84,7 @@ local function Inside(x, y, rects)
 	return false
 end
 
--- Anteil (0..1) der Fläche von a, der im Bereich rects liegt (Zerlegung an allen Kanten).
+-- Share (0..1) of the area of a that lies within rects (decomposition at all edges).
 function Visible.VisibleFraction(a, rects)
 	a = { l = a.l + TOLERANCE, r = a.r - TOLERANCE, b = a.b + TOLERANCE, t = a.t - TOLERANCE }
 	if a.r <= a.l or a.t <= a.b then
@@ -113,13 +113,13 @@ function Visible.VisibleFraction(a, rects)
 	return shown / ((a.r - a.l) * (a.t - a.b))
 end
 
--- Ist a vollständig von der Vereinigung der rects bedeckt?
+-- Is a completely covered by the union of rects?
 local function Covered(a, rects)
 	return Visible.VisibleFraction(a, rects) > 0.9999
 end
 
--- Kürzeste Verschiebung (dx, dy), mit der a ganz in eines der rects passt.
--- Passt a nirgends, wird es an die obere linke Ecke des größten Rechtecks gelegt.
+-- Shortest shift (dx, dy) with which a fits entirely into one of the rects.
+-- If a fits nowhere, it is placed at the top left corner of the largest rectangle.
 local function Target(a, rects)
 	local w, h = a.r - a.l, a.t - a.b
 	local bestX, bestY, bestCost
@@ -144,11 +144,11 @@ local function Target(a, rects)
 end
 
 ---------------------------------------------------------------------------
--- Verschieben
+-- Moving
 ---------------------------------------------------------------------------
 
--- Verschiebt frame auf dem kürzesten Weg in den sichtbaren Bereich, neu verankert mit TOPLEFT an
--- UIParent BOTTOMLEFT. Rückgabe: true, wenn verschoben; sonst false und der Grund.
+-- Moves frame the shortest way into the visible area, re-anchored with TOPLEFT to
+-- UIParent BOTTOMLEFT. Returns true if moved; otherwise false and the reason.
 function Visible.Move(frame, opts)
 	if not frame or frame:IsForbidden() then
 		return false, "forbidden"
@@ -172,7 +172,7 @@ function Visible.Move(frame, opts)
 	return true
 end
 
--- Wie Move, meldet das Ergebnis über printFn (z. B. ns.Print); label benennt den Rahmen im Text.
+-- Like Move, reports the result via printFn (e.g. ns.Print); label names the frame in the text.
 function Visible.MoveAndReport(frame, label, printFn, opts)
 	local moved, why = Visible.Move(frame, opts)
 	if moved then
@@ -188,7 +188,7 @@ function Visible.MoveAndReport(frame, label, printFn, opts)
 end
 
 ---------------------------------------------------------------------------
--- Im sichtbaren Bereich halten
+-- Keep in the visible area
 ---------------------------------------------------------------------------
 
 local kept = {}
@@ -199,11 +199,11 @@ local function CheckKept()
 	end
 end
 
--- Hält frame im sichtbaren Bereich, solange enabledFn() wahr ist: nach dem Laden der Oberfläche und
--- einer neuen Fenstergröße (je mit Verzögerung) sowie bei jeder Änderung des Bereichs. onMoved()
--- nach einer Verschiebung (z. B. Lage speichern). Liefert check(): prüft im nächsten Frame, mehrere
--- Aufrufe zusammengefasst (nach dem Ziehen, nach dem Anwenden der Einstellungen). Ist ein geschützter
--- Rahmen im Kampf nicht verschiebbar, wird die Prüfung nach dem Kampf nachgeholt.
+-- Keeps frame in the visible area as long as enabledFn() is true: after the UI has loaded and
+-- after a new window size (each with a delay) and on every change of the area. onMoved()
+-- after a move (e.g. save position). Returns check(): checks in the next frame, several
+-- calls merged (after dragging, after applying the settings). If a protected
+-- frame cannot be moved in combat, the check is repeated after combat.
 function Visible.Keep(frame, enabledFn, onMoved, opts)
 	local check
 	check = lib.Debounce(function()

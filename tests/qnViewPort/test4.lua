@@ -1,7 +1,7 @@
--- Szenario 4: qnViewPort mit Titan – durchgehende Titan-Leisten auf einem gewählten Monitor,
--- Tooltips am Monitorrand. Titan selbst wird nachgebildet (nur, was qnViewPort anfasst):
--- TitanBarData, TitanBarDataVars, TitanPanelBarButton_Show/Hide/DisplayBarsWanted wie in
--- Titan.lua (SetBar, _Hide). Ohne Titan: Szenario 5.
+-- Scenario 4: qnViewPort with Titan – full-width Titan bars on a selected monitor,
+-- tooltips at the monitor edge. Titan itself is emulated (only what qnViewPort touches):
+-- TitanBarData, TitanBarDataVars, TitanPanelBarButton_Show/Hide/DisplayBarsWanted as in
+-- Titan.lua (SetBar, _Hide). Without Titan: scenario 5.
 
 qnCoreCharDB = { layout = "account:Raid" }
 qnViewPortDB = { global = {}, profiles = {
@@ -10,7 +10,7 @@ qnViewPortDB = { global = {}, profiles = {
 } }
 
 ---------------------------------------------------------------------------
--- Titan-Nachbau
+-- Titan emulation
 ---------------------------------------------------------------------------
 TITAN_PANEL_DISPLAY_PREFIX = "Titan_Bar__Display_"
 TITAN_PANEL_BAR_HEIGHT = 24
@@ -24,7 +24,7 @@ local DEF = {
 	AuxBar = { "Unten", "TOPLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", 24, -72 },
 }
 TitanBarData = {}
-TitanBarDataVars = {}   -- Titan füllt es erst beim Betreten der Welt
+TitanBarDataVars = {}   -- Titan fills it only when entering the world
 local vars = {}
 for name, d in pairs(DEF) do
 	TitanBarData[P .. name] = {
@@ -34,7 +34,7 @@ for name, d in pairs(DEF) do
 	}
 	vars[P .. name] = { off_x = 0, off_y = d[6], show = false, auto_hide = false }
 end
--- Titan legt Leiste und Auto-Hide-Leiste erst beim Betreten der Welt an (SetupTitan)
+-- Titan creates the bar and auto-hide bar only when entering the world (SetupTitan)
 function TitanPanelButton_CreateBar(frame_str)
 	CreateFrame("Button", frame_str, UIParent)
 	CreateFrame("Button", TitanBarData[frame_str].hider, UIParent)._w = 1920
@@ -74,7 +74,7 @@ function TitanPanelBarButton_DisplayBarsWanted(reason)
 	end
 end
 
--- Plugins und Tooltips (TitanTemplate.lua): nur die globalen Funktionen, an die qnViewPort sich hängt
+-- plugins and tooltips (TitanTemplate.lua): only the global functions qnViewPort hooks into
 TitanPanelTooltip = CreateFrame("GameTooltip", "TitanPanelTooltip", UIParent)
 local plugins, controls = {}, {}
 function TitanUtils_GetPlugin(id) return plugins[id] end
@@ -85,10 +85,10 @@ function TitanPanelButton_UpdateTooltip(self) end
 function TitanPanelPluginHandle_OnUpdate(t, oldarg) end
 function TitanPanelButton_OnClick(self, button) end
 
--- Skalierung (Titan.lua, TitanTemplate.lua): Titan setzt SetScale auf Leisten und Text-Plugins
+-- scaling (Titan.lua, TitanTemplate.lua): Titan calls SetScale on bars and text plugins
 local TITAN_VARS = { Scale = 1, TooltipFont = 1 }
 function TitanPanelGetVar(k) return TITAN_VARS[k] end
-local pluginBar = {}   -- [id] = Kurzname der Leiste
+local pluginBar = {}   -- [id] = short name of the bar
 function TitanUtils_GetButton(id) return _G["TitanPanel" .. id .. "Button"], id end
 function TitanUtils_GetButtonID(name) return name and name:match("^TitanPanel(.*)Button$") end
 function TitanUtils_GetWhichBar(id) return pluginBar[id] end
@@ -109,14 +109,14 @@ function TitanPanel_InitPanelButtons(reason)
 end
 
 ---------------------------------------------------------------------------
--- Laden; Monitore wie qnViewPort (5760 × 2160, 2. Monitor 1920 × 1200 bei y 377)
+-- loading; monitors like qnViewPort (5760 × 2160, 2nd monitor 1920 × 1200 at y 377)
 ---------------------------------------------------------------------------
 local isLoaded = C_AddOns.IsAddOnLoaded
 C_AddOns.IsAddOnLoaded = function(name) return name == "Titan" or isLoaded(name) end
 LoadAddon("qnCore")
 local vp = LoadAddon("qnViewPort")
 local tt, L = vp.Titan, vp.L
--- Monitore wie Monitors.lua; 1 Einheit = 1 Pixel (abs = Pixel, Ursprung unten links)
+-- monitors like Monitors.lua; 1 unit = 1 pixel (abs = pixels, origin bottom left)
 local M1 = { l = 0, r = 3840, t = 2160, b = 0 }
 local M2 = { l = 3840, r = 5760, t = 2160 - 377, b = 2160 - 377 - 1200 }
 local PX = { { x = 0, y = 0, w = 3840, h = 2160 }, { x = 3840, y = 377, w = 1920, h = 1200 } }
@@ -127,12 +127,12 @@ end
 SetMonitors(2)
 local screen = vp.screenRef
 
-Check(tt.active and tt.category ~= nil, "mit Titan: aktiv, Unterseite „Titan Panel“ angelegt")
+Check(tt.active and tt.category ~= nil, "with Titan: active, subpage 'Titan Panel' created")
 for name in pairs(DEF) do
 	Check(TitanBarData[P .. name].show.rel_fr == _G["qnViewPortTitanAnchor" .. name]
-		and TitanBarData[P .. name].bott.rel_fr == _G["qnViewPortTitanAnchor" .. name], "Bezugsrahmen ersetzt: " .. name)
+		and TitanBarData[P .. name].bott.rel_fr == _G["qnViewPortTitanAnchor" .. name], "reference frame replaced: " .. name)
 end
--- wie SetupTitan beim Betreten der Welt, also nach qnViewPort
+-- like SetupTitan when entering the world, i.e. after qnViewPort
 for frame in pairs(TitanBarData) do
 	TitanPanelButton_CreateBar(frame)
 end
@@ -140,7 +140,7 @@ local wrapped = true
 for frame in pairs(TitanBarData) do
 	wrapped = wrapped and _G[frame].qnViewPortSetScale ~= nil
 end
-Check(wrapped, "erst nach qnViewPort angelegte Leisten bekommen den Faktor des Monitors")
+Check(wrapped, "bars created only after qnViewPort get the monitor's factor")
 local function Set(bar, v)
 	vp.db.titan[bar] = v
 	tt.Apply()
@@ -149,7 +149,7 @@ end
 FireEvent("PLAYER_LOGIN")
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
-Check(shows == 0, "vor Titans Start keine Anzeige über Titan")
+Check(shows == 0, "no display via Titan before Titan starts")
 TitanBarDataVars = vars
 Titan__InitializedPEW = true
 vars[P .. "Bar"].show = true
@@ -170,59 +170,59 @@ local function Whole(name)
 end
 
 ---------------------------------------------------------------------------
--- Profil „account:Raid“: untere Leiste auf Monitor 2
+-- profile "account:Raid": bottom bar on monitor 2
 ---------------------------------------------------------------------------
 tt.Apply()
-Check(shows == 1, "Apply lässt Titan die Leisten neu zeigen")
-Check(OnMonitor("AuxBar", M2), "Unten auf Monitor 2")
-Check(Whole("Bar") and Whole("Bar2"), "ohne Auswahl wie Titan (Anker = UIParent)")
+Check(shows == 1, "Apply makes Titan show the bars again")
+Check(OnMonitor("AuxBar", M2), "Bottom on monitor 2")
+Check(Whole("Bar") and Whole("Bar2"), "without selection like Titan (anchor = UIParent)")
 local d = _G[P .. "AuxBar"]._points
 Check(d[1][2] == qnViewPortTitanAnchorAuxBar and d[2][2] == qnViewPortTitanAnchorAuxBar and d[1][5] == 24,
-	"Titan setzt die Leiste an den Anker (Versatz von Titan)")
-Check(_G["Titan_Bar__Hider_AuxBar"]._w == 1920, "Auto-Hide-Leiste auf Monitorbreite")
+	"Titan places the bar at the anchor (Titan's offset)")
+Check(_G["Titan_Bar__Hider_AuxBar"]._w == 1920, "auto-hide bar at monitor width")
 
--- obere Leisten
+-- top bars
 Set("Bar", 2)
-Check(OnMonitor("Bar", M2), "Oben auf Monitor 2")
+Check(OnMonitor("Bar", M2), "Top on monitor 2")
 vars[P .. "Bar2"].show = true
 Set("Bar2", 1)
-Check(OnMonitor("Bar2", M1, 24), "Oben 2 allein auf Monitor 1: an die Kante gerückt")
+Check(OnMonitor("Bar2", M1, 24), "Top 2 alone on monitor 1: moved to the edge")
 Set("Bar2", 2)
-Check(OnMonitor("Bar2", M2), "Oben 2 unter Oben auf demselben Monitor: Titans Versatz bleibt")
+Check(OnMonitor("Bar2", M2), "Top 2 below Top on the same monitor: Titan's offset stays")
 vars[P .. "Bar"].show = false
 tt.Apply()
-Check(OnMonitor("Bar2", M2, 24), "Oben ausgeschaltet: Oben 2 an die Kante")
+Check(OnMonitor("Bar2", M2, 24), "Top switched off: Top 2 to the edge")
 local bar = _G[P .. "Bar"]._points
 Check(bar[1][1] == "BOTTOMLEFT" and bar[1][2] == screen and bar[1][3] == "TOPLEFT",
-	"verborgene Leiste über dem Spielfenster geparkt")
+	"hidden bar parked above the game window")
 vars[P .. "Bar"].show = true
 
--- untere Leiste 2
+-- bottom bar 2
 vars[P .. "AuxBar2"].show = true
 Set("AuxBar2", 1)
-Check(OnMonitor("AuxBar2", M1, -24), "Unten 2 allein auf Monitor 1: nach unten gerückt")
+Check(OnMonitor("AuxBar2", M1, -24), "Bottom 2 alone on monitor 1: moved down")
 Set("AuxBar2", 0)
-Check(Whole("AuxBar2"), "Unten 2 zurück auf wie Titan")
+Check(Whole("AuxBar2"), "Bottom 2 back to like Titan")
 
 -- Auto-Hide
 vars[P .. "AuxBar"].auto_hide = true
 tt.Apply()
 local h = _G["Titan_Bar__Hider_AuxBar"]
-Check(h._points[1][2] == qnViewPortTitanAnchorAuxBar and h._w == 1920, "Auto-Hide-Leiste am Monitor und auf seiner Breite")
-Check(_G[P .. "AuxBar"]._points[1][2] == screen, "automatisch verborgene Leiste geparkt")
+Check(h._points[1][2] == qnViewPortTitanAnchorAuxBar and h._w == 1920, "auto-hide bar on the monitor and at its width")
+Check(_G[P .. "AuxBar"]._points[1][2] == screen, "auto-hidden bar parked")
 
--- Titan verschiebt gerade: nichts anfassen
+-- Titan is currently moving: touch nothing
 TITAN_PANEL_MOVING = 1
 _G[P .. "AuxBar"]:ClearAllPoints()
 TitanPanelBarButton_Hide(P .. "AuxBar")
-Check(#_G[P .. "AuxBar"]._points == 0, "TITAN_PANEL_MOVING: kein Parken")
+Check(#_G[P .. "AuxBar"]._points == 0, "TITAN_PANEL_MOVING: no parking")
 TITAN_PANEL_MOVING = 0
 vars[P .. "AuxBar"].auto_hide = false
 
 ---------------------------------------------------------------------------
--- Dropdown: Einträge, fehlender Monitor
+-- dropdown: entries, missing monitor
 ---------------------------------------------------------------------------
--- Einträge wie beim Aufklappen des Dropdowns
+-- entries as when opening the dropdown
 local function Labels(key)
 	local list = {}
 	for _, e in ipairs(tt.Entries(key)) do
@@ -233,25 +233,25 @@ end
 local labels = Labels("Bar")
 Check(#labels == 3 and labels[1] == L["As Titan (entire UI)"]
 	and labels[2] == L["Monitor %d (%d × %d)"]:format(1, 3840, 2160)
-	and labels[3] == L["Monitor %d (%d × %d)"]:format(2, 1920, 1200), "Dropdown: wie Titan + Monitore mit Pixelgröße")
+	and labels[3] == L["Monitor %d (%d × %d)"]:format(2, 1920, 1200), "dropdown: like Titan + monitors with pixel size")
 SetMonitors(1)
 tt.Apply()
-Check(Whole("Bar") and Whole("AuxBar"), "Monitor 2 fehlt: Leisten wie Titan")
+Check(Whole("Bar") and Whole("AuxBar"), "monitor 2 missing: bars like Titan")
 labels = Labels("Bar")
-Check(#labels == 3 and labels[3] == L["Monitor %d (not present)"]:format(2), "gespeicherter Monitor bleibt im Dropdown sichtbar")
-Check(qnViewPortDB.profiles["account:Raid"].titan.Bar == 2, "Auswahl bleibt gespeichert")
+Check(#labels == 3 and labels[3] == L["Monitor %d (not present)"]:format(2), "saved monitor stays visible in the dropdown")
+Check(qnViewPortDB.profiles["account:Raid"].titan.Bar == 2, "selection stays saved")
 SetMonitors(2)
 
 ---------------------------------------------------------------------------
--- Profilwechsel (Layout des Bearbeitungsmodus)
+-- profile switch (Edit Mode layout)
 ---------------------------------------------------------------------------
 SetEditModeLayout(1)
-Check(Whole("AuxBar") and Whole("Bar"), "Profil preset:1: Leisten wie Titan")
+Check(Whole("AuxBar") and Whole("Bar"), "profile preset:1: bars like Titan")
 SetEditModeLayout(3)
-Check(OnMonitor("AuxBar", M2) and OnMonitor("Bar", M2), "zurück auf Raid: wieder Monitor 2")
+Check(OnMonitor("AuxBar", M2) and OnMonitor("Bar", M2), "back to Raid: monitor 2 again")
 
 ---------------------------------------------------------------------------
--- Tooltips am Rand des Monitors
+-- tooltips at the edge of the monitor
 ---------------------------------------------------------------------------
 local btn = CreateFrame("Button", "TitanPanelClockButton", UIParent)
 btn.registry = { id = "Clock" }
@@ -260,7 +260,7 @@ local function Place(f, l, b, w, h)
 	f.GetBottom = function() return b end
 	f._w, f._h = w, h
 end
--- Titans Anker nachbilden: GetPoint liefert den zuletzt gesetzten Punkt
+-- emulate Titan's anchor: GetPoint returns the last set point
 local function Anchored(f, point)
 	f:ClearAllPoints()
 	f:SetPoint(point, btn, "BOTTOMLEFT", 0, 0)
@@ -272,48 +272,48 @@ local function Last(f)
 	return p[1], p[2], p[3], p[4], p[5]
 end
 
--- oben rechts auf Monitor 1: Titan hängt ihn nach rechts, dort ist kein Monitor mehr
+-- top right on monitor 1: Titan attaches it to the right, there is no monitor there anymore
 Place(btn, 3800, 2136, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 200, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
 TitanPanelButton_OnEnter(btn)
 local p, rel, rp, x, y = Last(TitanPanelTooltip)
 Check(p == "TOPRIGHT" and rel == btn and rp == "BOTTOMRIGHT" and x == 0 and y == 0,
-	("Tooltip am rechten Rand des Monitors nach links geklappt: %s %s %s %s"):format(p, rp, x, y))
--- passt er, bleibt Titans Seite
+	("tooltip at the right edge of the monitor flipped to the left: %s %s %s %s"):format(p, rp, x, y))
+-- if it fits, Titan's side stays
 Place(btn, 1000, 2136, 30, 24)
 Anchored(TitanPanelTooltip, "TOPLEFT")
 TitanPanelButton_UpdateTooltip(btn)
 p, rel, rp = Last(TitanPanelTooltip)
-Check(p == "TOPLEFT" and rp == "BOTTOMLEFT", "Tooltip mit Platz: Titans Seite bleibt")
--- breiter als der Platz auf beiden Seiten: hineingeschoben
+Check(p == "TOPLEFT" and rp == "BOTTOMLEFT", "tooltip with room: Titan's side stays")
+-- wider than the room on both sides: pushed inside
 Place(btn, 1000, 2136, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 3000, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
 TitanPanelPluginHandle_OnUpdate({ "Clock", 2 })
 p, rel, rp, x = Last(TitanPanelTooltip)
-Check(p == "TOPLEFT" and x == 3840 - 4000, ("zu breiter Tooltip in den Monitor geschoben: %s %s"):format(p, x))
--- breiter als der Monitor: linke Kante bleibt sichtbar
+Check(p == "TOPLEFT" and x == 3840 - 4000, ("too wide tooltip pushed into the monitor: %s %s"):format(p, x))
+-- wider than the monitor: left edge stays visible
 Place(btn, 50, 2136, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 3900, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
 TitanPanelButton_UpdateTooltip(btn)
 p, rel, rp, x = Last(TitanPanelTooltip)
-Check(p == "TOPLEFT" and x == -50, ("breiter als der Monitor: an dessen linken Rand: %s %s"):format(p, x))
--- untere Leiste auf Monitor 2: darunter ist kein Monitor, also darüber
+Check(p == "TOPLEFT" and x == -50, ("wider than the monitor: at its left edge: %s %s"):format(p, x))
+-- bottom bar on monitor 2: no monitor below, so above
 Place(btn, 4000, M2.b, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 200, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
 TitanPanelButton_OnEnter(btn)
 p, rel, rp = Last(TitanPanelTooltip)
-Check(p == "BOTTOMLEFT" and rp == "TOPLEFT", "Tooltip an der Unterkante von Monitor 2 nach oben geklappt")
--- fremder Anker (nicht am Plugin): nicht anfassen
+Check(p == "BOTTOMLEFT" and rp == "TOPLEFT", "tooltip at the bottom edge of monitor 2 flipped upwards")
+-- foreign anchor (not on the plugin): do not touch
 GameTooltip:ClearAllPoints()
 GameTooltip:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 5, 5)
 GameTooltip.GetPoint = function(self) local q = self._points[1] return q[1], q[2], q[3], q[4], q[5] end
 TitanPanelButton_OnEnter(btn)
-Check(#GameTooltip._points == 1 and GameTooltip._points[1][2] == UIParent, "GameTooltip eines anderen Rahmens bleibt unberührt")
--- Steuerfenster
+Check(#GameTooltip._points == 1 and GameTooltip._points[1][2] == UIParent, "GameTooltip of another frame stays untouched")
+-- control frame
 local ctrl = CreateFrame("Frame", "TitanPanelClockControlFrame", UIParent)
 controls.Clock = ctrl
 Place(btn, 3800, 2136, 30, 24)
@@ -321,23 +321,23 @@ Place(ctrl, 0, 0, 150, 150)
 Anchored(ctrl, "TOPLEFT")
 TitanPanelButton_OnClick(btn, "LeftButton")
 p = Last(ctrl)
-Check(p == "TOPRIGHT", "Steuerfenster am rechten Monitorrand nach links")
+Check(p == "TOPRIGHT", "control frame at the right monitor edge to the left")
 RunTimers()
--- Steuerfenster mit Platz: Titans Anker (Mitte der Plugin-Unterkante) bleibt, kein Sprung
+-- control frame with room: Titan's anchor (center of the plugin's bottom edge) stays, no jump
 Place(btn, 1000, 2136, 30, 24)
 ctrl:ClearAllPoints()
 ctrl:SetPoint("TOPLEFT", btn, "BOTTOM", 0, 0)
 TitanPanelButton_OnClick(btn, "LeftButton")
 p, rel, rp = Last(ctrl)
-Check(#ctrl._points == 1 and p == "TOPLEFT" and rp == "BOTTOM", ("Steuerfenster mit Platz: Titans Anker bleibt: %s %s"):format(p, tostring(rp)))
+Check(#ctrl._points == 1 and p == "TOPLEFT" and rp == "BOTTOM", ("control frame with room: Titan's anchor stays: %s %s"):format(p, tostring(rp)))
 
 ---------------------------------------------------------------------------
--- Skalierung je Monitor (zusätzlich zu Titans Skalierung)
+-- scale per monitor (in addition to Titan's scale)
 ---------------------------------------------------------------------------
 local function Near(a, b) return math.abs((a or 0) - b) < 1e-6 end
 btn.textPlugin = true
 pluginBar.Clock = "Bar"
-local bag = CreateFrame("Button", "TitanPanelBagButton", UIParent)   -- nur Symbol: Titan skaliert es nicht
+local bag = CreateFrame("Button", "TitanPanelBagButton", UIParent)   -- icon only: Titan does not scale it
 pluginBar.Bag = "Bar"
 local xp = CreateFrame("Button", "TitanPanelXPButton", UIParent)
 xp.textPlugin = true
@@ -345,30 +345,30 @@ pluginBar.XP = "Short01"
 vp.db.titan.Bar, vp.db.titan.AuxBar = 2, 1
 tt.Apply()
 Check(Near(_G[P .. "Bar"]._scale, 1) and Near(btn._scale, 1) and bag._scale == nil,
-	"ohne Faktor: Titans Skalierung unverändert, Symbol-Plugin nicht angefasst")
+	"without factor: Titan's scale unchanged, icon plugin not touched")
 vp.db.titan.scale = { [2] = 0.65 }
 tt.Apply()
 Check(Near(_G[P .. "Bar"]._scale, 0.65) and Near(_G[P .. "AuxBar"]._scale, 1),
-	("Leiste auf Monitor 2 mit 65 %%, auf Monitor 1 unverändert: %s / %s"):format(_G[P .. "Bar"]._scale, _G[P .. "AuxBar"]._scale))
+	("bar on monitor 2 at 65 %%, on monitor 1 unchanged: %s / %s"):format(_G[P .. "Bar"]._scale, _G[P .. "AuxBar"]._scale))
 Check(Near(btn._scale, 0.65) and Near(bag._scale, 0.65) and Near(xp._scale, 1),
-	"Plugins der Leiste mit Faktor (auch reine Symbole), Plugin auf kurzer Leiste nicht")
+	"plugins of the bar with factor (icons too), plugin on a short bar not")
 TITAN_VARS.Scale = 1.2
 tt.Apply()
 Check(Near(_G[P .. "Bar"]._scale, 0.78) and Near(btn._scale, 0.78) and Near(_G[P .. "AuxBar"]._scale, 1.2),
-	"Faktor wirkt zusätzlich zu Titans Skalierung")
--- Titans Tooltip am Plugin auf Monitor 2
+	"factor applies in addition to Titan's scale")
+-- Titan's tooltip on the plugin on monitor 2
 Place(btn, 4000, M2.t - 24, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 200, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
 TitanPanelButton_OnEnter(btn)
-Check(Near(TitanPanelTooltip._scale, 0.65), ("Titans Tooltip mit Faktor des Monitors: %s"):format(tostring(TitanPanelTooltip._scale)))
--- Faktor zurück auf 100 %
+Check(Near(TitanPanelTooltip._scale, 0.65), ("Titan's tooltip with the monitor's factor: %s"):format(tostring(TitanPanelTooltip._scale)))
+-- factor back to 100 %
 vp.db.titan.scale = {}
 tt.Apply()
 Check(Near(_G[P .. "Bar"]._scale, 1.2) and Near(btn._scale, 1.2) and Near(bag._scale, 1.2),
-	"Faktor entfernt: wieder Titans Skalierung")
+	"factor removed: Titan's scale again")
 tt.RefreshOptions()
-Check(true, "Optionsseite mit Reglern je Monitor aufgefrischt")
+Check(true, "options page with sliders per monitor refreshed")
 TITAN_VARS.Scale = 1
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

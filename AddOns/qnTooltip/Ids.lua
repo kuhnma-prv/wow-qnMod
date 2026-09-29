@@ -1,5 +1,5 @@
--- qnTooltip: Gegenstände, Zauber, Auren und Quests: Rahmen nach Qualität bzw. Schwierigkeit,
--- Symbol vor dem Namen und IDs (Gegenstand, Symbol, Stapelgröße, Zauber, Quest).
+-- qnTooltip: items, spells, auras and quests: border by quality or difficulty,
+-- icon before the name and IDs (item, icon, stack size, spell, quest).
 
 local _, ns = ...
 local L = ns.L
@@ -26,7 +26,7 @@ local function LineIndex(data, lineType)
 	return 1
 end
 
--- Symbol vor den Text einer Zeile (der Text darf secret sein)
+-- icon before the text of a line (the text may be secret)
 local function PrefixIcon(tip, index, icon)
 	local left = ns.Left(tip, index)
 	local text = left and left:GetText()
@@ -39,7 +39,7 @@ local function IdsAllowed()
 	return not ns.db.idsWithModifier or ns.AnyModifier()
 end
 
--- Zeilen { Beschriftung, Wert } unter einer Leerzeile anhängen
+-- append lines { label, value } below an empty line
 local function AddIds(tip, list)
 	if #list == 0 then
 		return
@@ -51,7 +51,7 @@ local function AddIds(tip, list)
 end
 
 ---------------------------------------------------------------------------
--- Gegenstände
+-- Items
 ---------------------------------------------------------------------------
 
 local function OnItem(tip, data)
@@ -91,7 +91,7 @@ local function OnItem(tip, data)
 end
 
 ---------------------------------------------------------------------------
--- Zauber und Auren
+-- Spells and auras
 ---------------------------------------------------------------------------
 
 local function SpellIds(tip, id, icon)

@@ -1,4 +1,4 @@
-# Testszenarien (deDE und enUS) und Prüfung der Übersetzungen bei jedem Push und Pull Request
+# Test scenarios (deDE and enUS) and translation check on every push and pull request
 name: Tests
 
 on:
@@ -19,13 +19,13 @@ jobs:
           cache: npm
           cache-dependency-path: tests/package-lock.json
 
-      - name: fengari installieren
+      - name: Install fengari
         working-directory: tests
         run: npm ci --no-fund --no-audit
 
-      - name: Testszenarien
+      - name: Test scenarios
         shell: pwsh
         run: ./tests/Invoke-QnTests.ps1
 
-      - name: Übersetzungen
+      - name: Translations
         run: node tests/check-locale.mjs

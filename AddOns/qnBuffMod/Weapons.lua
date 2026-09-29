@@ -1,5 +1,5 @@
--- qnBuffMod: temporäre Waffenverzauberungen des Spielers (Haupt- und Nebenhand).
--- Weapons.slots[Platz] = Record wie bei den Auren, zusätzlich weapon = true und slot.
+-- qnBuffMod: temporary weapon enchants of the player (main hand and off hand).
+-- Weapons.slots[slot] = record as for the auras, additionally weapon = true and slot.
 
 local _, ns = ...
 local lib = qnCore
@@ -10,10 +10,10 @@ ns.Weapons = Weapons
 
 Weapons.SLOTS = { INVSLOT_MAINHAND, INVSLOT_OFFHAND }
 
-local states = {}   -- [Platz] = { name, icon, duration, last, known, warned }
+local states = {}   -- [slot] = { name, icon, duration, last, known, warned }
 local tick = 0
 
--- Name der Verzauberung aus dem Tooltip der Waffe: Zeile "Name (Zahl Einheit)", z. B. "Sofortgift (30 Min)"
+-- Name of the enchant from the weapon's tooltip: line "Name (number unit)", e.g. "Instant Poison (30 min)"
 local function TooltipName(slot)
 	local data = C_TooltipInfo.GetInventoryItem("player", slot)
 	if type(data) ~= "table" or IsSecret(data) or type(data.lines) ~= "table" then
@@ -52,13 +52,13 @@ local function ReadSlot(slot, index, now)
 			name = UNKNOWN
 		end
 	end
-	-- bisher unbekannter Name jetzt gelesen (gleiches Symbol, gleicher Platz): dieselbe Verzauberung
+	-- previously unknown name now read (same icon, same slot): the same enchant
 	if st and st.icon == icon and not st.known and known then
 		st.name = name
 	end
 	if st and st.name == name and st.icon == icon then
 		if remaining > st.last + 0.5 then
-			-- gleiche Verzauberung, Restzeit gestiegen: erneuert
+			-- same enchant, time remaining increased: renewed
 			st.duration = remaining
 			st.warned = nil
 			ns.Recast.Forget(name)
@@ -86,7 +86,7 @@ local function ReadSlot(slot, index, now)
 	}
 end
 
--- Liest beide Plätze; true, wenn sich geändert hat, welche Plätze verzaubert sind.
+-- Reads both slots; true if the set of enchanted slots has changed.
 function Weapons.Read()
 	local changed, now = false, GetTime()
 	for index, slot in ipairs(Weapons.SLOTS) do
@@ -103,7 +103,7 @@ function Weapons.Update()
 	ns.WeaponsChanged(Weapons.Read())
 end
 
--- Verzauberte Plätze in der Reihenfolge Haupthand, Nebenhand
+-- Enchanted slots in the order main hand, off hand
 function Weapons.List()
 	local list = {}
 	for _, slot in ipairs(Weapons.SLOTS) do
@@ -114,8 +114,8 @@ function Weapons.List()
 	return list
 end
 
--- Sekundentakt (Core): solange eine Waffe verzaubert ist, bei unbekanntem Namen jede Sekunde,
--- sonst alle 2 s neu lesen.
+-- One-second tick (Core): while a weapon is enchanted, re-read every second if the name is unknown,
+-- otherwise every 2 s.
 function Weapons.Tick()
 	if not next(Weapons.slots) then
 		tick = 0

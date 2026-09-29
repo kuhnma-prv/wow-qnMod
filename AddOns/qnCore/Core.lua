@@ -1,7 +1,7 @@
--- qnCore: eigenes Addon – Vorgaben, Start, Slash-Befehle.
--- Die Optionen von qnCore für Taschen und Verfolgung gelten immer kontoweit: sie liegen in
--- qnCoreDB.global und hängen weder an einem Profil noch an einem Charakter. Die Schrift der
--- Questzielverfolgung gilt je Profil (qnCoreDB.profiles).
+-- qnCore: own addon - defaults, startup, slash commands.
+-- The qnCore options for bags and tracking always apply account-wide: they live in
+-- qnCoreDB.global and are tied neither to a profile nor to a character. The font of the
+-- Objective Tracker applies per profile (qnCoreDB.profiles).
 
 local ADDON, ns = ...
 local lib = qnCore
@@ -11,22 +11,22 @@ local L = ns.L
 
 ns.defaults = {
 	bags = ns.Bags.defaults,       -- Bags.lua
-	tracking = true,               -- Verfolgung an der Minikarte merken (Tracking.lua)
+	tracking = true,               -- remember Minimap tracking (Tracking.lua)
 }
 
--- Einstellungen je Profil (qnCoreDB.profiles, eigenes Profil von qnCore)
+-- Settings per profile (qnCoreDB.profiles, qnCore's own profile)
 ns.profileDefaults = {
-	questTextSize = 0,             -- Schrift der Questzielverfolgung, 0 = wie im Bearbeitungsmodus (QuestTracker.lua)
+	questTextSize = 0,             -- Objective Tracker font size, 0 = as in Edit Mode (QuestTracker.lua)
 }
 
--- Veraltete Schlüssel in qnCoreDB.global
+-- Obsolete keys in qnCoreDB.global
 local OBSOLETE = {
-	"chatTimestamps",   -- Zeitstempel-Option entfernt (gibt es im Spiel)
+	"chatTimestamps",   -- timestamp option removed (the game has it)
 }
 
--- Frühere Fassung hatte die Taschen je Profil (qnCoreDB.profiles): einmalig in die
--- kontoweiten Einstellungen übernehmen – aus dem zuletzt aktiven Profil dieses Charakters.
--- Seit ownProfiles gesetzt ist, sind qnCoreDB.profiles die eigenen Profile von qnCore.
+-- An earlier version stored the bags per profile (qnCoreDB.profiles): copy them once into the
+-- account-wide settings - from this character's last active profile.
+-- Since ownProfiles is set, qnCoreDB.profiles holds qnCore's own profiles.
 local function MigrateProfiles(db)
 	local profiles = db.profiles
 	if type(profiles) ~= "table" or db.ownProfiles then
@@ -48,7 +48,7 @@ local function MigrateProfiles(db)
 end
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
 lib.RegisterSlash("QNCORE", { "/qncore", "/qnc" }, function(cmd)
@@ -93,7 +93,7 @@ ns.OnLoad(function()
 	MigrateProfiles(qnCoreDB)
 	lib.RemoveKeys(qnCoreDB.global, OBSOLETE)
 	if not qnCoreDB.ownProfiles then
-		qnCoreDB.profiles = {}   -- sonst hielte Profiles.Register die ganze Tabelle für das alte Format
+		qnCoreDB.profiles = {}   -- otherwise Profiles.Register would take the whole table for the old format
 		qnCoreDB.ownProfiles = true
 	end
 

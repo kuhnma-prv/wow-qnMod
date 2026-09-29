@@ -1,6 +1,6 @@
--- qnViewPort: verkleinert den Bereich, in dem die 3D-Welt gezeichnet wird.
--- Für WoW Classic Forever; Profile und Hilfsfunktionen aus qnCore.
--- Core: Einstellungen, Anwenden auf WorldFrame, Randfarbe und -muster, Slash-Befehle.
+-- qnViewPort: shrinks the area in which the 3D world is rendered.
+-- For WoW Classic Forever; profiles and helper functions from qnCore.
+-- Core: settings, applying to WorldFrame, border color and pattern, slash commands.
 
 local ADDON, ns = ...
 _G.qnViewPort = ns
@@ -9,74 +9,74 @@ local lib = qnCore
 lib.NewAddon(ns, ADDON)
 local L = ns.L
 
--- Versätze in Bildschirmpixeln: links, rechts, oben, unten
+-- Offsets in screen pixels: left, right, top, bottom
 ns.defaults = {
 	viewport = { 0, 0, 0, 0 },
 	color = { 0, 0, 0, 1 },
-	pattern = "none",      -- Hintergrundmuster über der Farbe: "none", Schlüssel aus ns.PATTERNS oder "lsm:<Name>"
-	patternAlpha = 0.5,    -- Deckkraft des Musters (0–1)
+	pattern = "none",      -- background pattern over the color: "none", key from ns.PATTERNS or "lsm:<name>"
+	patternAlpha = 0.5,    -- pattern opacity (0–1)
 	suppressMessage = false,
-	-- Zweiter Monitor (SecondScreen.lua); Größen in Bildschirmpixeln
+	-- Second monitor (SecondScreen.lua); sizes in screen pixels
 	dual = {
 		enabled = false,
-		side = "RIGHT",        -- Lage des 2. Monitors neben dem Hauptmonitor: "RIGHT" oder "LEFT"
+		side = "RIGHT",        -- position of the 2nd monitor next to the main monitor: "RIGHT" or "LEFT"
 		width = 1920,
 		height = 1200,
-		offsetY = 0,           -- Abstand der Oberkante des 2. Monitors von der Fensteroberkante
-		bags = false,          -- Taschen beim Öffnen an eine Monitorecke legen
-		bagsMonitor = 0,       -- 0 = Hauptmonitor, sonst Nummer wie auf der Seite „Monitore“
+		offsetY = 0,           -- distance of the 2nd monitor's top edge from the window's top edge
+		bags = false,          -- move bags to a monitor corner when opened
+		bagsMonitor = 0,       -- 0 = main monitor, otherwise the number as on the "Monitors" page
 		bagsPoint = "BOTTOMRIGHT",
-		bagsOffsetX = 130,     -- Abstand vom senkrechten Rand der Ecke (Pixel)
-		bagsOffsetY = 330,     -- Abstand vom waagerechten Rand der Ecke (Pixel), z. B. Platz für Leisten
-		zoneMap = false,       -- Zonenkarte (BattlefieldMapFrame) beim Anzeigen an eine Monitorecke legen
+		bagsOffsetX = 130,     -- distance from the vertical edge of the corner (pixels)
+		bagsOffsetY = 330,     -- distance from the horizontal edge of the corner (pixels), e.g. room for bars
+		zoneMap = false,       -- move the Zone Map (BattlefieldMapFrame) to a monitor corner when shown
 		zoneMapMonitor = 0,
 		zoneMapPoint = "TOPRIGHT",
 		zoneMapOffsetX = 20,
 		zoneMapOffsetY = 300,
-		zoneMapScale = 1,      -- Größe der Zonenkarte samt Reiter (1 = 100 %, dann fasst qnViewPort sie nicht an)
-		worldMap = false,      -- maximierte Weltkarte auf einen Monitor legen (statt über das ganze Fenster)
+		zoneMapScale = 1,      -- size of the Zone Map including its tab (1 = 100 %, then qnViewPort leaves it alone)
+		worldMap = false,      -- put the maximized World Map on one monitor (instead of across the whole window)
 		worldMapMonitor = 0,
-		questLog = false,      -- verkleinerte Weltkarte („Karte & Questlog“) auf einen Monitor legen
+		questLog = false,      -- put the minimized World Map ("Map & Quest Log") on one monitor
 		questLogMonitor = 0,
 		mapFollowZone = true,
 		mapAutoOpen = false,
-		mapNoFade = false,     -- mapFade = 0; der vorherige Wert steht dann in ns.global.mapFadeSaved
+		mapNoFade = false,     -- mapFade = 0; the previous value is then kept in ns.global.mapFadeSaved
 		guides = false,
-		useMonitorData = true, -- Monitors.lua (scripts\) statt der Werte oben verwenden
+		useMonitorData = true, -- use Monitors.lua (scripts\) instead of the values above
 	},
-	-- Titan Panel (Titan.lua): Monitor je durchgehender Leiste, 0 = wie Titan (ganze Oberfläche)
+	-- Titan Panel (Titan.lua): monitor per full-width bar, 0 = as Titan (entire UI)
 	titan = {
 		Bar = 0,
 		Bar2 = 0,
 		AuxBar = 0,
 		AuxBar2 = 0,
-		scale = {},   -- [Monitornummer] = Faktor (1 = 100 %)
+		scale = {},   -- [monitor number] = factor (1 = 100 %)
 	},
 }
 
--- Kontoweit (qnViewPortDB.global, ns.global), nicht je Profil: gehört zum Rechner bzw. zum Client.
+-- Account-wide (qnViewPortDB.global, ns.global), not per profile: belongs to the computer or the client.
 local GLOBAL_DEFAULTS = {
-	layoutKey = "",        -- zuletzt automatisch übernommene Monitoranordnung (Layout.Refresh)
-	-- mapFadeSaved: Wert des CVars mapFade vor „Karte beim Laufen nicht ausblenden“ (nil = nichts gemerkt)
+	layoutKey = "",        -- monitor layout last applied automatically (Layout.Refresh)
+	-- mapFadeSaved: value of the CVar mapFade before "Do not fade the map while moving" (nil = nothing saved)
 }
 
--- Einstellungen des Zwei-Monitor-Modus im aktiven Profil (Layout.lua, SecondScreen.lua)
+-- Dual monitor mode settings in the active profile (Layout.lua, SecondScreen.lua)
 function ns.DualDB()
 	return ns.db.dual
 end
 
--- Passt ein Profil aus älteren Versionen an (vor dem Ergänzen der Vorgaben).
+-- Upgrades a profile from older versions (before the defaults are filled in).
 local function Upgrade(db)
 	local dual = db.dual
 	if type(dual) ~= "table" then
 		return
 	end
-	-- Taschen: „auf dem Hauptmonitor“ -> Monitorwahl
+	-- Bags: "on the main monitor" -> monitor selection
 	if dual.bagsOnMain ~= nil and dual.bagsMonitor == nil then
 		dual.bagsMonitor = dual.bagsOnMain and 0 or 2
 	end
-	-- früher je Profil, jetzt kontoweit. qnCore hat qnViewPortDB.global beim Laden schon angelegt;
-	-- der erste gefundene Wert gilt.
+	-- formerly per profile, now account-wide. qnCore already created qnViewPortDB.global on load;
+	-- the first value found wins.
 	local global = qnViewPortDB.global
 	if global.layoutKey == nil and type(dual.layoutKey) == "string" and dual.layoutKey ~= "" then
 		global.layoutKey = dual.layoutKey
@@ -86,39 +86,39 @@ local function Upgrade(db)
 	end
 end
 
--- Veraltete Schlüssel (qnCore löscht sie nach Upgrade)
+-- Obsolete keys (qnCore deletes them after Upgrade)
 local OBSOLETE = {
-	"dual.uiOnMain",      -- war kurz standardmäßig an und hat die Oberfläche ungefragt verschoben
-	"dual.constrainUI",   -- verschob die Oberfläche bei jedem Einloggen; jetzt nur noch auf Knopfdruck
-	"dual.bagsOnMain",    -- jetzt dual.bagsMonitor (Upgrade)
-	-- Andocken auf dem 2. Monitor entfernt
+	"dual.uiOnMain",      -- was briefly on by default and moved the interface without asking
+	"dual.constrainUI",   -- moved the interface on every login; now only on button press
+	"dual.bagsOnMain",    -- now dual.bagsMonitor (Upgrade)
+	-- Docking on the 2nd monitor removed
 	"dual.chat", "dual.map", "dual.pad", "dual.mapShare", "dual.dockMonitor",
-	"dual.layoutKey", "dual.mapFadeSaved",   -- jetzt kontoweit (Upgrade)
+	"dual.layoutKey", "dual.mapFadeSaved",   -- now account-wide (Upgrade)
 }
 
 ---------------------------------------------------------------------------
--- Bildschirmgröße
+-- Screen size
 ---------------------------------------------------------------------------
 
 ns.screen = { 1920, 1080 }
 
--- Rahmen ohne Elternrahmen über das ganze Spielfenster, Skalierung 1. Bezugsgröße für alle
--- Umrechnungen – UIParent taugt dafür nicht mehr, weil Layout.lua ihn verkleinern kann.
+-- Frame without a parent covering the whole game window, scale 1. Reference for all
+-- conversions – UIParent no longer works for that because Layout.lua may shrink it.
 local screenRef = CreateFrame("Frame")
 screenRef:SetAllPoints()
 ns.screenRef = screenRef
 
--- Einheiten pro Bildschirmpixel bei wirksamer Skalierung 1 (x, y)
+-- Units per screen pixel at effective scale 1 (x, y)
 function ns.UnitsPerPixel()
 	local w, h = screenRef:GetWidth(), screenRef:GetHeight()
 	if not (w and h and w > 0 and h > 0) then
-		-- noch nicht angeordnet: UIParent ist zu diesem Zeitpunkt noch nicht verkleinert
+		-- not laid out yet: UIParent has not been shrunk at this point
 		w, h = UIParent:GetWidth() * UIParent:GetScale(), UIParent:GetHeight() * UIParent:GetScale()
 	end
 	return w / ns.screen[1], h / ns.screen[2]
 end
 
--- Größe des Spielfensters; vor dem ersten Zeichnen kann sie noch 0 sein, dann die Bildschirmgröße.
+-- Size of the game window; before the first draw it can still be 0, then the screen size.
 function ns.UpdateScreenSize()
 	local size = C_VideoOptions.GetCurrentGameWindowSize()
 	if size and size.x > 0 and size.y > 0 then
@@ -131,9 +131,9 @@ function ns.UpdateScreenSize()
 	end
 end
 
--- Begrenzt die Versätze: jede Seite >= 0, gegenüberliegende Seiten zusammen
--- höchstens die halbe Bildschirmbreite bzw. -höhe (mehrere Monitore: 7/8, siehe unten).
--- changedH/changedV = zuletzt geänderte Seite je Achse (1/2 bzw. 3/4); sie wird zuerst gekürzt.
+-- Clamps the offsets: each side >= 0, opposite sides together
+-- at most half the screen width or height (several monitors: 7/8, see below).
+-- changedH/changedV = side changed last per axis (1/2 or 3/4); it is cut first.
 function ns.Clamp(v, changedH, changedV)
 	local w, h = ns.screen[1], ns.screen[2]
 	local out = {}
@@ -150,9 +150,9 @@ function ns.Clamp(v, changedH, changedV)
 			out[second] = out[second] - (excess - cut)
 		end
 	end
-	-- Über mehrere Monitore (Zwei-Monitor-Modus oder Monitordaten; Layout.Refresh legt die Welt dann
-	-- auch ohne den Modus auf den Hauptmonitor) darf die Welt kleiner als die halbe Fensterbreite sein
-	-- (z. B. kleiner Hauptmonitor, großer Zweitmonitor); mindestens 1/8 bleibt.
+	-- Across several monitors (dual monitor mode or monitor data; Layout.Refresh then puts the world
+	-- on the main monitor even without the mode) the world may be narrower than half the window width
+	-- (e.g. small main monitor, large second monitor); at least 1/8 remains.
 	local data = ns.Layout.Active()
 	local wide = ns.db.dual.enabled or (data and #data.monitors > 1)
 	Pair(1, 2, wide and math.floor(w * 7 / 8) or math.floor(w / 2), changedH)
@@ -161,7 +161,7 @@ function ns.Clamp(v, changedH, changedV)
 end
 
 ---------------------------------------------------------------------------
--- Randflächen außerhalb der Welt
+-- Border areas outside the world
 ---------------------------------------------------------------------------
 
 local border = CreateFrame("Frame")
@@ -170,7 +170,7 @@ border:SetFrameLevel(0)
 border:SetAllPoints()
 border:Hide()
 
--- Je Rand eine Farbfläche und darüber eine gekachelte Musterfläche an denselben Punkten
+-- One color area per edge, with a tiled pattern area on top at the same points
 local edges, patterns = {}, {}
 for i = 1, 4 do
 	edges[i] = border:CreateTexture(nil, "BACKGROUND", nil, -7)
@@ -199,7 +199,7 @@ function ns.SetBorderColor(c)
 	end
 end
 
--- Kachelbare Blizzard-Texturen (im Forever-Quelltext mit horizTile/vertTile verwendet)
+-- Tileable Blizzard textures (used with horizTile/vertTile in the Forever source)
 ns.PATTERNS = {
 	{ "rock", L["Rock"], "Interface\\FrameGeneral\\UI-Background-Rock" },
 	{ "marble", L["Marble"], "Interface\\FrameGeneral\\UI-Background-Marble" },
@@ -210,7 +210,7 @@ ns.PATTERNS = {
 	{ "parchment", L["Parchment"], "Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal" },
 	{ "achievement", ACHIEVEMENTS, "Interface\\AchievementFrame\\UI-Achievement-AchievementBackground" },
 }
--- dahinter die eigenen Muster aus qnCore
+-- followed by our own patterns from qnCore
 for _, p in ipairs(lib.Patterns) do
 	ns.PATTERNS[#ns.PATTERNS + 1] = { p[1], p[2], p[3] }
 end
@@ -219,20 +219,20 @@ local function LSM()
 	return LibStub and LibStub("LibSharedMedia-3.0", true)
 end
 
--- Vergleichbarer Dateipfad: Groß-/Kleinschreibung und Trenner sind WoW gleich
+-- Comparable file path: case and separators make no difference to WoW
 local function FileKey(file)
 	return type(file) == "string" and file:lower():gsub("/", "\\") or nil
 end
 
--- LSM-Hintergründe, die als Kachelmuster nichts taugen: Vollbild-Überlagerungen und reines Weiß
--- (die Farbe wird schon gewählt)
+-- LSM backgrounds that are useless as tiled patterns: fullscreen overlays and plain white
+-- (the color is chosen separately)
 local function Unsuitable(fileKey)
 	return fileKey == "" or fileKey:find("^interface\\fullscreentextures\\")
 		or fileKey == "interface\\buttons\\white8x8"
 end
 
--- Auswahlliste für das Dropdown: { Schlüssel, Text }; Muster aus LibSharedMedia (falls vorhanden)
--- dahinter, ohne Dateien, die schon in der Liste stehen
+-- Choice list for the dropdown: { key, text }; patterns from LibSharedMedia (if present)
+-- after that, without files that are already in the list
 function ns.PatternChoices()
 	local list = { { "none", L["No pattern (color only)"] } }
 	local seen = {}
@@ -279,8 +279,8 @@ function ns.SetBorderPattern(key, alpha)
 	end
 end
 
--- Gespeichertes LSM-Muster, dessen Datei auch in ns.PATTERNS steht (im Dropdown ausgeblendet):
--- auf den eigenen Eintrag umstellen. Geht erst, wenn LSM geladen ist, deshalb nicht im Upgrade.
+-- Saved LSM pattern whose file is also in ns.PATTERNS (hidden in the dropdown):
+-- switch to our own entry. Only possible once LSM is loaded, hence not in Upgrade.
 local function MigrateLsmPattern(db)
 	local file = type(db.pattern) == "string" and db.pattern:find("^lsm:") and PatternFile(db.pattern)
 	if file then
@@ -293,7 +293,7 @@ local function MigrateLsmPattern(db)
 	end
 end
 
--- Farbe und Muster des aktiven Profils
+-- Color and pattern of the active profile
 function ns.UpdateBorderLook()
 	MigrateLsmPattern(ns.db)
 	ns.SetBorderColor(ns.db.color)
@@ -313,25 +313,25 @@ local function UpdateBorder(l, t, r, b)
 end
 
 ---------------------------------------------------------------------------
--- Anwenden
+-- Apply
 ---------------------------------------------------------------------------
 
--- Methoden der Widget-Klasse, nicht die (gehookten) Felder von WorldFrame.
--- So lösen eigene Aufrufe die Hooks nicht erneut aus.
+-- Methods of the widget class, not WorldFrame's (hooked) fields.
+-- That way our own calls do not trigger the hooks again.
 local dummy = CreateFrame("Frame")
 local FrameClearAllPoints, FrameSetPoint = dummy.ClearAllPoints, dummy.SetPoint
 ns.FrameClearAllPoints, ns.FrameSetPoint = FrameClearAllPoints, FrameSetPoint
 
-local current   -- zuletzt angewendete (begrenzte) Versätze; kann vom gespeicherten Wert abweichen
+local current   -- last applied (clamped) offsets; may differ from the saved value
 local Reapply
 
--- Setzt WorldFrame auf die Versätze v (Bildschirmpixel), ohne zu speichern.
--- Im Kampf (WorldFrame geschützt) erst danach mit dem dann aktuellen Wert.
+-- Sets WorldFrame to the offsets v (screen pixels) without saving.
+-- In combat (WorldFrame protected) only afterwards, with the value current at that time.
 function ns.SetWorldFrame(v)
 	if WorldFrame:IsProtected() and lib.DeferInCombat(Reapply) then
 		return
 	end
-	-- WorldFrame hat keinen Elternrahmen; seine Einheiten entsprechen screenRef (Skalierung 1).
+	-- WorldFrame has no parent; its units match screenRef (scale 1).
 	local ux, uy = ns.UnitsPerPixel()
 	local l, r = v[1] * ux, v[2] * ux
 	local t, b = v[3] * uy, v[4] * uy
@@ -341,8 +341,8 @@ function ns.SetWorldFrame(v)
 	UpdateBorder(l, t, r, b)
 end
 
--- Wendet die Versätze begrenzt an, ohne sie zu speichern (Laden, Fenstergröße, Profilwechsel):
--- so bleibt der gespeicherte Wert erhalten, auch wenn das Fenster vorübergehend kleiner ist.
+-- Applies the offsets clamped without saving them (load, window size, profile switch):
+-- that way the saved value is kept even if the window is temporarily smaller.
 function ns.ShowViewport(v)
 	current = ns.Clamp(v)
 	ns.SetWorldFrame(current)
@@ -350,12 +350,12 @@ function ns.ShowViewport(v)
 	return current
 end
 
--- Eingabe des Spielers: begrenzt anwenden und speichern.
+-- Player input: apply clamped and save.
 function ns.ApplyViewport(v)
 	ns.db.viewport = ns.ShowViewport(v)
 end
 
--- Angewendete Versätze (für die Optionsseite)
+-- Applied offsets (for the options page)
 function ns.GetViewport()
 	return current or ns.db.viewport
 end
@@ -366,28 +366,28 @@ Reapply = function()
 	end
 end
 
--- Viewport, Oberfläche und Platzierungsbereiche neu anwenden (Laden, Fenstergröße, Profilwechsel).
--- Gespeichert wird dabei nur eine neu übernommene Monitoranordnung (Layout.Refresh).
+-- Reapply viewport, interface and placement areas (load, window size, profile switch).
+-- Only a newly applied monitor layout is saved in the process (Layout.Refresh).
 function ns.ApplyGeometry()
 	ns.UpdateScreenSize()
 	if ns.db.dual.enabled and not ns.Layout.Active() then
-		-- ohne Monitordaten: Viewport aus den Handeinstellungen berechnen
+		-- without monitor data: compute the viewport from the manual settings
 		ns.ShowViewport(ns.Dual.GetViewport())
 	else
 		ns.ShowViewport(ns.db.viewport)
 	end
 	ns.Layout.Refresh()
-	-- ausdrücklich gewählte Begrenzung der Oberfläche mit neuer Größe bzw. Skalierung neu rechnen
+	-- recompute the explicitly chosen interface constraint for the new size or scale
 	ns.Layout.ReapplyUI()
 	ns.Dual.ApplyAll()
 end
 
--- Nach einem Profilwechsel (qnCore): alle Einstellungen des neuen Profils anwenden.
--- Verschiebt Blizzard-Rahmen nur, wenn das Profil es ausdrücklich verlangt (bags, zoneMap).
+-- After a profile switch (qnCore): apply all settings of the new profile.
+-- Moves Blizzard frames only if the profile explicitly asks for it (bags, zoneMap).
 function ns.ApplyProfile()
 	ns.EndKeep()
 	ns.UpdateBorderLook()
-	-- Begrenzung der Oberfläche gilt nur im Zwei-Monitor-Modus
+	-- The interface constraint only applies in dual monitor mode
 	if not ns.db.dual.enabled then
 		ns.Layout.ReleaseUI()
 	end
@@ -404,10 +404,10 @@ function ns.IsActive()
 end
 
 ---------------------------------------------------------------------------
--- Slash-Befehle
+-- Slash commands
 ---------------------------------------------------------------------------
 
--- msg ungekürzt: die vier Versätze stehen als rohe Zahlen darin
+-- msg unshortened: it contains the four offsets as raw numbers
 lib.RegisterSlash("QNVIEWPORT", { "/qnvp", "/qnviewport", "/viewport" }, function(cmd, rest, msg)
 	local l, r, t, b = msg:match("^(%d+%.?%d*)%s+(%d+%.?%d*)%s+(%d+%.?%d*)%s+(%d+%.?%d*)$")
 	if l then
@@ -425,7 +425,7 @@ lib.RegisterSlash("QNVIEWPORT", { "/qnvp", "/qnviewport", "/viewport" }, functio
 	elseif cmd == "dual" then
 		ns.Dual.Slash(rest)
 	elseif not ns.Layout.Slash(msg:lower()) then
-		-- ein Schlüssel; Print gibt jede Zeile als eigene Chatzeile aus
+		-- one key; Print outputs each line as its own chat line
 		ns.Print(L["/qnvp – open options\n/qnvp 0 0 0 0 – reset viewport\n/qnvp L R T B – set offsets in pixels (left, right, top, bottom)\n/qnvp dual – second monitor (/qnvp dual help)\n/qnvp monitors – show monitor data\n/qnvp check – find frames outside the monitors (to move them: Options → Monitors)"])
 	end
 end)
@@ -437,7 +437,7 @@ end)
 local events = ns.events
 
 ns.OnLoad(function()
-	-- Einstellungen je Profil (= Layout des Bearbeitungsmodus, qnCore); ns.db ist immer das aktive Profil.
+	-- Settings per profile (= Edit Mode layout, qnCore); ns.db is always the active profile.
 	local store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnViewPortDB",
@@ -449,22 +449,22 @@ ns.OnLoad(function()
 	ns.global = lib.MergeDefaults(store.global, GLOBAL_DEFAULTS)
 	ns.UpdateBorderLook()
 
-	-- Blizzard setzt WorldFrame u. a. bei Zwischensequenzen zurück; danach neu anwenden.
+	-- Blizzard resets WorldFrame e.g. during cinematics; reapply afterwards.
 	hooksecurefunc(WorldFrame, "ClearAllPoints", Reapply)
 	hooksecurefunc(WorldFrame, "SetAllPoints", Reapply)
 	hooksecurefunc(WorldFrame, "SetPoint", Reapply)
 
 	ns.InitOptions()
 	ns.InitSecondScreen()
-	-- Titan legt seine Anker gleich an: dafür schon die echte Fenstergröße (sonst die Vorgabe oben)
+	-- Titan creates its anchors right away: it needs the real window size (otherwise the default above)
 	ns.UpdateScreenSize()
 	ns.InitTitan()
 	ns.Layout.Init()
 	ns.ApplyGeometry()
 
-	-- ab hier ist ns.db gesetzt
+	-- from here on ns.db is set
 	events.Register("PLAYER_LOGIN", function()
-		-- LibSharedMedia-Muster anderer Addons sind erst jetzt sicher registriert
+		-- LibSharedMedia patterns of other addons are only reliably registered now
 		ns.UpdateBorderLook()
 		if ns.IsActive() and not ns.db.suppressMessage then
 			C_Timer.After(8, function()
@@ -472,7 +472,7 @@ ns.OnLoad(function()
 			end)
 		end
 	end)
-	-- Neue Anordnung (z. B. Set-WowWindow.ps1 nach dem Einloggen): Viewport vom Hauptmonitor
+	-- New layout (e.g. Set-WowWindow.ps1 after login): viewport from the main monitor
 	events.Register("DISPLAY_SIZE_CHANGED", ns.ApplyGeometry)
 	events.Register("UI_SCALE_CHANGED", ns.ApplyGeometry)
 end)

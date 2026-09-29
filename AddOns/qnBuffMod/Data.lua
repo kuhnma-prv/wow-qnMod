@@ -1,9 +1,9 @@
--- qnBuffMod: Aurenfenster für Stärkungs-, Schwächungszauber und Waffenverzauberungen.
--- Data: Namensraum, Werte der Auswahllisten, Vorgaben, Prüfung gespeicherter Werte, Umrechnung
--- älterer Profile.
+-- qnBuffMod: aura windows for buffs, debuffs and weapon enchants.
+-- Data: namespace, dropdown values, defaults, validation of saved values, conversion
+-- of older profiles.
 --
--- Profil (qnCore.Profiles, ns.db):
---   { <allgemeine Einstellungen>, windows = { [Fenster-ID] = { <Fenster-Einstellungen, dünn>, position } } }
+-- Profile (qnCore.Profiles, ns.db):
+--   { <general settings>, windows = { [window ID] = { <window settings, sparse>, position } } }
 
 local ADDON, ns = ...
 _G.qnBuffMod = ns
@@ -16,7 +16,7 @@ ns.QUESTION_MARK = 134400   -- INV_Misc_QuestionMark
 ns.WARN_SOUND = 569634      -- misdirection_impact_head
 
 ---------------------------------------------------------------------------
--- Werte der Auswahllisten (festgelegt durch die gespeicherten Einstellungen)
+-- Dropdown values (fixed by the saved settings)
 ---------------------------------------------------------------------------
 
 ns.enum = {
@@ -35,10 +35,10 @@ ns.enum = {
 }
 local E = ns.enum
 
--- Einheit je unitType
+-- Unit per unitType
 ns.UNITS = { "player", "vehicle", "pet", "target", "focus" }
 
--- Aura-Filter je Zauberart (Gruppe); NOT_CANCELABLE gibt es in Forever nicht mehr
+-- Aura filter per aura type (group); NOT_CANCELABLE no longer exists in Forever
 ns.FILTERS = {
 	[E.group.DEBUFF] = "HARMFUL",
 	[E.group.CANCELABLE] = "HELPFUL|CANCELABLE",
@@ -46,20 +46,20 @@ ns.FILTERS = {
 	[E.group.ALLBUFFS] = "HELPFUL",
 }
 
--- Aurentypen (Farben, Verhalten)
+-- Aura types (colors, behavior)
 ns.kind = { BUFF = "BUFF", AURA = "AURA", DEBUFF = "DEBUFF", ITEM = "ITEM" }
 
--- Reihenfolge der Gruppierungen je groupByPriority: F = Filter, E = eigene, N = nicht ablaufende
+-- Order of the groupings per groupByPriority: F = filter, E = own, N = non-expiring
 ns.GROUP_ORDER = {
 	{ "F", "E", "N" }, { "F", "N", "E" }, { "E", "F", "N" },
 	{ "E", "N", "F" }, { "N", "F", "E" }, { "N", "E", "F" },
 }
 
 ---------------------------------------------------------------------------
--- Vorgaben
+-- Defaults
 ---------------------------------------------------------------------------
 
--- Allgemein (oberste Ebene des Profils)
+-- General (top level of the profile)
 ns.defaults = {
 	hideBlizzardBuffs = true,
 	backgroundColor = { 0, 0, 0, 0.25 },
@@ -77,9 +77,9 @@ ns.defaults = {
 	windows = {},
 }
 
--- Je Fenster; gespeichert werden nur abweichende Werte
+-- Per window; only differing values are saved
 ns.windowDefaults = {
-	-- Seite "Fenster"
+	-- "Window" page
 	disableWindow = false,
 	disableTooltips = false,
 	lockWindow = false,
@@ -92,7 +92,7 @@ ns.windowDefaults = {
 	visHideInVehicle = false,
 	visHideNotVehicle = false,
 	visCondition = "",
-	-- Seite "Darstellung"
+	-- "Appearance" page
 	showBackground = true,
 	useCustomBackgroundColor = false,
 	windowBackgroundColor = { 0, 0, 0, 0.25 },
@@ -107,7 +107,7 @@ ns.windowDefaults = {
 	buffSpacing = 0,
 	wrapSpacing = 0,
 	fontSize = E.font.NORMAL,
-	-- Seite "Knöpfe"
+	-- "Buttons" page
 	buttonStyle = E.style.BAR,
 	buffSize1 = 20,
 	rightAlign1 = E.side.DEFAULT,
@@ -137,7 +137,7 @@ ns.windowDefaults = {
 	showDays2 = true,
 	dataSide2 = E.dataSide.BELOW,
 	spacingFromIcon2 = 0,
-	-- Seite "Gruppierung"
+	-- "Grouping" page
 	groupByPriority = 1,
 	separateOwn = E.own.WITH,
 	separateZero = E.zero.WITH,
@@ -151,10 +151,10 @@ ns.windowDefaults = {
 }
 
 ---------------------------------------------------------------------------
--- Gültige Werte
+-- Valid values
 ---------------------------------------------------------------------------
 
--- Auswahllisten: unbekannte Werte gelten als Vorgabe
+-- Dropdowns: unknown values count as default
 local CHOICES = {
 	unitType = 5, visWindow = 3, layoutType = 8, fontSize = 3, buttonStyle = 2, rightAlign1 = 3,
 	nameJustifyWithTime1 = 4, nameJustifyNoTime1 = 4, timeJustifyNoName1 = 4, durationFormat1 = 5,
@@ -162,13 +162,13 @@ local CHOICES = {
 	separateZero = 5, sortSeq1 = 6, sortSeq2 = 6, sortSeq3 = 6, sortSeq4 = 6, sortSeq5 = 6, sortMethod = 3,
 }
 
--- Regler: Werte außerhalb werden auf den Bereich begrenzt
+-- Sliders: values outside are clamped to the range
 ns.RANGES = {
 	userEdgeLeft = { 0, 100 }, userEdgeRight = { 0, 100 }, userEdgeTop = { 0, 100 }, userEdgeBottom = { 0, 100 },
 	wrapAfter = { 1, 50 }, maxWraps = { 0, 50 }, buffSpacing = { 0, 200 }, wrapSpacing = { 0, 200 },
 	buffSize1 = { 15, 45 }, buffSize2 = { 15, 45 }, detailWidth1 = { 0, 400 },
 	spacingOnLeft1 = { 0, 50 }, spacingOnRight1 = { 0, 50 }, spacingFromIcon2 = { 0, 50 },
-	-- allgemein
+	-- general
 	flashTime = { 0, 60 }, expirationTime1 = { 0, 60 }, expirationTime2 = { 0, 180 }, expirationTime3 = { 0, 300 },
 }
 local RANGES = ns.RANGES
@@ -186,14 +186,14 @@ local function ValidColor(c)
 end
 ns.ValidColor = ValidColor
 
--- Ein gespeicherter Wert als gültiger Wert oder nil (= Vorgabe)
+-- A saved value as a valid value or nil (= default)
 local function Checked(key, v, default)
 	if v == nil then
 		return nil
 	end
 	local kind = type(default)
 	if kind == "boolean" then
-		-- ältere Daten: 1 bzw. 0 statt true/false
+		-- older data: 1 or 0 instead of true/false
 		if v == 1 then
 			return true
 		elseif v == 0 then
@@ -226,7 +226,7 @@ local function Checked(key, v, default)
 	return v
 end
 
--- Wirksamer Wert eines Fensters (gespeichert oder Vorgabe)
+-- Effective value of a window (saved or default)
 function ns.WindowValue(t, key)
 	local default = ns.windowDefaults[key]
 	local v = Checked(key, t and t[key], default)
@@ -236,7 +236,7 @@ function ns.WindowValue(t, key)
 	return v
 end
 
--- Alle wirksamen Einstellungen eines Fensters als neue Tabelle
+-- All effective settings of a window as a new table
 function ns.ResolveOptions(t)
 	local o = {}
 	for key in pairs(ns.windowDefaults) do
@@ -245,8 +245,8 @@ function ns.ResolveOptions(t)
 	return o
 end
 
--- Eine Zauberart steht nur in einem Gruppenplatz: spätere Doppel werden "keine".
--- Liefert true, wenn etwas geändert wurde.
+-- An aura type occupies only one group slot: later duplicates become "none".
+-- Returns true if something was changed.
 local function DedupeGroups(t)
 	local seen, changed = {}, false
 	for i = 1, 5 do
@@ -264,8 +264,8 @@ local function DedupeGroups(t)
 end
 ns.DedupeGroups = DedupeGroups
 
--- Gespeicherte Fenstertabelle bereinigen (beim Laden): ungültige Werte entfernen, Booleans
--- vereinheitlichen, Bereiche begrenzen, doppelte Gruppen auflösen.
+-- Clean up a saved window table (on load): remove invalid values, normalize
+-- booleans, clamp ranges, resolve duplicate groups.
 local function SanitizeWindow(t)
 	for key, default in pairs(ns.windowDefaults) do
 		if t[key] ~= nil then
@@ -280,7 +280,7 @@ local function SanitizeWindow(t)
 	DedupeGroups(t)
 end
 
--- Allgemeine Werte bereinigen (fehlende ergänzt qnCore danach aus den Vorgaben)
+-- Clean up general values (qnCore then fills in missing ones from the defaults)
 local function SanitizeGeneral(db)
 	for key, default in pairs(ns.defaults) do
 		if key ~= "windows" and db[key] ~= nil then
@@ -293,9 +293,9 @@ local function SanitizeGeneral(db)
 end
 
 ---------------------------------------------------------------------------
--- Umrechnung älterer Profile
--- Ältere Profile hatten die Fenster verschachtelt unter einem alten Schlüssel; sie werden einmalig in
--- das flache Format übernommen, danach löscht qnCore den alten Schlüssel (obsolete).
+-- Conversion of older profiles
+-- Older profiles had the windows nested under an old key; they are converted once into
+-- the flat format, after which qnCore deletes the old key (obsolete).
 ---------------------------------------------------------------------------
 
 local Upgrade, OBSOLETE
@@ -331,7 +331,7 @@ do
 	end
 end
 
--- Anmeldung beim Profilsystem (aus Core.lua im ADDON_LOADED)
+-- Registration with the profile system (from Core.lua in ADDON_LOADED)
 function ns.RegisterStore(onSwitch)
 	ns.store = lib.Profiles.Register({
 		ns = ns,
