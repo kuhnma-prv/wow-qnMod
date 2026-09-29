@@ -77,7 +77,7 @@ ns.defaults = {
 ns.textures = {
 	["Damage Meter"] = "UI-HUD-CoolDownManager-Bar",
 	["Blizzard"] = "Interface\\TargetingFrame\\UI-StatusBar",
-	["Flach"] = "Interface\\Buttons\\WHITE8X8",
+	["Flat"] = "Interface\\Buttons\\WHITE8X8",
 	["Raid"] = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill",
 	["Fertigkeit"] = "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar",
 }
@@ -85,7 +85,7 @@ ns.textures = {
 -- Anzeigenamen der eigenen Texturen; die Schlüssel oben sind gespeicherte Werte.
 ns.textureLabels = {
 	["Damage Meter"] = DAMAGE_METER_LABEL,
-	["Flach"] = L["Flach"],
+	["Flat"] = L["Flat"],
 	["Fertigkeit"] = SKILL,
 }
 
@@ -133,24 +133,24 @@ end
 
 function ns.Diagnose()
 	local _, build, _, toc = GetBuildInfo()
-	ns.Print(L["Version %s, Client-Build %s, Interface %s"], ns.version, tostring(build), tostring(toc))
+	ns.Print(L["Version %s, client build %s, interface %s"], ns.version, tostring(build), tostring(toc))
 
 	local mob = ns.Threat.FindMob()
 	if not mob then
-		ns.Print(L["Kein angreifbares Ziel – für die Secret-Prüfung einen Gegner anvisieren."])
+		ns.Print(L["No attackable target – target an enemy for the secret check."])
 		return
 	end
 
-	ns.Print(L["Threat-Werte auf %s secret: %s"], mob, Yes(C_Secrets.ShouldUnitThreatValuesBeSecret("player", mob)))
-	ns.Print(L["Threat-Status auf %s secret: %s"], mob, Yes(C_Secrets.ShouldUnitThreatStateBeSecret("player", mob)))
+	ns.Print(L["Threat values on %s secret: %s"], mob, Yes(C_Secrets.ShouldUnitThreatValuesBeSecret("player", mob)))
+	ns.Print(L["Threat status on %s secret: %s"], mob, Yes(C_Secrets.ShouldUnitThreatStateBeSecret("player", mob)))
 
 	local isTanking, status, scaled, raw, value = UnitDetailedThreatSituation("player", mob)
 	if ns.AnySecret(isTanking, status, scaled, raw, value) then
-		ns.Print(L["Eigene Werte: secret (Anzeige läuft im eingeschränkten Modus)."])
+		ns.Print(L["Own values: secret (display runs in restricted mode)."])
 	elseif value == nil then
-		ns.Print(L["Du stehst nicht auf der Bedrohungsliste von %s."], mob)
+		ns.Print(L["You are not on the threat list of %s."], mob)
 	else
-		ns.Print(L["Eigene Werte: Tank=%s Status=%s skaliert=%.1f%% roh=%.1f%% Wert=%s"],
+		ns.Print(L["Own values: tank=%s status=%s scaled=%.1f%% raw=%.1f%% value=%s"],
 			tostring(isTanking), tostring(status), scaled or 0, raw or 0, tostring(value))
 	end
 end
@@ -212,10 +212,10 @@ lib.RegisterSlash("QNMETER", { "/qnm", "/qnmeter" }, function(cmd)
 		T.Toggle()
 	elseif cmd == "lock" then
 		ns.store:Set("locked", not ns.db.locked)
-		ns.Print(ns.db.locked and L["Fenster gesperrt."] or L["Fenster entsperrt."])
+		ns.Print(ns.db.locked and L["Window locked."] or L["Window unlocked."])
 	elseif cmd == "test" then
 		T.SetTestMode(not T.testMode)
-		ns.Print(T.testMode and L["Testmodus an."] or L["Testmodus aus."])
+		ns.Print(T.testMode and L["Test mode on."] or L["Test mode off."])
 	elseif cmd == "config" or cmd == "options" then
 		ns.OpenOptions()
 	elseif cmd == "check" then
@@ -225,12 +225,12 @@ lib.RegisterSlash("QNMETER", { "/qnm", "/qnmeter" }, function(cmd)
 	elseif cmd == "reset" then
 		-- wendet über onSwitch auch die Einstellungen an; im Kampf erst danach (deferred)
 		if ns.store:ResetActive() then
-			ns.Print(L["Im Kampf: Einstellungen werden nach dem Kampf zurückgesetzt."])
+			ns.Print(L["In combat: settings will be reset after combat."])
 		else
-			ns.Print(L["Einstellungen zurückgesetzt."])
+			ns.Print(L["Settings reset."])
 		end
 	else
 		-- ein Schlüssel für die ganze Hilfe; Print gibt jede Zeile als eigene Chatzeile aus
-		ns.Print(L["Befehle: /qnm [toggle | lock | test | config | check | visible | reset]\n  toggle – Fenster ein/aus    lock – Fenster sperren/entsperren\n  test – Testmodus            config – Optionen öffnen\n  check – API-Prüfung         visible – Fenster in den sichtbaren Bereich holen\n  reset – alle Einstellungen zurücksetzen"])
+		ns.Print(L["Commands: /qnm [toggle | lock | test | config | check | visible | reset]\n  toggle – show/hide window    lock – lock/unlock window\n  test – test mode             config – open options\n  check – API check            visible – move window into the visible area\n  reset – reset all settings"])
 	end
 end)

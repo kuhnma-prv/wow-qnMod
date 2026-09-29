@@ -11,7 +11,7 @@ local E = ns.enum
 local Plain = lib.Plain
 
 BINDING_HEADER_QNBUFFMOD = "qnBuffMod"
-BINDING_NAME_QNBUFFMOD_RECASTBUFFS = L["Stärkungszauber erneuern"]
+BINDING_NAME_QNBUFFMOD_RECASTBUFFS = L["Recast Buffs"]
 
 local BINDING = "QNBUFFMOD_RECASTBUFFS"
 local BUTTON = "QNBUFFMOD_RECASTBUFFFRAME"
@@ -193,12 +193,12 @@ local function Consider(unit, rec, now)
 		local queued = castable and Recast.Add(rec.name)
 		local key = queued and Recast.BoundKey()
 		if key then
-			ns.Print(L["Der Zauber |cFFFFFFFF%s|r läuft in |cFFFFFFFF%s|r ab. Außerhalb des Kampfes |cFFFFFFFF%s|r drücken zum Erneuern."], rec.name, timeText, key)
+			ns.Print(L["The |cFFFFFFFF%s|r buff will expire in |cFFFFFFFF%s|r. Press |cFFFFFFFF%s|r while out of combat to recast."], rec.name, timeText, key)
 		else
-			ns.Print(L["Der Zauber |cFFFFFFFF%s|r läuft in |cFFFFFFFF%s|r ab."], rec.name, timeText)
+			ns.Print(L["The |cFFFFFFFF%s|r buff will expire in |cFFFFFFFF%s|r."], rec.name, timeText)
 		end
 	else
-		ns.Print(L["Der Zauber |cFFFFFFFF%s|r auf |cFFFFFFFF%s|r läuft in |cFFFFFFFF%s|r ab."], rec.name, UnitLabel(unit), timeText)
+		ns.Print(L["The |cFFFFFFFF%s|r buff on |cFFFFFFFF%s|r will expire in |cFFFFFFFF%s|r."], rec.name, UnitLabel(unit), timeText)
 	end
 	if ns.db.expirationSound then
 		PlaySoundFile(ns.WARN_SOUND)

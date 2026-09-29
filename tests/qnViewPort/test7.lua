@@ -20,7 +20,7 @@ LoadAddon("qnCore")
 local vp = LoadAddon("qnViewPort")
 local L = vp.L
 -- Meldungen „Monitoranordnung übernommen …“ (Text bis zum Doppelpunkt, in der Sprache des Clients)
-local TAKEN = L["Monitoranordnung übernommen: %d Monitore, 3D-Welt auf dem Hauptmonitor (%d × %d)."]:match("^[^:]+")
+local TAKEN = L["Monitor layout applied: %d monitors, 3D world on the main monitor (%d × %d)."]:match("^[^:]+")
 local function Taken()
 	local n = 0
 	for _, m in ipairs(CHAT) do if m:find(TAKEN, 1, true) then n = n + 1 end end
@@ -72,4 +72,4 @@ SetEditModeLayout(3)
 Check(Taken() == 1 and raid.viewport[1] == 10 and raid.viewport[2] == 1920,
 	"Raid: dieselbe Anordnung nicht noch einmal übernommen, Viewport bleibt")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

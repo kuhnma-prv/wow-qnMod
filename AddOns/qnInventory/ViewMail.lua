@@ -196,7 +196,7 @@ local function Create()
 	end)
 
 	notice = ns.CreateNotice(inbox)
-	notice:SetText(L["Der Briefkasten dieses Charakters ist noch nicht erfasst. Einmal mit ihm den Briefkasten öffnen genügt."])
+	notice:SetText(L["This character's mailbox has not been recorded yet. Opening the mailbox with it once is enough."])
 
 	ns.AttachHeader(frame, "mail")
 end

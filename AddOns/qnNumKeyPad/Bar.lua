@@ -214,9 +214,9 @@ local function CreateOverlay()
 	overlay:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_TOP")
 		GameTooltip:AddLine("qnNumKeyPad")
-		GameTooltip:AddLine(L["Linke Maustaste ziehen: verschieben"], 1, 1, 1)
-		GameTooltip:AddLine(L["Rechtsklick: Optionen"], 1, 1, 1)
-		GameTooltip:AddLine(L["/qnnkp lock: Position sperren"], 1, 1, 1)
+		GameTooltip:AddLine(L["Left-click and drag: move"], 1, 1, 1)
+		GameTooltip:AddLine(L["Right-click: options"], 1, 1, 1)
+		GameTooltip:AddLine(L["/qnnkp lock: lock position"], 1, 1, 1)
 		GameTooltip:Show()
 	end)
 	overlay:SetScript("OnLeave", GameTooltip_Hide)
@@ -496,13 +496,13 @@ function ns.CheckPages()
 			seen[page] = true
 			for m = n + 1, 3 do
 				if used[m] == page then
-					lines[#lines + 1] = L["Warnung: Seite %d ist für mehrere Tastengruppen eingestellt."]:format(page)
+					lines[#lines + 1] = L["Warning: page %d is assigned to more than one key group."]:format(page)
 					break
 				end
 			end
 			local blizz = _G[PAGE_BARS[page] or ""]
 			if page == 1 or (blizz and blizz:IsShown()) then
-				lines[#lines + 1] = L["Warnung: Seite %d wird auch von einer eingeblendeten Blizzard-Leiste benutzt."]:format(page)
+				lines[#lines + 1] = L["Warning: page %d is also used by a visible Blizzard action bar."]:format(page)
 			end
 		end
 	end
@@ -518,7 +518,7 @@ end
 -- Knopf und Slash-Befehl: Leiste in den sichtbaren Bereich holen (mit qnViewPort auf einen
 -- Monitor), mit Rückmeldung. Nicht im Kampf (geschützt).
 function ns.MoveIntoVisible()
-	if bar and qnCore.Visible.MoveAndReport(bar, L["Leiste"], ns.Print) then
+	if bar and qnCore.Visible.MoveAndReport(bar, L["Bar"], ns.Print) then
 		SavePosition()   -- rechnet auf den eingestellten Anker um
 	end
 end

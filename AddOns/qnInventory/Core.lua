@@ -173,7 +173,7 @@ end
 
 local function ShowGold()
 	local total = 0
-	ns.Print(L["Gold auf %s:"], ns.realm)
+	ns.Print(L["Gold on %s:"], ns.realm)
 	for _, name in ipairs(ns.SortedChars()) do
 		local char = ns.realmDB[name]
 		local money, mailMoney = char.money or 0, char.mailMoney or 0
@@ -186,16 +186,16 @@ end
 
 local function DeleteChar(name)
 	if not name or name == "" then
-		ns.Print(L["Aufruf: /qninv delete <Name>"])
+		ns.Print(L["Usage: /qninv delete <name>"])
 		return
 	end
 	local stored = ns.FindChar(name)
 	if not stored then
-		ns.Print(L["%s ist auf %s nicht gespeichert."], name, ns.realm)
+		ns.Print(L["%s is not stored on %s."], name, ns.realm)
 	elseif stored == ns.player then
-		ns.Print(L["Der eingeloggte Charakter kann nicht gelöscht werden."])
+		ns.Print(L["The logged-in character cannot be deleted."])
 	elseif ns.DeleteChar(ns.realm, stored) then
-		ns.Print(L["%s gelöscht."], stored)
+		ns.Print(L["%s deleted."], stored)
 	end
 end
 
@@ -209,7 +209,7 @@ local function ShowView(kind, name)
 	if stored then
 		ns.Show(kind, ns.CharKey(ns.realm, stored))
 	else
-		ns.Print(L["%s ist auf %s nicht gespeichert."], name, ns.realm)
+		ns.Print(L["%s is not stored on %s."], name, ns.realm)
 	end
 end
 
@@ -224,7 +224,7 @@ qnCore.RegisterSlash("QNINVENTORY", { "/qninv", "/qninventory" }, function(cmd, 
 	elseif VIEWS[cmd] then
 		ShowView(cmd, rest)
 	else
-		ns.Print(L["Befehle: /qninv gold · /qninv bags|bank|mail [Name] · /qninv delete <Name>"])
+		ns.Print(L["Commands: /qninv gold · /qninv bags|bank|mail [name] · /qninv delete <name>"])
 	end
 end)
 

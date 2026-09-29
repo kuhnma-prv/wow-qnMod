@@ -740,7 +740,7 @@ function LoadAddon(name)
 end
 
 function Check(cond, msg)
-	if cond then print("OK    " .. msg) else print("FEHLER " .. msg) FAILS = (FAILS or 0) + 1 end
+	if cond then print("OK    " .. msg) else print("FAIL  " .. msg) FAILS = (FAILS or 0) + 1 end
 end
 
 -- qnInventory-Bedarf

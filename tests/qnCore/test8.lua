@@ -34,4 +34,4 @@ LOG = {}
 C_Minimap.SetTracking(2, false)
 RunTimers()
 Check(qnCoreCharDB.tracking["spell:2383"] == false and not table.concat(LOG, ";"):find("true"), "Abwählen bleibt: " .. table.concat(LOG, ";"))
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

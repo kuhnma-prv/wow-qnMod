@@ -231,14 +231,14 @@ local function Labels(key)
 	return list
 end
 local labels = Labels("Bar")
-Check(#labels == 3 and labels[1] == L["Wie Titan (ganze Oberfläche)"]
+Check(#labels == 3 and labels[1] == L["As Titan (entire UI)"]
 	and labels[2] == L["Monitor %d (%d × %d)"]:format(1, 3840, 2160)
 	and labels[3] == L["Monitor %d (%d × %d)"]:format(2, 1920, 1200), "Dropdown: wie Titan + Monitore mit Pixelgröße")
 SetMonitors(1)
 tt.Apply()
 Check(Whole("Bar") and Whole("AuxBar"), "Monitor 2 fehlt: Leisten wie Titan")
 labels = Labels("Bar")
-Check(#labels == 3 and labels[3] == L["Monitor %d (nicht vorhanden)"]:format(2), "gespeicherter Monitor bleibt im Dropdown sichtbar")
+Check(#labels == 3 and labels[3] == L["Monitor %d (not present)"]:format(2), "gespeicherter Monitor bleibt im Dropdown sichtbar")
 Check(qnViewPortDB.profiles["account:Raid"].titan.Bar == 2, "Auswahl bleibt gespeichert")
 SetMonitors(2)
 
@@ -371,4 +371,4 @@ tt.RefreshOptions()
 Check(true, "Optionsseite mit Reglern je Monitor aufgefrischt")
 TITAN_VARS.Scale = 1
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

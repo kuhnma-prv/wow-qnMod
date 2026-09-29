@@ -88,7 +88,7 @@ Check(not f:IsShown() and T.driver:IsShown(), "im Kampf, Fenster verborgen: Takt
 QN_THREAT["Mob-A"].player.value = 950
 warn = nil
 Tick()
-Check(warn == L["Bedrohung: %d%%"]:format(95), "verborgenes Fenster: Warnung ausgelöst: " .. tostring(warn))
+Check(warn == L["Threat: %d%%"]:format(95), "verborgenes Fenster: Warnung ausgelöst: " .. tostring(warn))
 
 -- Neu scharf schalten (Kampfende) mit niedrigem Wert, damit erst der Takt warnt
 local function Rearm()
@@ -135,7 +135,7 @@ Check(Right(MyRow()) ~= nil and Right(MyRow()):find("100%", 1, true), "Anzeige b
 QN_THREAT["Mob-A"].party1.isTanking = true
 QN_THREAT["Mob-A"].party1.value = 1000
 T.Refresh()
-Check(warn == L["Bedrohung: %d%%"]:format(95), "mit Tank-Eintrag: Warnung: " .. tostring(warn))
+Check(warn == L["Threat: %d%%"]:format(95), "mit Tank-Eintrag: Warnung: " .. tostring(warn))
 
 ---------------------------------------------------------------------------
 -- Befund 4: TPS-Verlauf je Gegner
@@ -224,4 +224,4 @@ f.resizeButton._scripts.OnMouseDown(f.resizeButton)
 f.resizeButton._scripts.OnMouseUp(f.resizeButton)
 Check(fade:IsShown(), "nach dem Ziehen: Überblender prüft erneut")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

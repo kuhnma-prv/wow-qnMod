@@ -99,14 +99,14 @@ local function TargetedBy(tip, unit, isPlayer)
 		return
 	end
 	if isPlayer or not raid then
-		tip:AddLine(L["Anvisiert von:"])
+		tip:AddLine(L["Targeted by:"])
 		for _, member in ipairs(list) do
 			local pattern, name = Colored(member)
 			local role = ns.UnitData.VALUES.roleIcon({ unit = member, role = UnitGroupRolesAssigned(member) }) or ""
 			ns.NewLine(tip):SetFormattedText("   " .. role:gsub("%%", "%%%%") .. " " .. pattern, name)
 		end
 	else
-		tip:AddLine(L["Anvisiert von: |cff33ffff%d|r"]:format(count))
+		tip:AddLine(L["Targeted by: |cff33ffff%d|r"]:format(count))
 	end
 end
 

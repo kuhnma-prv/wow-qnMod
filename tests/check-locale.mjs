@@ -1,24 +1,24 @@
-// Statische Prüfung der Lokalisierung der qn-Addons.
-// Aufruf: node check-locale.mjs [Addon ...]   (Vorgabe: alle qn*-Addons mit TOC im AddOns-Ordner)
-// Meldet je Addon:
-//   FEHLT      L["…"] im Code, aber ohne englische Übersetzung in Locale.lua
-//   UNBENUTZT  Übersetzung in Locale.lua, deren Schlüssel im Code nicht (mehr) vorkommt
-//   DEUTSCH?   Text im Code, der deutsch aussieht, aber nicht über L[…] läuft
-//   TOC        fehlendes ## Notes (Englisch) / ## Notes-deDE (Deutsch)
-// Endet mit Code 1, wenn FEHLT, DEUTSCH? oder TOC vorkommen.
+// Static check of the localization of the qn addons.
+// Usage: node check-locale.mjs [Addon ...]   (default: all qn* addons with a TOC in the AddOns folder)
+// Reports per addon:
+//   MISSING    L["…"] in the code, but no German translation in Locale.lua
+//   UNUSED     translation in Locale.lua whose key no longer appears in the code
+//   GERMAN?    text in the code that looks German and does not go through L[…]
+//   TOC        missing ## Notes (English) / ## Notes-deDE (German)
+// Exits with code 1 if MISSING, GERMAN? or TOC occur.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const ADDONS = path.resolve(here, '../AddOns');   // tests und AddOns liegen nebeneinander im Repo
+const ADDONS = path.resolve(here, '../AddOns');   // tests and AddOns are next to each other in the repository
 const names = process.argv.slice(2).length ? process.argv.slice(2)
   : fs.readdirSync(ADDONS).filter(d => /^qn/.test(d) && fs.existsSync(path.join(ADDONS, d, d + '.toc')));
 
 function unescape(s) {
   return s.replace(/\\(n|t|"|'|\\|\d{1,3})/g, (m, c) => c === 'n' ? '\n' : c === 't' ? '\t' : /\d/.test(c) ? String.fromCharCode(+c) : c);
 }
-// String-Literale mit Position; Kommentare und lange Strings überspringen
+// string literals with position; skip comments and long strings
 function literals(src) {
   const out = [];
   let i = 0, line = 1;
@@ -61,7 +61,7 @@ function literals(src) {
   return out;
 }
 
-// deutsch aussehender Anzeigetext?
+// display text that looks German (forgotten while switching to English keys)?
 const GERMAN_WORDS = /\b(der|die|das|den|dem|des|und|oder|nicht|kein|keine|nur|mit|für|beim|bei|auf|aus|wird|werden|ist|sind|alle|jede[rsn]?|wenn|sonst|nach|vor|über|unter|zum|zur|im|ein|eine|einen|Fenster|Einstellung(en)?|Profil|Taschen?|Leiste|Knopf|Schrift|Größe|Farbe|Anzeigen?|Zurücksetzen|Löschen|Aktiv|Ziel|Bedrohung|Zauber)\b/;
 function looksGerman(v) {
   if (!/[A-Za-zÄÖÜäöüß]{3,}/.test(v)) return false;
@@ -73,7 +73,7 @@ let bad = 0;
 for (const a of names) {
   const dir = path.join(ADDONS, a);
   const report = [];
-  // Übersetzungen
+  // translations
   const locFile = path.join(dir, 'Locale.lua');
   const trans = new Map();
   if (fs.existsSync(locFile)) {
@@ -81,17 +81,16 @@ for (const a of names) {
     const re = /^\s*L\[\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')\s*\]\s*=\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/;
     src.split('\n').forEach((l, i) => {
       const m = l.match(re);
-      if (m) trans.set(unescape(m[1].slice(1, -1)), { line: i + 1, en: unescape(m[2].slice(1, -1)) });
+      if (m) trans.set(unescape(m[1].slice(1, -1)), { line: i + 1, de: unescape(m[2].slice(1, -1)) });
     });
   } else {
-    report.push('  FEHLT      Locale.lua');
+    report.push('  MISSING    Locale.lua');
   }
-  // Code
+  // code
   const used = new Map();
   for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.lua') && f !== 'Locale.lua' && f !== 'Monitors.lua')) {
     const src = fs.readFileSync(path.join(dir, f), 'utf8');
     for (const lit of literals(src)) {
-      const before = src.slice(Math.max(0, lit.start - 3), lit.start);
       const after = src.slice(lit.end, lit.end + 2);
       const isKey = /L\[\s*$/.test(src.slice(Math.max(0, lit.start - 4), lit.start)) && /^\s*\]/.test(after);
       if (isKey) {
@@ -99,26 +98,26 @@ for (const a of names) {
         continue;
       }
       if (looksGerman(lit.value)) {
-        // bewusst deutsch (z. B. Vergleichswerte) mit Kommentar "-- nicht übersetzen" am Zeilenende
+        // deliberately German (e.g. comparison values) with the comment "-- do not translate" at the end of the line
         const lineText = src.split('\n')[lit.line - 1] || '';
-        if (/--\s*nicht übersetzen/i.test(lineText)) continue;
-        report.push(`  DEUTSCH?   ${f}:${lit.line}  ${JSON.stringify(lit.value).slice(0, 110)}`);
+        if (/--\s*do not translate/i.test(lineText)) continue;
+        report.push(`  GERMAN?    ${f}:${lit.line}  ${JSON.stringify(lit.value).slice(0, 110)}`);
       }
     }
   }
   for (const [k, where] of used) {
-    if (!trans.has(k)) report.push(`  FEHLT      ${where}  ${JSON.stringify(k).slice(0, 110)}`);
+    if (!trans.has(k)) report.push(`  MISSING    ${where}  ${JSON.stringify(k).slice(0, 110)}`);
   }
   for (const [k, t] of trans) {
-    if (!used.has(k)) report.push(`  UNBENUTZT  Locale.lua:${t.line}  ${JSON.stringify(k).slice(0, 100)}`);
+    if (!used.has(k)) report.push(`  UNUSED     Locale.lua:${t.line}  ${JSON.stringify(k).slice(0, 100)}`);
   }
   // TOC
   const toc = fs.readFileSync(path.join(dir, a + '.toc'), 'utf8');
-  if (!/^## Notes:/m.test(toc)) report.push('  TOC        ## Notes: (Englisch) fehlt');
-  if (!/^## Notes-deDE:/m.test(toc)) report.push('  TOC        ## Notes-deDE: fehlt');
-  const errors = report.filter(r => !/UNBENUTZT/.test(r)).length;
+  if (!/^## Notes:/m.test(toc)) report.push('  TOC        ## Notes: (English) missing');
+  if (!/^## Notes-deDE:/m.test(toc)) report.push('  TOC        ## Notes-deDE: missing');
+  const errors = report.filter(r => !/UNUSED/.test(r)).length;
   bad += errors;
-  console.log(`${a}: ${used.size} Schlüssel, ${trans.size} Übersetzungen, ${errors} Befunde`);
+  console.log(`${a}: ${used.size} keys, ${trans.size} translations, ${errors} findings`);
   for (const r of report) console.log(r);
 }
 process.exit(bad ? 1 : 0);

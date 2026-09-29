@@ -29,34 +29,34 @@ local function Build(category, layout)
 	local B = S.New({ prefix = "QNINVENTORY_", source = function() return ns.options end,
 		defaults = ns.OPTION_DEFAULTS })
 
-	S.Header(layout, L["Fraktionen"])
-	B:Checkbox(category, "bothFactions", L["Tooltips: Allianz und Horde"],
-		L["Die Tooltips der Titan-Plugins (Bank/Taschen und Gold) zeigen die Charaktere beider Fraktionen. Aus: nur die der Fraktion des eingeloggten Charakters. Die Fraktion eines Charakters ist bekannt, sobald er einmal mit dieser Version eingeloggt war; bis dahin erscheint er immer."],
+	S.Header(layout, L["Factions"])
+	B:Checkbox(category, "bothFactions", L["Tooltips: Alliance and Horde"],
+		L["The tooltips of the Titan plugins (bank/bags and gold) show the characters of both factions. Off: only those of the logged-in character's faction. A character's faction is known once it has logged in with this version; until then it is always shown."],
 		function() ns.DataChanged("chars") end)
-	B:Checkbox(category, "viewsBothFactions", L["Taschen, Bank und Post: auch die andere Fraktion"],
-		L["Die Charakterauswahl der Ansichten Taschen, Bank und Post enthält auch die Charaktere der anderen Fraktion. Aus: nur die der Fraktion des eingeloggten Charakters."],
+	B:Checkbox(category, "viewsBothFactions", L["Bags, bank and mail: include the other faction"],
+		L["The character selection of the bags, bank and mail views also contains the characters of the other faction. Off: only those of the logged-in character's faction."],
 		function() ns.DataChanged("chars") end)
 
 	S.Header(layout, NARRATION_DELETE_CHARACTER_BUTTON)
 	local D = S.New({ prefix = "QNINVENTORY_", source = function() return pick end, defaults = { deleteChar = "" } })
 	D:Dropdown(category, "deleteChar", CHARACTER, DeleteEntries,
-		L["Charakter, dessen gespeicherte Daten (Taschen, Bank, Post, Gold) gelöscht werden sollen. Der eingeloggte Charakter lässt sich nicht löschen."],
+		L["Character whose stored data (bags, bank, mail, gold) should be deleted. The logged-in character cannot be deleted."],
 		Settings.VarType.String)
 
-	qnCore.Popup.Confirm(DELETE_POPUP, L["Gespeicherte Daten von %s löschen?"], DELETE, function(key)
+	qnCore.Popup.Confirm(DELETE_POPUP, L["Delete the stored data of %s?"], DELETE, function(key)
 		local _, name, realm = ns.CharFromKey(key)
 		if ns.DeleteChar(realm, name) then
-			ns.Print(L["%s gelöscht."], realm == ns.realm and name or (name .. "-" .. realm))
+			ns.Print(L["%s deleted."], realm == ns.realm and name or (name .. "-" .. realm))
 		end
 		D:Set("deleteChar", "")
 	end)
-	S.Button(layout, L["Ausgewählten Charakter löschen"], DELETE, function()
+	S.Button(layout, L["Delete selected character"], DELETE, function()
 		local key = pick.deleteChar
 		if key == "" then return end
 		local char, name, realm = ns.CharFromKey(key)
 		if not char then return end
 		StaticPopup_Show(DELETE_POPUP, qnCore.ClassColoredName(realm == ns.realm and name or (name .. "-" .. realm), char.class), nil, key)
-	end, L["Löscht nach einer Rückfrage die gespeicherten Daten des oben gewählten Charakters."])
+	end, L["Deletes the stored data of the character selected above after confirmation."])
 end
 
 -- setzt ns.category und ns.OpenOptions

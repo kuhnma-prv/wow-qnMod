@@ -73,7 +73,7 @@ local AddMessage = DEFAULT_CHAT_FRAME.AddMessage
 DEFAULT_CHAT_FRAME.AddMessage = function(self, msg) printed[#printed + 1] = msg AddMessage(self, msg) end
 QN_COMBAT = true
 StaticPopupDialogs.QNCORE_PROFILE_RESET.OnAccept(nil, { stores = { a }, scope = "qnTestA" })
-local want = core.L["Im Kampf: wird nach dem Kampf angewendet."]
+local want = core.L["In combat: will be applied after combat."]
 Check(#printed == 2 and printed[2]:find(want, 1, true), "Profilseite meldet die Verzögerung")
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED") RunTimers()
@@ -176,4 +176,4 @@ FireEvent("PLAYER_REGEN_ENABLED") RunTimers()
 Check(table.concat(LOG, ";") == "SetTracking(2,true)", "nach dem Kampf wiederhergestellt: " .. table.concat(LOG, ";"))
 
 Check(#ERRS == 0, "keine Fehler: " .. table.concat(ERRS, ";"))
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

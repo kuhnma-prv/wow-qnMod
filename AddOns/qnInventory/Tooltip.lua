@@ -24,7 +24,7 @@ local function AddLines(tooltip, itemID)
 				local mailText = char.mail and (mail .. (char.mailIncomplete and "+" or "")) or "?"
 				local label = qnCore.ClassColoredName(realm and (name .. "-" .. realm) or name, char.class)
 				if not realm and name == ns.player then
-					label = label .. " " .. L["(ich)"]
+					label = label .. " " .. L["(me)"]
 				end
 				lines[#lines + 1] = { label,
 					("%d/%s/%s"):format(bag, char.bank and bank or "?", mailText) }
@@ -45,7 +45,7 @@ local function AddLines(tooltip, itemID)
 
 	tooltip:AddLine(" ")
 	local r, g, b = NORMAL_FONT_COLOR:GetRGB()
-	tooltip:AddDoubleLine(CHARACTER, L["Taschen/Bank/Post"], r, g, b, r, g, b)
+	tooltip:AddDoubleLine(CHARACTER, L["Bags/Bank/Mail"], r, g, b, r, g, b)
 	for _, line in ipairs(lines) do
 		tooltip:AddDoubleLine(line[1], line[2], 1, 1, 1, 1, 1, 1)
 	end

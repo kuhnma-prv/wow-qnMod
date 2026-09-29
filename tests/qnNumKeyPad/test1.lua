@@ -250,9 +250,9 @@ Check(_G.qnNumKeyPad == nil and nkp.Slot == nil and nkp.settings == nil, "keine 
 Check(StaticPopupDialogs.QNNUMKEYPAD_CUSTOM.EditBoxOnEscapePressed == StaticPopup_StandardEditBoxOnEscapePressed, "Escape im Eingabefeld: Blizzard-Standard")
 
 -- Hinweis beim Einloggen: einmal je Konto
-local HINT = L["Leiste mit der linken Maustaste verschieben, Rechtsklick öffnet die Optionen. Sperren mit /qnnkp lock."]
-local WARN_BLIZZ = L["Warnung: Seite %d wird auch von einer eingeblendeten Blizzard-Leiste benutzt."]
-local WARN_MULTI = L["Warnung: Seite %d ist für mehrere Tastengruppen eingestellt."]
+local HINT = L["Left-click to drag the bar, right-click to open the options. Lock it with /qnnkp lock."]
+local WARN_BLIZZ = L["Warning: page %d is also used by a visible Blizzard action bar."]
+local WARN_MULTI = L["Warning: page %d is assigned to more than one key group."]
 qnNumKeyPadProfiles.global.hintShown = nil
 nkp.db.page1 = 1   -- Seite der Hauptleiste: Warnung
 FireEvent("PLAYER_LOGIN")
@@ -420,4 +420,4 @@ Set("hideBorder", false)
 Check(b1.Border:IsShown(), "Rahmen nach dem Zurückschalten wieder sichtbar")
 Check(not qnNumKeyPadButton2.Border:IsShown(), "nicht ausgerüstet: kein Rahmen")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

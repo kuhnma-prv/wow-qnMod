@@ -185,4 +185,4 @@ mgr:AnchorShoppingTooltips(true, true)
 p, rel, rp = Pt(ShoppingTooltip1)
 Check(p == "TOPRIGHT" and rel == GameTooltip and rp == "TOPLEFT", "BagTooltip: Vergleich danach auf dem Monitor (links)")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

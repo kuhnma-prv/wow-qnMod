@@ -59,7 +59,7 @@ local function SpellEntries(current)
 	if current and current ~= "" and not found then
 		table.insert(list, 1, { current, current })
 	end
-	list[#list + 1] = { OTHER, L["Anderer Zauber …"] }
+	list[#list + 1] = { OTHER, L["Other spell …"] }
 	return list
 end
 
@@ -76,7 +76,7 @@ local function Value()
 	return entry and entry.value or ""
 end
 
-lib.Popup.EditText("QNUNITFRAMES_SPELL", L["Name oder Zauber-ID für %s:"], Value, function(text)
+lib.Popup.EditText("QNUNITFRAMES_SPELL", L["Name or spell ID for %s:"], Value, function(text)
 	if editKey then
 		ns.SetBinding(editKey, "spell", strtrim(text))
 		ns.RefreshClicksPage()
@@ -102,7 +102,7 @@ end
 local function EditMacro(key)
 	macroKey = key
 	local entry = Entry(key)
-	editor.label:SetText(L["Makrotext für %s (für die angeklickte Einheit: [@mouseover], z. B. /cast [@mouseover] Heilen):"]:format(ns.BindingText(key)))
+	editor.label:SetText(L["Macro text for %s (for the clicked unit: [@mouseover], e.g. /cast [@mouseover] Heal):"]:format(ns.BindingText(key)))
 	editor.box:SetText(entry and entry.value or "")
 	editor:Show()
 	editor.box:SetFocus()
@@ -145,7 +145,7 @@ local function CreateMacroEditor(anchor)
 	editor.cancel:SetPoint("LEFT", editor.accept, "RIGHT", 8, 0)
 end
 
-lib.Popup.Confirm("QNUNITFRAMES_CLEAR", L["Alle Klickbelegungen für %s im aktiven Profil löschen?"], DELETE, function()
+lib.Popup.Confirm("QNUNITFRAMES_CLEAR", L["Delete all click bindings for %s in the active profile?"], DELETE, function()
 	wipe(ns.Bindings())
 	ns.ApplyChange()
 	ns.RefreshClicksPage()
@@ -210,10 +210,10 @@ local function CreateRow(i, prefix, anchor)
 		end
 		ns.SetBinding(key, "spell", value)
 		ns.RefreshClicksPage()
-	end, L["Zauber wählen …"], 400)
+	end, L["Choose spell …"], 400)
 	row.spell:SetPoint("LEFT", row.kind, "RIGHT", 10, 0)
 
-	row.macro = UI.Button(row, L["Bearbeiten …"], 110, function()
+	row.macro = UI.Button(row, L["Edit …"], 110, function()
 		EditMacro(RowKey(row))
 	end)
 	row.macro:SetHeight(22)
@@ -239,7 +239,7 @@ local function RefreshRow(row)
 	row.macroText:SetShown(kind == "macro")
 	if kind == "macro" then
 		local text = entry.value or ""
-		row.macroText:SetText(text ~= "" and text:gsub("\n", " · ") or ("|cff808080" .. L["(leer)"] .. "|r"))
+		row.macroText:SetText(text ~= "" and text:gsub("\n", " · ") or ("|cff808080" .. L["(empty)"] .. "|r"))
 	end
 end
 
@@ -247,7 +247,7 @@ function ns.RefreshClicksPage()
 	if not (page and page.panel:IsVisible()) then
 		return
 	end
-	infoText:SetText(L["Belegung für %s im Profil %s"]:format(UnitClass("player"), lib.Profiles.GetLabel(lib.Profiles.GetActiveKey())))
+	infoText:SetText(L["Bindings for %s in profile %s"]:format(UnitClass("player"), lib.Profiles.GetLabel(lib.Profiles.GetActiveKey())))
 	buttonDropdown:Refresh()
 	for _, row in ipairs(rows) do
 		RefreshRow(row)
@@ -267,8 +267,8 @@ end
 ---------------------------------------------------------------------------
 
 local function Build()
-	page = UI.Page(L["Klickbelegung"], { desc =
-		L["Klicks auf Blizzards Gruppen- und Schlachtzugsrahmen wirken Zauber oder Makros auf das angeklickte Mitglied. Die Belegung gilt je Klasse und liegt im aktiven Profil (Layout des Bearbeitungsmodus). Im Kampf lässt sie sich nicht ändern; Änderungen folgen nach dem Kampf."] })
+	page = UI.Page(L["Click Bindings"], { desc =
+		L["Clicks on Blizzard's party and raid frames cast spells or macros on the clicked member. The bindings apply per class and are stored in the active profile (Edit Mode layout). They cannot change in combat; changes follow after combat."] })
 	parent = page.content
 
 	infoText = UI.Text(parent, "GameFontNormal")
@@ -280,11 +280,11 @@ local function Build()
 	end)
 	buttonDropdown:SetPoint("TOPLEFT", infoText, "BOTTOMLEFT", 110, -12)
 	ns.clicksUI.button = buttonDropdown
-	UI.Label(parent, buttonDropdown, L["Maustaste:"])
+	UI.Label(parent, buttonDropdown, L["Mouse button:"])
 
-	local clear = UI.Button(parent, L["Alle löschen"], 140, function()
+	local clear = UI.Button(parent, L["Delete all"], 140, function()
 		StaticPopup_Show("QNUNITFRAMES_CLEAR", UnitClass("player"))
-	end, L["Löscht alle Klickbelegungen der eigenen Klasse im aktiven Profil (alle Maustasten)."])
+	end, L["Deletes all click bindings of your class in the active profile (all mouse buttons)."])
 	clear:SetPoint("LEFT", buttonDropdown, "RIGHT", 20, 0)
 
 	local anchor = CreateFrame("Frame", nil, parent)
@@ -296,7 +296,7 @@ local function Build()
 	end
 
 	local hint = UI.Text(parent, "GameFontHighlightSmall",
-		L["'Blizzard-Standard' lässt den Klick unverändert (Linksklick: Ziel auswählen, Rechtsklick: Menü). Belegst du Linksklick ohne Zusatztaste mit einem Zauber, wählst du mit ihm kein Ziel mehr aus."])
+		L["'Blizzard default' leaves the click unchanged (left click: select target, right click: menu). If you bind a spell to left click without modifier, it no longer selects a target."])
 	hint:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -14)
 	hint:SetWidth(620)
 
@@ -307,7 +307,7 @@ end
 
 function ns.InitClicksPage(category)
 	Build()
-	sub = Settings.RegisterCanvasLayoutSubcategory(category, page.panel, L["Klickbelegung"])
+	sub = Settings.RegisterCanvasLayoutSubcategory(category, page.panel, L["Click Bindings"])
 end
 
 function ns.OpenClicksPage()

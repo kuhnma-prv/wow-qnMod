@@ -19,11 +19,11 @@ local MASK_HEIGHT = 32
 
 -- { Schlüssel, Anzeigename, Datei, kacheln }
 Style.BACKGROUNDS = {
-	{ "rock", L["Fels"], "Interface\\FrameGeneral\\UI-Background-Rock" },
-	{ "marble", L["Marmor"], "Interface\\FrameGeneral\\UI-Background-Marble" },
-	{ "dark", L["Dunkel"], "Interface\\DialogFrame\\UI-DialogBox-Background-Dark" },
-	{ "alpha", L["Durchscheinend"], "Interface\\Tooltips\\UI-Tooltip-Background" },
-	{ "flat", L["Flach"], "Interface\\Buttons\\WHITE8X8" },
+	{ "rock", L["Rock"], "Interface\\FrameGeneral\\UI-Background-Rock" },
+	{ "marble", L["Marble"], "Interface\\FrameGeneral\\UI-Background-Marble" },
+	{ "dark", L["Dark"], "Interface\\DialogFrame\\UI-DialogBox-Background-Dark" },
+	{ "alpha", L["Translucent"], "Interface\\Tooltips\\UI-Tooltip-Background" },
+	{ "flat", L["Flat"], "Interface\\Buttons\\WHITE8X8" },
 }
 
 function Style.BackgroundEntries()
@@ -218,10 +218,10 @@ local FLAGS = { default = true, NONE = "", OUTLINE = "OUTLINE", THINOUTLINE = "T
 function Style.FlagEntries()
 	return {
 		{ "default", DEFAULT },
-		{ "NONE", L["Ohne Umriss"] },
-		{ "THINOUTLINE", L["Dünner Umriss"] },
+		{ "NONE", L["No Outline"] },
+		{ "THINOUTLINE", L["Thin Outline"] },
 		{ "OUTLINE", SELF_HIGHLIGHT_OUTLINE },
-		{ "THICKOUTLINE", L["Dicker Umriss"] },
+		{ "THICKOUTLINE", L["Thick Outline"] },
 	}
 end
 

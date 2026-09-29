@@ -49,4 +49,4 @@ SETTINGS.QNCORE_QUESTTEXTSIZE:SetValue(10)
 local path, h = line:GetFont()
 Check(path == "Fonts\\ARKai_T.ttf" and h == 12.5, "Datei und Verhältnis der Vorlage: " .. tostring(path) .. " " .. tostring(h))
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

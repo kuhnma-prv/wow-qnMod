@@ -25,11 +25,11 @@ local function ScopeStores()
 end
 
 local function ScopeLabel()
-	return scope == "*" and L["alle qn-Addons"] or scope
+	return scope == "*" and L["all qn addons"] or scope
 end
 
 local function ScopeEntries()
-	local list = { { "*", L["Alle qn-Addons"] } }
+	local list = { { "*", L["All qn addons"] } }
 	for _, store in ipairs(P.stores) do
 		list[#list + 1] = { store.name, store.name }
 	end
@@ -50,22 +50,22 @@ end
 
 Confirm("QNCORE_PROFILE_COPY", ACCEPT, function(data)
 	local n, deferred = P.CopyToActive(data.key, data.stores)
-	ns.Print(L["%d Addon(s) übernommen aus %s."], n, P.GetLabel(data.key))
+	ns.Print(L["%d addon(s) copied from %s."], n, P.GetLabel(data.key))
 	if deferred then
-		ns.Print(L["Im Kampf: wird nach dem Kampf angewendet."])
+		ns.Print(L["In combat: will be applied after combat."])
 	end
 end)
 
 Confirm("QNCORE_PROFILE_DELETE", DELETE, function(data)
 	local n = P.Delete(data.key, data.stores)
-	ns.Print(L["Profil %s bei %d Addon(s) gelöscht."], data.label, n)
+	ns.Print(L["Profile %s deleted for %d addon(s)."], data.label, n)
 end)
 
 Confirm("QNCORE_PROFILE_RESET", ACCEPT, function(data)
 	local deferred = P.ResetActive(data.stores)
-	ns.Print(L["Aktives Profil zurückgesetzt (%s)."], data.scope)
+	ns.Print(L["Active profile reset (%s)."], data.scope)
 	if deferred then
-		ns.Print(L["Im Kampf: wird nach dem Kampf angewendet."])
+		ns.Print(L["In combat: will be applied after combat."])
 	end
 end)
 
@@ -106,16 +106,16 @@ local function Row(i)
 	row.delete = UI.Button(row, DELETE, 90, function(self)
 		local key = self:GetParent().key
 		local label = P.GetLabel(key)
-		StaticPopup_Show("QNCORE_PROFILE_DELETE", L["Profil %s löschen (%s)?"]:format(label, ScopeLabel()), nil,
+		StaticPopup_Show("QNCORE_PROFILE_DELETE", L["Delete profile %s (%s)?"]:format(label, ScopeLabel()), nil,
 			{ key = key, label = label, stores = ScopeStores() })
 	end)
 	row.delete:SetHeight(22)
 	row.delete:SetPoint("RIGHT", -4, 0)
 
-	row.copy = UI.Button(row, L["In aktives Profil kopieren"], 190, function(self)
+	row.copy = UI.Button(row, L["Copy into active profile"], 190, function(self)
 		local key = self:GetParent().key
 		StaticPopup_Show("QNCORE_PROFILE_COPY",
-			L["Einstellungen aus %s in das aktive Profil %s übernehmen (%s)?\nDie bisherigen Einstellungen des aktiven Profils gehen verloren."]:format(
+			L["Copy the settings of %s into the active profile %s (%s)?\nThe current settings of the active profile will be lost."]:format(
 				P.GetLabel(key), P.GetLabel(P.GetActiveKey()), ScopeLabel()), nil,
 			{ key = key, stores = ScopeStores() })
 	end)
@@ -123,7 +123,7 @@ local function Row(i)
 	row.copy:SetPoint("RIGHT", row.delete, "LEFT", -6, 0)
 
 	UI.Tooltip(row, function(self) return P.GetLabel(self.key) end,
-		function(self) return L["Vorhanden bei: %s"]:format(UsedBy(self.key)) end, "ANCHOR_TOPLEFT")
+		function(self) return L["Used by: %s"]:format(UsedBy(self.key)) end, "ANCHOR_TOPLEFT")
 	rows[i] = row
 	return row
 end
@@ -133,7 +133,7 @@ function ns.RefreshProfilesPage()
 		return
 	end
 	local active = P.GetActiveKey()
-	activeText:SetText("|cffcccccc" .. L["Aktives Profil:"] .. "|r " .. P.GetLabel(active))
+	activeText:SetText("|cffcccccc" .. L["Active profile:"] .. "|r " .. P.GetLabel(active))
 	scopeDropdown:Refresh()
 
 	local keys = P.GetKnownKeys(ScopeStores())
@@ -141,7 +141,7 @@ function ns.RefreshProfilesPage()
 		local row = Row(i)
 		row.key = key
 		local isActive = key == active
-		row.name:SetText(P.GetLabel(key) .. (isActive and ("  |cff80ff80" .. L["(aktiv)"] .. "|r") or ""))
+		row.name:SetText(P.GetLabel(key) .. (isActive and ("  |cff80ff80" .. L["(active)"] .. "|r") or ""))
 		row.copy:SetEnabled(not isActive and active ~= nil)
 		row.delete:SetEnabled(not isActive)
 		row:Show()
@@ -159,8 +159,8 @@ end
 ---------------------------------------------------------------------------
 
 local function Build()
-	page = UI.Page(L["Profile"], { desc =
-		L["Alle qn-Addons speichern ihre Einstellungen je Layout des Bearbeitungsmodus (Esc → Bearbeitungsmodus). Wechselst du dort das Layout, wechselt auch das Profil. Charakterspezifische Layouts haben eigene Profile, die nur dieser Charakter benutzt. Ein neues Layout startet mit einer Kopie des bisher aktiven Profils."] })
+	page = UI.Page(L["Profiles"], { desc =
+		L["All qn addons store their settings per Edit Mode layout (Esc → Edit Mode). Switching the layout there switches the profile as well. Character-specific layouts have their own profiles, used only by that character. A new layout starts with a copy of the previously active profile."] })
 	local parent = page.content
 
 	activeText = UI.Text(parent, "GameFontNormal")
@@ -171,17 +171,17 @@ local function Build()
 		ns.RefreshProfilesPage()
 	end)
 	scopeDropdown:SetPoint("TOPLEFT", activeText, "BOTTOMLEFT", 90, -14)
-	UI.Label(parent, scopeDropdown, L["Gilt für:"])
+	UI.Label(parent, scopeDropdown, L["Applies to:"])
 
-	local reset = UI.Button(parent, L["Aktives Profil zurücksetzen"], 220, function()
+	local reset = UI.Button(parent, L["Reset active profile"], 220, function()
 		local stores = ScopeStores()
 		StaticPopup_Show("QNCORE_PROFILE_RESET",
-			L["Aktives Profil %s auf die Standardwerte zurücksetzen (%s)?"]:format(P.GetLabel(P.GetActiveKey()), ScopeLabel()), nil,
+			L["Reset active profile %s to default values (%s)?"]:format(P.GetLabel(P.GetActiveKey()), ScopeLabel()), nil,
 			{ stores = stores, scope = ScopeLabel() })
-	end, L["Setzt die Einstellungen des aktiven Profils auf die Standardwerte (für die unter 'Gilt für' gewählten Addons)."])
+	end, L["Resets the settings of the active profile to default values (for the addons selected under 'Applies to')."])
 	reset:SetPoint("LEFT", scopeDropdown, "RIGHT", 20, 0)
 
-	local header = UI.Text(parent, "GameFontNormal", L["Gespeicherte Profile"])
+	local header = UI.Text(parent, "GameFontNormal", L["Saved profiles"])
 	header:SetPoint("TOPLEFT", activeText, "BOTTOMLEFT", 0, -56)
 
 	-- Liste im Inhalt der Seite (blättert mit der Seite)
@@ -193,7 +193,7 @@ local function Build()
 	bg:SetAllPoints()
 	bg:SetColorTexture(0, 0, 0, 0.25)
 
-	emptyText = UI.Text(listContent, "GameFontDisable", L["Noch keine Profile – das Layout ist noch nicht ermittelt."])
+	emptyText = UI.Text(listContent, "GameFontDisable", L["No profiles yet – the layout has not been determined."])
 	emptyText:SetPoint("LEFT", 8, 0)
 
 	page.panel:SetScript("OnShow", ns.RefreshProfilesPage)
@@ -201,7 +201,7 @@ end
 
 function ns.InitProfilesPage()
 	Build()
-	sub = Settings.RegisterCanvasLayoutSubcategory(ns.category, page.panel, L["Profile"])
+	sub = Settings.RegisterCanvasLayoutSubcategory(ns.category, page.panel, L["Profiles"])
 	P.OnChange(ns.RefreshProfilesPage)
 end
 

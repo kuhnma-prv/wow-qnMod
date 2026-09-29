@@ -24,4 +24,4 @@ end)
 Check(ok, "Anwenden und Profilwechsel ohne Titan: " .. tostring(err))
 Check(qnViewPortDB.profiles["account:Raid"].titan.Bar == 2, "gespeicherte Titan-Auswahl bleibt erhalten")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

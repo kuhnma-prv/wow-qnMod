@@ -41,7 +41,7 @@ function Window:Settings()
 end
 
 function Window:Label()
-	return L["Fenster %d"]:format(self.id)
+	return L["Window %d"]:format(self.id)
 end
 
 ---------------------------------------------------------------------------

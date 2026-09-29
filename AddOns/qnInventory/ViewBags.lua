@@ -56,7 +56,7 @@ local function Create()
 	search:SetWidth(330)
 
 	notice = ns.CreateNotice(frame)
-	notice:SetText(L["Die Taschen dieses Charakters sind noch nicht erfasst. Einmal mit ihm einloggen genügt."])
+	notice:SetText(L["This character's bags have not been recorded yet. Logging in with it once is enough."])
 
 	ns.AttachHeader(frame, "bags")
 end

@@ -65,7 +65,7 @@ end
 Check(vp.db.pattern == "none" and vp.db.patternAlpha == 0.5, "Vorgaben: kein Muster, 50 %")
 local L = vp.L
 local dd, slider
-for _, d in ipairs(dropdowns) do if d._text == L["Kein Muster (nur Farbe)"] then dd = d end end
+for _, d in ipairs(dropdowns) do if d._text == L["No pattern (color only)"] then dd = d end end
 for _, s in ipairs(sliders) do if s._value == 50 then slider = s end end
 print("Dropdowns/Regler:", #dropdowns, #sliders)
 Check(dd and slider, "Dropdown und Regler angelegt")
@@ -73,10 +73,10 @@ Check(dd and slider, "Dropdown und Regler angelegt")
 -- Vollbild und Weiß ausgelassen)
 local lsmIndex = 1 + #vp.PATTERNS + 1
 Check(#dd._radios == lsmIndex, lsmIndex .. " Einträge im Dropdown (" .. #dd._radios .. ")")
-Check(dd._text == L["Kein Muster (nur Farbe)"], "Anzeige: kein Muster")
+Check(dd._text == L["No pattern (color only)"], "Anzeige: kein Muster")
 dd:PickRadio(2)
 Check(vp.db.pattern == "rock", "Fels gewählt")
-Check(dd._text == L["Fels"], "Anzeige: Fels")
+Check(dd._text == L["Rock"], "Anzeige: Fels")
 local p = Patterns()
 Check(#p == 4 and p[1]._file == "Interface\\FrameGeneral\\UI-Background-Rock" and p[1]._wrap == "REPEAT", "vier Randflächen gekachelt mit Fels")
 Check(slider._enabled == true, "Regler aktiv")
@@ -106,4 +106,4 @@ Check(vp.db.pattern == "rock", "lsm:Blizzard Rock -> rock")
 vp.db.pattern = "lsm:qn Dots"
 vp.UpdateBorderLook()
 Check(vp.db.pattern == "qnDots" and p[1]._file == qnCore.Patterns[4][3], "lsm:qn Dots -> qnDots")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

@@ -20,24 +20,24 @@ end
 local function Build(cat, layout)
 	local B = S.New({ store = ns.store, prefix = "QNMETER_", apply = function() ns.Threat.ApplySettings() end })
 
-	S.Header(layout, L["Fenster"])
-	B:Checkbox(cat, "shown", L["Fenster anzeigen"])
-	B:Checkbox(cat, "locked", LOCK_FRAME, L["Verhindert Verschieben und Größenänderung."])
+	S.Header(layout, L["Window"])
+	B:Checkbox(cat, "shown", L["Show window"])
+	B:Checkbox(cat, "locked", LOCK_FRAME, L["Prevents moving and resizing."])
 	B:Dropdown(cat, "showMode", HUD_EDIT_MODE_SETTING_DAMAGE_METER_VISIBILITY, {
 		{ 1, ALWAYS },
-		{ 2, L["Nur im Kampf"] },
-		{ 3, L["Nur in Gruppe oder Schlachtzug"] },
+		{ 2, L["In combat only"] },
+		{ 3, L["In group or raid only"] },
 	})
-	B:Checkbox(cat, "showTitle", L["Titelleiste anzeigen"])
-	B:Slider(cat, "scale", L["Skalierung"], 0.5, 2, 0.05, S.DecimalFormatter)
-	B:Checkbox(cat, "autoVisible", L["Automatisch im sichtbaren Bereich halten"],
-		L["Holt das Fenster nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."])
-	S.Button(layout, L["Fenster suchen"], L["In sichtbaren Bereich holen"],
-		function() ns.Threat.MoveIntoVisible() end, L["Verschiebt das Fenster jetzt auf den nächsten sichtbaren Monitor (/qnm visible)."])
+	B:Checkbox(cat, "showTitle", L["Show title bar"])
+	B:Slider(cat, "scale", L["Scale"], 0.5, 2, 0.05, S.DecimalFormatter)
+	B:Checkbox(cat, "autoVisible", L["Keep in visible area automatically"],
+		L["Moves the window back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas actually visible on a monitor count."])
+	S.Button(layout, L["Find window"], L["Move into visible area"],
+		function() ns.Threat.MoveIntoVisible() end, L["Moves the window onto the nearest visible monitor now (/qnm visible)."])
 
-	S.Header(layout, L["Balken"])
-	local link = B:Checkbox(cat, "linkDamageMeter", L["Einstellungen der Schadensanzeige übernehmen"],
-		L["Übernimmt Stil, Balkenhöhe, Abstand, Textgröße, Symbole, Klassenfarben und Transparenz aus dem Bearbeitungsmodus der eingebauten Schadensanzeige."])
+	S.Header(layout, L["Bars"])
+	local link = B:Checkbox(cat, "linkDamageMeter", L["Use Damage Meter settings"],
+		L["Takes style, bar height, spacing, text size, icons, class colors and transparency from the Edit Mode settings of the built-in Damage Meter."])
 	-- Nur bedienbar, solange die Werte nicht von der Schadensanzeige kommen.
 	local function NotLinked()
 		return not ns.db.linkDamageMeter
@@ -48,47 +48,47 @@ local function Build(cat, layout)
 		{ 2, HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE_BORDERED },
 		{ 3, HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE_FULL_BACKGROUND },
 	}), link, NotLinked)
-	S.Depends(B:Slider(cat, "barHeight", L["Balkenhöhe"], 8, 40, 1), link, NotLinked)
-	S.Depends(B:Slider(cat, "barSpacing", L["Balkenabstand"], 0, 10, 1), link, NotLinked)
-	S.Depends(B:Slider(cat, "fontSize", FONT_SIZE, 0, 24, 1, S.FontSizeFormatter, L["0 = Standardgröße der Schadensanzeige."]), link, NotLinked)
-	S.Depends(B:Checkbox(cat, "showIcons", L["Klassensymbole anzeigen"]), link, NotLinked)
+	S.Depends(B:Slider(cat, "barHeight", L["Bar height"], 8, 40, 1), link, NotLinked)
+	S.Depends(B:Slider(cat, "barSpacing", L["Bar spacing"], 0, 10, 1), link, NotLinked)
+	S.Depends(B:Slider(cat, "fontSize", FONT_SIZE, 0, 24, 1, S.FontSizeFormatter, L["0 = default size of the Damage Meter."]), link, NotLinked)
+	S.Depends(B:Checkbox(cat, "showIcons", L["Show class icons"]), link, NotLinked)
 	S.Depends(B:Checkbox(cat, "classColors", CLASS_COLORS), link, NotLinked)
-	S.Depends(B:Slider(cat, "bgAlpha", L["Deckkraft des Hintergrunds"], 0, 1, 0.05, S.FractionFormatter), link, NotLinked)
-	B:Dropdown(cat, "texture", L["Balkentextur"], TextureEntries)
-	B:Checkbox(cat, "showRank", L["Rang vor dem Namen"])
-	B:Checkbox(cat, "useMyColor", L["Eigenen Balken rot färben"])
-	B:Checkbox(cat, "useTankColor", L["Tank-Balken dunkelrot färben"])
+	S.Depends(B:Slider(cat, "bgAlpha", L["Background opacity"], 0, 1, 0.05, S.FractionFormatter), link, NotLinked)
+	B:Dropdown(cat, "texture", L["Bar texture"], TextureEntries)
+	B:Checkbox(cat, "showRank", L["Rank before the name"])
+	B:Checkbox(cat, "useMyColor", L["Color your own bar red"])
+	B:Checkbox(cat, "useTankColor", L["Color the tank bar dark red"])
 
-	S.Header(layout, L["Inhalt"])
-	B:Checkbox(cat, "showValue", L["Bedrohungswert anzeigen"])
-	B:Checkbox(cat, "showPercent", L["Prozent anzeigen"])
-	B:Checkbox(cat, "showTPS", L["Bedrohung pro Sekunde (TPS) anzeigen"],
-		L["Zuwachs der Bedrohung pro Sekunde im TPS-Zeitfenster. Nur möglich, solange der Client lesbare Werte liefert."])
-	B:Slider(cat, "tpsWindow", L["TPS-Zeitfenster (Sekunden)"], 3, 30, 1)
-	B:Dropdown(cat, "percentMode", L["Prozentbasis"], {
-		{ 1, L["Relativ zum Tank (100 % = Tank)"] },
-		{ 2, L["Skaliert (100 % = Aggro)"] },
-	}, L["Im eingeschränkten Modus (secret) ist nur 'skaliert' verfügbar."])
-	B:Checkbox(cat, "showAggroBar", L["Balken 'Aggro ziehen' anzeigen"])
-	B:Dropdown(cat, "aggroMode", L["Aggro-Schwelle"], {
-		{ 1, L["Automatisch (Entfernung, sonst Klasse)"] },
-		{ 2, L["Nahkampf (110 %)"] },
-		{ 3, L["Fernkampf (130 %)"] },
-	}, L["Automatisch: außerhalb des Kampfes nach der Entfernung zum Ziel, im Kampf nach der Klasse. Im Kampf gelten nur Krieger, Schurken und Paladine als Nahkampf; Druiden in Katzen- oder Bärengestalt und Verstärkungsschamanen bekommen dann 130 %. Für sie 'Nahkampf' wählen."])
-	B:Checkbox(cat, "alwaysShowSelf", L["Eigenen Balken immer anzeigen"])
+	S.Header(layout, L["Content"])
+	B:Checkbox(cat, "showValue", L["Show threat values"])
+	B:Checkbox(cat, "showPercent", L["Show threat %"])
+	B:Checkbox(cat, "showTPS", L["Show threat per second (TPS)"],
+		L["Threat gained per second over the TPS window. Only possible while the client provides readable values."])
+	B:Slider(cat, "tpsWindow", L["TPS window (seconds)"], 3, 30, 1)
+	B:Dropdown(cat, "percentMode", L["Percent basis"], {
+		{ 1, L["Relative to the tank (100 % = tank)"] },
+		{ 2, L["Scaled (100 % = aggro)"] },
+	}, L["In restricted mode (secret) only 'scaled' is available."])
+	B:Checkbox(cat, "showAggroBar", L["Show pull aggro bar"])
+	B:Dropdown(cat, "aggroMode", L["Aggro threshold"], {
+		{ 1, L["Automatic (range, otherwise class)"] },
+		{ 2, L["Melee (110 %)"] },
+		{ 3, L["Ranged (130 %)"] },
+	}, L["Automatic: out of combat by range to the target, in combat by class. In combat only warriors, rogues and paladins count as melee; druids in Cat or Bear Form and Enhancement shamans then get 130 %. Choose 'Melee' for them."])
+	B:Checkbox(cat, "alwaysShowSelf", L["Always show self"])
 	B:Checkbox(cat, "showPets", DISPLAY_RAID_PETS)
-	B:Checkbox(cat, "useFocus", L["Fokusziel bevorzugen"])
-	B:Checkbox(cat, "ignorePlayerPets", L["Spielerbegleiter als Ziel ignorieren"])
-	B:Slider(cat, "updateInterval", L["Aktualisierung (Sekunden)"], 0.05, 1, 0.05, S.DecimalFormatter)
+	B:Checkbox(cat, "useFocus", L["Use focus target"])
+	B:Checkbox(cat, "ignorePlayerPets", L["Ignore player pets"])
+	B:Slider(cat, "updateInterval", L["Update interval (seconds)"], 0.05, 1, 0.05, S.DecimalFormatter)
 
-	S.Header(layout, L["Warnung"])
-	B:Checkbox(cat, "warnEnabled", L["Warnung bei hoher Bedrohung"],
-		L["Nur möglich, solange der Client lesbare Werte liefert."])
-	B:Slider(cat, "warnThreshold", L["Warnschwelle"], 50, 130, 5, S.PercentFormatter)
-	B:Checkbox(cat, "warnSound", L["Ton abspielen"])
-	B:Checkbox(cat, "warnFlash", L["Bildschirm aufblitzen"])
-	B:Checkbox(cat, "warnMessage", L["Meldung einblenden"])
-	B:Checkbox(cat, "warnSolo", L["Auch ohne Gruppe warnen"])
+	S.Header(layout, L["Warnings"])
+	B:Checkbox(cat, "warnEnabled", L["Warn on high threat"],
+		L["Only possible while the client provides readable values."])
+	B:Slider(cat, "warnThreshold", L["Warning threshold"], 50, 130, 5, S.PercentFormatter)
+	B:Checkbox(cat, "warnSound", L["Play sound"])
+	B:Checkbox(cat, "warnFlash", L["Flash the screen"])
+	B:Checkbox(cat, "warnMessage", L["Show message"])
+	B:Checkbox(cat, "warnSolo", L["Warn when solo too"])
 end
 
 -- setzt ns.category und ns.OpenOptions

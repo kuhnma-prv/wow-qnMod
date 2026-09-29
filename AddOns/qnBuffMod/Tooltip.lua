@@ -64,8 +64,8 @@ end
 -- Nur der Fenstertooltip (mit disableTooltips bei offener Fensterseite, am Hintergrund)
 local function WindowTip(owner, anchor, id)
 	GameTooltip:SetOwner(owner, anchor)
-	GameTooltip:AddLine(L["Fenster %d"]:format(id))
-	GameTooltip:AddLine(L["Alt-Klick: Fenster in den Optionen auswählen."], 1, 1, 1)
+	GameTooltip:AddLine(L["Window %d"]:format(id))
+	GameTooltip:AddLine(L["Alt-click: select the window in the options."], 1, 1, 1)
 	GameTooltip:Show()
 end
 
@@ -107,10 +107,10 @@ function Tooltip.ShowEntry(e)
 		CasterLines(rec.caster)
 	end
 	if pageOpen then
-		GameTooltip:AddLine(L["Fenster %d (Alt-Klick: Fenster in den Optionen auswählen.)"]:format(win.id), GREY, GREY, GREY)
+		GameTooltip:AddLine(L["Window %d (Alt-click: select the window in the options.)"]:format(win.id), GREY, GREY, GREY)
 	else
-		local left = rec.spellId and L["Zauber-ID: %d"]:format(rec.spellId) or " "
-		GameTooltip:AddDoubleLine(left, L["/qnbuff zum Einstellen"], GREY, GREY, GREY, GREY, GREY, GREY)
+		local left = rec.spellId and L["Spell ID: %d"]:format(rec.spellId) or " "
+		GameTooltip:AddDoubleLine(left, L["/qnbuff for options"], GREY, GREY, GREY, GREY, GREY, GREY)
 	end
 	GameTooltip:SetMinimumWidth(MIN_WIDTH)
 	GameTooltip:Show()

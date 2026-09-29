@@ -103,7 +103,7 @@ QN_COMBAT = true
 printed = {}
 uf.SetBinding("shift-2", "spell", "Erneuerung")
 Check(A(raid1, "shift-type2") == nil, "im Kampf nichts geändert (sonst ADDON_ACTION_BLOCKED)")
-Check(printed[1] == L["Änderung wird nach dem Kampf übernommen."], "Hinweis im Kampf")
+Check(printed[1] == L["The change will be applied after combat."], "Hinweis im Kampf")
 -- neuer Rahmen im Kampf
 local raid3 = UnitButton("CompactRaidFrame3")
 CompactUnitFrame_SetUpFrame(raid3, nop)
@@ -183,7 +183,7 @@ SETTINGS.QNUF_TOOLTIP:SetValue(true)
 ---------------------------------------------------------------------------
 -- Texte
 ---------------------------------------------------------------------------
-Check(uf.ModifierText("") == L["Ohne Zusatztaste"], "ohne Zusatztaste")
+Check(uf.ModifierText("") == L["No modifier"], "ohne Zusatztaste")
 Check(uf.ModifierText("alt-ctrl-shift-") == ALT_KEY_TEXT .. "+" .. CTRL_KEY_TEXT .. "+" .. SHIFT_KEY_TEXT, "Zusatztasten mit Blizzard-Namen")
 Check(uf.BindingText("shift-4") == SHIFT_KEY_TEXT .. "+" .. KEY_BUTTON4, "Belegungstext")
 
@@ -202,20 +202,20 @@ Check(A(raid1, "shift-spell1") == "Blitzheilung", "zurück: Belegung des alten P
 ---------------------------------------------------------------------------
 -- Optionsseite "Klickbelegung"
 ---------------------------------------------------------------------------
-local page = pages[L["Klickbelegung"]]
+local page = pages[L["Click Bindings"]]
 Check(page ~= nil, "Seite Klickbelegung angemeldet")
 local rows = uf.clicksUI.rows
 Check(#rows == #uf.MODIFIERS, "eine Zeile je Zusatztaste")
 page:Show()
 local shiftRow = rows[2]
-Check(shiftRow.kind._text == L["Zauber"] and shiftRow.spell:IsShown() and shiftRow.spell._text == "Blitzheilung", "Zeile Umschalt zeigt Zauber und Namen")
-Check(rows[1].kind._text == L["Blizzard-Standard"] and not rows[1].spell:IsShown() and not rows[1].macro:IsShown(), "Zeile ohne Belegung: Blizzard-Standard")
+Check(shiftRow.kind._text == L["Spell"] and shiftRow.spell:IsShown() and shiftRow.spell._text == "Blitzheilung", "Zeile Umschalt zeigt Zauber und Namen")
+Check(rows[1].kind._text == L["Blizzard default"] and not rows[1].spell:IsShown() and not rows[1].macro:IsShown(), "Zeile ohne Belegung: Blizzard-Standard")
 Check(shiftRow.spell._scrollHeight == 400, "lange Zauberliste mit Bildlauf")
 
 -- Zauberliste aus dem Zauberbuch
 local names = {}
 for _, r in ipairs(shiftRow.spell._radios) do names[#names + 1] = r.text end
-Check(table.concat(names, ",") == "Blitzheilung,Erneuerung,Heilen," .. L["Anderer Zauber …"], "Zauberbuch: sortiert, ohne Doppelte, passive, Nebenspezialisierung und künftige Zauber")
+Check(table.concat(names, ",") == "Blitzheilung,Erneuerung,Heilen," .. L["Other spell …"], "Zauberbuch: sortiert, ohne Doppelte, passive, Nebenspezialisierung und künftige Zauber")
 shiftRow.spell:PickRadio(3)
 Check(uf.Bindings()["shift-1"].value == "Heilen" and A(raid1, "shift-spell1") == "Heilen", "Zauber aus der Liste gewählt")
 
@@ -256,9 +256,9 @@ GameTooltip:SetOwner(raid1, "ANCHOR_NONE")
 tooltipFn(GameTooltip)
 local macroLine
 for _, line in ipairs(TOOLTIP.lines) do if line.text == uf.BindingText("ctrl-1") then macroLine = line.right end end
-Check(macroLine == L["Makro: %s"]:format("/stopcasting…"), "Tooltip zeigt Anfang des Makros")
-Check(uf.ActionText({ type = "macro", value = ("ä"):rep(40) }) == L["Makro: %s"]:format(("ä"):rep(32) .. "…"), "langes Makro gekürzt (UTF-8)")
-Check(uf.ActionText({ type = "macro", value = "/cast X" }) == L["Makro: %s"]:format("/cast X"), "kurzes Makro vollständig")
+Check(macroLine == L["Macro: %s"]:format("/stopcasting…"), "Tooltip zeigt Anfang des Makros")
+Check(uf.ActionText({ type = "macro", value = ("ä"):rep(40) }) == L["Macro: %s"]:format(("ä"):rep(32) .. "…"), "langes Makro gekürzt (UTF-8)")
+Check(uf.ActionText({ type = "macro", value = "/cast X" }) == L["Macro: %s"]:format("/cast X"), "kurzes Makro vollständig")
 -- Editor schließt sich, wenn die Belegung wechselt
 ctrlRow.macro:GetScript("OnClick")(ctrlRow.macro)
 
@@ -272,7 +272,7 @@ local buttonDD = uf.clicksUI.button
 Check(buttonDD._text == KEY_BUTTON1, "Maustaste: Linke Maustaste gewählt")
 buttonDD:PickRadio(2)
 Check(buttonDD._text == KEY_BUTTON2 and shiftRow.spell._text == "Erneuerung", "Rechte Maustaste: Umschalt-Zeile zeigt shift-2")
-Check(rows[4].kind._text == L["Zauber"] and rows[4].spell._text == "17", "Alt-Zeile zeigt Zauber-ID aus dem alten Profil")
+Check(rows[4].kind._text == L["Spell"] and rows[4].spell._text == "17", "Alt-Zeile zeigt Zauber-ID aus dem alten Profil")
 shiftRow.kind:PickRadio(1)
 Check(uf.Bindings()["shift-2"] == nil and uf.Bindings()["shift-1"] ~= nil, "Löschen betrifft nur die gewählte Maustaste")
 
@@ -288,4 +288,4 @@ SlashCmdList.QNUNITFRAMES("")
 printed = {}
 SlashCmdList.QNUNITFRAMES("hilfe")
 Check(#printed == 1 and printed[1]:find("/qnuf clicks", 1, true) ~= nil, "Hilfe zu den Befehlen")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

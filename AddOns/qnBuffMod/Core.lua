@@ -64,7 +64,7 @@ function ns.EditWindow(id)
 		return
 	end
 	ns.SelectWindow(id)
-	ns.Print(L["%s ausgewählt."], windows[id]:Label())
+	ns.Print(L["%s selected."], windows[id]:Label())
 	ns.OpenWindowPage()
 end
 
@@ -111,7 +111,7 @@ end
 
 local function CombatBlocked()
 	if InCombatLockdown() then
-		ns.Print(L["Im Kampf nicht möglich."])
+		ns.Print(L["Not possible in combat."])
 		return true
 	end
 	return false
@@ -123,7 +123,7 @@ function ns.AddWindow(copyFrom)
 		return nil
 	end
 	if Count() >= ns.WINDOW_LIMIT then
-		ns.Print(L["Mehr als %d Fenster sind nicht möglich."], ns.WINDOW_LIMIT)
+		ns.Print(L["No more than %d windows are possible."], ns.WINDOW_LIMIT)
 		return nil
 	end
 	local settings = {}
@@ -134,9 +134,9 @@ function ns.AddWindow(copyFrom)
 	end
 	local id = Create(settings)
 	if src then
-		ns.Print(L["Fenster %d mit den Einstellungen von Fenster %d angelegt."], id, copyFrom)
+		ns.Print(L["Window %d added, copying settings from window %d."], id, copyFrom)
 	else
-		ns.Print(L["Fenster %d angelegt."], id)
+		ns.Print(L["Window %d added."], id)
 	end
 	ns.SelectWindow(id)
 	return id
@@ -159,11 +159,11 @@ function ns.DeleteWindow(id)
 	end
 	windows[id] = nil
 	ns.db.windows[id] = nil
-	ns.Print(L["Fenster %d gelöscht."], id)
+	ns.Print(L["Window %d deleted."], id)
 	ids = ns.WindowIDs()
 	if #ids == 0 then
 		local new = Create({})
-		ns.Print(L["Kein Fenster übrig – Fenster %d angelegt."], new)
+		ns.Print(L["No window left – window %d added."], new)
 		ids = { new }
 	end
 	ns.UpdateWatched()

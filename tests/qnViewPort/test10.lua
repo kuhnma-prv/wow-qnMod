@@ -60,4 +60,4 @@ d.zoneMapScale = 5
 vp.Dual.ApplyAll()
 Check(tab._scale == 2 and map._scale == 2, "Wert über 200 % begrenzt")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

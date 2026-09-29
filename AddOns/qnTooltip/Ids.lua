@@ -77,10 +77,10 @@ local function OnItem(tip, data)
 	if IdsAllowed() then
 		local list = {}
 		if db.itemId then
-			list[#list + 1] = { L["Gegenstands-ID"], id }
+			list[#list + 1] = { L["Item ID"], id }
 		end
 		if db.itemIconId and icon then
-			list[#list + 1] = { L["Symbol-ID"], icon }
+			list[#list + 1] = { L["Icon ID"], icon }
 		end
 		local stack = db.itemMaxStack and select(8, C_Item.GetItemInfo(id))
 		if stack and stack > 1 then
@@ -101,10 +101,10 @@ local function SpellIds(tip, id, icon)
 	end
 	local list = {}
 	if db.spellId then
-		list[#list + 1] = { L["Zauber-ID"], id }
+		list[#list + 1] = { L["Spell ID"], id }
 	end
 	if db.spellIconId and icon then
-		list[#list + 1] = { L["Symbol-ID"], icon }
+		list[#list + 1] = { L["Icon ID"], icon }
 	end
 	AddIds(tip, list)
 end
@@ -157,7 +157,7 @@ local function OnQuest(tip, data)
 		end
 	end
 	if db.questId and IdsAllowed() then
-		AddIds(tip, { { L["Quest-ID"], id } })
+		AddIds(tip, { { L["Quest ID"], id } })
 	end
 end
 

@@ -45,7 +45,7 @@ SETTINGS.QNTOOLTIP_BORDERSIZE:SetValue(3)
 Check(bd._backdrop.edgeSize == 3 and bd._backdrop.insets.left == 3, "Rahmenbreite 3")
 SETTINGS.QNTOOLTIP_BORDERSTYLE:SetValue("default")
 SETTINGS.QNTOOLTIP_SCALE:SetValue(1.2)
-Check(GameTooltip._scale == 1.2, "Skalierung")
+Check(GameTooltip._scale == 1.2, "Scale")
 
 ---------------------------------------------------------------------------
 -- Spieler
@@ -147,7 +147,7 @@ QN_GROUP = { "player", "party1" }
 QN_UNITS.party1 = { name = "Jaina", class = "MAGE", className = "Magier", isPlayer = true, guid = "Player-3", target = "mouseover", role = "DAMAGER" }
 GameTooltip:SetUnit("mouseover")
 all = table.concat(GameTooltip:Texts(), "\n")
-Check(all:find(L["Anvisiert von:"], 1, true) and all:find("Jaina", 1, true), "Anvisiert von: Jaina")
+Check(all:find(L["Targeted by:"], 1, true) and all:find("Jaina", 1, true), "Anvisiert von: Jaina")
 QN_GROUP = nil
 
 ---------------------------------------------------------------------------
@@ -165,4 +165,4 @@ Check(lines[#lines] == "" and lines[#lines - 1] == "", "Rechtsklick-Hinweis und 
 GameTooltip:ClearLines()
 Check(bd._bdColor[4] == 0.7 and bd._bdBorder[1] == 0.6, "nach dem Leeren wieder allgemeine Farben")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

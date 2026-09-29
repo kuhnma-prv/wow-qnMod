@@ -11,16 +11,16 @@ local PATH = "Interface\\AddOns\\qnCore\\Media\\Patterns\\"
 -- { Schlüssel, Anzeigename, Datei, LSM-Name }
 -- LSM-Namen sind Schlüssel, die andere Addons speichern: deshalb in allen Sprachen gleich.
 lib.Patterns = {
-	{ "qnStripes", L["Schraffur"], PATH .. "Stripes", "qn Stripes" },
-	{ "qnCrosshatch", L["Kreuzschraffur"], PATH .. "Crosshatch", "qn Crosshatch" },
-	{ "qnGrid", L["Gitter"], PATH .. "Grid", "qn Grid" },
-	{ "qnDots", L["Punkte"], PATH .. "Dots", "qn Dots" },
-	{ "qnChecker", L["Schachbrett"], PATH .. "Checker", "qn Checker" },
-	{ "qnDiamonds", L["Rauten"], PATH .. "Diamonds", "qn Diamonds" },
-	{ "qnBricks", L["Ziegel"], PATH .. "Bricks", "qn Bricks" },
-	{ "qnWeave", L["Geflecht"], PATH .. "Weave", "qn Weave" },
-	{ "qnScanlines", L["Scanlinien"], PATH .. "Scanlines", "qn Scanlines" },
-	{ "qnGrain", L["Körnung"], PATH .. "Grain", "qn Grain" },
+	{ "qnStripes", L["Hatching"], PATH .. "Stripes", "qn Stripes" },
+	{ "qnCrosshatch", L["Crosshatch"], PATH .. "Crosshatch", "qn Crosshatch" },
+	{ "qnGrid", L["Grid"], PATH .. "Grid", "qn Grid" },
+	{ "qnDots", L["Dots"], PATH .. "Dots", "qn Dots" },
+	{ "qnChecker", L["Checkerboard"], PATH .. "Checker", "qn Checker" },
+	{ "qnDiamonds", L["Diamonds"], PATH .. "Diamonds", "qn Diamonds" },
+	{ "qnBricks", L["Bricks"], PATH .. "Bricks", "qn Bricks" },
+	{ "qnWeave", L["Weave"], PATH .. "Weave", "qn Weave" },
+	{ "qnScanlines", L["Scanlines"], PATH .. "Scanlines", "qn Scanlines" },
+	{ "qnGrain", L["Grain"], PATH .. "Grain", "qn Grain" },
 }
 
 -- LibSharedMedia kommt ggf. erst mit einem später geladenen Addon (z. B. Titan)

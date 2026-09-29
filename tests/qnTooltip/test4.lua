@@ -68,4 +68,4 @@ QN_UNITS.mouseover.realm = "Nachbar"
 GameTooltip:SetUnit("mouseover")
 Check(GameTooltip:Texts()[1]:find("|cff00eeeeNachbar|r", 1, true), "fremder Realm aus GetPlayerInfoByGUID")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

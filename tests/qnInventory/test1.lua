@@ -49,7 +49,7 @@ local tip = { AddLine = function(_, t) lines[#lines + 1] = t end, AddDoubleLine 
 GameTooltip.AddLine, GameTooltip.AddDoubleLine = tip.AddLine, tip.AddDoubleLine
 tooltipCall(GameTooltip, { id = 100 })
 local text = table.concat(lines, ";")
-Check(text:find(CHARACTER .. "|" .. inv.L["Taschen/Bank/Post"], 1, true) ~= nil, "Tooltip-Kopf lokalisiert: " .. text)
+Check(text:find(CHARACTER .. "|" .. inv.L["Bags/Bank/Mail"], 1, true) ~= nil, "Tooltip-Kopf lokalisiert: " .. text)
 Check(text:find("5/3/0", 1, true) and text:find("2/?/0+", 1, true) and text:find(TOTAL .. "|10", 1, true), "Tooltip-Zeilen: " .. text)
 
 -- Löschen (Groß-/Kleinschreibung egal)
@@ -57,4 +57,4 @@ SlashCmdList.QNINVENTORY("delete ärger")
 Check(qnInventoryDB.realms.Realm["Ärger"] == nil, "Charakter gelöscht")
 SlashCmdList.QNINVENTORY("delete tester")
 Check(qnInventoryDB.realms.Realm.Tester ~= nil, "eingeloggter Charakter bleibt")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

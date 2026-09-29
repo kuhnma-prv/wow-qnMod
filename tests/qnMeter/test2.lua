@@ -125,7 +125,7 @@ local function Right(i) return f.bars[i] and f.bars[i]._shown and f.bars[i].righ
 ---------------------------------------------------------------------------
 -- Titel, Texturen, Damage-Meter-Werte
 ---------------------------------------------------------------------------
-Check(f.titleText._text == L["Bedrohung"], "Titel gesetzt")
+Check(f.titleText._text == L["Threat"], "Titel gesetzt")
 Check(meter.GetTexturePath("Damage Meter") == "UI-HUD-CoolDownManager-Bar", "Textur als Atlas ohne Präfix")
 Check(meter.textureLabels["Damage Meter"] == DAMAGE_METER_LABEL, "Texturname über DAMAGE_METER_LABEL")
 Check(db.linkDamageMeter and f.eff.linked and f.eff.barHeight == 30 and f.eff.barSpacing == 4, "Werte vom Damage Meter übernommen")
@@ -135,9 +135,9 @@ Check(db.linkDamageMeter and f.eff.linked and f.eff.barHeight == 30 and f.eff.ba
 ---------------------------------------------------------------------------
 T.Refresh()
 Check(f.infoText._text == "Eber", "Ziel rechts im Titel: " .. tostring(f.infoText._text))
-Check(f.titleText._text == L["Bedrohung"], "Titel bleibt")
+Check(f.titleText._text == L["Threat"], "Titel bleibt")
 -- Kapazität 3 (Höhe 150, Balken 30 + 4): Aggro, Tank, dann der eigene statt Magier
-Check(Left(1) == L["Aggro ziehen"], "Zeile 1: Aggro ohne Rang: " .. tostring(Left(1)))
+Check(Left(1) == L["Pull Aggro"], "Zeile 1: Aggro ohne Rang: " .. tostring(Left(1)))
 Check(Left(2) == "1. Tanko", "Zeile 2: Tank mit Rang: " .. tostring(Left(2)))
 Check(Left(3) == "3. Tester", "Zeile 3: eigener Balken mit echtem Rang: " .. tostring(Left(3)))
 Check(not Left(4), "nicht mehr als 3 Zeilen")
@@ -159,7 +159,7 @@ Check(Left(1) == "1. Tanko" and Left(2) == "2. Magier" and Left(3) == "3. Tester
 meter.store:Set("showAggroBar", true)
 meter.store:Set("alwaysShowSelf", false)
 T.Refresh()
-Check(Left(1) == L["Aggro ziehen"] and Left(3) == "2. Magier", "eigener Balken nicht nachgezogen: " .. tostring(Left(3)))
+Check(Left(1) == L["Pull Aggro"] and Left(3) == "2. Magier", "eigener Balken nicht nachgezogen: " .. tostring(Left(3)))
 meter.store:Set("alwaysShowSelf", true)
 T.Refresh()
 Check(Left(3) == "3. Tester", "eigener Balken wieder in der letzten Zeile")
@@ -185,9 +185,9 @@ QN_NOW = 1005
 QN_THREAT.player.value = 1300
 warn = nil
 T.Refresh()
-Check(Left(1) == "1. Tester" and Left(2) == L["Aggro ziehen"], "eigener Balken jetzt vorne: " .. tostring(Left(1)))
+Check(Left(1) == "1. Tester" and Left(2) == L["Pull Aggro"], "eigener Balken jetzt vorne: " .. tostring(Left(1)))
 Check(Right(1) == "1300 (100) 130%", "TPS über 5 Sekunden: " .. tostring(Right(1)))
-Check(warn == L["Bedrohung: %d%%"]:format(130), "Warnung ausgelöst: " .. tostring(warn))
+Check(warn == L["Threat: %d%%"]:format(130), "Warnung ausgelöst: " .. tostring(warn))
 warn = nil
 T.Refresh()
 Check(warn == nil, "Warnung nicht wiederholt")
@@ -225,7 +225,7 @@ Check(warn == nil, "Secret-Modus: keine Warnung")
 
 chat = {}
 ok, err = pcall(SlashCmdList.QNMETER, "check")
-Check(ok and ChatHas(L["Eigene Werte: secret (Anzeige läuft im eingeschränkten Modus)."]), "Diagnose mit secret-Werten: " .. tostring(err))
+Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "Diagnose mit secret-Werten: " .. tostring(err))
 
 -- Nur der Status secret (Werte lesbar): Anzeige und Diagnose rechnen nicht mit dem Status
 QN_SECRET = "state"
@@ -233,7 +233,7 @@ ok, err = pcall(T.Refresh)
 Check(ok and Left(1) == "Tester", "nur Status secret: eingeschränkter Modus: " .. tostring(err or Left(1)))
 chat = {}
 ok, err = pcall(SlashCmdList.QNMETER, "check")
-Check(ok and ChatHas(L["Eigene Werte: secret (Anzeige läuft im eingeschränkten Modus)."]), "Diagnose: secret-Status erkannt: " .. tostring(err))
+Check(ok and ChatHas(L["Own values: secret (display runs in restricted mode)."]), "Diagnose: secret-Status erkannt: " .. tostring(err))
 QN_SECRET = nil
 
 ---------------------------------------------------------------------------
@@ -259,10 +259,10 @@ Party()
 QN_UNITS.target = nil
 T.Refresh()
 Check(f.infoText._text == "" and not Left(1), "ohne Ziel: leer")
-Check(f.titleText._text == L["Bedrohung"], "ohne Ziel: Titel bleibt")
+Check(f.titleText._text == L["Threat"], "ohne Ziel: Titel bleibt")
 T.SetTestMode(true)
-Check(f.infoText._text == L["Testgegner"], "Testmodus: Testgegner")
-Check(Left(1) == L["Aggro ziehen"] and Left(2) == "1. Tankrok", "Testmodus: Ränge: " .. tostring(Left(2)))
+Check(f.infoText._text == L["Test enemy"], "Testmodus: Testgegner")
+Check(Left(1) == L["Pull Aggro"] and Left(2) == "1. Tankrok", "Testmodus: Ränge: " .. tostring(Left(2)))
 T.SetTestMode(false)
 Party()
 
@@ -284,16 +284,16 @@ for _, key in ipairs({ "LOCKED", "USEFOCUS", "SHOWN" }) do
 	SETTINGS["QNMETER_" .. key]:SetValueChangedCallback(function(_, v) notified[key] = v end)
 end
 f.OnMenu(f, f)
-Check(items[L["Fokusziel bevorzugen"]] ~= nil, "Menü: gleicher Text wie in den Optionen (Fokusziel bevorzugen)")
+Check(items[L["Use focus target"]] ~= nil, "Menü: gleicher Text wie in den Optionen (Fokusziel bevorzugen)")
 Check(items[LOCK_FRAME] and items[HIDE], "Menü: Sperren und Ausblenden vorhanden")
 items[LOCK_FRAME].set()
 Check(db.locked == true and notified.LOCKED == true, "Menü: Sperren über store:Set")
 Check(f.resizeButton._shown == false, "gesperrt: Größenanfasser aus")
 items[LOCK_FRAME].set()
 Check(db.locked == false and notified.LOCKED == false and f.resizeButton._shown == true, "Menü: Entsperren über store:Set")
-items[L["Fokusziel bevorzugen"]].set()
-Check(db.useFocus == true and notified.USEFOCUS == true and items[L["Fokusziel bevorzugen"]].isSel() == true, "Menü: Fokus über store:Set")
-items[L["Fokusziel bevorzugen"]].set()
+items[L["Use focus target"]].set()
+Check(db.useFocus == true and notified.USEFOCUS == true and items[L["Use focus target"]].isSel() == true, "Menü: Fokus über store:Set")
+items[L["Use focus target"]].set()
 items[HIDE].set()
 Check(db.shown == false and notified.SHOWN == false and not f:IsShown(), "Menü: Ausblenden über store:Set")
 T.Toggle()
@@ -326,4 +326,4 @@ Check(f.eff.barHeight == db.barHeight, "ohne Kopplung: Damage Meter ignoriert")
 meter.store:Set("linkDamageMeter", true)
 Check(f.eff.barHeight == 35, "Kopplung wieder an: aktueller Wert")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

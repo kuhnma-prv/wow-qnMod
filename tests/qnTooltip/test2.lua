@@ -67,4 +67,4 @@ QN_UNITS.player.guid = "Player-1"
 GameTooltip._scripts.OnUpdate(GameTooltip, 0.3)
 Check(true, "Zielaktualisierung ohne Fehler")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

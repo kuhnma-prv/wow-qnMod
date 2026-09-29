@@ -114,4 +114,4 @@ RunTimers()
 Check(bankReads == 4 and me.bank[100] == 3, "vier Plätze: Bank einmal gezählt (" .. bankReads .. " Lesezugriffe)")
 FireEvent("BANKFRAME_CLOSED")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

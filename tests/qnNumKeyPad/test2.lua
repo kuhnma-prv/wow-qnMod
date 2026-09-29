@@ -157,4 +157,4 @@ nkp.ApplyAll()
 Check(flyoutUpdates == 0 and b1:GetAttribute("flyoutDirection") == "DOWN", "kein eigener UpdateFlyout-Aufruf, Richtung als Attribut")
 Check(b1.Border:IsShown() == false, "UpdateLook ohne action-Prüfung")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

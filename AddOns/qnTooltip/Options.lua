@@ -26,124 +26,124 @@ local function Builders()
 end
 
 local function FontOptions(B, cat, prefix, title)
-	B:Dropdown(cat, prefix .. "Font", L["Schriftart: %s"]:format(title), ns.Style.FontEntries)
-	B:Slider(cat, prefix .. "Size", L["Schriftgröße: %s"]:format(title), 0, 24, 1, S.FontSizeFormatter,
-		L["0 = Blizzards Größe."])
-	B:Dropdown(cat, prefix .. "Flag", L["Umriss: %s"]:format(title), ns.Style.FlagEntries)
+	B:Dropdown(cat, prefix .. "Font", L["Font: %s"]:format(title), ns.Style.FontEntries)
+	B:Slider(cat, prefix .. "Size", L["Font size: %s"]:format(title), 0, 24, 1, S.FontSizeFormatter,
+		L["0 = Blizzard's size."])
+	B:Dropdown(cat, prefix .. "Flag", L["Outline: %s"]:format(title), ns.Style.FlagEntries)
 end
 
 local function MainPage(B, cat, layout)
 	S.Header(layout, GENERAL)
-	B:Checkbox(cat, "moreTooltips", L["Auch Link-, Vergleichs- und Freundes-Tooltips gestalten"],
-		L["Beim Abschalten behalten diese Tooltips ihr Aussehen bis zum nächsten /reload."])
-	B:Checkbox(cat, "hideUnitFrameHint", L["Hinweis zum Rechtsklick an Einheitenrahmen entfernen"])
-	B:Checkbox(cat, "chatHover", L["Tooltip beim Überfahren von Chat-Links"])
-	B:Checkbox(cat, "modifierShowsAll", L["Mit Alt oder Strg alle Bausteine zeigen"],
-		L["Solange Alt oder Strg gedrückt ist, zeigen Einheiten-Tooltips auch abgeschaltete und gefilterte Bausteine."])
+	B:Checkbox(cat, "moreTooltips", L["Also style link, comparison and friend tooltips"],
+		L["When turned off, these tooltips keep their look until the next /reload."])
+	B:Checkbox(cat, "hideUnitFrameHint", L["Remove the right-click hint on unit frames"])
+	B:Checkbox(cat, "chatHover", L["Tooltip when hovering chat links"])
+	B:Checkbox(cat, "modifierShowsAll", L["Show all elements while holding Alt or Ctrl"],
+		L["While Alt or Ctrl is held, unit tooltips also show disabled and filtered elements."])
 end
 
 local function AppearancePage(B, category)
 	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, APPEARANCE_LABEL)
 	-- eigene Kopfzeile statt APPEARANCE_LABEL: das hieße wie die Seite (wie in qnNumKeyPad)
 	S.Header(layout, DISPLAY)
-	B:Slider(cat, "scale", L["Skalierung"], 0.5, 2, 0.05, S.DecimalFormatter)
+	B:Slider(cat, "scale", L["Scale"], 0.5, 2, 0.05, S.DecimalFormatter)
 	B:Dropdown(cat, "bgFile", BACKGROUND, ns.Style.BackgroundEntries)
-	B:Color(cat, "bgColor", L["Hintergrundfarbe"], nil, nil, L["Deckkraft des Hintergrunds"])
-	B:Dropdown(cat, "borderStyle", L["Rahmen"], {
+	B:Color(cat, "bgColor", L["Background color"], nil, nil, L["Background opacity"])
+	B:Dropdown(cat, "borderStyle", L["Border"], {
 		{ "default", DEFAULT },
-		{ "angular", L["Eckig"] },
+		{ "angular", L["Angular"] },
 		{ "none", NONE },
 	})
-	B:Slider(cat, "borderSize", L["Rahmenbreite (eckig)"], 1, 8, 1)
-	B:Color(cat, "borderColor", L["Rahmenfarbe"], nil, nil, L["Deckkraft des Rahmens"])
-	B:Checkbox(cat, "mask", L["Heller Verlauf über der Kopfzeile"])
+	B:Slider(cat, "borderSize", L["Border width (angular)"], 1, 8, 1)
+	B:Color(cat, "borderColor", L["Border color"], nil, nil, L["Border opacity"])
+	B:Checkbox(cat, "mask", L["Light gradient over the header"])
 
-	S.Header(layout, L["Schriften"])
-	FontOptions(B, cat, "header", L["Kopfzeile"])
-	FontOptions(B, cat, "body", L["Textzeilen"])
+	S.Header(layout, L["Fonts"])
+	FontOptions(B, cat, "header", L["Header"])
+	FontOptions(B, cat, "body", L["Text lines"])
 end
 
 local function PositionPage(B, BP, BN, category)
 	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, L["Position"])
 	S.Header(layout, L["Position"])
 	B:Dropdown(cat, "anchorMode", L["Position"], ns.Anchor.ModeEntries(false),
-		L["Nur wenn hier nicht 'Blizzard-Standard' gewählt ist, setzt qnTooltip den Tooltip an eine andere Stelle."])
-	B:Dropdown(cat, "anchorPoint", L["Fester Punkt: Anker"], qnCore.PointEntries())
-	B:Slider(cat, "anchorX", L["Fester Punkt: X-Versatz"], -1000, 1000, 1)
-	B:Slider(cat, "anchorY", L["Fester Punkt: Y-Versatz"], -1000, 1000, 1)
-	BP:Dropdown(cat, "anchorMode", L["Position für Spieler"], ns.Anchor.ModeEntries(true))
-	BN:Dropdown(cat, "anchorMode", L["Position für NSC"], ns.Anchor.ModeEntries(true))
-	B:Checkbox(cat, "returnInCombat", L["Im Kampf an Blizzards Stelle"])
-	B:Checkbox(cat, "returnOnUnitFrame", L["Über Einheitenrahmen an Blizzards Stelle"])
+		L["qnTooltip moves the tooltip only if something other than 'Blizzard default' is selected here."])
+	B:Dropdown(cat, "anchorPoint", L["Fixed point: anchor"], qnCore.PointEntries())
+	B:Slider(cat, "anchorX", L["Fixed point: X offset"], -1000, 1000, 1)
+	B:Slider(cat, "anchorY", L["Fixed point: Y offset"], -1000, 1000, 1)
+	BP:Dropdown(cat, "anchorMode", L["Position for players"], ns.Anchor.ModeEntries(true))
+	BN:Dropdown(cat, "anchorMode", L["Position for NPCs"], ns.Anchor.ModeEntries(true))
+	B:Checkbox(cat, "returnInCombat", L["At Blizzard's position in combat"])
+	B:Checkbox(cat, "returnOnUnitFrame", L["At Blizzard's position over unit frames"])
 
 	S.Header(layout, COMBAT)
-	B:Checkbox(cat, "hideInCombat", L["Tooltip im Kampf ausblenden"],
-		L["Gilt für Tooltips an Blizzards Standardstelle (Einheiten in der Welt, Einheitenrahmen, Aktionsleisten)."])
-	B:Dropdown(cat, "combatModifier", L["Mit dieser Taste trotzdem zeigen"], ns.Anchor.ModifierEntries)
+	B:Checkbox(cat, "hideInCombat", L["Hide tooltip in combat"],
+		L["Applies to tooltips at Blizzard's default position (units in the world, unit frames, action bars)."])
+	B:Dropdown(cat, "combatModifier", L["Show anyway with this key"], ns.Anchor.ModifierEntries)
 end
 
 local function BarPage(B, category)
-	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, L["Lebensbalken"])
-	S.Header(layout, L["Lebensbalken"])
-	B:Checkbox(cat, "barHide", L["Lebensbalken ausblenden"])
-	B:Slider(cat, "barHeight", L["Höhe"], 1, 20, 1)
-	B:Dropdown(cat, "barPosition", L["Lage"], {
-		{ "bottom", L["Auf dem unteren Rand"] },
-		{ "top", L["Auf dem oberen Rand"] },
-		{ "default", L["Unter dem Tooltip (Blizzard)"] },
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, L["Health Bar"])
+	S.Header(layout, L["Health Bar"])
+	B:Checkbox(cat, "barHide", L["Hide health bar"])
+	B:Slider(cat, "barHeight", L["Height"], 1, 20, 1)
+	B:Dropdown(cat, "barPosition", L["Placement"], {
+		{ "bottom", L["On the bottom edge"] },
+		{ "top", L["On the top edge"] },
+		{ "default", L["Below the tooltip (Blizzard)"] },
 	})
-	B:Slider(cat, "barOffsetX", L["Seitlicher Abstand"], 0, 30, 1, S.FontSizeFormatter,
-		L["0 = passend zum Rahmen."])
-	B:Dropdown(cat, "barTexture", L["Textur"], ns.StatusBar.TextureEntries)
+	B:Slider(cat, "barOffsetX", L["Side inset"], 0, 30, 1, S.FontSizeFormatter,
+		L["0 = matching the border."])
+	B:Dropdown(cat, "barTexture", L["Texture"], ns.StatusBar.TextureEntries)
 	B:Dropdown(cat, "barColor", COLOR, {
-		{ "default", L["Blizzard (grün)"] },
-		{ "auto", L["Klassen- bzw. Auswahlfarbe"] },
-		{ "smooth", L["Nach Gesundheit (grün – gelb – rot)"] },
+		{ "default", L["Blizzard (green)"] },
+		{ "auto", L["Class or selection color"] },
+		{ "smooth", L["By health (green – yellow – red)"] },
 	})
 	S.Header(layout, L["Text"])
-	B:Checkbox(cat, "barText", L["Lebenspunkte anzeigen"])
-	B:Checkbox(cat, "barPercent", L["Prozent anzeigen"])
-	FontOptions(B, cat, "bar", L["Lebensbalken"])
+	B:Checkbox(cat, "barText", L["Show health points"])
+	B:Checkbox(cat, "barPercent", L["Show percent"])
+	FontOptions(B, cat, "bar", L["Health Bar"])
 end
 
 local function UnitPage(BU, category, kind, title)
 	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, title)
 	S.Header(layout, title)
-	BU:Dropdown(cat, "borderColor", L["Rahmenfarbe"], ns.UnitData.ColorEntries)
-	BU:Dropdown(cat, "bgColor", L["Hintergrundfarbe"], ns.UnitData.ColorEntries,
-		L["'Standard' nimmt die allgemeine Hintergrundfarbe."])
-	BU:Slider(cat, "bgAlpha", L["Deckkraft des Hintergrunds"], 0, 1, 0.05, S.FractionFormatter)
-	BU:Checkbox(cat, "showTarget", L["Ziel anzeigen"])
-	BU:Checkbox(cat, "showTargetBy", L["'Anvisiert von' anzeigen"],
-		L["Gruppen- und Schlachtzugsmitglieder, die die Einheit anvisieren."])
-	BU:Checkbox(cat, "showModel", L["3D-Modell anzeigen"], L["Mit gedrückter Strg- oder Alt-Taste dreht sich das Modell."])
-	BU:Checkbox(cat, "grayDead", L["Tote grau darstellen"])
-	BU:Checkbox(cat, "bigFaction", L["Großes Fraktionswappen"])
-	S.Button(layout, L["Zeilen"], L["Zeilen bearbeiten …"], function()
+	BU:Dropdown(cat, "borderColor", L["Border color"], ns.UnitData.ColorEntries)
+	BU:Dropdown(cat, "bgColor", L["Background color"], ns.UnitData.ColorEntries,
+		L["'Default' uses the general background color."])
+	BU:Slider(cat, "bgAlpha", L["Background opacity"], 0, 1, 0.05, S.FractionFormatter)
+	BU:Checkbox(cat, "showTarget", L["Show target"])
+	BU:Checkbox(cat, "showTargetBy", L["Show 'Targeted by'"],
+		L["Group and raid members targeting the unit."])
+	BU:Checkbox(cat, "showModel", L["Show 3D model"], L["The model rotates while Ctrl or Alt is held."])
+	BU:Checkbox(cat, "grayDead", L["Show dead units in gray"])
+	BU:Checkbox(cat, "bigFaction", L["Large faction emblem"])
+	S.Button(layout, L["Lines"], L["Edit lines …"], function()
 		ns.OpenElementsPage(kind)
-	end, L["Bausteine der Kopfzeilen: an/aus, Zeile, Reihenfolge, Farbe, Format und Filter."])
-	ns.InitElementsPage(category, kind, L["Zeilen: %s"]:format(title))
+	end, L["Elements of the header lines: on/off, line, order, color, format and filter."])
+	ns.InitElementsPage(category, kind, L["Lines: %s"]:format(title))
 end
 
 local function ItemsPage(B, category)
-	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, L["Gegenstände & Zauber"])
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, L["Items & Spells"])
 	S.Header(layout, ITEMS)
-	B:Checkbox(cat, "itemBorder", L["Rahmen in der Farbe der Qualität"])
-	B:Checkbox(cat, "itemIcon", L["Symbol vor dem Namen"])
-	B:Checkbox(cat, "itemId", L["Gegenstands-ID"])
-	B:Checkbox(cat, "itemIconId", L["Symbol-ID"])
+	B:Checkbox(cat, "itemBorder", L["Border in the quality color"])
+	B:Checkbox(cat, "itemIcon", L["Icon before the name"])
+	B:Checkbox(cat, "itemId", L["Item ID"])
+	B:Checkbox(cat, "itemIconId", L["Icon ID"])
 	B:Checkbox(cat, "itemMaxStack", AUCTION_STACK_SIZE)
 	S.Header(layout, SPELLS)
-	B:Checkbox(cat, "spellIcon", L["Symbol vor dem Namen"])
-	B:Checkbox(cat, "spellId", L["Zauber-ID"])
-	B:Checkbox(cat, "spellIconId", L["Symbol-ID"])
-	B:Color(cat, "spellBgColor", L["Hintergrundfarbe"], nil, nil, L["Deckkraft des Hintergrunds"])
-	B:Color(cat, "spellBorderColor", L["Rahmenfarbe"], nil, nil, L["Deckkraft des Rahmens"])
+	B:Checkbox(cat, "spellIcon", L["Icon before the name"])
+	B:Checkbox(cat, "spellId", L["Spell ID"])
+	B:Checkbox(cat, "spellIconId", L["Icon ID"])
+	B:Color(cat, "spellBgColor", L["Background color"], nil, nil, L["Background opacity"])
+	B:Color(cat, "spellBorderColor", L["Border color"], nil, nil, L["Border opacity"])
 	S.Header(layout, L["Quests"])
-	B:Checkbox(cat, "questBorder", L["Rahmen in der Farbe der Schwierigkeit"])
-	B:Checkbox(cat, "questId", L["Quest-ID"])
+	B:Checkbox(cat, "questBorder", L["Border in the difficulty color"])
+	B:Checkbox(cat, "questId", L["Quest ID"])
 	S.Header(layout, L["IDs"])
-	B:Checkbox(cat, "idsWithModifier", L["IDs nur mit gedrückter Umschalt-, Strg- oder Alt-Taste"])
+	B:Checkbox(cat, "idsWithModifier", L["IDs only while Shift, Ctrl or Alt is held"])
 end
 
 local function Build(category, layout)
@@ -153,7 +153,7 @@ local function Build(category, layout)
 	PositionPage(B, BP, BN, category)
 	BarPage(B, category)
 	UnitPage(BP, category, "player", PLAYER)
-	UnitPage(BN, category, "npc", L["NSC"])
+	UnitPage(BN, category, "npc", L["NPC"])
 	ItemsPage(B, category)
 end
 

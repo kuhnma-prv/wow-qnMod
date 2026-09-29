@@ -65,4 +65,4 @@ UIParent._points = {}
 UpdateUIParentPosition()
 Check(#UIParent._points == 1 and not vp.Layout.IsUIConstrained(), "nach Zurücksetzen: Blizzards Punkt bleibt")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

@@ -65,5 +65,5 @@ Check(#bm.GetEntries(1) == 0, "Waffeninfo secret: unverzaubert")
 AURAS.player[2] = nil
 FireEvent("UNIT_AURA", "player") RunTimers()
 Check(Names() == "Offen", "zurück zu lesbaren Werten: " .. Names())
-Check(Count("Der Client hält gerade Aurendaten zurück (secret). Betroffene Zauber erscheinen ohne Restzeit bzw. mit Fragezeichen.") == 1, "Hinweis auf secret-Felder genau einmal")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+Check(Count("The client is currently withholding aura data (secret). Affected auras are shown without time remaining or with a question mark.") == 1, "Hinweis auf secret-Felder genau einmal")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

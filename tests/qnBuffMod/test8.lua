@@ -38,7 +38,7 @@ end
 ---------------------------------------------------------------------------
 Check(Names() == "Sofortgift," .. UNKNOWN .. ",Segen", "Haupt- vor Nebenhand, Name aus der Tooltipzeile, sonst unbekannt: " .. Names())
 local w = Get("Sofortgift")
-Check(w.weapon and w.slot == 16 and w.countText == 12 and w.kind == K.ITEM and w.time == L["%d Minuten"]:format(30), "Aufladungen = Stapel, Restzeit")
+Check(w.weapon and w.slot == 16 and w.countText == 12 and w.kind == K.ITEM and w.time == L["%d minutes"]:format(30), "Aufladungen = Stapel, Restzeit")
 -- unbekannter Name: jede Sekunde neu lesen; bekannter: alle 2 s
 enchantReads = 0
 RunTickers()
@@ -149,4 +149,4 @@ Check(not Get("A-Segen", 2).flashing, "abgelaufen und außer Reichweite: kein Bl
 UnitInRange = function() return true end
 FireEvent("UNIT_AURA", "target") RunTimers()
 Check(Get("A-Segen", 2).flashing, "abgelaufen in Reichweite: blinkt")
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

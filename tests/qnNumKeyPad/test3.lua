@@ -147,4 +147,4 @@ Check(qnNumKeyPadButton1:GetAttribute("action") == 145, "ohne Haltung: eigener P
 QN_COMBAT = false
 FireEvent("PLAYER_REGEN_ENABLED")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

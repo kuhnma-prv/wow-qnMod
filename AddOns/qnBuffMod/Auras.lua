@@ -46,14 +46,14 @@ end
 local function NoteField()
 	if not notedField then
 		notedField = true
-		ns.Print(L["Der Client hält gerade Aurendaten zurück (secret). Betroffene Zauber erscheinen ohne Restzeit bzw. mit Fragezeichen."])
+		ns.Print(L["The client is currently withholding aura data (secret). Affected auras are shown without time remaining or with a question mark."])
 	end
 end
 
 local function NoteLock()
 	if not notedLock then
 		notedLock = true
-		ns.Print(L["Im Kampf hält der Client Aurendaten zurück. Die Fenster zeigen bis danach den letzten bekannten Stand."])
+		ns.Print(L["In combat the client withholds aura data. Until then the windows show the last known state."])
 	end
 end
 

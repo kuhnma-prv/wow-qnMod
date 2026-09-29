@@ -124,7 +124,7 @@ Check(gold:find("<gold>" .. TOTAL .. ":|$12452c", 1, true) and gold:find("Sitzun
 	"Gold: Summe über alle Blöcke, Sitzung")
 Check(not gold:find(ACCOUNT_BANK_PANEL_TITLE, 1, true), "Gold: leere Accountbank ohne Zeile")
 local bank = TipText(bankBtn.registry.tooltipTemplateFunction)
-local bankBlock = table.concat({ "<gold>" .. inv.L["Belegte Plätze auf"] .. ":|" .. ALLY, SPACER,
+local bankBlock = table.concat({ "<gold>" .. inv.L["Used slots on"] .. ":|" .. ALLY, SPACER,
 	"|cffffffffAlli|r|<grau>" .. BANK .. " <weiß>2/32   <grau>" .. HUD_EDIT_MODE_BAGS_LABEL .. " <weiß>1/16" }, "\n")
 Check(bank:find(bankBlock, 1, true) and bank:find("<grau>" .. UNKNOWN, 1, true) and not bank:find("Hordi", 1, true),
 	"Bank/Taschen: Blöcke je Fraktion:\n" .. bank)
@@ -196,4 +196,4 @@ Check(qnInventoryDB.realms.Realm.Hordi == nil and pick:GetValue() == "", "Charak
 StaticPopupDialogs.QNINVENTORY_DELETE_CHAR.OnAccept(nil, inv.PlayerKey())
 Check(qnInventoryDB.realms.Realm.Tester ~= nil, "eingeloggter Charakter bleibt")
 
-print(FAILS and ("FEHLER: " .. FAILS) or "alle Prüfungen bestanden")
+print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")
