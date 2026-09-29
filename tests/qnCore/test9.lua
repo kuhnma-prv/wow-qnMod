@@ -1,5 +1,5 @@
 -- Scenario 9: shared building blocks of the qnCore library (NewAddon with events/OnLoad, RegisterSlash,
--- NewPrinter multi-line, Settings.NewCategory).
+-- NewPrinter multi-line, Settings.NewCategory, Profiles.Register with migrations/obsolete/sanitize).
 
 -- record chat output
 local chat = {}
@@ -192,22 +192,33 @@ d.EditBoxOnEnterPressed(box)
 Check(stored == "enter" and not dialog:IsShown(), "EditText: Enter applies and closes")
 
 ---------------------------------------------------------------------------
--- Profiles.Register (name from NewAddon, obsolete), store:Set, store:SetValues, S.SetIn
+-- Profiles.Register (name from NewAddon, migrations, obsolete, sanitize), store:Set, store:SetValues, S.SetIn
 ---------------------------------------------------------------------------
-qnTestDB = { profiles = { ["account:Raid"] = { old = 1, keep = 2, dual = { uiOnMain = true, side = "LEFT" } } }, global = {} }
+qnTestDB = { profiles = { ["account:Raid"] = { old = 1, keep = 2, a = "x", dual = { uiOnMain = true, side = "LEFT" } } }, global = {} }
 local pns = {}
 lib.NewAddon(pns, "qnTestProfil")
-local upgraded
+Check(not pcall(lib.Profiles.Register, { ns = pns, sv = "qnTestDB", upgrade = function() end })
+	and not pcall(lib.Profiles.Register, { ns = pns, sv = "qnTestDB", legacy = {} }), "Register: upgrade/legacy rejected")
+local migrated
+local sawOld, sawBadA = false, false
 local applies = 0
 local store = lib.Profiles.Register({
 	ns = pns, sv = "qnTestDB", defaults = { a = 1, b = 2, keep = 0, dual = { side = "RIGHT" } },
+	settingsVersion = "2.0",
+	migrations = { [2] = function(sv) migrated = sv.profiles["account:Raid"].old end },
 	obsolete = { "old", "dual.uiOnMain" },
-	upgrade = function(db) if db.old then upgraded = db.old end end,
+	sanitize = function(db)
+		sawOld = sawOld or db.old ~= nil
+		if db.a == "x" then sawBadA = true end
+		if type(db.a) ~= "number" then db.a = nil end   -- invalid: default comes back
+	end,
 })
 local prof = qnTestDB.profiles["account:Raid"]
 Check(store.name == "qnTestProfil" and lib.Profiles.stores.qnTestProfil == store, "Register: name from NewAddon")
-Check(upgraded == 1 and prof.old == nil and prof.dual.uiOnMain == nil and prof.keep == 2 and prof.dual.side == "LEFT",
-	"obsolete: deleted after upgrade, other values stay")
+Check(migrated == 1 and qnTestDB.settingsVersion == "2.0", "migration to major 2 sees the old values, version stored")
+Check(not sawOld and sawBadA and prof.a == 1, "sanitize: after obsolete, before defaults (invalid value -> default)")
+Check(prof.old == nil and prof.dual.uiOnMain == nil and prof.keep == 2 and prof.dual.side == "LEFT",
+	"obsolete: deleted, other values stay")
 local PB = lib.Settings.New({ store = store, prefix = "QNTESTP_", apply = function() applies = applies + 1 end })
 local pc = lib.Settings.NewCategory(pns, "qnTestProfil", function() end)
 PB:Slider(pc, "a", "A", 0, 10, 1)

@@ -99,11 +99,4 @@ Check(vp.db.pattern == "lsm:Mein Muster" and vp.db.patternAlpha == 0.3, "back: t
 vp.db.pattern = "lsm:Gibt es nicht"
 vp.UpdateBorderLook()
 Check(true, "missing pattern without error")
--- previously selected LSM copies become the own entry (otherwise not findable in the dropdown)
-vp.db.pattern = "lsm:Blizzard Rock"
-vp.UpdateBorderLook()
-Check(vp.db.pattern == "rock", "lsm:Blizzard Rock -> rock")
-vp.db.pattern = "lsm:qn Dots"
-vp.UpdateBorderLook()
-Check(vp.db.pattern == "qnDots" and p[1]._file == qnCore.Patterns[4][3], "lsm:qn Dots -> qnDots")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

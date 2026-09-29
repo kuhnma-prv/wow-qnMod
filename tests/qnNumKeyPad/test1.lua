@@ -208,8 +208,8 @@ local function Count(text)
 	return n
 end
 
--- Profile from version 1.1.0: hint already shown (hintShown per profile)
-qnNumKeyPadProfiles = { version = 1, global = {}, profiles = { ["account:Alt"] = { hintShown = true, scale = 1 } } }
+-- Saved data in the current format: hint already shown (hintShown account-wide in global)
+qnNumKeyPadProfiles = { settingsVersion = "1.0", global = { hintShown = true }, profiles = { ["account:Alt"] = { scale = 1 } } }
 
 local core = LoadAddon("qnCore")
 local nkp = LoadAddon("qnNumKeyPad")
@@ -244,8 +244,6 @@ Check(nkp.GetLayout("Macintosh").keys[19].label == "H?", "Mac label H? unchanged
 ---------------------------------------------------------------------------
 -- hintShown account-wide
 ---------------------------------------------------------------------------
-Check(qnNumKeyPadProfiles.global.hintShown == true, "hintShown moved from the profile to global")
-Check(qnNumKeyPadProfiles.profiles["account:Alt"].hintShown == nil, "hintShown removed from the profile")
 Check(_G.qnNumKeyPad == nil and nkp.Slot == nil and nkp.settings == nil, "no global table, no ns.Slot, no ns.settings")
 Check(StaticPopupDialogs.QNNUMKEYPAD_CUSTOM.EditBoxOnEscapePressed == StaticPopup_StandardEditBoxOnEscapePressed, "Escape in the edit box: Blizzard default")
 

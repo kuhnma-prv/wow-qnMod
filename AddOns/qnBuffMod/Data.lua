@@ -293,52 +293,35 @@ local function SanitizeGeneral(db)
 end
 
 ---------------------------------------------------------------------------
--- Conversion of older profiles
--- Older profiles had the windows nested under an old key; they are converted once into
--- the flat format, after which qnCore deletes the old key (obsolete).
+-- Check of a profile on every load: repair invalid values and window entries
 ---------------------------------------------------------------------------
 
-local Upgrade, OBSOLETE
-do
-	local OLD = "windowOptionsList"
-	OBSOLETE = { OLD }
-
-	function Upgrade(db)
-		local old = db[OLD]
-		if db.windows == nil and type(old) == "table" then
-			local windows = {}
-			for id, entry in pairs(old) do
-				if type(id) == "number" and id >= 1 and id == math.floor(id) then
-					local list = type(entry) == "table" and entry.primaryOptionsList
-					local src = type(list) == "table" and list[1]
-					windows[id] = type(src) == "table" and CopyTable(src) or {}
-				end
-			end
-			db.windows = windows
-		end
-		SanitizeGeneral(db)
-		if type(db.windows) == "table" then
-			for id, t in pairs(db.windows) do
-				if type(id) ~= "number" then
-					db.windows[id] = nil
-				elseif type(t) ~= "table" then
-					db.windows[id] = {}
-				else
-					SanitizeWindow(t)
-				end
+local function Sanitize(db)
+	SanitizeGeneral(db)
+	if type(db.windows) == "table" then
+		for id, t in pairs(db.windows) do
+			if type(id) ~= "number" then
+				db.windows[id] = nil
+			elseif type(t) ~= "table" then
+				db.windows[id] = {}
+			else
+				SanitizeWindow(t)
 			end
 		end
 	end
 end
+
+-- Version of the settings (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
 
 -- Registration with the profile system (from Core.lua in ADDON_LOADED)
 function ns.RegisterStore(onSwitch)
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnBuffModDB",
+		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.defaults,
-		upgrade = Upgrade,
-		obsolete = OBSOLETE,
+		sanitize = Sanitize,
 		onSwitch = onSwitch,
 	})
 	return ns.store

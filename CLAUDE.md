@@ -30,7 +30,7 @@ do not touch them, do not use them as template or source, do not mention them in
 |---|---|---|
 | qnCore | main addon + library (global `qnCore`): profiles, settings builder, widgets, automatic bag handling, remembering minimap tracking, objective tracker font below 12 (per profile, `QuestTracker.lua`), page "Profiles" | qnCoreDB (with its own `profiles`), qnCoreCharDB |
 | qnThreatMeter | threat meter | qnThreatMeterDB |
-| qnNumKeyPad | numpad action bar | qnNumKeyPadProfiles (old: qnNumKeyPadDB) |
+| qnNumKeyPad | numpad action bar | qnNumKeyPadProfiles |
 | qnViewPort | smaller 3D area, border color/pattern, dual-monitor mode; with Titan (OptionalDeps) Titan bars per monitor and tooltips at the monitor edge (`Titan.lua`); bag slot tooltips entirely on the bag's monitor (`Layout.FitToMonitor`, for other bag views `qnViewPort.BagTooltip(tip, owner)`, used by qnInventory) | qnViewPortDB |
 | qnInventory | items/gold per character, tooltip lines; bags/bank/mail views of every character (replicas of Blizzard's windows with character selection, `View*.lua`); with Titan (OptionalDeps) plugins `qnInvBank`/`qnInvGold` (`Titan.lua`, texts from Titan's localization); account bank in `qnInventoryDB.account` (gold always, content at the banker); account-wide options (`qnInventoryDB.options`: other faction in tooltips/views, opt-in), delete character | qnInventoryDB |
 | qnBuffMod | freely configurable aura windows | qnBuffModDB |
@@ -73,12 +73,24 @@ generated with `tools\New-QnPatterns.ps1`, additionally registered with LibShare
     its own mouse wheel scrolling.
 - **Profiles:** active profile = active Edit Mode layout (`preset:<n>`, `account:<name>`,
   `char:<name-realm>:<name>`), take character-specific layouts into account. New layout = copy of the
-  previously active profile. Register via `qnCore.Profiles.Register{ ns, sv, defaults, upgrade, obsolete,
-  legacy, onSwitch }` (name comes from NewAddon, `obsolete` = outdated keys); `ns.db` is always the active profile.
+  previously active profile. Register via `qnCore.Profiles.Register{ ns, sv, defaults, settingsVersion,
+  migrations, obsolete, sanitize, onSwitch }` (name comes from NewAddon); `ns.db` is always the active profile.
+- **Settings version per addon** (`settingsVersion`, stored in the saved variable, independent of the
+  addon version, started with `"1.0"`):
+  - **minor** (`1.0` → `1.1`): something new (the defaults fill it in) or something dropped without
+    replacement (key into `obsolete`).
+  - **major** (`1.x` → `2.0`): only if stored data has to be converted; then add exactly one
+    `migrations[2] = function(sv) … end` that converts every profile (`sv.profiles`) and `sv.global`.
+  - Saved variables without profiles (e.g. `qnInventoryDB`) use `qnCore.Migrate(sv, { name, settingsVersion,
+    migrations, print })` directly. A stored major newer than the code is left untouched (warning in chat).
+  - `sanitize(db)` repairs invalid values on every load (setting a value to nil brings back its default);
+    it is not a migration. Old conversions from before 1.0 do not exist anymore – the addons only run on
+    the user's PC and the saved data there is current.
+  - Every migration gets a test scenario.
 - **qnCore's bag and tracking options are always account-wide** (`qnCoreDB.global`), never per profile/character (the remembered tracking selection itself is per character).
 - **Never move Blizzard frames automatically** (do not hook into events/hooks), only through an
   explicit action in the options. Exceptions only as opt-in (bags, zone map in qnViewPort).
-- When restructuring settings: migrate previous values (upgrade function or `legacy`).
+- When restructuring settings: keep previous values via the settings version (see above).
 - Comments in English. Display texts are written in English and **always localized**
   (English + German, see "Localization").
 

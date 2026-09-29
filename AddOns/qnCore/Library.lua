@@ -160,6 +160,50 @@ function lib.RemoveKeys(t, keys)
 end
 
 ---------------------------------------------------------------------------
+-- Settings version and migrations
+-- Every saved variable carries settingsVersion = "<major>.<minor>" (independent of the addon
+-- version, starting with "1.0"):
+--   minor  something was added (defaults fill it in) or dropped without replacement (obsolete list)
+--   major  stored data has to be converted: migrations[<new major>] converts from the previous major
+-- A saved variable without settingsVersion counts as "1.0".
+--   qnCore.Migrate(sv, { name, settingsVersion, migrations, print })
+--     sv                 the whole saved variable (with profiles and global for profile stores)
+--     settingsVersion    current version of the addon's settings, e.g. "1.0"
+--     migrations         { [2] = function(sv) ... end, ... } (optional)
+--     print              output for the warning (default: print)
+-- Returns false (and changes nothing) if the stored major is newer than the addon knows,
+-- e.g. after going back to an older addon version; otherwise true.
+---------------------------------------------------------------------------
+
+-- "1.2" -> 1, 2; nil for invalid values
+function lib.ParseSettingsVersion(v)
+	local major, minor = tostring(v or ""):match("^(%d+)%.(%d+)$")
+	if major then
+		return tonumber(major), tonumber(minor)
+	end
+end
+
+function lib.Migrate(sv, opts)
+	local current = opts.settingsVersion or "1.0"
+	local currentMajor = lib.ParseSettingsVersion(current)
+	assert(currentMajor, "qnCore.Migrate: invalid settingsVersion " .. tostring(current))   -- do not translate: developer hint
+	local storedMajor = lib.ParseSettingsVersion(sv.settingsVersion) or 1
+	if storedMajor > currentMajor then
+		local out = opts.print or print
+		out(ns.L["Saved settings of %s have version %s, this addon version knows %s: nothing is converted."]:format(
+			opts.name or "?", tostring(sv.settingsVersion), current))
+		return false
+	end
+	for major = storedMajor + 1, currentMajor do
+		local fn = opts.migrations and opts.migrations[major]
+		assert(fn, ("qnCore.Migrate: %s has no migration to settings version %d"):format(opts.name or "?", major))   -- do not translate: developer hint
+		fn(sv)
+	end
+	sv.settingsVersion = current
+	return true
+end
+
+---------------------------------------------------------------------------
 -- Output
 ---------------------------------------------------------------------------
 

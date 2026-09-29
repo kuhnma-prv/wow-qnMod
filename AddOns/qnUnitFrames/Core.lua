@@ -131,8 +131,11 @@ function ns.SetBinding(key, kind, value)
 	ns.ApplyChange()   -- Clicks.lua
 end
 
--- Removes broken entries (unknown action, wrong key).
-local function Upgrade(db)
+-- Version of the settings (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
+
+-- Check of a profile on every load: removes broken entries (unknown action, wrong key).
+local function Sanitize(db)
 	if type(db.bindings) ~= "table" then
 		db.bindings = nil
 		return
@@ -181,8 +184,9 @@ ns.OnLoad(function()
 	ns.store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnUnitFramesDB",
+		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.defaults,
-		upgrade = Upgrade,
+		sanitize = Sanitize,
 		onSwitch = function()
 			ns.Apply()
 			ns.RefreshClicksPage()

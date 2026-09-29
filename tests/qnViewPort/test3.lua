@@ -1,6 +1,6 @@
 -- Scenario 3: qnViewPort – Blizzard UI onto the main monitor only at the push of a button
--- old profile with constrainUI checked: must not move anything at login anymore.
-qnViewPortDB = { profiles = { ["account:Raid"] = { dual = { enabled = true, constrainUI = true } } }, global = {} }
+-- profile with dual monitor mode on: must not move anything at login.
+qnViewPortDB = { settingsVersion = "1.0", profiles = { ["account:Raid"] = { dual = { enabled = true } } }, global = {} }
 LoadAddon("qnCore")
 local vp = LoadAddon("qnViewPort")
 FireEvent("PLAYER_LOGIN")
@@ -8,7 +8,6 @@ UIParent._points = nil
 FireEvent("PLAYER_ENTERING_WORLD", true, false)
 SetEditModeLayout(3)
 RunTimers()
-Check(vp.db.dual.constrainUI == nil, "old setting removed")
 Check(UIParent._points == nil and not vp.Layout.IsUIConstrained(), "login: UIParent untouched")
 
 -- button: onto the main monitor (3840 of 5760 pixels width)

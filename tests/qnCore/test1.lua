@@ -1,9 +1,14 @@
--- Scenario 1: migration from the old format, profile switching, bags, profile page.
+-- Scenario 1: saved profiles, settings version, profile switching, bags, profile page.
 
--- old data (before qnCore)
-qnViewPortDB = { viewport = { 10, 0, 0, 0 }, color = { 0, 0, 0, 1 }, dual = { enabled = false, bagsOnMain = true } }
-qnThreatMeterDB = { scale = 1.2, styleVersion = 2, keepVisible = true }
-qnNumKeyPadDB = { scale = 1.5, layout = "Windows" }
+-- saved data in the current format (profiles per Edit Mode layout); leftovers of the
+-- profile migration before settings 1.0 (version, migrated, conversion markers)
+qnViewPortDB = { global = {}, profiles = {
+	["account:Raid"] = { viewport = { 10, 0, 0, 0 }, color = { 0, 0, 0, 1 }, dual = { enabled = false, bagsMonitor = 2 } },
+} }
+qnThreatMeterDB = { version = 1, migrated = { scale = 1.2 }, global = {}, profiles = {
+	["account:Raid"] = { scale = 1.2, styleVersion = 2, pointInParentUnits = true },
+} }
+qnNumKeyPadProfiles = { global = {}, profiles = { ["account:Raid"] = { scale = 1.5, layout = "Windows" } } }
 
 local core = LoadAddon("qnCore")
 local meter = LoadAddon("qnThreatMeter")
@@ -16,16 +21,16 @@ RunTimers()
 
 local P = qnCore.Profiles
 Check(P.GetActiveKey() == nil, "no active profile before EDIT_MODE_LAYOUTS_UPDATED")
-Check(meter.db.scale == 1.2 and meter.db.keepVisible == nil, "qnThreatMeter: provisional table from old format, upgrade ran")
-Check(nkp.db.scale == 1.5, "qnNumKeyPad: template from SavedVariablesPerCharacter")
-Check(vp.db.suppressMessage == false and vp.db.dual.bagsMonitor == 0 and vp.db.dual.bagsOnMain == nil, "qnViewPort: old format + upgrade (viewport sets Layout.Refresh because of new monitor arrangement)")
+Check(meter.db.scale == 1 and meter.db ~= qnThreatMeterDB.profiles["account:Raid"], "qnThreatMeter: layout unknown, no last session: provisional table with defaults")
+Check(qnThreatMeterDB.settingsVersion == "1.0" and qnThreatMeterDB.version == nil and qnThreatMeterDB.migrated == nil, "qnThreatMeter: settingsVersion written, version/migrated removed")
+Check(qnThreatMeterDB.profiles["account:Raid"].styleVersion == nil and qnThreatMeterDB.profiles["account:Raid"].pointInParentUnits == nil, "qnThreatMeter: obsolete keys removed from the profile")
+Check(qnViewPortDB.settingsVersion == "1.0" and qnNumKeyPadProfiles.settingsVersion == "1.0" and qnCoreDB.settingsVersion == "1.0", "settingsVersion written for all addons")
 
 SetEditModeLayout(3)
 Check(P.GetActiveKey() == "account:Raid", "active profile = account layout Raid: " .. tostring(P.GetActiveKey()))
-Check(qnThreatMeterDB.profiles["account:Raid"] == meter.db, "qnThreatMeter: provisional table became profile account:Raid")
-Check(qnThreatMeterDB.profiles["account:Raid"].scale == 1.2, "qnThreatMeter: value carried over")
-Check(qnNumKeyPadDB == nil, "qnNumKeyPad: old char table deleted after first switch")
-Check(qnNumKeyPadProfiles.profiles["account:Raid"].scale == 1.5, "qnNumKeyPad: value in profile")
+Check(meter.db == qnThreatMeterDB.profiles["account:Raid"] and meter.db.scale == 1.2, "qnThreatMeter: saved profile account:Raid active")
+Check(nkp.db == qnNumKeyPadProfiles.profiles["account:Raid"] and nkp.db.scale == 1.5, "qnNumKeyPad: saved profile active")
+Check(vp.db.viewport[1] == 10 and vp.db.dual.bagsMonitor == 2 and vp.db.suppressMessage == false, "qnViewPort: saved profile active, defaults filled in")
 Check(qnCoreCharDB.layout == "account:Raid", "qnCoreCharDB remembers the layout")
 
 -- change setting via the settings window
@@ -69,8 +74,9 @@ Check(table.concat(LOG, ";") == "CloseAllBags(nil)", "same everywhere: nothing o
 Check(qnCoreDB.global.bags.sameEverywhere == true and qnCoreDB.profiles["account:Raid"].bags == nil, "bags account-wide, not in qnCore's profile")
 SetEditModeLayout(4, true)
 Check(Bags.Config().allOpen == "none" and Bags.Config().sameEverywhere, "bags also apply in the other profile")
-Check(qnCoreCharDB.bags == nil and qnCoreCharDB.chatTimestamps == nil, "nothing stored per character")
-Check(SETTINGS.QNCORE_G_BAGSSHARED == nil, "switch 'Same in all profiles' removed")local venues = {}
+Check(qnCoreCharDB.bags == nil, "nothing stored per character")
+Check(SETTINGS.QNCORE_G_BAGSSHARED == nil, "switch 'Same in all profiles' removed")
+local venues = {}
 for _, v in ipairs(Bags.VENUES) do venues[#venues + 1] = v.key end
 Check(table.concat(venues, ",") == "auction,bank,gbank,merchant,trade,mail", "venues of the Forever client: " .. table.concat(venues, ","))
 Check(SETTINGS.QNCORE_BAGS_BANKBAGS == nil and SETTINGS.QNCORE_BAGS_VOIDOPEN == nil, "no bank slot / void storage option")

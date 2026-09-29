@@ -65,36 +65,8 @@ function ns.DualDB()
 	return ns.db.dual
 end
 
--- Upgrades a profile from older versions (before the defaults are filled in).
-local function Upgrade(db)
-	local dual = db.dual
-	if type(dual) ~= "table" then
-		return
-	end
-	-- Bags: "on the main monitor" -> monitor selection
-	if dual.bagsOnMain ~= nil and dual.bagsMonitor == nil then
-		dual.bagsMonitor = dual.bagsOnMain and 0 or 2
-	end
-	-- formerly per profile, now account-wide. qnCore already created qnViewPortDB.global on load;
-	-- the first value found wins.
-	local global = qnViewPortDB.global
-	if global.layoutKey == nil and type(dual.layoutKey) == "string" and dual.layoutKey ~= "" then
-		global.layoutKey = dual.layoutKey
-	end
-	if global.mapFadeSaved == nil and dual.mapFadeSaved ~= nil then
-		global.mapFadeSaved = dual.mapFadeSaved
-	end
-end
-
--- Obsolete keys (qnCore deletes them after Upgrade)
-local OBSOLETE = {
-	"dual.uiOnMain",      -- was briefly on by default and moved the interface without asking
-	"dual.constrainUI",   -- moved the interface on every login; now only on button press
-	"dual.bagsOnMain",    -- now dual.bagsMonitor (Upgrade)
-	-- Docking on the 2nd monitor removed
-	"dual.chat", "dual.map", "dual.pad", "dual.mapShare", "dual.dockMonitor",
-	"dual.layoutKey", "dual.mapFadeSaved",   -- now account-wide (Upgrade)
-}
+-- Version of the settings (see qnCore.Migrate)
+local SETTINGS_VERSION = "1.0"
 
 ---------------------------------------------------------------------------
 -- Screen size
@@ -279,23 +251,8 @@ function ns.SetBorderPattern(key, alpha)
 	end
 end
 
--- Saved LSM pattern whose file is also in ns.PATTERNS (hidden in the dropdown):
--- switch to our own entry. Only possible once LSM is loaded, hence not in Upgrade.
-local function MigrateLsmPattern(db)
-	local file = type(db.pattern) == "string" and db.pattern:find("^lsm:") and PatternFile(db.pattern)
-	if file then
-		for _, p in ipairs(ns.PATTERNS) do
-			if FileKey(p[3]) == FileKey(file) then
-				db.pattern = p[1]
-				return
-			end
-		end
-	end
-end
-
 -- Color and pattern of the active profile
 function ns.UpdateBorderLook()
-	MigrateLsmPattern(ns.db)
 	ns.SetBorderColor(ns.db.color)
 	ns.SetBorderPattern(ns.db.pattern, ns.db.patternAlpha)
 end
@@ -441,9 +398,8 @@ ns.OnLoad(function()
 	local store = lib.Profiles.Register({
 		ns = ns,
 		sv = "qnViewPortDB",
+		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.defaults,
-		upgrade = Upgrade,
-		obsolete = OBSOLETE,
 		onSwitch = ns.ApplyProfile,
 	})
 	ns.global = lib.MergeDefaults(store.global, GLOBAL_DEFAULTS)
