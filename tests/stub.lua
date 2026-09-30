@@ -241,6 +241,8 @@ function Frame:CreateMaskTexture() return NewFrame("Texture", nil, self) end
 function Frame:CreateAnimationGroup() return NewFrame("AnimationGroup", nil, self) end
 function Frame:CreateAnimation() return NewFrame("Animation", nil, self) end
 function Frame:CreateLine() return NewFrame("Line", nil, self) end
+-- Line (SimpleLineAPIDocumentation)
+function Frame:SetThickness(t) self._thickness = t end
 -- DropdownButton (WowStyle1DropdownTemplate)
 function Frame:SetupMenu(gen) self._gen = gen self:GenerateMenu() end
 function Frame:GenerateMenu()
@@ -779,6 +781,34 @@ EDIT_LAYOUTS = {
 function EditModeManagerFrame:UpdateLayoutInfo(info) self.layoutInfo = info end
 function EditModeManagerFrame:SelectLayout(i) self.layoutInfo.activeLayout = i end
 function EditModeManagerFrame:SaveLayouts() end
+function EditModeManagerFrame:IsEditModeActive() return QN_EDIT_MODE or false end
+
+-- Edit Mode systems (Blizzard_ActionBar, Blizzard_MicroMenu, Blizzard_StatusTrackingBar): protected
+-- action bars; SetPoint/ClearAllPoints/SetScale overridden in Lua (EditModeSystemMixin), the override
+-- counts the calls (addon code must use the raw widget methods)
+EDIT_MODE_OVERRIDE_CALLS = 0
+local function EditModeSystem(name, w, h, parent, protected)
+	local f = NewFrame("Frame", name, parent or UIParent)
+	f._w, f._h, f._protected = w, h, protected
+	for _, m in ipairs({ "SetPoint", "ClearAllPoints", "SetScale" }) do
+		local base = Frame[m]
+		f[m] = function(self, ...) EDIT_MODE_OVERRIDE_CALLS = EDIT_MODE_OVERRIDE_CALLS + 1 return base(self, ...) end
+	end
+	return f
+end
+EditModeSystem("MainActionBar", 540, 45, nil, true)
+EditModeSystem("MultiBarBottomLeft", 540, 45, nil, true)
+EditModeSystem("MultiBarBottomRight", 540, 45, nil, true)
+EditModeSystem("MultiBarRight", 540, 45, nil, true)
+EditModeSystem("MultiBarLeft", 45, 540, nil, true)
+EditModeSystem("PetActionBar", 330, 30, nil, true)
+EditModeSystem("StanceBar", 330, 30, nil, true)
+EditModeSystem("MicroMenuContainer", 290, 40)
+EditModeSystem("MainMenuBarVehicleLeaveButton", 32, 32, MainActionBar, true)
+EditModeSystem("MainStatusTrackingBarContainer", 830, 11)
+EditModeSystem("PossessActionBar", 90, 30, nil, true)._shown = false   -- hidden="true" in the XML
+EditModeSystem("ExtraAbilityContainer", 200, 100)._shown = false
+EditModeSystem("SecondaryStatusTrackingBarContainer", 830, 11)
 function SetEditModeLayout(i, viaSelect)
 	if viaSelect and EditModeManagerFrame.layoutInfo then
 		EditModeManagerFrame:SelectLayout(i)
