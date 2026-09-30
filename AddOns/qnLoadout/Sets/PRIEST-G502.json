@@ -1,0 +1,32 @@
+{
+  "name": "G502 Priest – Shadow levelling",
+  "class": "PRIEST",
+  "desc": "From the G502 notes in docs\\plans. Desperate Prayer only for Human/Dwarf. Fill in the <...> placeholders in the macros with English item names from Items.json (translated like spells).",
+  "macros": [
+    {"name": "qnShieldSelf", "scope": "char", "icon": 135940, "body": "#showtooltip Power Word: Shield\n/stopcasting\n/cast [@player] Power Word: Shield"},
+    {"name": "qnRenew", "scope": "char", "icon": 135953, "body": "#showtooltip Renew\n/cast [@mouseover,help,nodead][help,nodead][@player] Renew"},
+    {"name": "qnFlashHeal", "scope": "char", "icon": 135907, "body": "#showtooltip Flash Heal\n/cast [@mouseover,help,nodead][help,nodead][@player] Flash Heal"},
+    {"name": "qnHealItems", "scope": "char", "icon": 135230, "body": "#showtooltip\n/use Healthstone\n/use <your healing potion>"},
+    {"name": "qnMana", "scope": "char", "icon": 134850, "body": "#showtooltip\n/use <your mana potion>"}
+  ],
+  "numpad": [
+    {"key": "NUMPAD7", "spell": "Fade"},
+    {"key": "NUMPAD8", "spell": "Psychic Scream"},
+    {"key": "NUMPAD9", "spell": "Shoot"},
+    {"key": "NUMPAD5", "spell": "Shadow Word: Pain"},
+    {"key": "NUMPAD4", "spell": "Silence"},
+    {"key": "NUMPAD6", "macro": "qnShieldSelf"},
+    {"key": "NUMPAD3", "macro": "qnRenew"},
+    {"key": "NUMPAD2", "macro": "qnHealItems"},
+    {"key": "NUMPAD1", "macro": "qnMana"},
+    {"key": "NUMPAD7", "set": "ctrl", "spell": "Inner Fire"},
+    {"key": "NUMPAD8", "set": "ctrl", "spell": "Shackle Undead"},
+    {"key": "NUMPAD9", "set": "ctrl", "spell": "Mind Flay"},
+    {"key": "NUMPAD5", "set": "ctrl", "spell": "Mind Blast"},
+    {"key": "NUMPAD4", "set": "ctrl", "spell": "Dispel Magic"},
+    {"key": "NUMPAD6", "set": "ctrl", "empty": true},
+    {"key": "NUMPAD3", "set": "ctrl", "macro": "qnFlashHeal"},
+    {"key": "NUMPAD2", "set": "ctrl", "spell": "Cure Disease"},
+    {"key": "NUMPAD1", "set": "ctrl", "spell": "Desperate Prayer"}
+  ]
+}

@@ -244,7 +244,7 @@ Check(nkp.GetLayout("Macintosh").keys[19].label == "H?", "Mac label H? unchanged
 ---------------------------------------------------------------------------
 -- hintShown account-wide
 ---------------------------------------------------------------------------
-Check(_G.qnNumKeyPad == nil and nkp.Slot == nil and nkp.settings == nil, "no global table, no ns.Slot, no ns.settings")
+Check(_G.qnNumKeyPad == nkp and nkp.Slot == nil and nkp.settings == nil, "global table = namespace (API for qnLoadout), no ns.Slot, no ns.settings")
 Check(StaticPopupDialogs.QNNUMKEYPAD_CUSTOM.EditBoxOnEscapePressed == StaticPopup_StandardEditBoxOnEscapePressed, "Escape in the edit box: Blizzard default")
 
 -- Hint on login: once per account

@@ -94,6 +94,7 @@ for _, e in ipairs({ "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_DEAD", "MINIMAP_U
 end
 VALID.SECURE_TRANSFER_CANCEL = true   -- SecureTransferDocumentation (qnInventory)
 VALID.ACCOUNT_MONEY = true   -- CurrencyInfoDocumentation (qnInventory)
+VALID.ITEM_DATA_LOAD_RESULT = true   -- ItemDocumentation (qnLoadout)
 VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInventory)
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
 
@@ -431,12 +432,42 @@ function GetCursorInfo() local c = QN_CURSOR if c then return c.type, c.id end e
 function PickupAction(slot) QN_CURSOR, QN_ACTIONS[slot] = QN_ACTIONS[slot], nil end
 function PlaceAction(slot) QN_ACTIONS[slot], QN_CURSOR = QN_CURSOR, QN_ACTIONS[slot] end
 function ClearCursor() QN_CURSOR = nil end
+-- QN_MACROS[index] is a name or { name, icon, body }; CreateMacro sorts by name within account
+-- (1-120) and character macros (121-150) like WoW and returns the new index.
+local function MacroInfo(index)
+	local m = QN_MACROS[index]
+	if type(m) == "table" then return m[1], m[2], m[3] end
+	return m
+end
 function PickupMacro(index)
-	local name = QN_MACROS[index]
+	local name = MacroInfo(index)
 	if name then QN_CURSOR = { type = "macro", id = index, text = name } end
 end
 function GetNumMacros() return QN_NUM_MACROS[1], QN_NUM_MACROS[2] end
-function GetMacroInfo(index) return QN_MACROS[index] end
+function GetMacroInfo(index) return MacroInfo(index) end
+function CreateMacro(name, icon, body, perChar)
+	local base, n = perChar and 120 or 0, QN_NUM_MACROS[perChar and 2 or 1]
+	local list = {}
+	for i = base + 1, base + n do list[#list + 1] = QN_MACROS[i] end
+	list[#list + 1] = { name, icon, body }
+	table.sort(list, function(a, b) return (type(a) == "table" and a[1] or a) < (type(b) == "table" and b[1] or b) end)
+	local index
+	for i, m in ipairs(list) do
+		QN_MACROS[base + i] = m
+		if type(m) == "table" and m[1] == name then index = base + i end
+	end
+	QN_NUM_MACROS[perChar and 2 or 1] = n + 1
+	QN_MACRO_CALLS[#QN_MACRO_CALLS + 1] = "create " .. name
+	return index
+end
+function EditMacro(index, name, icon, body)
+	local oldName, oldIcon, oldBody = MacroInfo(index)
+	QN_MACROS[index] = { name or oldName, icon or oldIcon, body or oldBody }
+	QN_MACRO_CALLS[#QN_MACRO_CALLS + 1] = "edit " .. tostring(name or oldName)
+	return index
+end
+function DeleteMacro() error("DeleteMacro must not be called") end
+QN_MACRO_CALLS = {}
 function HasAction() return false end
 function GetNumShapeshiftForms() return 0 end
 function PlaySound() end
@@ -583,8 +614,12 @@ C_UnitAuras = { GetAuraDataByIndex = function(unit, i, filter)
 end }
 C_Spell = { IsSpellUsable = function() return true, false end }
 function C_Spell.GetSpellName(id) return QN_SPELLS[id] end
-function C_Spell.PickupSpell(id)
-	if QN_SPELLS[id] then QN_CURSOR = { type = "spell", id = id, text = nil } end
+-- spell ID or name (SpellIdentifier)
+function C_Spell.PickupSpell(spell)
+	if type(spell) == "string" then
+		for id, name in pairs(QN_SPELLS) do if name == spell then spell = id end end
+	end
+	if QN_SPELLS[spell] then QN_CURSOR = { type = "spell", id = spell, text = nil } end
 end
 Constants = { MacroConsts = { MAX_ACCOUNT_MACROS = 120, MAX_CHARACTER_MACROS = 30 } }
 function SecureCmdOptionParse(c) return "show", nil end
@@ -652,6 +687,12 @@ function GetSendMailCOD() return 0 end
 C_AutoComplete = C_AutoComplete or {}
 function C_AutoComplete.GetAutoCompleteRealms() return QN_CONNECTED_REALMS or {} end
 C_Item = { IsItemInRange = function() return nil end }
+-- Item names: QN_ITEM_NAMES[id] = name once cached; RequestLoadItemDataByID only records QN_ITEM_REQUESTS[id]
+-- (scenarios then set the name and fire ITEM_DATA_LOAD_RESULT)
+QN_ITEM_NAMES, QN_ITEM_REQUESTS = {}, {}
+function C_Item.GetItemNameByID(id) return QN_ITEM_NAMES[id] end
+function C_Item.IsItemDataCachedByID(id) return QN_ITEM_NAMES[id] ~= nil end
+function C_Item.RequestLoadItemDataByID(id) QN_ITEM_REQUESTS[id] = true end
 C_Bank.FetchPurchasedBankTabData = function() return {} end
 
 -- Settings-API ------------------------------------------------------------------

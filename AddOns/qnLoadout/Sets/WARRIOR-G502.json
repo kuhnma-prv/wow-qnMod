@@ -1,0 +1,33 @@
+{
+  "name": "G502 Warrior",
+  "class": "WARRIOR",
+  "desc": "From the G502 notes in docs\\plans. Stance macros need a second press in the wrong stance; Ctrl+Num 8 uses Thunder Clap (alternative: Piercing Howl). Fill in the <...> placeholders in the macros with English item names from Items.json (translated like spells).",
+  "macros": [
+    {"name": "qnCharge", "scope": "char", "icon": 132337, "body": "#showtooltip\n/cast [stance:3] Intercept; Charge"},
+    {"name": "qnOverpower", "scope": "char", "icon": 132223, "body": "#showtooltip Overpower\n/cast [nostance:1] Battle Stance; Overpower"},
+    {"name": "qnInterrupt", "scope": "char", "icon": 132357, "body": "#showtooltip\n/cast [stance:3] Pummel; Shield Bash"},
+    {"name": "qnShieldWall", "scope": "char", "icon": 132362, "body": "#showtooltip Shield Wall\n/cast [nostance:2] Defensive Stance; Shield Wall"},
+    {"name": "qnHealItems", "scope": "char", "icon": 135230, "body": "#showtooltip\n/use Healthstone\n/use <your healing potion>"},
+    {"name": "qnBandage", "scope": "char", "icon": 133685, "body": "#showtooltip\n/use <your bandage>"}
+  ],
+  "numpad": [
+    {"key": "NUMPAD7", "macro": "qnCharge"},
+    {"key": "NUMPAD8", "spell": "Hamstring"},
+    {"key": "NUMPAD9", "macro": "qnOverpower"},
+    {"key": "NUMPAD5", "spell": "Heroic Strike"},
+    {"key": "NUMPAD4", "macro": "qnInterrupt"},
+    {"key": "NUMPAD6", "macro": "qnShieldWall"},
+    {"key": "NUMPAD3", "spell": "Battle Shout"},
+    {"key": "NUMPAD2", "macro": "qnHealItems"},
+    {"key": "NUMPAD1", "spell": "Rend"},
+    {"key": "NUMPAD7", "set": "ctrl", "spell": "Bloodrage"},
+    {"key": "NUMPAD8", "set": "ctrl", "spell": "Thunder Clap"},
+    {"key": "NUMPAD9", "set": "ctrl", "spell": "Execute"},
+    {"key": "NUMPAD5", "set": "ctrl", "spell": "Cleave"},
+    {"key": "NUMPAD4", "set": "ctrl", "spell": "Sunder Armor"},
+    {"key": "NUMPAD6", "set": "ctrl", "empty": true},
+    {"key": "NUMPAD3", "set": "ctrl", "spell": "Demoralizing Shout"},
+    {"key": "NUMPAD2", "set": "ctrl", "macro": "qnBandage"},
+    {"key": "NUMPAD1", "set": "ctrl", "spell": "Intimidating Shout"}
+  ]
+}

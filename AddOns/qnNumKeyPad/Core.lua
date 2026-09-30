@@ -8,6 +8,9 @@ local lib = qnCore
 lib.NewAddon(ns, ADDON)
 local L = ns.L
 
+-- global API for other qn addons (qnLoadout): SlotOfBinding, SlotContent, SetSlotSpell, SetSlotMacro, ClearSlot
+_G.qnNumKeyPad = ns
+
 ---------------------------------------------------------------------------
 -- Defaults
 ---------------------------------------------------------------------------
