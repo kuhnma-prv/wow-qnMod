@@ -310,6 +310,9 @@ Check(Own(1) == 25 and Own(12) == 36 and Own(13) == 157 and Own(25) == 61 and Ow
 ---------------------------------------------------------------------------
 -- Page warnings
 ---------------------------------------------------------------------------
+-- without modifier sets (they would add pages 15 and 2; scenario 6 checks them)
+Set("ctrlSet", false)
+Set("altSet", false)
 Set("page1", 13)
 Set("page3", 15)
 Set("layout", "Windows")

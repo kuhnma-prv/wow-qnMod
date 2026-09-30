@@ -34,6 +34,9 @@ local bar = nkp.bar
 local function Set(key, value)
 	SETTINGS["QNNKP_" .. key:upper()]:SetValue(value)
 end
+-- without modifier sets (scenario 6 checks their bindings)
+Set("ctrlSet", false)
+Set("altSet", false)
 local function Count()
 	local n = 0
 	for _ in pairs(BINDINGS[bar] or {}) do n = n + 1 end

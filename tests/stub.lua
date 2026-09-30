@@ -420,7 +420,23 @@ function RegisterStateDriver() end
 function UnregisterStateDriver() end
 function RegisterAttributeDriver() end
 function UnregisterAttributeDriver() end
-function GetActionInfo() return nil end
+-- Action slots and cursor: QN_ACTIONS[slot] = { type, id, text }; QN_CURSOR = the same or nil.
+-- PlaceAction swaps slot and cursor (like dropping onto an occupied button).
+-- Spells: QN_SPELLS[id] = name (known spells); macros: QN_MACROS[index] = name, QN_NUM_MACROS = { account, character }.
+QN_ACTIONS, QN_SPELLS, QN_MACROS, QN_NUM_MACROS = {}, {}, {}, { 0, 0 }
+QN_CURSOR = nil
+function GetActionInfo(slot) local a = QN_ACTIONS[slot] if a then return a.type, a.id end end
+function GetActionText(slot) local a = QN_ACTIONS[slot] return a and a.text end
+function GetCursorInfo() local c = QN_CURSOR if c then return c.type, c.id end end
+function PickupAction(slot) QN_CURSOR, QN_ACTIONS[slot] = QN_ACTIONS[slot], nil end
+function PlaceAction(slot) QN_ACTIONS[slot], QN_CURSOR = QN_CURSOR, QN_ACTIONS[slot] end
+function ClearCursor() QN_CURSOR = nil end
+function PickupMacro(index)
+	local name = QN_MACROS[index]
+	if name then QN_CURSOR = { type = "macro", id = index, text = name } end
+end
+function GetNumMacros() return QN_NUM_MACROS[1], QN_NUM_MACROS[2] end
+function GetMacroInfo(index) return QN_MACROS[index] end
 function HasAction() return false end
 function GetNumShapeshiftForms() return 0 end
 function PlaySound() end
@@ -430,7 +446,7 @@ function GetInboxNumItems() return 0, 0 end
 function GetInboxHeaderInfo() return nil end
 function GetInboxItem() return nil end
 function GetItemInfoInstant() return nil end
-for _, n in ipairs({ 'SecureHandlerExecute', 'SecureHandlerSetFrameRef', 'SecureHandlerWrapScript', 'SecureHandlerUnwrapScript', 'ActionButton_UpdateCooldown', 'SetCVar', 'ClearCursor', 'PickupAction', 'PlaceAction' }) do _G[n] = nop end
+for _, n in ipairs({ 'SecureHandlerExecute', 'SecureHandlerSetFrameRef', 'SecureHandlerWrapScript', 'SecureHandlerUnwrapScript', 'ActionButton_UpdateCooldown', 'SetCVar' }) do _G[n] = nop end
 function GetCVar(k) return C_CVar._v[k] end
 function GetCVarBool(k) return C_CVar._v[k] == '1' end
 function IsModifiedClick() return false end
@@ -566,6 +582,11 @@ C_UnitAuras = { GetAuraDataByIndex = function(unit, i, filter)
 	end
 end }
 C_Spell = { IsSpellUsable = function() return true, false end }
+function C_Spell.GetSpellName(id) return QN_SPELLS[id] end
+function C_Spell.PickupSpell(id)
+	if QN_SPELLS[id] then QN_CURSOR = { type = "spell", id = id, text = nil } end
+end
+Constants = { MacroConsts = { MAX_ACCOUNT_MACROS = 120, MAX_CHARACTER_MACROS = 30 } }
 function SecureCmdOptionParse(c) return "show", nil end
 function GetInventoryItemTexture() return 134400 end
 function CancelUnitBuff() end
@@ -647,9 +668,19 @@ local function Layout()
 	function l:AddInitializer(i) self.inits[#self.inits + 1] = i end
 	return l
 end
+-- initializers of the controls by variable name (INITIALIZERS[var]); pred = modify predicate of S.Depends
+INITIALIZERS = {}
 local function Initializer(data)
 	local i = data or {}
+	if i.setting then INITIALIZERS[i.setting.var] = i end
 	function i:SetParentInitializer(p, pred) self.parent, self.pred = p, pred end
+	-- like SettingsElementHierarchyMixin: all predicates must be true (modify = pred of the parent included)
+	function i:AddModifyPredicate(fn) self.modifyPreds = self.modifyPreds or {} table.insert(self.modifyPreds, fn) end
+	function i:IsModifiable()
+		if self.pred and not self.pred() then return false end
+		for _, fn in ipairs(self.modifyPreds or {}) do if not fn() then return false end end
+		return true
+	end
 	function i:AddSearchTags() end
 	return i
 end
@@ -1285,7 +1316,7 @@ function EnableTooltips()
 	function GetQuestDifficultyColor(level) return { r = 0.25, g = 0.75, b = 0.25 } end
 	CurveConstants = { ScaleTo100 = {} }
 	BASE_MOVEMENT_SPEED = 7
-	Constants = { ChatFrameConstants = { MaxChatWindows = 10 } }
+	Constants.ChatFrameConstants = { MaxChatWindows = 10 }
 	for i = 1, 10 do NewFrame("ScrollingMessageFrame", "ChatFrame" .. i) end
 	function HealthBar_OnValueChanged(self, value, smooth) self._smooth = smooth and value end
 	function GetMouseFoci() return { QN_FOCUS or WorldFrame } end

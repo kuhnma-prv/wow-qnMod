@@ -30,6 +30,11 @@ ns.defaults = {
 	page1 = 13,
 	page2 = 14,
 	page3 = 15,
+	-- Modifier sets: while Ctrl or Alt is held, keys 1-12 show and trigger this page
+	ctrlSet = true,
+	ctrlPage = 15,
+	altSet = false,          -- switched off for now (Sanitize)
+	altPage = 2,
 
 	-- Appearance
 	scale = 1,
@@ -69,13 +74,18 @@ ns.defaults = {
 }
 
 -- Version of the settings (see qnCore.Migrate)
-local SETTINGS_VERSION = "1.0"
+-- 1.1: account-wide mouse button assignment (global.mouse, global.mice; Mice.lua)
+-- 1.2: modifier sets (ctrlSet, ctrlPage, altSet, altPage)
+local SETTINGS_VERSION = "1.2"
 
 -- Check of a profile on every load: an unknown key layout falls back to the default.
+-- Switched off for now: the arrow keys (page 15 belongs to the Ctrl set) and the Alt set.
 local function Sanitize(db)
 	if db.layout ~= nil and not ns.GetLayout(db.layout) then
 		db.layout = nil
 	end
+	db.showArrow = nil
+	db.altSet = nil
 end
 
 ---------------------------------------------------------------------------
@@ -157,6 +167,7 @@ ns.OnLoad(function()
 		sanitize = Sanitize,
 		onSwitch = ns.ApplyAndCheck,
 	})
+	ns.SanitizeMice(ns.store.global)
 	ns.CreateBar()
 	ns.InitOptions()
 end)
