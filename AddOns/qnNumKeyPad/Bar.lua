@@ -39,8 +39,39 @@ local function Slot(i)
 	return (page - 1) * NUM_ACTIONBAR_BUTTONS + (i - 1) % NUM_ACTIONBAR_BUTTONS + 1
 end
 
--- In the secure environment: with stance switching active, keys 1-12 mirror the
--- stance page (7-11) of the main action bar, otherwise their own slot applies.
+-- Page of a modifier set ("ctrl", "alt"); nil if the set is switched off.
+function ns.SetPage(set)
+	local db = ns.db
+	if db[set .. "Set"] then
+		return db[set .. "Page"]
+	end
+end
+
+-- Action slot of the key with this binding in the configured layout (from the settings, not from
+-- the applied bar): its own slot, or with set ("ctrl", "alt") the slot of the modifier set.
+-- Otherwise nil and the reason: "layout" (no such key or hidden), "off" (set switched off),
+-- "fixed" (keys 13 and higher do not switch).
+function ns.SlotOfBinding(binding, set)
+	for i, key in ipairs(ns.GetLayout(ns.db.layout).keys) do
+		if key.binding == binding and ns.IsKeyShown(key) then
+			if not set then
+				return Slot(i)
+			end
+			local page = ns.SetPage(set)
+			if not page then
+				return nil, "off"
+			elseif i > NUM_ACTIONBAR_BUTTONS then
+				return nil, "fixed"
+			end
+			return (page - 1) * NUM_ACTIONBAR_BUTTONS + i
+		end
+	end
+	return nil, "layout"
+end
+
+-- In the secure environment: keys 1-12 show the page of the state "page" (modifier set while Ctrl
+-- or Alt is held, otherwise with stance switching the stance page 7-11 of the main action bar);
+-- state 0 = their own slot.
 local CHILD_PAGE = [[
 	local page = tonumber(message) or 0
 	local index = self:GetAttribute("qn-index")
@@ -78,6 +109,15 @@ local BIND = [[
 			self:SetBindingClick(false, key, target, "LeftButton")
 			if shift then
 				self:SetBindingClick(false, "SHIFT-" .. key, target, "LeftButton")
+			end
+			-- modifier sets: only keys 1-12 switch pages
+			if self:GetAttribute("qn-mod" .. n) then
+				if self:GetAttribute("qn-ctrl") then
+					self:SetBindingClick(false, "CTRL-" .. key, target, "LeftButton")
+				end
+				if self:GetAttribute("qn-alt") then
+					self:SetBindingClick(false, "ALT-" .. key, target, "LeftButton")
+				end
 			end
 		end
 	end
@@ -306,6 +346,7 @@ local function IsKeyShown(key)
 		or (key.type == "Nav" and db.showNav)
 		or (key.type == "Arrow" and db.showArrow)
 end
+ns.IsKeyShown = IsKeyShown
 
 local function ApplyLayout()
 	local db = ns.db
@@ -354,9 +395,30 @@ local function ApplyPosition()
 	bar:SetPoint(db.point, UIParent, db.point, db.x / s, db.y / s)
 end
 
-local function ApplyStance()
+-- Page for keys 1-12: modifier set (Ctrl and Alt together: neither), then the stance; nil = always 0.
+local function PageDriver()
+	local parts = {}
+	local ctrl, alt = ns.SetPage("ctrl"), ns.SetPage("alt")
+	if ctrl then
+		parts[#parts + 1] = "[mod:ctrl,nomod:alt] " .. ctrl
+	end
+	if alt then
+		parts[#parts + 1] = "[mod:alt,nomod:ctrl] " .. alt
+	end
 	if ns.db.stance then
-		RegisterStateDriver(bar, "page", "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10; [bonusbar:5] 11; 0")
+		parts[#parts + 1] = "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10; [bonusbar:5] 11"
+	end
+	if #parts == 0 then
+		return nil
+	end
+	parts[#parts + 1] = "0"
+	return table.concat(parts, "; ")
+end
+
+local function ApplyPaging()
+	local driver = PageDriver()
+	if driver then
+		RegisterStateDriver(bar, "page", driver)
 	else
 		UnregisterStateDriver(bar, "page")
 		bar:SetAttribute("state-page", "0")
@@ -374,9 +436,12 @@ local function ApplyBindings()
 		n = n + 1
 		bar:SetAttribute("qn-key" .. n, key.binding)
 		bar:SetAttribute("qn-target" .. n, keys[i]:GetName())
+		bar:SetAttribute("qn-mod" .. n, i <= NUM_ACTIONBAR_BUTTONS)
 	end
 	bar:SetAttribute("qn-count", n)
 	bar:SetAttribute("qn-shift", db.bindShift)
+	bar:SetAttribute("qn-ctrl", ns.SetPage("ctrl") ~= nil)
+	bar:SetAttribute("qn-alt", ns.SetPage("alt") ~= nil)
 	bar:SetAttribute("qn-enabled", db.enabled)
 	bar:SetAttribute("qn-bound", nil)   -- rebind even if visibility does not change
 	SecureHandlerExecute(bar, BIND)
@@ -447,7 +512,7 @@ end
 function ns.ApplyAll()
 	ApplyLayout()
 	ApplyPosition()
-	ApplyStance()
+	ApplyPaging()
 	ApplyBindings()
 	ApplyButtons()
 	ApplyVisibility()
@@ -483,18 +548,19 @@ local lastWarning = ""   -- last warnings printed
 -- The same warnings appear only once in a row (e.g. login and profile switch).
 function ns.CheckPages()
 	local db = ns.db
-	local used = {}   -- key group -> page
+	local used = {}   -- key group -> page; 4 and 5 = Ctrl and Alt set (keys 1-12)
 	for i, key in ipairs(ns.GetLayout(db.layout).keys) do
 		if IsKeyShown(key) then
 			used[Group(i)] = db["page" .. Group(i)]
 		end
 	end
+	used[4], used[5] = ns.SetPage("ctrl"), ns.SetPage("alt")
 	local lines, seen = {}, {}
-	for n = 1, 3 do
+	for n = 1, 5 do
 		local page = used[n]
 		if page and not seen[page] then
 			seen[page] = true
-			for m = n + 1, 3 do
+			for m = n + 1, 5 do
 				if used[m] == page then
 					lines[#lines + 1] = L["Warning: page %d is assigned to more than one key group."]:format(page)
 					break
