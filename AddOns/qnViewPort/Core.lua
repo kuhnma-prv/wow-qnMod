@@ -41,6 +41,7 @@ ns.defaults = {
 		mapFollowZone = true,
 		mapAutoOpen = false,
 		mapNoFade = false,     -- mapFade = 0; the previous value is then kept in ns.global.mapFadeSaved
+		clock = false,         -- open the clock window (TimeManagerFrame) below the clock on its monitor
 		guides = false,
 		useMonitorData = true, -- use Monitors.lua (scripts\) instead of the values above
 	},
@@ -66,7 +67,7 @@ function ns.DualDB()
 end
 
 -- Version of the settings (see qnCore.Migrate)
-local SETTINGS_VERSION = "1.0"
+local SETTINGS_VERSION = "1.1"
 
 ---------------------------------------------------------------------------
 -- Screen size
