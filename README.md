@@ -25,6 +25,7 @@ layout (including character-specific ones) has its own profile.
 | **qnBuffMod** | Freely customizable buff and debuff windows | `/qnbuffmod`, `/qnbuff`, `/qnaura` |
 | **qnUnitFrames** | Click casting on Blizzard's party and raid frames (like HealBot), per profile and class | `/qnunitframes`, `/qnuf` |
 | **qnTooltip** | Customizable tooltips: look, optional position, unit lines built from elements, health bar, target, item level, IDs | `/qntooltip`, `/qntt` |
+| **qnSkins** | Decorative artwork (panels, 3D figures) around action bars, status bars and micro menu; optionally gives these elements a predefined position and scale, on the chosen monitor | `/qnskins` |
 
 Optional dependencies: [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0)
 (qnThreatMeter, qnTooltip; qnCore registers its background patterns there as "qn …") and

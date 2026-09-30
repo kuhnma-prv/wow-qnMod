@@ -1,0 +1,29 @@
+## Interface: 16001
+## Title: qnMod [|cffeda55fSkins|r] |cff00aa000.1.0|r
+## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
+## Notes: Decorative artwork around UI elements; optionally gives the elements a predefined position and scale.
+## Notes-deDE: Schmückende Bilder um UI-Elemente; gibt den Elementen auf Wunsch eine vordefinierte Position und Skalierung.
+## Author: qn
+## Version: 0.1.0
+## Group: qnCore
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## SavedVariables: qnSkinsDB
+## Dependencies: qnCore
+## OptionalDeps: qnViewPort
+
+Locale.lua
+Core.lua
+Skins.lua
+Layout.lua
+Art.lua
+Options.lua

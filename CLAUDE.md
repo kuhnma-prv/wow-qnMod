@@ -13,7 +13,7 @@ Replies to the user are in German.
 ```
 AddOns\        all addons of the client; only qn* are in the repository (the rest is excluded via .gitignore)
 tests\         test environment (fengari, stub.lua, scenarios per addon)
-tools\         developer tools (Get-Screen, Get-WowWindow, New-QnPatterns)
+tools\         developer tools (Get-Screen, Get-WowWindow, New-QnPatterns, New-QnSkinArt)
 docs\plans\    plans and working notes – always put plans here; content is not in the repository
 .github\       Actions: test.yml (tests + translations), release.yml (ZIP on tag v*)
 ```
@@ -37,6 +37,7 @@ do not touch them, do not use them as template or source, do not mention them in
 | qnBuffMod | freely configurable aura windows | qnBuffModDB |
 | qnUnitFrames | click casting (like HealBot) on Blizzard's party/raid frames via secure attributes; bindings per profile and class | qnUnitFramesDB |
 | qnTooltip | tooltips: appearance (own backdrop instead of NineSlice), position only on request, unit header lines built from elements (pages "Lines"), health bar, target, item level, IDs | qnTooltipDB |
+| qnSkins | artwork around UI elements (skins in `Skins.lua`: panels, 3D figures via `PlayerModel`, textures; own frames in BACKGROUND strata placed by rectangles, never anchored to Blizzard frames); opt-in "Position elements" moves/scales the Edit Mode systems with the **raw widget methods** (the Lua overrides of `EditModeSystemMixin` would run Blizzard code tainted) and re-applies after Blizzard's `SetPoint` (hooksecurefunc), after combat and after the Edit Mode; monitor from `qnCore.Visible` | qnSkinsDB |
 
 All except qnCore: `## Dependencies: qnCore`, `## IconTexture: Interface\AddOns\qnCore\Media\qnIcon`,
 `## Category-<language>:` like Titan (Benutzerinterface/User Interface), `## Title: qnMod [|cffeda55f<short name>|r] |cff00aa00<version>|r` (like Titan; update the version in the title with every change of
@@ -176,7 +177,7 @@ generated with `tools\New-QnPatterns.ps1`, additionally registered with LibShare
   the junction –, otherwise via a running client).
 - Tools in `tools`: `Get-WowWindow.ps1` (position/frame of the WoW window, read only),
   `Get-Screen.ps1` (screenshot of all monitors to `tools\screen.png`, not in the repository),
-  `New-QnPatterns.ps1` (tile patterns of qnCore), `Convert-QnLoadout.ps1` (qnLoadout sets JSON → `Data.lua`, `-Import` exports from the SavedVariables).
+  `New-QnPatterns.ps1` (tile patterns of qnCore), `New-QnSkinArt.ps1` (textures of qnSkins, e.g. the cord `Rope.tga`), `Convert-QnLoadout.ps1` (qnLoadout sets JSON → `Data.lua`, `-Import` exports from the SavedVariables).
 - Shared icon: `qnCore\Media\qnIcon.tga` (64×64 TGA).
 
 ## Way of working
