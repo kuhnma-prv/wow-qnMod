@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fNum Keypad|r] |cff00aa000.2.1|r
+## Title: qnMod [|cffeda55fLoadout|r] |cff00aa000.1.0|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
-## Notes: Action bar in the shape of a numpad (for WoW Classic Forever).
-## Notes-deDE: Aktionsleiste in Form eines Ziffernblocks (für WoW Classic Forever).
+## Notes: Loads sets of qn macros and numpad assignments (qnNumKeyPad) per class and exports the current state as a set.
+## Notes-deDE: Lädt Sätze aus qn-Makros und Ziffernblock-Belegungen (qnNumKeyPad) pro Klasse und exportiert den aktuellen Stand als Satz.
 ## Author: qn
-## Version: 0.2.1
+## Version: 0.1.0
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
@@ -17,13 +17,14 @@
 ## Category-ruRU: Интерфейс пользователя
 ## Category-zhCN: 用户界面
 ## Category-zhTW: 使用者介面
-## SavedVariables: qnNumKeyPadProfiles
-## Dependencies: qnCore
+## SavedVariables: qnLoadoutDB
+## Dependencies: qnCore, qnNumKeyPad
 
 Locale.lua
 Core.lua
-Layouts.lua
-Mice.lua
-MouseActions.lua
-Bar.lua
+Data.lua
+Translate.lua
+Json.lua
+Load.lua
+Export.lua
 Options.lua

@@ -31,6 +31,7 @@ do not touch them, do not use them as template or source, do not mention them in
 | qnCore | main addon + library (global `qnCore`): profiles, settings builder, widgets, automatic bag handling, remembering minimap tracking, objective tracker font below 12 (per profile, `QuestTracker.lua`), page "Profiles" | qnCoreDB (with its own `profiles`), qnCoreCharDB |
 | qnThreatMeter | threat meter | qnThreatMeterDB |
 | qnNumKeyPad | numpad action bar; gaming mouse (Logitech G502) with button → numpad key assignment, account-wide in `global` (`Mice.lua`, page "Mouse"); page "Mouse Buttons" places spells/macros into the bar's own action slot of each button's numpad key (`MouseActions.lua`, PlaceAction, not in combat); modifier sets: while Ctrl/Alt is held keys 1–12 page to `ctrlPage` (15) / `altPage` (2) via the "page" state driver, CTRL-/ALT- bindings only for keys 1–12; arrow keys and Alt set switched off for now (Sanitize, disabled controls; code stays) | qnNumKeyPadProfiles |
+| qnLoadout | sets of qn macros + qnNumKeyPad assignments per class: JSON in `qnLoadout\Sets` (English spell/item names, `Spells.json`/`Items.json` = English name → ID, translated into the client language via `Translate.lua`; item names loaded asynchronously) → `tools\Convert-QnLoadout.ps1` → `Data.lua`; loading only creates/edits macros with prefix `qn` (`EditMacro` keeps bar places, nothing deleted) and places via the global API `qnNumKeyPad` (= its ns); export on the options page + `qnLoadoutDB.exports`, `Convert-QnLoadout.ps1 -Import` writes JSON | qnLoadoutDB |
 | qnViewPort | smaller 3D area, border color/pattern, dual-monitor mode; with Titan (OptionalDeps) Titan bars per monitor and tooltips at the monitor edge (`Titan.lua`); bag slot tooltips entirely on the bag's monitor (`Layout.FitToMonitor`, for other bag views `qnViewPort.BagTooltip(tip, owner)`, used by qnInventory); Minimap tooltips (tracking, zone text, mail, calendar, clock) and the tracking menu entirely on the minimap's monitor; opt-in clock window (TimeManagerFrame) below the clock (`SecondScreen.lua`) | qnViewPortDB |
 | qnInventory | items/gold per character, tooltip lines; bags/bank/mail views of every character (replicas of Blizzard's windows with character selection, `View*.lua`); with Titan (OptionalDeps) plugins `qnInvBank`/`qnInvGold` (`Titan.lua`, texts from Titan's localization); account bank in `qnInventoryDB.account` (gold always, content at the banker); account-wide options (`qnInventoryDB.options`: other faction in tooltips/views, opt-in), delete character | qnInventoryDB |
 | qnBuffMod | freely configurable aura windows | qnBuffModDB |
@@ -175,7 +176,7 @@ generated with `tools\New-QnPatterns.ps1`, additionally registered with LibShare
   the junction –, otherwise via a running client).
 - Tools in `tools`: `Get-WowWindow.ps1` (position/frame of the WoW window, read only),
   `Get-Screen.ps1` (screenshot of all monitors to `tools\screen.png`, not in the repository),
-  `New-QnPatterns.ps1` (tile patterns of qnCore).
+  `New-QnPatterns.ps1` (tile patterns of qnCore), `Convert-QnLoadout.ps1` (qnLoadout sets JSON → `Data.lua`, `-Import` exports from the SavedVariables).
 - Shared icon: `qnCore\Media\qnIcon.tga` (64×64 TGA).
 
 ## Way of working

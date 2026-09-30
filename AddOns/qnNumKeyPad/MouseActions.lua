@@ -54,17 +54,19 @@ local function CanChange()
 end
 
 -- pickup puts the new action on the cursor; PlaceAction puts it into the slot and the previous
--- action on the cursor, which ClearCursor drops.
+-- action on the cursor, which ClearCursor drops. Returns true if the action was placed (false in combat,
+-- with something on the cursor or if pickup found nothing, e.g. an unknown spell).
 local function Place(slot, pickup, value)
 	if not CanChange() then
 		return false
 	end
 	pickup(value)
-	if GetCursorInfo() then
+	local picked = GetCursorInfo() ~= nil
+	if picked then
 		PlaceAction(slot)
 	end
 	ClearCursor()
-	return true
+	return picked
 end
 
 function ns.SetSlotSpell(slot, spellID)

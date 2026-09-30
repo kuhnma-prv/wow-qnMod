@@ -1,0 +1,34 @@
+{
+  "name": "G502 Mage",
+  "class": "MAGE",
+  "desc": "From the G502 notes in docs\\plans. Ctrl+Num 7 uses Frost Ward (alternative: Fire Ward). Fill in the <...> placeholders in the macros with English item names from Items.json (translated like spells).",
+  "macros": [
+    {"name": "qnCast", "scope": "char", "icon": 135736, "body": "#showtooltip Blink\n/stopcasting\n/cast Blink"},
+    {"name": "qnPoly", "scope": "char", "icon": 136071, "body": "#showtooltip Polymorph\n/cast [@mouseover,harm,nodead][harm,nodead] Polymorph"},
+    {"name": "qnCounter", "scope": "char", "icon": 135856, "body": "#showtooltip Counterspell\n/stopcasting\n/cast Counterspell"},
+    {"name": "qnIceBlock", "scope": "char", "icon": 135841, "body": "#showtooltip Ice Block\n/stopcasting\n/cast Ice Block"},
+    {"name": "qnHealItems", "scope": "char", "icon": 135230, "body": "#showtooltip\n/use Healthstone\n/use <your healing potion>"},
+    {"name": "qnMana", "scope": "char", "icon": 134104, "body": "#showtooltip\n/use <your mana gem>\n/use <your mana potion>"},
+    {"name": "qnBandage", "scope": "char", "icon": 133685, "body": "#showtooltip\n/use <your bandage>"}
+  ],
+  "numpad": [
+    {"key": "NUMPAD7", "macro": "qnCast"},
+    {"key": "NUMPAD8", "spell": "Frost Nova"},
+    {"key": "NUMPAD9", "spell": "Cone of Cold"},
+    {"key": "NUMPAD5", "macro": "qnPoly"},
+    {"key": "NUMPAD4", "macro": "qnCounter"},
+    {"key": "NUMPAD6", "macro": "qnIceBlock"},
+    {"key": "NUMPAD3", "spell": "Ice Barrier"},
+    {"key": "NUMPAD2", "macro": "qnHealItems"},
+    {"key": "NUMPAD1", "macro": "qnMana"},
+    {"key": "NUMPAD7", "set": "ctrl", "spell": "Frost Ward"},
+    {"key": "NUMPAD8", "set": "ctrl", "spell": "Arcane Explosion"},
+    {"key": "NUMPAD9", "set": "ctrl", "spell": "Evocation"},
+    {"key": "NUMPAD5", "set": "ctrl", "spell": "Fire Blast"},
+    {"key": "NUMPAD4", "set": "ctrl", "spell": "Remove Lesser Curse"},
+    {"key": "NUMPAD6", "set": "ctrl", "empty": true},
+    {"key": "NUMPAD3", "set": "ctrl", "spell": "Mana Shield"},
+    {"key": "NUMPAD2", "set": "ctrl", "macro": "qnBandage"},
+    {"key": "NUMPAD1", "set": "ctrl", "spell": "Conjure Water"}
+  ]
+}

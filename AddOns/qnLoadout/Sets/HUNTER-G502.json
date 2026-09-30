@@ -1,0 +1,32 @@
+{
+  "name": "G502 Hunter",
+  "class": "HUNTER",
+  "desc": "From the G502 notes in docs\\plans. Num 4 uses Scatter Shot (Marksmanship); Beast Mastery: replace with Intimidation. Fill in the <...> placeholders in the macros with English item names from Items.json (translated like spells).",
+  "macros": [
+    {"name": "qnArcane", "scope": "char", "icon": 132218, "body": "#showtooltip Arcane Shot\n/petattack\n/cast Arcane Shot"},
+    {"name": "qnFeign", "scope": "char", "icon": 132293, "body": "#showtooltip Feign Death\n/cast Feign Death"},
+    {"name": "qnPetRecall", "scope": "char", "icon": 132161, "body": "#showtooltip\n/petfollow\n/petpassive"},
+    {"name": "qnHealItems", "scope": "char", "icon": 135230, "body": "#showtooltip\n/use Healthstone\n/use <your healing potion>"},
+    {"name": "qnBandage", "scope": "char", "icon": 133685, "body": "#showtooltip\n/use <your bandage>"}
+  ],
+  "numpad": [
+    {"key": "NUMPAD7", "spell": "Concussive Shot"},
+    {"key": "NUMPAD8", "spell": "Wing Clip"},
+    {"key": "NUMPAD9", "spell": "Freezing Trap"},
+    {"key": "NUMPAD5", "macro": "qnArcane"},
+    {"key": "NUMPAD4", "spell": "Scatter Shot"},
+    {"key": "NUMPAD6", "macro": "qnFeign"},
+    {"key": "NUMPAD3", "spell": "Mend Pet"},
+    {"key": "NUMPAD2", "macro": "qnHealItems"},
+    {"key": "NUMPAD1", "spell": "Serpent Sting"},
+    {"key": "NUMPAD7", "set": "ctrl", "spell": "Aspect of the Cheetah"},
+    {"key": "NUMPAD8", "set": "ctrl", "spell": "Aspect of the Monkey"},
+    {"key": "NUMPAD9", "set": "ctrl", "spell": "Frost Trap"},
+    {"key": "NUMPAD5", "set": "ctrl", "spell": "Multi-Shot"},
+    {"key": "NUMPAD4", "set": "ctrl", "spell": "Hunter's Mark"},
+    {"key": "NUMPAD6", "set": "ctrl", "empty": true},
+    {"key": "NUMPAD3", "set": "ctrl", "macro": "qnPetRecall"},
+    {"key": "NUMPAD2", "set": "ctrl", "macro": "qnBandage"},
+    {"key": "NUMPAD1", "set": "ctrl", "spell": "Aspect of the Hawk"}
+  ]
+}

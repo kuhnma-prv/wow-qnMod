@@ -1,0 +1,33 @@
+{
+  "name": "G502 Druid",
+  "class": "DRUID",
+  "desc": "From the G502 notes in docs\\plans. From level 40 replace Bear Form with Dire Bear Form in qnBear; Ctrl+Num 1 uses Remove Curse (alternative: Abolish Poison). Fill in the <...> placeholders in the macros with English item names from Items.json (translated like spells).",
+  "macros": [
+    {"name": "qnBear", "scope": "char", "icon": 132276, "body": "#showtooltip\n/cast [noform:1] Bear Form; Frenzied Regeneration"},
+    {"name": "qnRejuv", "scope": "char", "icon": 136081, "body": "#showtooltip Rejuvenation\n/cancelform\n/cast [@mouseover,help,nodead][help,nodead][@player] Rejuvenation"},
+    {"name": "qnRegrowth", "scope": "char", "icon": 136085, "body": "#showtooltip Regrowth\n/cancelform\n/cast [@mouseover,help,nodead][help,nodead][@player] Regrowth"},
+    {"name": "qnHealTouch", "scope": "char", "icon": 136041, "body": "#showtooltip Healing Touch\n/cancelform\n/cast [@mouseover,help,nodead][help,nodead][@player] Healing Touch"},
+    {"name": "qnHealItems", "scope": "char", "icon": 135230, "body": "#showtooltip\n/use Healthstone\n/use <your healing potion>"},
+    {"name": "qnInnervate", "scope": "char", "icon": 136048, "body": "#showtooltip Innervate\n/cast [@player] Innervate"}
+  ],
+  "numpad": [
+    {"key": "NUMPAD7", "spell": "Cat Form"},
+    {"key": "NUMPAD8", "spell": "Entangling Roots"},
+    {"key": "NUMPAD9", "spell": "Dash"},
+    {"key": "NUMPAD5", "spell": "Moonfire"},
+    {"key": "NUMPAD4", "spell": "Bash"},
+    {"key": "NUMPAD6", "macro": "qnBear"},
+    {"key": "NUMPAD3", "macro": "qnRejuv"},
+    {"key": "NUMPAD2", "macro": "qnHealTouch"},
+    {"key": "NUMPAD1", "macro": "qnInnervate"},
+    {"key": "NUMPAD7", "set": "ctrl", "spell": "Travel Form"},
+    {"key": "NUMPAD8", "set": "ctrl", "spell": "Hibernate"},
+    {"key": "NUMPAD9", "set": "ctrl", "spell": "Prowl"},
+    {"key": "NUMPAD5", "set": "ctrl", "spell": "Wrath"},
+    {"key": "NUMPAD4", "set": "ctrl", "spell": "Faerie Fire"},
+    {"key": "NUMPAD6", "set": "ctrl", "empty": true},
+    {"key": "NUMPAD3", "set": "ctrl", "macro": "qnRegrowth"},
+    {"key": "NUMPAD2", "set": "ctrl", "macro": "qnHealItems"},
+    {"key": "NUMPAD1", "set": "ctrl", "spell": "Remove Curse"}
+  ]
+}
