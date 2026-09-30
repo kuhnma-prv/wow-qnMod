@@ -255,6 +255,128 @@ local function OnAnchorShoppingTooltips(manager)
 end
 
 ---------------------------------------------------------------------------
+-- Minimap: tooltips and the tracking menu fully on the minimap's monitor.
+-- Blizzard (Blizzard_Minimap Minimap.lua/.xml): the tracking button opens its menu with TOPRIGHT
+-- to its BOTTOMLEFT (menuPoint/menuRelativePoint) and flips it only at the edge of the whole window
+-- (Menu.lua, FlipPositionIfOffscreen). Tooltips of tracking button, zone text and clock
+-- (Blizzard_TimeManager): ANCHOR_LEFT, mail icon and calendar button (GameTime.lua): ANCHOR_BOTTOMLEFT.
+-- Next to a monitor edge both reach onto the neighboring monitor.
+---------------------------------------------------------------------------
+
+-- owner (keys from _G), the SetOwner anchor as points (tooltip, owner),
+-- refill: Blizzard fills the tooltip anew in OnUpdate (and calls Show)
+local MINIMAP_TIPS = {
+	{ { "MinimapCluster", "Tracking", "Button" }, "BOTTOMRIGHT", "TOPLEFT" },          -- ANCHOR_LEFT
+	{ { "MinimapCluster", "ZoneTextButton" }, "BOTTOMRIGHT", "TOPLEFT" },              -- ANCHOR_LEFT
+	{ { "MinimapCluster", "IndicatorFrame", "MailFrame" }, "TOPRIGHT", "BOTTOMLEFT" }, -- ANCHOR_BOTTOMLEFT
+	{ { "GameTimeFrame" }, "TOPRIGHT", "BOTTOMLEFT", true },                           -- ANCHOR_BOTTOMLEFT
+	{ { "TimeManagerClockButton" }, "BOTTOMRIGHT", "TOPLEFT", true },                  -- ANCHOR_LEFT
+}
+
+local function GlobalChild(path)
+	local f = _G
+	for _, key in ipairs(path) do
+		f = f and f[key]
+	end
+	return f
+end
+
+local function FitMinimapTip(owner, point, relPoint)
+	if not (GameTooltip:IsOwned(owner) and ns.Layout.MonitorAt(owner)) then
+		return
+	end
+	-- SetOwner with an anchor type: set it as points if GetPoint does not report the owner
+	-- (unverified what the client returns), so FitToMonitor can move it
+	local _, rel = GameTooltip:GetPoint(1)
+	if rel ~= owner then
+		GameTooltip:ClearAllPoints()
+		GameTooltip:SetPoint(point, owner, relPoint)
+	end
+	ns.Layout.FitToMonitor(GameTooltip, owner)
+end
+
+-- the menu (proxy frame of Blizzard_Menu) hangs on the button, see Layout.FitToMonitor
+local function OnTrackingMenuOpened(button, menu)
+	if not menu then
+		return
+	end
+	ns.Layout.FitToMonitor(menu, button)
+	C_Timer.After(0, function()
+		if button.menu == menu then
+			ns.Layout.FitToMonitor(menu, button)
+		end
+	end)
+end
+
+local hookedTips = {}   -- [owner] = true
+
+-- again after Blizzard_TimeManager has loaded (clock button)
+local function HookMinimap()
+	for _, e in ipairs(MINIMAP_TIPS) do
+		local owner, point, relPoint, refill = GlobalChild(e[1]), e[2], e[3], e[4]
+		if owner and not hookedTips[owner] then
+			hookedTips[owner] = true
+			owner:HookScript("OnEnter", function(self)
+				FitMinimapTip(self, point, relPoint)
+				-- once more in the next frame: then the tooltip has its final size
+				C_Timer.After(0, function()
+					FitMinimapTip(self, point, relPoint)
+				end)
+			end)
+			if refill then
+				-- after Blizzard's OnUpdate, i.e. before the tooltip is drawn
+				owner:HookScript("OnUpdate", function(self)
+					FitMinimapTip(self, point, relPoint)
+				end)
+			end
+		end
+	end
+	local button = GlobalChild({ "MinimapCluster", "Tracking", "Button" })
+	if button and button.OnMenuOpened and not hookedTips.menu then
+		hookedTips.menu = true
+		hooksecurefunc(button, "OnMenuOpened", OnTrackingMenuOpened)
+	end
+end
+
+---------------------------------------------------------------------------
+-- Clock window (TimeManagerFrame from Blizzard_TimeManager, opened by clicking the clock):
+-- Blizzard attaches it with TOPRIGHT to the top right of UIParent (-10, -190, Blizzard_TimeManager.xml),
+-- i.e. of the whole window – with monitors of different heights partly on no monitor.
+-- Opt-in "clock": below the clock button on its monitor, each time it opens.
+---------------------------------------------------------------------------
+
+local CLOCK_ADDON = "Blizzard_TimeManager"
+local clockPlaced = false   -- anchor changed by us; turning it off restores Blizzard's anchor
+
+function Dual.PlaceClock()
+	local f, button = _G.TimeManagerFrame, _G.TimeManagerClockButton
+	if not (f and button) then
+		return
+	end
+	if DB().clock then
+		if f:IsShown() and ns.Layout.MonitorAt(button) then
+			f:ClearAllPoints()
+			f:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT")
+			ns.Layout.FitToMonitor(f, button)
+			clockPlaced = true
+		end
+	elseif clockPlaced then
+		f:ClearAllPoints()
+		f:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -190)
+		clockPlaced = false
+	end
+end
+
+local clockHooked = false
+local function HookClock()
+	local f = _G.TimeManagerFrame
+	if f and not clockHooked then
+		clockHooked = true
+		f:HookScript("OnShow", Dual.PlaceClock)
+	end
+end
+
+---------------------------------------------------------------------------
 -- Zone Map (BattlefieldMapFrame from Blizzard_BattlefieldMap, loads on demand)
 -- Blizzard attaches the map with TOPLEFT to BattlefieldMapTab BOTTOMLEFT (y -5) and only remembers
 -- the position of the tab. Hence the tab is placed; the map follows.
@@ -540,6 +662,7 @@ function Dual.ApplyAll()
 	Dual.ScaleZoneMap(true)
 	Dual.PlaceZoneMap()
 	Dual.PlaceWorldMap()
+	Dual.PlaceClock()
 end
 
 -- Reapply everything after changed settings, without a chat message. With withViewport (and
@@ -962,9 +1085,17 @@ local function BuildPlacementPage(desc)
 		function() ApplyMapFade(true) end)
 	cFade:SetPoint("TOPLEFT", cFollow, "BOTTOMLEFT", 0, -2)
 
+	-- Clock window (opened by clicking the clock at the minimap)
+	local clockHead = UI.Text(page, "GameFontNormal", TIMEMANAGER_TITLE)
+	clockHead:SetPoint("TOPLEFT", cFade, "BOTTOMLEFT", 4, -14)
+	local cClock = Check(L["Open below the clock"], "clock",
+		L["Blizzard places the window of the clock at the top right edge of the game window, with monitors of different heights partly outside every monitor. On: below the clock at the minimap, on its monitor."],
+		Dual.PlaceClock)
+	cClock:SetPoint("TOPLEFT", clockHead, "BOTTOMLEFT", -4, -4)
+
 	local cGuides = Check(L["Show areas"], "guides",
 		L["Outlines the areas: blue bags, yellow Zone Map, green World Map, purple \"Map & Quest Log\" (only while placement is on)."], Dual.UpdateArea)
-	cGuides:SetPoint("TOPLEFT", cFade, "BOTTOMLEFT", 0, -10)
+	cGuides:SetPoint("TOPLEFT", cClock, "BOTTOMLEFT", 0, -10)
 
 	local apply = ApplyButton(cGuides, false)
 	local openMap = UI.Button(page, L["Open map"], 160, Dual.OpenMap)
@@ -1177,9 +1308,12 @@ function ns.InitSecondScreen()
 	-- Tooltips on bag slots
 	hooksecurefunc(GameTooltip, "SetBagItem", OnSetBagItem)
 	hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", OnAnchorShoppingTooltips)
-	-- Zone Map and World Map: already loaded or later via ADDON_LOADED
+	-- Minimap tooltips and tracking menu
+	HookMinimap()
+	-- Zone Map, World Map and clock (window, tooltip): already loaded or later via ADDON_LOADED
 	HookZoneMap()
 	HookWorldMap()
+	HookClock()
 
 	local events = ns.events
 	events.Register("ADDON_LOADED", function(_, name)
@@ -1187,6 +1321,9 @@ function ns.InitSecondScreen()
 			HookZoneMap()
 		elseif name == "Blizzard_WorldMap" then
 			HookWorldMap()
+		elseif name == CLOCK_ADDON then
+			HookMinimap()
+			HookClock()
 		end
 	end)
 	events.Register("PLAYER_ENTERING_WORLD", function(_, isInitialLogin, isReloadingUi)

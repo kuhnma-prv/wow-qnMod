@@ -143,3 +143,5 @@ L["Size of Titan's bars, plugins and tooltips on this monitor, in addition to Ti
 L["Monitor %d (not present)"] = "Monitor %d (nicht vorhanden)"
 L["Places the full-width Titan bars on the top or bottom edge of a monitor. They are still turned on and off in Titan. Tooltips of Titan plugins stay on the plugin's monitor."] = "Legt die durchgehenden Titan-Leisten an die obere bzw. untere Kante eines Monitors. Ein- und ausgeschaltet werden sie weiter in Titan. Tooltips der Titan-Plugins bleiben auf dem Monitor des Plugins."
 L["Places the bars on their monitors again, e.g. after the monitor arrangement has changed."] = "Legt die Leisten erneut an ihre Monitore, z. B. nach einer Änderung der Monitoranordnung."
+L["Open below the clock"] = "Unter der Uhr öffnen"
+L["Blizzard places the window of the clock at the top right edge of the game window, with monitors of different heights partly outside every monitor. On: below the clock at the minimap, on its monitor."] = "Blizzard legt das Fenster der Uhr an die obere rechte Kante des Spielfensters, bei unterschiedlich hohen Monitoren teils außerhalb aller Monitore. An: unter der Uhr an der Minikarte, auf deren Monitor."

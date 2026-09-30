@@ -24,7 +24,7 @@ Check(P.GetActiveKey() == nil, "no active profile before EDIT_MODE_LAYOUTS_UPDAT
 Check(meter.db.scale == 1 and meter.db ~= qnThreatMeterDB.profiles["account:Raid"], "qnThreatMeter: layout unknown, no last session: provisional table with defaults")
 Check(qnThreatMeterDB.settingsVersion == "1.0" and qnThreatMeterDB.version == nil and qnThreatMeterDB.migrated == nil, "qnThreatMeter: settingsVersion written, version/migrated removed")
 Check(qnThreatMeterDB.profiles["account:Raid"].styleVersion == nil and qnThreatMeterDB.profiles["account:Raid"].pointInParentUnits == nil, "qnThreatMeter: obsolete keys removed from the profile")
-Check(qnViewPortDB.settingsVersion == "1.0" and qnNumKeyPadProfiles.settingsVersion == "1.2" and qnCoreDB.settingsVersion == "1.0", "settingsVersion written for all addons")
+Check(qnViewPortDB.settingsVersion == "1.1" and qnNumKeyPadProfiles.settingsVersion == "1.2" and qnCoreDB.settingsVersion == "1.0", "settingsVersion written for all addons")
 
 SetEditModeLayout(3)
 Check(P.GetActiveKey() == "account:Raid", "active profile = account layout Raid: " .. tostring(P.GetActiveKey()))
