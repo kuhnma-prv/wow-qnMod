@@ -1,7 +1,8 @@
 -- qnUnitFrames: German texts (deDE clients only). Key = English text in the code.
 -- Blizzard texts in the code: KEY_BUTTON1–5 (mouse buttons), ALT_KEY_TEXT/CTRL_KEY_TEXT/SHIFT_KEY_TEXT,
 -- MACRO (Macro), TARGET (Target), FRAME_ACTION_MENU (Menu), SET_FOCUS (Set Focus), GENERAL,
--- HUD_EDIT_MODE_SETTINGS_CATEGORY_TITLE_FRAMES (Frames), DELETE, ACCEPT, CANCEL.
+-- HUD_EDIT_MODE_SETTINGS_CATEGORY_TITLE_FRAMES (Frames), DELETE, ACCEPT, CANCEL,
+-- HUD_EDIT_MODE_SETTING_ACTION_BAR_ICON_SIZE (Icon Size).
 
 local ADDON, ns = ...
 local L = qnCore.NewLocale(ns, ADDON)
@@ -33,6 +34,15 @@ L["Classic party frames"] = "Klassische Gruppenrahmen"
 L["The party frames without the option 'Use Raid-Style Party Frames'."] = "Die Gruppenrahmen ohne die Einstellung 'Gruppen wie Schlachtzüge anzeigen'."
 L["Pet frames"] = "Begleiterrahmen"
 L["Also bind the frames of party members' pets."] = "Auch die Rahmen der Begleiter von Gruppenmitgliedern belegen."
+L["Range Icon"] = "Reichweitensymbol"
+L["At the target frame"] = "Am Zielrahmen"
+L["At the focus frame"] = "Am Fokusrahmen"
+L["Shows to the right of the target frame the icon of your farthest ranged action that can be used right now, as soon as the target is within its range. Within melee range the icon of the auto attack appears."] = "Zeigt rechts neben dem Zielrahmen das Symbol deiner gerade einsetzbaren Fernkampfaktion mit der größten Reichweite, sobald das Ziel in ihrer Reichweite ist. In Nahkampfreichweite erscheint das Symbol des automatischen Angriffs."
+L["Shows to the right of the focus frame the icon of your farthest ranged action that can be used right now, as soon as the focus is within its range. Within melee range the icon of the auto attack appears."] = "Zeigt rechts neben dem Fokusrahmen das Symbol deiner gerade einsetzbaren Fernkampfaktion mit der größten Reichweite, sobald der Fokus in ihrer Reichweite ist. In Nahkampfreichweite erscheint das Symbol des automatischen Angriffs."
+L["Horizontal offset"] = "Horizontaler Versatz"
+L["Vertical offset"] = "Vertikaler Versatz"
+L["Distance from the right edge of the frame; negative values move the icon to the left."] = "Abstand vom rechten Rand des Rahmens; negative Werte verschieben das Symbol nach links."
+L["Distance from the vertical center of the frame; positive values move the icon up."] = "Abstand von der vertikalen Mitte des Rahmens; positive Werte verschieben das Symbol nach oben."
 
 -- ClicksPage.lua
 L["Other spell …"] = "Anderer Zauber …"

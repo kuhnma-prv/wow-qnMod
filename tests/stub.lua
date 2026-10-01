@@ -94,6 +94,7 @@ for _, e in ipairs({ "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_DEAD", "MINIMAP_U
 end
 VALID.SECURE_TRANSFER_CANCEL = true   -- SecureTransferDocumentation (qnInventory)
 VALID.ACCOUNT_MONEY = true   -- CurrencyInfoDocumentation (qnInventory)
+VALID.SPELLS_CHANGED = true   -- SpellBookDocumentation (qnUnitFrames)
 VALID.ITEM_DATA_LOAD_RESULT = true   -- ItemDocumentation (qnLoadout)
 VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInventory)
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
@@ -939,6 +940,37 @@ function C_SpellBook.GetSpellBookItemInfo(slot, bank)
 		slot = slot - #line.items
 	end
 end
+-- spell book item with isAutoAttack = true is the melee auto attack
+function C_SpellBook.IsAutoAttackSpellBookItem(slot, bank)
+	local item = C_SpellBook.GetSpellBookItemInfo(slot, bank)
+	return item and item.isAutoAttack or false
+end
+-- Range checks (qnUnitFrames): QN_SPELLINFO[id] = { maxRange, harmful, usable, noPower, icon },
+-- QN_DISTANCE[unit] = distance in yards; nil range = cannot be checked (unknown spell, no unit,
+-- QN_FRIENDLY[unit] for harmful spells)
+QN_SPELLINFO, QN_DISTANCE, QN_FRIENDLY = {}, {}, {}
+function C_Spell.IsSpellHarmful(id) local s = QN_SPELLINFO[id] return s and s.harmful or false end
+function C_Spell.GetSpellInfo(id)
+	local s = QN_SPELLINFO[id]
+	if s then return { name = s.name or tostring(id), spellID = id, iconID = s.icon or id, originalIconID = s.icon or id, castTime = 0, minRange = 0, maxRange = s.maxRange or 0 } end
+end
+function C_Spell.IsSpellInRange(id, unit)
+	local s, d = QN_SPELLINFO[id], QN_DISTANCE[unit]
+	if not s or s.unchecked or not d or not UnitExists(unit) or (s.harmful and QN_FRIENDLY[unit]) then return nil end
+	-- alwaysInRange: as Heroic Strike in the game (true at charge distance)
+	return s.alwaysInRange or d <= (s.maxRange or 0)
+end
+-- PlayerScriptDocumentation: 1 inspect (28 yd), 2 trade (11.11), 3 duel (9.9), 4 follow (28)
+function CheckInteractDistance(unit, i)
+	local d = QN_DISTANCE[unit]
+	return d ~= nil and d <= ({ 28, 11.11, 9.9, 28 })[i]
+end
+function C_Spell.IsSpellUsable(id)
+	local s = QN_SPELLINFO[id]
+	if not s then return true, false end
+	return s.usable ~= false, s.noPower or false
+end
+C_Spell.GetSpellTexture = C_Spell.GetSpellTexture or function(id) local s = QN_SPELLINFO[id] return s and s.icon or id end
 
 -- Restricted environment (Blizzard_RestrictedAddOnEnvironment), only on request of a scenario:
 -- call EnableRestrictedEnvironment() before LoadAddon. Modeled on the Forever source:

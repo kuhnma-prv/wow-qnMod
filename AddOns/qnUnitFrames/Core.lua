@@ -24,7 +24,20 @@ ns.defaults = {
 	pets = true,          -- party pet frames
 	tooltip = true,       -- show bindings in the frames' tooltip
 	bindings = {},        -- [class] = { [key] = { type, value } }
+	-- range icon (Range.lua) per frame: on/off, size, offset from the frame's right edge
+	rangeTarget = false,
+	rangeTargetSize = 24,
+	rangeTargetX = 0,
+	rangeTargetY = 0,
+	rangeFocus = false,
+	rangeFocusSize = 24,
+	rangeFocusX = 0,
+	rangeFocusY = 0,
 }
+
+-- limits of the range icon sliders (Options.lua, Sanitize)
+ns.RANGE_SIZE = { 12, 64 }
+ns.RANGE_OFFSET = { -200, 200 }
 
 ---------------------------------------------------------------------------
 -- Buttons and actions
@@ -132,10 +145,27 @@ function ns.SetBinding(key, kind, value)
 end
 
 -- Version of the settings (see qnCore.Migrate)
-local SETTINGS_VERSION = "1.0"
+-- 1.1: range icon at the target and focus frame
+local SETTINGS_VERSION = "1.1"
+
+-- number within limits, otherwise nil (= default)
+local function Clamp(v, limits)
+	if type(v) ~= "number" then
+		return nil
+	end
+	return math.min(math.max(v, limits[1]), limits[2])
+end
 
 -- Check of a profile on every load: removes broken entries (unknown action, wrong key).
 local function Sanitize(db)
+	for _, entry in ipairs({ "rangeTarget", "rangeFocus" }) do
+		if type(db[entry]) ~= "boolean" then
+			db[entry] = nil
+		end
+		db[entry .. "Size"] = Clamp(db[entry .. "Size"], ns.RANGE_SIZE)
+		db[entry .. "X"] = Clamp(db[entry .. "X"], ns.RANGE_OFFSET)
+		db[entry .. "Y"] = Clamp(db[entry .. "Y"], ns.RANGE_OFFSET)
+	end
 	if type(db.bindings) ~= "table" then
 		db.bindings = nil
 		return
@@ -189,13 +219,16 @@ ns.OnLoad(function()
 		sanitize = Sanitize,
 		onSwitch = function()
 			ns.Apply()
+			ns.ApplyRange()
 			ns.RefreshClicksPage()
 		end,
 	})
 	ns.InitClicks()
+	ns.InitRange()
 	ns.InitOptions()
 end)
 
 ns.events.Register("PLAYER_LOGIN", function()
 	ns.Apply()
+	ns.ApplyRange()
 end)
