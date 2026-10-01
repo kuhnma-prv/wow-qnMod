@@ -26,6 +26,29 @@ local function Build(category, layout)
 	B:Checkbox(category, "pets", L["Pet frames"],
 		L["Also bind the frames of party members' pets."])
 
+	-- range icon: one block per frame (Range.lua)
+	local R = S.New({ store = ns.store, prefix = "QNUF_", apply = function() ns.ApplyRange() end })
+	S.Header(layout, L["Range Icon"])
+	local frames = {
+		rangeTarget = { L["At the target frame"],
+			L["Shows to the right of the target frame the icon of your farthest ranged action that can be used right now, as soon as the target is within its range. Within melee range the icon of the auto attack appears."] },
+		rangeFocus = { L["At the focus frame"],
+			L["Shows to the right of the focus frame the icon of your farthest ranged action that can be used right now, as soon as the focus is within its range. Within melee range the icon of the auto attack appears."] },
+	}
+	for _, entry in ipairs(ns.RANGE_UNITS) do
+		local key = entry.key
+		local function IsOn()
+			return R.settings[key]:GetValue()
+		end
+		local on = R:Checkbox(category, key, frames[key][1], frames[key][2])
+		local size, offset = ns.RANGE_SIZE, ns.RANGE_OFFSET
+		S.Depends(R:Slider(category, key .. "Size", HUD_EDIT_MODE_SETTING_ACTION_BAR_ICON_SIZE, size[1], size[2], 1), on, IsOn)
+		S.Depends(R:Slider(category, key .. "X", L["Horizontal offset"], offset[1], offset[2], 1, nil,
+			L["Distance from the right edge of the frame; negative values move the icon to the left."]), on, IsOn)
+		S.Depends(R:Slider(category, key .. "Y", L["Vertical offset"], offset[1], offset[2], 1, nil,
+			L["Distance from the vertical center of the frame; positive values move the icon up."]), on, IsOn)
+	end
+
 	ns.InitClicksPage(category)
 end
 
