@@ -13,6 +13,9 @@ layout (including character-specific ones) has its own profile.
 > These addons are written for Classic Forever only. They use its APIs directly and are
 > not tested on Retail, Classic Era, Cataclysm/MoP Classic or other clients.
 
+**User guide:** [English](docs/user/en/README.md) · [Deutsch](docs/user/de/README.md) —
+overview and a detailed page per addon. Changes per release: [CHANGELOG](CHANGELOG.md).
+
 ## Addons
 
 | Addon | What it does | Slash commands |
@@ -20,6 +23,7 @@ layout (including character-specific ones) has its own profile.
 | **qnCore** | Core and library (required by all others): profiles per Edit Mode layout, settings builder, widgets, bag automation, remembers minimap tracking, quest tracker font size, "Profiles" page | `/qncore`, `/qnc` |
 | **qnThreatMeter** | Threat meter for your group against the current target (works with secret values) | `/qnthreatmeter`, `/qnm` |
 | **qnNumKeyPad** | Action bar in the shape of a numpad | `/qnnumkeypad`, `/qnnkp`, `/numpad` |
+| **qnLoadout** | Ready-made sets per class: `qn` macros and qnNumKeyPad assignments (requires qnNumKeyPad) | `/qnloadout` |
 | **qnViewPort** | Shrinks the area in which the 3D world is rendered, border color/pattern, multi-monitor support; with Titan Panel: bars and tooltips per monitor | `/qnviewport`, `/qnvp`, `/viewport` |
 | **qnInventory** | Remembers bags, bank, mail and gold of all characters, shows item counts in the tooltip and shows bags, bank and mailbox of any character anywhere (windows like Blizzard's, with character selection) | `/qninventory`, `/qninv` |
 | **qnBuffMod** | Freely customizable buff and debuff windows | `/qnbuffmod`, `/qnbuff`, `/qnaura` |
