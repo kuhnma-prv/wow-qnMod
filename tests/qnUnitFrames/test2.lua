@@ -34,6 +34,7 @@ QN_SPELLINFO = {
 	[600] = { maxRange = 40, harmful = true, icon = 1600 },
 }
 function UnitExists(u) return QN_DISTANCE[u] ~= nil end
+function UnitCanAttack(a, u) return UnitExists(u) and not QN_FRIENDLY[u] end
 
 LoadAddon("qnCore")
 local uf = LoadAddon("qnUnitFrames")
@@ -88,6 +89,11 @@ QN_DISTANCE.target = 8
 QN_SPELLINFO[100].unchecked, QN_SPELLINFO[284].unchecked = true, true
 RunTickers()
 Check(icon:IsShown() and icon.tex:GetTexture() == 1001, "within duel distance: melee icon")
+-- friendly unit within duel distance: no melee icon (bug: auto attack icon appeared)
+QN_FRIENDLY.target = true
+RunTickers()
+Check(not icon:IsShown(), "friendly unit within duel distance: no icon")
+QN_FRIENDLY.target = nil
 QN_DISTANCE.target = 12
 RunTickers()
 Check(icon.tex:GetTexture() == 1300, "beyond duel distance: ranged icon")
