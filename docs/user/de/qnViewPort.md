@@ -4,7 +4,7 @@ qnViewPort verkleinert den Bereich, in dem die 3D-Welt gezeichnet wird. So kanns
 Chat und andere Fenster neben die Spielwelt legen statt darüber. Die Fläche außerhalb der Welt
 bekommt eine Farbe und auf Wunsch ein gekacheltes Muster. Ziehst du das Spielfenster über mehrere
 Monitore, hält qnViewPort die 3D-Welt auf dem Hauptmonitor, legt auf Wunsch Taschen, Zonenkarte,
-Weltkarte und Uhrfenster auf einen Monitor deiner Wahl, hält Tooltips auf ihrem Monitor und verteilt
+Weltkarte, Uhr- und Talentfenster auf einen Monitor deiner Wahl, hält Tooltips auf ihrem Monitor und verteilt
 mit Titan Panel die Titan-Leisten auf einzelne Monitore.
 
 ## Funktionen
@@ -17,7 +17,7 @@ mit Titan Panel die Titan-Leisten auf einzelne Monitore.
 - Zwei-/Mehrmonitor-Modus: 3D-Welt nur auf dem Hauptmonitor, mit gemessenen Monitordaten
   (PowerShell-Skripte) oder von Hand eingetragenen Werten.
 - Platzierung auf Wunsch (Opt-in) von Taschen, Zonenkarte (mit Größe), maximierter Weltkarte,
-  „Karte & Questlog“ und Uhrfenster auf einem gewählten Monitor.
+  „Karte & Questlog“, Uhr- und Talentfenster auf einem gewählten Monitor.
 - Extras für die Weltkarte: der aktuellen Zone folgen, beim Einloggen öffnen, beim Laufen nicht
   ausblenden.
 - Sichtbarkeitsprüfung: listet Oberflächenelemente, die ganz oder teilweise auf keinem Monitor
@@ -148,10 +148,17 @@ Auswahlliste: **Hauptmonitor** oder einer der nummerierten Monitore (Nummern wie
 - **Unter der Uhr öffnen**: Das Uhrfenster (Klick auf die Uhr an der Minikarte) öffnet sich unter der
   Uhr auf deren Monitor statt an der oberen rechten Kante des Spielfensters. Standard: aus.
 
+**Talente**
+
+- **Talentfenster auf** + Monitor: Blizzard platziert das Talentfenster relativ zum ganzen
+  Spielfenster, also mittig über alle Monitore. An: dieselbe Position relativ zum gewählten Monitor;
+  die Größe bleibt unverändert. Beim Ausschalten kommt Blizzards Position zurück. Standard: aus,
+  Hauptmonitor.
+
 **Schaltflächen und Anzeige**
 
 - **Bereiche anzeigen**: rahmt die Bereiche der aktiven Platzierungen ein – blau Taschen, gelb
-  Zonenkarte, grün Weltkarte, violett „Karte & Questlog“. Standard: aus.
+  Zonenkarte, grün Weltkarte, violett „Karte & Questlog“, rot Talentfenster. Standard: aus.
 - **Übernehmen**: platziert alles erneut.
 - **Karte öffnen**: öffnet die Weltkarte (nicht im Kampf).
 

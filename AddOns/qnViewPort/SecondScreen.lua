@@ -118,6 +118,7 @@ local mapPlace = NewPlacement("zoneMap", L["Zone Map"], 1, 0.8, 0)
 -- whole monitors (without …Point/…Offset: bottom right corner, offsets 0)
 local worldPlace = NewPlacement("worldMap", WORLDMAP_BUTTON, 0.3, 1, 0.3)
 local questPlace = NewPlacement("questLog", MAP_AND_QUEST_LOG, 1, 0.5, 1)
+local talentPlace = NewPlacement("talents", TALENTS, 1, 0.3, 0.3)
 
 -- Defines an area: monitor, corner, offsets from the edges of that corner.
 local function UpdatePlacement(pl)
@@ -651,6 +652,129 @@ local function HookWorldMap()
 end
 
 ---------------------------------------------------------------------------
+-- Talent window on one monitor (only with option "talents")
+-- Forever loads it from Blizzard_PlayerSpells (as on mainline). Blizzard's window management
+-- (ShowUIPanel/UpdateUIPanelPositions) positions it relative to UIParent, i.e. centered on the
+-- whole game window – with several monitors across the monitor border.
+-- Here the same position logic on the monitor's area instead of UIParent:
+--   * one anchor on UIParent: same point, relative point and offsets, but on the area;
+--   * otherwise (several anchors, computed offsets): same distance of the frame's center
+--     from the center, measured from the area's center instead of UIParent's.
+-- The size is not changed. Blizzard's anchors are remembered and restored when turned off.
+---------------------------------------------------------------------------
+
+local TALENT_ADDONS = { Blizzard_PlayerSpells = true, Blizzard_TalentUI = true, Blizzard_ClassTalentUI = true }
+-- first existing frame wins; PlayerSpellsFrame is the window of Blizzard_PlayerSpells
+local TALENT_FRAMES = { "PlayerSpellsFrame", "ClassTalentFrame", "PlayerTalentFrame" }
+
+local talentAnchors   -- Blizzard's anchors { { point, rel, relPoint, x, y }, … } while placed by us
+
+local function TalentFrame()
+	for _, name in ipairs(TALENT_FRAMES) do
+		local f = _G[name]
+		if type(f) == "table" and f.GetPoint then
+			return f
+		end
+	end
+end
+
+local function GetAnchors(f)
+	local list = {}
+	for i = 1, f:GetNumPoints() do
+		list[i] = { f:GetPoint(i) }
+	end
+	return list
+end
+
+-- Anchors set by Blizzard (or another addon): not ours, i.e. not on the area
+local function IsOwnAnchor(f, area)
+	local _, rel = f:GetPoint(1)
+	return f:GetNumPoints() == 1 and rel == area
+end
+
+local function RestoreTalents(f)
+	if not talentAnchors then
+		return
+	end
+	if IsOwnAnchor(f, talentPlace.area) then
+		f:ClearAllPoints()
+		for _, a in ipairs(talentAnchors) do
+			f:SetPoint(a[1], a[2] or UIParent, a[3], a[4], a[5])
+		end
+	end
+	talentAnchors = nil
+end
+
+function Dual.PlaceTalents()
+	local f = TalentFrame()
+	if not f then
+		return
+	end
+	if f:IsProtected() and qnCore.DeferInCombat(Dual.PlaceTalents) then
+		return
+	end
+	local area = talentPlace.area
+	if not DB().talents then
+		RestoreTalents(f)
+		return
+	end
+	if not f:IsShown() then
+		return   -- placed on the next opening
+	end
+	if IsOwnAnchor(f, area) then
+		return   -- already placed; Blizzard has not re-anchored it since
+	end
+	local anchors = GetAnchors(f)
+	local first = anchors[1]
+	if not first then
+		return
+	end
+	local rel = first[2] or UIParent
+	if #anchors == 1 and rel == UIParent then
+		-- same anchor, on the monitor
+		talentAnchors = anchors
+		f:ClearAllPoints()
+		f:SetPoint(first[1], area, first[3], first[4], first[5])
+		return
+	end
+	-- otherwise: keep the offset of the center from UIParent's center, relative to the area's center
+	local fx, fy = f:GetCenter()
+	local ux, uy = UIParent:GetCenter()
+	if not (fx and ux) then
+		return
+	end
+	local k = UIParent:GetEffectiveScale() / f:GetEffectiveScale()   -- UIParent units -> units of f
+	talentAnchors = anchors
+	f:ClearAllPoints()
+	f:SetPoint("CENTER", area, "CENTER", fx - ux * k, fy - uy * k)
+end
+
+-- After Blizzard's own layout: on opening and on every re-layout of the windows (another
+-- window opens or closes). Immediately and once more in the next frame.
+local talentsHooked = false
+local function HookTalents()
+	local f = TalentFrame()
+	if talentsHooked or not f then
+		return
+	end
+	talentsHooked = true
+	local later = qnCore.Debounce(Dual.PlaceTalents)
+	local function Place()
+		if talentAnchors or DB().talents then
+			Dual.PlaceTalents()
+			later()
+		end
+	end
+	-- Blizzard's anchors are only kept while the window still hangs on our area; if Blizzard
+	-- re-anchors it (next opening), PlaceTalents remembers the new ones.
+	f:HookScript("OnShow", Place)
+	for _, name in ipairs({ "ShowUIPanel", "UpdateUIPanelPositions" }) do
+		hooksecurefunc(name, Place)
+	end
+	Place()
+end
+
+---------------------------------------------------------------------------
 -- Apply
 ---------------------------------------------------------------------------
 
@@ -663,6 +787,7 @@ function Dual.ApplyAll()
 	Dual.PlaceZoneMap()
 	Dual.PlaceWorldMap()
 	Dual.PlaceClock()
+	Dual.PlaceTalents()
 end
 
 -- Reapply everything after changed settings, without a chat message. With withViewport (and
@@ -1093,9 +1218,22 @@ local function BuildPlacementPage(desc)
 		Dual.PlaceClock)
 	cClock:SetPoint("TOPLEFT", clockHead, "BOTTOMLEFT", -4, -4)
 
+	-- Talent window: centered on a monitor instead of on the whole game window
+	local talentHead = UI.Text(page, "GameFontNormal", TALENTS)
+	talentHead:SetPoint("TOPLEFT", cClock, "BOTTOMLEFT", 4, -14)
+	local cTalents = Check(L["Talent window on"], "talents",
+		L["Blizzard places the talent window relative to the whole game window, i.e. centered across all monitors. On: the same position relative to the selected monitor (size unchanged)."],
+		Dual.ApplyAll)
+	cTalents:SetPoint("TOPLEFT", talentHead, "BOTTOMLEFT", -4, -4)
+	local talentMonitor = Choice("", 240, MonitorEntries,
+		function() return MonitorIndex("talents") end,
+		function(i) DB().talentsMonitor = i end, Dual.ApplyAll)
+	talentMonitor:SetPoint("LEFT", cTalents, "LEFT", 260, 0)
+	UI.Tooltip(talentMonitor, L["Monitor for the talent window"], L["Numbers as on the \"Monitors\" page."])
+
 	local cGuides = Check(L["Show areas"], "guides",
-		L["Outlines the areas: blue bags, yellow Zone Map, green World Map, purple \"Map & Quest Log\" (only while placement is on)."], Dual.UpdateArea)
-	cGuides:SetPoint("TOPLEFT", cClock, "BOTTOMLEFT", 0, -10)
+		L["Outlines the areas: blue bags, yellow Zone Map, green World Map, purple \"Map & Quest Log\", red talent window (only while placement is on)."], Dual.UpdateArea)
+	cGuides:SetPoint("TOPLEFT", cTalents, "BOTTOMLEFT", 0, -10)
 
 	local apply = ApplyButton(cGuides, false)
 	local openMap = UI.Button(page, L["Open map"], 160, Dual.OpenMap)
@@ -1314,10 +1452,13 @@ function ns.InitSecondScreen()
 	HookZoneMap()
 	HookWorldMap()
 	HookClock()
+	HookTalents()
 
 	local events = ns.events
 	events.Register("ADDON_LOADED", function(_, name)
-		if name == ZONEMAP_ADDON then
+		if TALENT_ADDONS[name] then
+			HookTalents()
+		elseif name == ZONEMAP_ADDON then
 			HookZoneMap()
 		elseif name == "Blizzard_WorldMap" then
 			HookWorldMap()
