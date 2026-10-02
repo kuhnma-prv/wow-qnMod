@@ -3,8 +3,8 @@
 qnViewPort shrinks the area in which the 3D world is rendered, so action bars, chat and other
 windows can sit next to the game world instead of on top of it. The area outside the world gets a
 color and an optional tiled pattern. If you stretch the game window across several monitors,
-qnViewPort keeps the 3D world on the main monitor, can place bags, Zone Map, World Map and the clock
-window on a monitor of your choice, keeps tooltips on the monitor they belong to and, with
+qnViewPort keeps the 3D world on the main monitor, can place bags, Zone Map, World Map, the clock
+window and the talent window on a monitor of your choice, keeps tooltips on the monitor they belong to and, with
 Titan Panel, puts the Titan bars on individual monitors.
 
 ## Features
@@ -16,7 +16,7 @@ Titan Panel, puts the Titan bars on individual monitors.
 - Dual/multi-monitor mode: 3D world only on the main monitor, using measured monitor data
   (PowerShell scripts) or manually entered values.
 - Optional placement (opt-in) of bags, Zone Map (with size), maximized World Map, "Map & Quest Log"
-  and the clock window on a chosen monitor.
+  the clock window and the talent window on a chosen monitor.
 - World Map extras: follow the current zone, open on login, do not fade while moving.
 - Visibility check: lists interface elements that are fully or partly outside every monitor and
   moves them one at a time on request.
@@ -138,10 +138,16 @@ Offsets are counted in pixels inward from the edges of the chosen corner.
 - **Open below the clock**: the clock window (click on the clock at the minimap) opens below the
   clock on its monitor instead of at the top right edge of the game window. Default: off.
 
+**Talents**
+
+- **Talent window on** + monitor: Blizzard places the talent window relative to the whole game
+  window, i.e. centered across all monitors. On: the same position relative to the chosen monitor;
+  the size stays unchanged. Turning it off restores Blizzard's position. Default: off, main monitor.
+
 **Buttons and display**
 
 - **Show areas**: outlines the areas of the active placements – blue bags, yellow Zone Map, green
-  World Map, purple "Map & Quest Log". Default: off.
+  World Map, purple "Map & Quest Log", red talent window. Default: off.
 - **Apply**: places everything again.
 - **Open map**: opens the World Map (not in combat).
 

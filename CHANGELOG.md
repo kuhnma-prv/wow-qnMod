@@ -13,6 +13,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
+- **qnViewPort 0.1.6:** optional "Talent window on" (page "Placement"): the talent window keeps
+  Blizzard's position, but relative to a chosen monitor instead of centered across all monitors.
 - User documentation in English and German (`docs/user/en`, `docs/user/de`): overview and one page
   per addon.
 - **qnUnitFrames 0.2.0:** optional range icon to the right of the target and the focus frame. It
