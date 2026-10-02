@@ -14,7 +14,9 @@ Replies to the user are in German.
 AddOns\        all addons of the client; only qn* are in the repository (the rest is excluded via .gitignore)
 tests\         test environment (fengari, stub.lua, scenarios per addon)
 tools\         developer tools (Get-Screen, Get-WowWindow, New-QnPatterns, New-QnSkinArt)
+docs\user\     user documentation: en\ and de\, each README.md (overview) + <Addon>.md per addon
 docs\plans\    plans and working notes – always put plans here; content is not in the repository
+CHANGELOG.md   changes per release (Keep a Changelog)
 .github\       Actions: test.yml (tests + translations), release.yml (ZIP on tag v*)
 ```
 
@@ -186,6 +188,16 @@ generated with `tools\New-QnPatterns.ps1`, additionally registered with LibShare
   with a new branch from `develop`: `feature/<name>` for new things, `bugfix/<name>` for fixes.
   To finish, always create a pull request (feature/bugfix → `develop`; `develop` → `main` also only via
   pull request).
+- **Every change to what an addon does updates the user documentation** in the same branch:
+  `docs\user\en\<Addon>.md` **and** `docs\user\de\<Addon>.md` (options with their UI texts as in
+  `Locale.lua`, defaults, slash commands), and the overview `docs\user\{en,de}\README.md` if the
+  purpose or the slash commands change. New addon = new pages in both languages + overview entry.
+- **Every change also gets an entry in `CHANGELOG.md`** (format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+  English): under `## [Unreleased]` in `Added` / `Changed` / `Removed` / `Fixed` – bug fixes always
+  under `Fixed`. One short line from the player's view, starting with the addon and its new
+  version (`- **qnUnitFrames 0.2.0:** …`). On a release (tag `v*`) `[Unreleased]` becomes
+  `## [x.y.z] - YYYY-MM-DD` and the compare links at the end are updated. Pure repository/test
+  changes without effect for players are not listed.
 - Shell: PowerShell 7. **Never replace German quotation marks („ “ ‘ ’) inside double-quoted
   PowerShell strings**; PowerShell treats them as quote characters. Use the Edit tool for single
   changes (German translations in `Locale.lua` still contain such quotes).
