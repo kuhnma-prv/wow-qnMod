@@ -70,9 +70,8 @@ So entscheidet das Reichweitensymbol, was es zeigt (Prüfung etwa fünfmal pro S
 - **Sonst:** Es erscheint das Symbol deines gerade einsetzbaren schädlichen Fernkampfzaubers aus
   dem Zauberbuch mit der größten Reichweite, sobald die Einheit in seiner Reichweite ist. Fehlendes
   Mana, Wut oder Energie blendet es nicht aus.
-- Kein Symbol, wenn die Einheit außerhalb der Reichweite all dieser Zauber ist oder sich die
-  Reichweite nicht prüfen lässt (schädliche Zauber lassen sich gegen freundliche Einheiten nicht
-  prüfen).
+- Kein Symbol, wenn du die Einheit nicht angreifen kannst (z. B. freundliche Einheiten), wenn sie
+  außerhalb der Reichweite all dieser Zauber ist oder sich die Reichweite nicht prüfen lässt.
 
 ### Klickbelegung
 

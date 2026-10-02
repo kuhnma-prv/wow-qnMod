@@ -7,7 +7,7 @@
 --
 -- The icon is an insecure child of TargetFrame/FocusFrame (hides and scales with it); the Blizzard
 -- frames themselves are never changed. Range checks: C_Spell.IsSpellInRange (nil = cannot be
--- checked, e.g. friendly unit for a harmful spell → no icon).
+-- checked); units that cannot be attacked get no icon.
 
 local _, ns = ...
 local lib = qnCore
@@ -99,7 +99,9 @@ end
 
 -- texture for the unit or nil (no icon)
 function ns.RangeTexture(unit)
-	if not UnitExists(unit) then
+	-- only attackable units: for friendly ones the harmful spells cannot be checked and the
+	-- duel distance would show the melee icon
+	if not UnitExists(unit) or not lib.Plain(UnitCanAttack("player", unit), false) then
 		return nil
 	end
 	-- melee only if no checkable melee spell is out of range: in the game single spells report
