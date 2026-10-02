@@ -182,6 +182,10 @@ generated with `tools\New-QnPatterns.ps1`, additionally registered with LibShare
 
 ## Way of working
 
+- **Never change `main` or `develop` directly** (no commits, no pushes onto them). Every change starts
+  with a new branch from `develop`: `feature/<name>` for new things, `bugfix/<name>` for fixes.
+  To finish, always create a pull request (feature/bugfix → `develop`; `develop` → `main` also only via
+  pull request).
 - Shell: PowerShell 7. **Never replace German quotation marks („ “ ‘ ’) inside double-quoted
   PowerShell strings**; PowerShell treats them as quote characters. Use the Edit tool for single
   changes (German translations in `Locale.lua` still contain such quotes).
