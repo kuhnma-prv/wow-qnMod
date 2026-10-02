@@ -44,6 +44,11 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 - Conversions of saved settings from old pre-release formats (all addons).
 
+### Fixed
+
+- **qnUnitFrames 0.2.1:** the range icon showed the auto attack icon for a friendly target within
+  about 10 yards (e.g. as a druid in caster form); units you cannot attack now get no icon.
+
 ## [0.2.0] - 2026-09-28
 
 ### Added

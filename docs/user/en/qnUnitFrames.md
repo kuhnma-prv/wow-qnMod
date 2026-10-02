@@ -66,8 +66,8 @@ How the range icon decides what to show (checked about five times per second):
 - **Otherwise:** the icon of your farthest harmful ranged spell from the spellbook that can be
   used right now appears, as soon as the unit is within its range. Missing mana, rage or energy
   does not hide it.
-- No icon if the unit is out of range of all these spells or the range cannot be checked
-  (harmful spells cannot be checked against friendly units).
+- No icon if you cannot attack the unit (e.g. friendly units), if it is out of range of all these
+  spells or if the range cannot be checked.
 
 ### Click Bindings
 

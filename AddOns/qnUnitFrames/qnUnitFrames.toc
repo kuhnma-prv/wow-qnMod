@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fUnit Frames|r] |cff00aa000.2.0|r
+## Title: qnMod [|cffeda55fUnit Frames|r] |cff00aa000.2.1|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
 ## Notes: Click casting on Blizzard's party and raid frames: cast spells or macros with mouse button and modifier key (like HealBot). Range icon at the target and focus frame.
 ## Notes-deDE: Klickzauber auf Blizzards Gruppen- und Schlachtzugsrahmen: Zauber oder Makros per Maustaste und Zusatztaste wirken (wie HealBot). Reichweitensymbol am Ziel- und Fokusrahmen.
 ## Author: qn
-## Version: 0.2.0
+## Version: 0.2.1
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
