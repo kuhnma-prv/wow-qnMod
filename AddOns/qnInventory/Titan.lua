@@ -157,9 +157,9 @@ end
 
 local function FactionName(faction)
 	if faction == "Alliance" then
-		return TitanUtils_GetHexText(FACTION_ALLIANCE, Titan_Global.colors.alliance)
+		return TitanUtils_GetHexText(FACTION_ALLIANCE, Titan_G.colors.alliance)
 	elseif faction == "Horde" then
-		return TitanUtils_GetHexText(FACTION_HORDE, Titan_Global.colors.horde)
+		return TitanUtils_GetHexText(FACTION_HORDE, Titan_G.colors.horde)
 	end
 	return TitanUtils_GetGrayText(faction == "?" and UNKNOWN or faction)
 end
@@ -335,7 +335,7 @@ function Titan.Update()
 end
 
 -- Without Titan: no plugins
-Titan.active = C_AddOns.IsAddOnLoaded("Titan") and type(TitanUtils_PluginToRegister) == "function"
+Titan.active = C_AddOns.IsAddOnLoaded("Titan") and Titan_G and type(Titan_G.plugins.ToRegister) == "function"
 if Titan.active then
 	Create(BANK_ID, {
 		menuText = L["qnInventory Bank/Bags"],
