@@ -35,6 +35,7 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Changed
 
+- **qnViewPort 0.1.8:** new options page "Maps" (after "Placement") with the World Map settings first, then the Zone Map settings; they moved here from "Placement".
 - **qnMeter is now qnThreatMeter (0.2.0)**, slash commands `/qnm` and `/qnthreatmeter`. Settings of
   qnMeter are not taken over automatically: copy `SavedVariables\qnMeter.lua` to
   `SavedVariables\qnThreatMeter.lua` and rename `qnMeterDB` to `qnThreatMeterDB` inside it.

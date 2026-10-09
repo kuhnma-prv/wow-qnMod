@@ -30,7 +30,7 @@ mit Titan Panel die Titan-Leisten auf einzelne Monitore.
 ## Erste Schritte
 
 Öffne *Optionen → Addons → qnViewPort* oder gib `/qnvp` ein. Auf der Hauptseite stellst du den
-Viewport ein. Unterseiten: **Monitore**, **Zweiter Monitor**, **Platzierung** und – nur wenn
+Viewport ein. Unterseiten: **Monitore**, **Zweiter Monitor**, **Platzierung**, **Karten** und – nur wenn
 Titan Panel geladen ist – **Titan Panel**.
 
 Alle Einstellungen gehören zum aktiven Profil, also zum aktiven Layout des Bearbeitungsmodus
@@ -119,30 +119,6 @@ Auswahlliste: **Hauptmonitor** oder einer der nummerierten Monitore (Nummern wie
 - **Monitor** (Standard: Hauptmonitor), **Ecke** (Standard: **Unten rechts**),
   **Abstand waagerecht** / **senkrecht** (Standard: 130 / 330).
 
-**Zonenkarte (Umschalt+M)**
-
-- **Zonenkarte anzeigen**: zeigt oder verbirgt Blizzards Zonenkarte (Blizzard merkt sich den
-  Zustand selbst).
-- **Zonenkarte beim Anzeigen platzieren**: legt die Zonenkarte samt Reiter bei jedem Einblenden an
-  die gewählte Ecke; Ziehen am Reiter wirkt dann nur bis zum nächsten Einblenden. Standard: aus.
-- **Monitor** (Standard: Hauptmonitor), **Ecke** (Standard: **Oben rechts**),
-  **Abstand waagerecht** / **senkrecht** (Standard: 20 / 300).
-- **Größe**: Größe der Zonenkarte samt Reiter, 50–200 % in 5-%-Schritten, Standard 100 %. Wirkt
-  auch ohne Platzierung.
-
-**Weltkarte**
-
-- **Maximierte Weltkarte auf** + Monitor: maximierte Karte und schwarze Fläche nur auf dem gewählten
-  Monitor statt über das ganze Fenster. Standard: aus.
-- **„Karte & Questlog“ auf** + Monitor: die verkleinerte Karte mit dem Questlog an den linken Rand
-  des gewählten Monitors statt an den linken Fensterrand. Standard: aus.
-- **Karte folgt der aktuellen Zone**: Bei offener Karte wechselt sie beim Betreten einer neuen Zone
-  auf deren Karte. Standard: an.
-- **Karte beim Einloggen öffnen**: nur beim Einloggen und nach `/reload`, nicht nach
-  Ladebildschirmen. Standard: aus.
-- **Karte beim Laufen nicht ausblenden**: setzt die Blizzard-Einstellung `mapFade` auf 0; beim
-  Ausschalten kommt der vorherige Wert zurück. Standard: aus.
-
 **Uhr**
 
 - **Unter der Uhr öffnen**: Das Uhrfenster (Klick auf die Uhr an der Minikarte) öffnet sich unter der
@@ -159,6 +135,40 @@ Auswahlliste: **Hauptmonitor** oder einer der nummerierten Monitore (Nummern wie
 
 - **Bereiche anzeigen**: rahmt die Bereiche der aktiven Platzierungen ein – blau Taschen, gelb
   Zonenkarte, grün Weltkarte, violett „Karte & Questlog“, rot Talentfenster. Standard: aus.
+- **Übernehmen**: platziert alles erneut.
+
+### Karten
+
+Ohne Haken fasst qnViewPort das jeweilige Fenster nicht an. Den Monitor wählst du in einer
+Auswahlliste: **Hauptmonitor** oder einer der nummerierten Monitore (Nummern wie auf der Seite
+**Monitore**). Die Abstände zählen in Pixeln vom Rand der gewählten Ecke nach innen.
+
+**Weltkarte**
+
+- **Maximierte Weltkarte auf** + Monitor: maximierte Karte und schwarze Fläche nur auf dem gewählten
+  Monitor statt über das ganze Fenster. Standard: aus.
+- **„Karte & Questlog“ auf** + Monitor: die verkleinerte Karte mit dem Questlog an den linken Rand
+  des gewählten Monitors statt an den linken Fensterrand. Standard: aus.
+- **Karte folgt der aktuellen Zone**: Bei offener Karte wechselt sie beim Betreten einer neuen Zone
+  auf deren Karte. Standard: an.
+- **Karte beim Einloggen öffnen**: nur beim Einloggen und nach `/reload`, nicht nach
+  Ladebildschirmen. Standard: aus.
+- **Karte beim Laufen nicht ausblenden**: setzt die Blizzard-Einstellung `mapFade` auf 0; beim
+  Ausschalten kommt der vorherige Wert zurück. Standard: aus.
+
+**Zonenkarte (Umschalt+M)**
+
+- **Zonenkarte anzeigen**: zeigt oder verbirgt Blizzards Zonenkarte (Blizzard merkt sich den
+  Zustand selbst).
+- **Zonenkarte beim Anzeigen platzieren**: legt die Zonenkarte samt Reiter bei jedem Einblenden an
+  die gewählte Ecke; Ziehen am Reiter wirkt dann nur bis zum nächsten Einblenden. Standard: aus.
+- **Monitor** (Standard: Hauptmonitor), **Ecke** (Standard: **Oben rechts**),
+  **Abstand waagerecht** / **senkrecht** (Standard: 20 / 300).
+- **Größe**: Größe der Zonenkarte samt Reiter, 50–200 % in 5-%-Schritten, Standard 100 %. Wirkt
+  auch ohne Platzierung.
+
+**Schaltflächen und Anzeige**
+
 - **Übernehmen**: platziert alles erneut.
 - **Karte öffnen**: öffnet die Weltkarte (nicht im Kampf).
 

@@ -1,4 +1,4 @@
--- Scenario 8: qnViewPort – world map on a monitor ("Placement" page)
+-- Scenario 8: qnViewPort – world map on a monitor ("Maps" page)
 --   * maximized world map ("worldMap"): size as in Blizzard's UpdateMaximizedSize, but from the
 --     selected monitor; top center on the monitor, black area only there
 --   * minimized = "Map & Quest Log" ("questLog"): Blizzard's anchor (UIParent TOPLEFT) on the monitor

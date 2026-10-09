@@ -1084,7 +1084,7 @@ local function BuildPage(desc)
 end
 
 ---------------------------------------------------------------------------
--- Options page (subcategory "Placement"): bags and Zone Map
+-- Options page (subcategory "Placement"): bags, clock window, talent window
 ---------------------------------------------------------------------------
 
 -- Monitors to choose from: 0 = main monitor, then the numbers as on the "Monitors" page
@@ -1161,25 +1161,42 @@ local function BuildPlacementPage(desc)
 	cBags:SetPoint("TOPLEFT", bagHead, "BOTTOMLEFT", -4, -4)
 	local bagMonitor = PlacementControls("bags", cBags, L["Monitor for the bags"], L["Corner for the bags"])
 
-	-- Zone Map
-	local mapHead = UI.Text(page, "GameFontNormal", L["Zone Map (Shift+M)"])
-	mapHead:SetPoint("TOPLEFT", bagMonitor, "BOTTOMLEFT", -90, -52)
-	local cShow = Check(L["Show Zone Map"], nil,
-		L["Shows or hides Blizzard's Zone Map. Blizzard remembers the state itself (CVar showBattlefieldMinimap)."],
-		nil, Dual.IsZoneMapShown, Dual.SetZoneMapShown)
-	cShow:SetPoint("TOPLEFT", mapHead, "BOTTOMLEFT", -4, -4)
-	local cPlace = Check(L["Place Zone Map when shown"], "zoneMap",
-		L["Moves the Zone Map and its tab to the chosen corner each time it is shown. Dragging the tab then only lasts until it is shown again."],
-		Dual.ApplyAll)
-	cPlace:SetPoint("TOPLEFT", cShow, "BOTTOMLEFT", 0, -2)
-	local mapMonitor, mapOffsetX = PlacementControls("zoneMap", cPlace, L["Monitor for the Zone Map"], L["Corner for the Zone Map"])
-	-- The size also applies without placement; left-aligned with the monitor button
-	local mapScale = ZoneMapScaleSlider()
-	mapScale:SetPoint("TOPLEFT", mapOffsetX, "BOTTOMLEFT", -80, -14)
+	-- Clock window (opened by clicking the clock at the minimap)
+	local clockHead = UI.Text(page, "GameFontNormal", TIMEMANAGER_TITLE)
+	clockHead:SetPoint("TOPLEFT", bagMonitor, "BOTTOMLEFT", -90, -52)
+	local cClock = Check(L["Open below the clock"], "clock",
+		L["Blizzard places the window of the clock at the top right edge of the game window, with monitors of different heights partly outside every monitor. On: below the clock at the minimap, on its monitor."],
+		Dual.PlaceClock)
+	cClock:SetPoint("TOPLEFT", clockHead, "BOTTOMLEFT", -4, -4)
 
+	-- Talent window: centered on a monitor instead of on the whole game window
+	local talentHead = UI.Text(page, "GameFontNormal", TALENTS)
+	talentHead:SetPoint("TOPLEFT", cClock, "BOTTOMLEFT", 4, -14)
+	local cTalents = Check(L["Talent window on"], "talents",
+		L["Blizzard places the talent window relative to the whole game window, i.e. centered across all monitors. On: the same position relative to the selected monitor (size unchanged)."],
+		Dual.ApplyAll)
+	cTalents:SetPoint("TOPLEFT", talentHead, "BOTTOMLEFT", -4, -4)
+	local talentMonitor = Choice("", 240, MonitorEntries,
+		function() return MonitorIndex("talents") end,
+		function(i) DB().talentsMonitor = i end, Dual.ApplyAll)
+	talentMonitor:SetPoint("LEFT", cTalents, "LEFT", 260, 0)
+	UI.Tooltip(talentMonitor, L["Monitor for the talent window"], L["Numbers as on the \"Monitors\" page."])
+
+	local cGuides = Check(L["Show areas"], "guides",
+		L["Outlines the areas: blue bags, yellow Zone Map, green World Map, purple \"Map & Quest Log\", red talent window (only while placement is on)."], Dual.UpdateArea)
+	cGuides:SetPoint("TOPLEFT", cTalents, "BOTTOMLEFT", 0, -10)
+
+	ApplyButton(cGuides, false)
+end
+
+---------------------------------------------------------------------------
+-- Options page (subcategory "Maps"): World Map first, then Zone Map
+---------------------------------------------------------------------------
+
+local function BuildMapsPage(desc)
 	-- World Map: maximized and minimized ("Map & Quest Log") each on a whole monitor
 	local worldHead = UI.Text(page, "GameFontNormal", WORLDMAP_BUTTON)
-	worldHead:SetPoint("TOPLEFT", mapScale, "BOTTOMLEFT", -90, -20)
+	worldHead:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -16)
 	local cWorld = Check(L["Maximized World Map on"], "worldMap",
 		L["Blizzard places the maximized World Map across the whole game window, i.e. across all monitors. On: map and black background only on the selected monitor."],
 		Dual.ApplyAll)
@@ -1210,32 +1227,23 @@ local function BuildPlacementPage(desc)
 		function() ApplyMapFade(true) end)
 	cFade:SetPoint("TOPLEFT", cFollow, "BOTTOMLEFT", 0, -2)
 
-	-- Clock window (opened by clicking the clock at the minimap)
-	local clockHead = UI.Text(page, "GameFontNormal", TIMEMANAGER_TITLE)
-	clockHead:SetPoint("TOPLEFT", cFade, "BOTTOMLEFT", 4, -14)
-	local cClock = Check(L["Open below the clock"], "clock",
-		L["Blizzard places the window of the clock at the top right edge of the game window, with monitors of different heights partly outside every monitor. On: below the clock at the minimap, on its monitor."],
-		Dual.PlaceClock)
-	cClock:SetPoint("TOPLEFT", clockHead, "BOTTOMLEFT", -4, -4)
-
-	-- Talent window: centered on a monitor instead of on the whole game window
-	local talentHead = UI.Text(page, "GameFontNormal", TALENTS)
-	talentHead:SetPoint("TOPLEFT", cClock, "BOTTOMLEFT", 4, -14)
-	local cTalents = Check(L["Talent window on"], "talents",
-		L["Blizzard places the talent window relative to the whole game window, i.e. centered across all monitors. On: the same position relative to the selected monitor (size unchanged)."],
+	-- Zone Map
+	local mapHead = UI.Text(page, "GameFontNormal", L["Zone Map (Shift+M)"])
+	mapHead:SetPoint("TOPLEFT", cFade, "BOTTOMLEFT", 4, -20)
+	local cShow = Check(L["Show Zone Map"], nil,
+		L["Shows or hides Blizzard's Zone Map. Blizzard remembers the state itself (CVar showBattlefieldMinimap)."],
+		nil, Dual.IsZoneMapShown, Dual.SetZoneMapShown)
+	cShow:SetPoint("TOPLEFT", mapHead, "BOTTOMLEFT", -4, -4)
+	local cPlace = Check(L["Place Zone Map when shown"], "zoneMap",
+		L["Moves the Zone Map and its tab to the chosen corner each time it is shown. Dragging the tab then only lasts until it is shown again."],
 		Dual.ApplyAll)
-	cTalents:SetPoint("TOPLEFT", talentHead, "BOTTOMLEFT", -4, -4)
-	local talentMonitor = Choice("", 240, MonitorEntries,
-		function() return MonitorIndex("talents") end,
-		function(i) DB().talentsMonitor = i end, Dual.ApplyAll)
-	talentMonitor:SetPoint("LEFT", cTalents, "LEFT", 260, 0)
-	UI.Tooltip(talentMonitor, L["Monitor for the talent window"], L["Numbers as on the \"Monitors\" page."])
+	cPlace:SetPoint("TOPLEFT", cShow, "BOTTOMLEFT", 0, -2)
+	local _, mapOffsetX = PlacementControls("zoneMap", cPlace, L["Monitor for the Zone Map"], L["Corner for the Zone Map"])
+	-- The size also applies without placement; left-aligned with the monitor button
+	local mapScale = ZoneMapScaleSlider()
+	mapScale:SetPoint("TOPLEFT", mapOffsetX, "BOTTOMLEFT", -80, -14)
 
-	local cGuides = Check(L["Show areas"], "guides",
-		L["Outlines the areas: blue bags, yellow Zone Map, green World Map, purple \"Map & Quest Log\", red talent window (only while placement is on)."], Dual.UpdateArea)
-	cGuides:SetPoint("TOPLEFT", cTalents, "BOTTOMLEFT", 0, -10)
-
-	local apply = ApplyButton(cGuides, false)
+	local apply = ApplyButton(mapScale, false)
 	local openMap = UI.Button(page, L["Open map"], 160, Dual.OpenMap)
 	openMap:SetPoint("LEFT", apply, "RIGHT", 10, 0)
 end
@@ -1428,11 +1436,14 @@ function ns.InitSecondScreen()
 		L["The monitor data (Monitors.lua) is written by qnViewPort\\scripts\\Initialize-WowMonitors.ps1: select the monitors once and set the main monitor. Set-WowWindow.ps1 then stretches the game window across the selected monitors and updates the data. /reload after a change."],
 		BuildMonitorPage)
 	sub = NewPage(L["Second Monitor"],
-		L["The game window must be stretched across several monitors (windowed mode, e.g. 5760 × 2160). The 3D world is then placed on the main monitor. Move interface elements with Blizzard's Edit Mode; elements outside the monitors are listed on the \"Monitors\" page, bags, Zone Map and World Map are on the \"Placement\" page."],
+		L["The game window must be stretched across several monitors (windowed mode, e.g. 5760 × 2160). The 3D world is then placed on the main monitor. Move interface elements with Blizzard's Edit Mode; elements outside the monitors are listed on the \"Monitors\" page, bags, clock and talent window are on the \"Placement\" page, World Map and Zone Map on the \"Maps\" page."],
 		BuildPage)
 	NewPage(L["Placement"],
-		L["Places bags and the Zone Map in a corner of a monitor and the World Map on a monitor. Offsets are counted in pixels inward from the edges of the corner. Unless checked, qnViewPort does not touch that window."],
+		L["Places bags in a corner of a monitor and the clock and talent windows on a monitor. Offsets are counted in pixels inward from the edges of the corner. Unless checked, qnViewPort does not touch that window."],
 		BuildPlacementPage)
+	NewPage(L["Maps"],
+		L["Places the World Map on a monitor and the Zone Map in a corner of a monitor. Offsets are counted in pixels inward from the edges of the corner. Unless checked, qnViewPort does not touch that window."],
+		BuildMapsPage)
 
 	-- Bags: Blizzard sets the anchors in UpdateContainerFrameAnchors – on opening and closing
 	-- each bag and the combined bag (ContainerFrame.lua). Our hook runs afterwards,
