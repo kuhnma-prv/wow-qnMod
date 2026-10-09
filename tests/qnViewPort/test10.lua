@@ -1,4 +1,4 @@
--- Scenario 10: qnViewPort – zone map size ("Placement" page, option zoneMapScale)
+-- Scenario 10: qnViewPort – zone map size ("Maps" page, option zoneMapScale)
 --   * 100 %: tab and map stay untouched
 --   * slider: tab and map equally sized, tab keeps its center, Blizzard's remembered position follows
 --   * with placement PlaceZoneMap positions the tab, ScaleZoneMap does not re-anchor it
