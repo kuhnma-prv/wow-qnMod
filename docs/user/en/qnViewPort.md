@@ -28,7 +28,7 @@ Titan Panel, puts the Titan bars on individual monitors.
 ## Getting started
 
 Open *Options → AddOns → qnViewPort* or type `/qnvp`. The main page sets the viewport. Subpages:
-**Monitors**, **Second Monitor**, **Placement** and – only if Titan Panel is loaded – **Titan Panel**.
+**Monitors**, **Second Monitor**, **Placement**, **Maps** and – only if Titan Panel is loaded – **Titan Panel**.
 
 All settings belong to the active profile, i.e. the active Edit Mode layout (see [qnCore](qnCore.md)).
 Switching the layout switches the profile and applies its settings.
@@ -110,29 +110,6 @@ Offsets are counted in pixels inward from the edges of the chosen corner.
 - **Monitor** (default: main monitor), **Corner** (default: **Bottom right**),
   **Horizontal offset** / **vertical** (defaults: 130 / 330).
 
-**Zone Map (Shift+M)**
-
-- **Show Zone Map**: shows or hides Blizzard's Zone Map (Blizzard remembers the state itself).
-- **Place Zone Map when shown**: moves the Zone Map and its tab to the chosen corner each time it
-  is shown; dragging the tab then only lasts until it is shown again. Default: off.
-- **Monitor** (default: main monitor), **Corner** (default: **Top right**),
-  **Horizontal offset** / **vertical** (defaults: 20 / 300).
-- **Size**: size of the Zone Map including its tab, 50–200 % in 5 % steps, default 100 %. Also
-  works without placement.
-
-**World Map**
-
-- **Maximized World Map on** + monitor: the maximized map and its black background only on the
-  chosen monitor instead of across the whole window. Default: off.
-- **"Map & Quest Log" on** + monitor: the minimized map with the quest log at the left edge of the
-  chosen monitor instead of the left edge of the window. Default: off.
-- **Map follows the current zone**: while the map is open, it switches to the new zone when you
-  enter it. Default: on.
-- **Open the map on login**: only on login and after `/reload`, not after loading screens.
-  Default: off.
-- **Do not fade the map while moving**: sets Blizzard's option `mapFade` to 0; turning it off
-  restores the previous value. Default: off.
-
 **Clock**
 
 - **Open below the clock**: the clock window (click on the clock at the minimap) opens below the
@@ -148,6 +125,39 @@ Offsets are counted in pixels inward from the edges of the chosen corner.
 
 - **Show areas**: outlines the areas of the active placements – blue bags, yellow Zone Map, green
   World Map, purple "Map & Quest Log", red talent window. Default: off.
+- **Apply**: places everything again.
+
+### Maps
+
+Unless a box is checked, qnViewPort does not touch the respective window. Monitors are chosen in a
+dropdown: **Main monitor** or one of the numbered monitors (numbers as on the **Monitors** page).
+Offsets are counted in pixels inward from the edges of the chosen corner.
+
+**World Map**
+
+- **Maximized World Map on** + monitor: the maximized map and its black background only on the
+  chosen monitor instead of across the whole window. Default: off.
+- **"Map & Quest Log" on** + monitor: the minimized map with the quest log at the left edge of the
+  chosen monitor instead of the left edge of the window. Default: off.
+- **Map follows the current zone**: while the map is open, it switches to the new zone when you
+  enter it. Default: on.
+- **Open the map on login**: only on login and after `/reload`, not after loading screens.
+  Default: off.
+- **Do not fade the map while moving**: sets Blizzard's option `mapFade` to 0; turning it off
+  restores the previous value. Default: off.
+
+**Zone Map (Shift+M)**
+
+- **Show Zone Map**: shows or hides Blizzard's Zone Map (Blizzard remembers the state itself).
+- **Place Zone Map when shown**: moves the Zone Map and its tab to the chosen corner each time it
+  is shown; dragging the tab then only lasts until it is shown again. Default: off.
+- **Monitor** (default: main monitor), **Corner** (default: **Top right**),
+  **Horizontal offset** / **vertical** (defaults: 20 / 300).
+- **Size**: size of the Zone Map including its tab, 50–200 % in 5 % steps, default 100 %. Also
+  works without placement.
+
+**Buttons and display**
+
 - **Apply**: places everything again.
 - **Open map**: opens the World Map (not in combat).
 
