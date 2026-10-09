@@ -48,6 +48,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Fixed
 
+- **qnInventory 0.3.3:** with Titan Panel 9.3 the plugins "qnInventory Bank/Bags" and "qnInventory Gold"
+  were missing, because Titan renamed the functions qnInventory uses to register them.
 - **qnViewPort 0.1.7:** with Titan Panel 9.3 the "Titan Panel" options page was missing and the bars
   spanned all monitors again, because Titan renamed the functions and values qnViewPort uses.
 - **qnUnitFrames 0.2.1:** the range icon showed the auto attack icon for a friendly target within

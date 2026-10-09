@@ -19,9 +19,9 @@ local TLOC = {
 	TITAN_GOLD_PERHOUR_EARNED = "Eingenommen pro Stunde", TITAN_GOLD_PERHOUR_LOST = "Ausgegeben pro Stunde",
 	TITAN_GOLD_TOGGLE_PLAYER_TEXT = "Spielergold", TITAN_GOLD_RESET_SESS_TEXT = "Sitzung zurücksetzen",
 }
-Titan_Global = { colors = { alliance = "00adf0", horde = "ff2934" } }
+Titan_G = { colors = { alliance = "00adf0", horde = "ff2934" }, plugins = {} }
 local registered = {}
-function TitanUtils_PluginToRegister(self) registered[#registered + 1] = self end
+function Titan_G.plugins.ToRegister(self) registered[#registered + 1] = self end
 local VARS = {}
 function TitanGetVar(id, key) return (VARS[id] or {})[key] end
 function TitanPanelGetVar() return 12 end
