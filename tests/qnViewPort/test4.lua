@@ -1,6 +1,6 @@
 -- Scenario 4: qnViewPort with Titan – full-width Titan bars on a selected monitor,
 -- tooltips at the monitor edge. Titan itself is emulated (only what qnViewPort touches):
--- TitanBarData, TitanBarDataVars, TitanPanelBarButton_Show/Hide/DisplayBarsWanted as in
+-- TitanBarData, TitanBarDataVars, Titan_G.bars.Show/Hide/ShowPlugins as in (Titan 9.3)
 -- Titan.lua (SetBar, _Hide). Without Titan: scenario 5.
 
 qnCoreCharDB = { layout = "account:Raid" }
@@ -12,11 +12,9 @@ qnViewPortDB = { global = {}, profiles = {
 ---------------------------------------------------------------------------
 -- Titan emulation
 ---------------------------------------------------------------------------
-TITAN_PANEL_DISPLAY_PREFIX = "Titan_Bar__Display_"
-TITAN_PANEL_BAR_HEIGHT = 24
+Titan_G = { InitializedPEW = false, bars = { PRE_STR = "Titan_Bar__Display_", HEIGHT = 24 }, plugins = {} }
 TITAN_PANEL_MOVING = 0
-Titan__InitializedPEW = false
-local P = TITAN_PANEL_DISPLAY_PREFIX
+local P = Titan_G.bars.PRE_STR
 local DEF = {
 	Bar = { "Oben", "TOPLEFT", "TOPLEFT", "BOTTOMRIGHT", "TOPRIGHT", 0, 72 },
 	Bar2 = { "Oben 2", "TOPLEFT", "TOPLEFT", "BOTTOMRIGHT", "TOPRIGHT", -24, 240 },
@@ -35,19 +33,19 @@ for name, d in pairs(DEF) do
 	vars[P .. name] = { off_x = 0, off_y = d[6], show = false, auto_hide = false }
 end
 -- Titan creates the bar and auto-hide bar only when entering the world (SetupTitan)
-function TitanPanelButton_CreateBar(frame_str)
+function Titan_G.bars.CreateBar(frame_str)
 	CreateFrame("Button", frame_str, UIParent)
 	CreateFrame("Button", TitanBarData[frame_str].hider, UIParent)._w = 1920
 end
-function TitanPanelBarButton_Show(frame)
+function Titan_G.bars.Show(frame)
 	local data, v = TitanBarData[frame], TitanBarDataVars[frame]
 	local display = _G[frame]
 	display:ClearAllPoints()
 	display:SetPoint(data.show.pt, data.show.rel_fr, data.show.rel_pt, v.off_x, v.off_y)
-	display:SetPoint(data.bott.pt, data.bott.rel_fr, data.bott.rel_pt, v.off_x, v.off_y - TITAN_PANEL_BAR_HEIGHT)
+	display:SetPoint(data.bott.pt, data.bott.rel_fr, data.bott.rel_pt, v.off_x, v.off_y - Titan_G.bars.HEIGHT)
 	_G[data.hider]:Hide()
 end
-function TitanPanelBarButton_Hide(frame)
+function Titan_G.bars.Hide(frame)
 	if TITAN_PANEL_MOVING == 1 then return end
 	local data, v = TitanBarData[frame], TitanBarDataVars[frame]
 	local display = _G[frame]
@@ -63,13 +61,13 @@ function TitanPanelBarButton_Hide(frame)
 	end
 end
 local shows = 0
-function TitanPanelBarButton_DisplayBarsWanted(reason)
+function Titan_G.bars.DisplayBarsWanted(reason)
 	shows = shows + 1
 	for frame, v in pairs(TitanBarDataVars) do
 		if v.show and not v.auto_hide then
-			TitanPanelBarButton_Show(frame)
+			Titan_G.bars.Show(frame)
 		else
-			TitanPanelBarButton_Hide(frame)
+			Titan_G.bars.Hide(frame)
 		end
 	end
 end
@@ -80,10 +78,10 @@ local plugins, controls = {}, {}
 function TitanUtils_GetPlugin(id) return plugins[id] end
 function TitanUtils_ButtonName(id) return "TitanPanel" .. id .. "Button" end
 function TitanUtils_GetControlFrame(id) return controls[id] end
-function TitanPanelButton_OnEnter(self) end
-function TitanPanelButton_UpdateTooltip(self) end
-function TitanPanelPluginHandle_OnUpdate(t, oldarg) end
-function TitanPanelButton_OnClick(self, button) end
+function Titan_G.plugins.OnEnter(self) end
+function Titan_G.plugins.UpdateTooltip(self) end
+function Titan_G.plugins.OnUpdate(t, oldarg) end
+function Titan_G.plugins.OnClick(self, button) end
 
 -- scaling (Titan.lua, TitanTemplate.lua): Titan calls SetScale on bars and text plugins
 local TITAN_VARS = { Scale = 1, TooltipFont = 1 }
@@ -92,19 +90,19 @@ local pluginBar = {}   -- [id] = short name of the bar
 function TitanUtils_GetButton(id) return _G["TitanPanel" .. id .. "Button"], id end
 function TitanUtils_GetButtonID(name) return name and name:match("^TitanPanel(.*)Button$") end
 function TitanUtils_GetWhichBar(id) return pluginBar[id] end
-function TitanPanelButton_UpdateButton(id)
+function Titan_G.plugins.UpdateButton(id)
 	local b = TitanUtils_GetButton(id)
 	if b and b.textPlugin then
 		b:SetScale(TitanPanelGetVar("Scale"))
 	end
 end
-function TitanPanel_InitPanelButtons(reason)
+function Titan_G.bars.ShowPlugins(reason)
 	for frame in pairs(TitanBarData) do
 		_G[frame]:SetScale(TitanPanelGetVar("Scale"))
 	end
-	TitanPanelBarButton_DisplayBarsWanted(reason)
+	Titan_G.bars.DisplayBarsWanted(reason)
 	for id in pairs(pluginBar) do
-		TitanPanelButton_UpdateButton(id)
+		Titan_G.plugins.UpdateButton(id)
 	end
 end
 
@@ -134,7 +132,7 @@ for name in pairs(DEF) do
 end
 -- like SetupTitan when entering the world, i.e. after qnViewPort
 for frame in pairs(TitanBarData) do
-	TitanPanelButton_CreateBar(frame)
+	Titan_G.bars.CreateBar(frame)
 end
 local wrapped = true
 for frame in pairs(TitanBarData) do
@@ -151,7 +149,7 @@ FireEvent("PLAYER_ENTERING_WORLD", true, false)
 RunTimers()
 Check(shows == 0, "no display via Titan before Titan starts")
 TitanBarDataVars = vars
-Titan__InitializedPEW = true
+Titan_G.InitializedPEW = true
 vars[P .. "Bar"].show = true
 vars[P .. "AuxBar"].show = true
 
@@ -214,7 +212,7 @@ Check(_G[P .. "AuxBar"]._points[1][2] == screen, "auto-hidden bar parked")
 -- Titan is currently moving: touch nothing
 TITAN_PANEL_MOVING = 1
 _G[P .. "AuxBar"]:ClearAllPoints()
-TitanPanelBarButton_Hide(P .. "AuxBar")
+Titan_G.bars.Hide(P .. "AuxBar")
 Check(#_G[P .. "AuxBar"]._points == 0, "TITAN_PANEL_MOVING: no parking")
 TITAN_PANEL_MOVING = 0
 vars[P .. "AuxBar"].auto_hide = false
@@ -276,42 +274,42 @@ end
 Place(btn, 3800, 2136, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 200, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
-TitanPanelButton_OnEnter(btn)
+Titan_G.plugins.OnEnter(btn)
 local p, rel, rp, x, y = Last(TitanPanelTooltip)
 Check(p == "TOPRIGHT" and rel == btn and rp == "BOTTOMRIGHT" and x == 0 and y == 0,
 	("tooltip at the right edge of the monitor flipped to the left: %s %s %s %s"):format(p, rp, x, y))
 -- if it fits, Titan's side stays
 Place(btn, 1000, 2136, 30, 24)
 Anchored(TitanPanelTooltip, "TOPLEFT")
-TitanPanelButton_UpdateTooltip(btn)
+Titan_G.plugins.UpdateTooltip(btn)
 p, rel, rp = Last(TitanPanelTooltip)
 Check(p == "TOPLEFT" and rp == "BOTTOMLEFT", "tooltip with room: Titan's side stays")
 -- wider than the room on both sides: pushed inside
 Place(btn, 1000, 2136, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 3000, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
-TitanPanelPluginHandle_OnUpdate({ "Clock", 2 })
+Titan_G.plugins.OnUpdate({ "Clock", 2 })
 p, rel, rp, x = Last(TitanPanelTooltip)
 Check(p == "TOPLEFT" and x == 3840 - 4000, ("too wide tooltip pushed into the monitor: %s %s"):format(p, x))
 -- wider than the monitor: left edge stays visible
 Place(btn, 50, 2136, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 3900, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
-TitanPanelButton_UpdateTooltip(btn)
+Titan_G.plugins.UpdateTooltip(btn)
 p, rel, rp, x = Last(TitanPanelTooltip)
 Check(p == "TOPLEFT" and x == -50, ("wider than the monitor: at its left edge: %s %s"):format(p, x))
 -- bottom bar on monitor 2: no monitor below, so above
 Place(btn, 4000, M2.b, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 200, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
-TitanPanelButton_OnEnter(btn)
+Titan_G.plugins.OnEnter(btn)
 p, rel, rp = Last(TitanPanelTooltip)
 Check(p == "BOTTOMLEFT" and rp == "TOPLEFT", "tooltip at the bottom edge of monitor 2 flipped upwards")
 -- foreign anchor (not on the plugin): do not touch
 GameTooltip:ClearAllPoints()
 GameTooltip:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 5, 5)
 GameTooltip.GetPoint = function(self) local q = self._points[1] return q[1], q[2], q[3], q[4], q[5] end
-TitanPanelButton_OnEnter(btn)
+Titan_G.plugins.OnEnter(btn)
 Check(#GameTooltip._points == 1 and GameTooltip._points[1][2] == UIParent, "GameTooltip of another frame stays untouched")
 -- control frame
 local ctrl = CreateFrame("Frame", "TitanPanelClockControlFrame", UIParent)
@@ -319,7 +317,7 @@ controls.Clock = ctrl
 Place(btn, 3800, 2136, 30, 24)
 Place(ctrl, 0, 0, 150, 150)
 Anchored(ctrl, "TOPLEFT")
-TitanPanelButton_OnClick(btn, "LeftButton")
+Titan_G.plugins.OnClick(btn, "LeftButton")
 p = Last(ctrl)
 Check(p == "TOPRIGHT", "control frame at the right monitor edge to the left")
 RunTimers()
@@ -327,7 +325,7 @@ RunTimers()
 Place(btn, 1000, 2136, 30, 24)
 ctrl:ClearAllPoints()
 ctrl:SetPoint("TOPLEFT", btn, "BOTTOM", 0, 0)
-TitanPanelButton_OnClick(btn, "LeftButton")
+Titan_G.plugins.OnClick(btn, "LeftButton")
 p, rel, rp = Last(ctrl)
 Check(#ctrl._points == 1 and p == "TOPLEFT" and rp == "BOTTOM", ("control frame with room: Titan's anchor stays: %s %s"):format(p, tostring(rp)))
 
@@ -360,7 +358,7 @@ Check(Near(_G[P .. "Bar"]._scale, 0.78) and Near(btn._scale, 0.78) and Near(_G[P
 Place(btn, 4000, M2.t - 24, 30, 24)
 Place(TitanPanelTooltip, 0, 0, 200, 100)
 Anchored(TitanPanelTooltip, "TOPLEFT")
-TitanPanelButton_OnEnter(btn)
+Titan_G.plugins.OnEnter(btn)
 Check(Near(TitanPanelTooltip._scale, 0.65), ("Titan's tooltip with the monitor's factor: %s"):format(tostring(TitanPanelTooltip._scale)))
 -- factor back to 100 %
 vp.db.titan.scale = {}
