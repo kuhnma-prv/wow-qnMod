@@ -37,7 +37,7 @@ local function DB()
 end
 
 local function FrameName(bar)
-	return TITAN_PANEL_DISPLAY_PREFIX .. bar
+	return Titan_G.bars.PRE_STR .. bar
 end
 
 ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ local function Shift(b, r)
 		end
 	end
 	local f = _G[FrameName(b.name)]
-	return b.dir * TITAN_PANEL_BAR_HEIGHT * (f and f:GetEffectiveScale() or 1)
+	return b.dir * Titan_G.bars.HEIGHT * (f and f:GetEffectiveScale() or 1)
 end
 
 local function UpdateAnchor(b)
@@ -117,7 +117,7 @@ local function FixHider(b)
 	if hider and w and w > 0 then
 		local s = hider:GetEffectiveScale()
 		local display = _G[FrameName(b.name)]
-		hider:SetSize(w / s, TITAN_PANEL_BAR_HEIGHT * (display and display:GetEffectiveScale() or s) / s)
+		hider:SetSize(w / s, Titan_G.bars.HEIGHT * (display and display:GetEffectiveScale() or s) / s)
 	end
 end
 
@@ -130,12 +130,12 @@ local function ParkHidden(b)
 	end
 	local s = display:GetEffectiveScale()
 	display:ClearAllPoints()
-	display:SetPoint("BOTTOMLEFT", ns.screenRef, "TOPLEFT", 0, TITAN_PANEL_BAR_HEIGHT * 4)
-	display:SetSize(anchors[b.name]:GetWidth() / s, TITAN_PANEL_BAR_HEIGHT)
+	display:SetPoint("BOTTOMLEFT", ns.screenRef, "TOPLEFT", 0, Titan_G.bars.HEIGHT * 4)
+	display:SetSize(anchors[b.name]:GetWidth() / s, Titan_G.bars.HEIGHT)
 end
 
 local function TitanReady()
-	return Titan__InitializedPEW and TitanBarDataVars and TitanBarDataVars[FrameName("Bar")] ~= nil
+	return Titan_G.InitializedPEW and TitanBarDataVars and TitanBarDataVars[FrameName("Bar")] ~= nil
 end
 
 ---------------------------------------------------------------------------
@@ -213,7 +213,7 @@ function Titan.Apply()
 	end
 	Titan.UpdateAnchors()
 	if TitanReady() then
-		TitanPanel_InitPanelButtons("qnViewPort")
+		Titan_G.bars.ShowPlugins("qnViewPort")
 	end
 	Titan.RefreshOptions()
 end
@@ -383,7 +383,7 @@ end
 
 -- Without Titan: no anchors, no hooks, no options page.
 function ns.InitTitan()
-	if not (C_AddOns.IsAddOnLoaded("Titan") and TitanBarData and TITAN_PANEL_DISPLAY_PREFIX) then
+	if not (C_AddOns.IsAddOnLoaded("Titan") and TitanBarData and Titan_G and Titan_G.bars) then
 		return
 	end
 	Titan.active = true
@@ -399,7 +399,7 @@ function ns.InitTitan()
 			data.bott.rel_fr = a
 		end
 	end
-	-- Titan creates the bars only when entering the world (SetupTitan → TitanPanelButton_CreateBar)
+	-- Titan creates the bars only when entering the world (SetupTitan → Titan_G.bars.CreateBar)
 	local function WrapBar(frame)
 		local b = byFrame[frame]
 		if b then
@@ -411,19 +411,19 @@ function ns.InitTitan()
 	for frame in pairs(byFrame) do
 		WrapBar(frame)
 	end
-	hooksecurefunc("TitanPanelButton_CreateBar", WrapBar)
+	hooksecurefunc(Titan_G.bars, "CreateBar", WrapBar)
 	Titan.UpdateAnchors()
-	hooksecurefunc("TitanPanelButton_UpdateButton", ScalePlugin)
+	hooksecurefunc(Titan_G.plugins, "UpdateButton", ScalePlugin)
 
 	-- After Titan shows a bar: update the anchors (the second bar depends on the state of the first).
-	hooksecurefunc("TitanPanelBarButton_Show", function(frame)
+	hooksecurefunc(Titan_G.bars, "Show", function(frame)
 		local b = byFrame[frame]
 		if b then
 			Titan.UpdateAnchors()
 			FixHider(b)
 		end
 	end)
-	hooksecurefunc("TitanPanelBarButton_Hide", function(frame)
+	hooksecurefunc(Titan_G.bars, "Hide", function(frame)
 		local b = byFrame[frame]
 		if not b or TITAN_PANEL_MOVING == 1 then
 			return
@@ -435,15 +435,15 @@ function ns.InitTitan()
 		end
 	end)
 
-	hooksecurefunc("TitanPanelButton_OnEnter", FitNowAndLater)
+	hooksecurefunc(Titan_G.plugins, "OnEnter", FitNowAndLater)
 	-- Titan recreates the tooltip on refresh (e.g. the clock every second)
-	hooksecurefunc("TitanPanelButton_UpdateTooltip", Fit)
-	hooksecurefunc("TitanPanelPluginHandle_OnUpdate", function(t)
+	hooksecurefunc(Titan_G.plugins, "UpdateTooltip", Fit)
+	hooksecurefunc(Titan_G.plugins, "OnUpdate", function(t)
 		local id = type(t) == "table" and t[1] or t
 		Fit(type(id) == "string" and _G[TitanUtils_ButtonName(id)] or nil)
 	end)
 	-- Control frames (left click, e.g. volume, clock offset): Titan only checks against UIParent.
-	hooksecurefunc("TitanPanelButton_OnClick", function(button)
+	hooksecurefunc(Titan_G.plugins, "OnClick", function(button)
 		local id = button and button.registry and button.registry.id
 		local frame = id and TitanUtils_GetControlFrame(id)
 		if frame and frame:IsShown() then

@@ -15,7 +15,7 @@ RunTimers()
 local tt = vp.Titan
 Check(not tt.active and tt.category == nil, "without Titan: not active, no subpage")
 Check(_G.qnViewPortTitanAnchorBar == nil, "without Titan: no anchors")
-Check(TitanPanelButton_OnEnter == nil and TitanPanelBarButton_Show == nil, "without Titan: no Titan globals created")
+Check(Titan_G == nil, "without Titan: no Titan globals created")
 local ok, err = pcall(function()
 	tt.Apply()
 	SetEditModeLayout(1)
