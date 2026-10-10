@@ -69,6 +69,10 @@ Alle Taschen-Einstellungen gelten accountweit (für alle Charaktere und alle Pro
   auch Berufstaschen wie Kräuter- oder Verzauberertasche und die Reagenzientasche auf. Aus: sie
   bleiben zu; einzeln angeklickt öffnen sie sich weiterhin. Bei zusammengefassten Taschen wirkt das
   nur auf die Reagenzientasche. Standard: an.
+- **Gamepad-Taschenleiste ausblenden** – Forever zeigt oben rechts im kombinierten Rucksack (neben
+  dem Suchfeld) ein überflüssiges Rucksack-Symbol. Es verdeckt den Sortier-Button, ein Klick dort
+  bewirkt also nichts, und zeigt deine Munitionsanzahl und die freien Taschenplätze. An: blendet es
+  aus, solange die Gamepad-Oberfläche aus ist. Standard: aus.
 - **An allen Orten gleich** – an: eine Einstellung gilt für jeden Ort. Aus: jeder Ort wird einzeln
   eingestellt. Standard: aus.
 - **Überall: beim Öffnen** – was mit den Taschen passiert, wenn einer der Orte geöffnet wird (nur mit
