@@ -11,7 +11,7 @@ SetEditModeLayout(3)
 local line, header, M = ObjectiveTrackerLineFont, ObjectiveTrackerHeaderFont, ObjectiveTrackerManager
 local raid = "account:Raid"
 Check(type(qnCoreDB.profiles) == "table" and qnCoreDB.global.tracking == true, "qnCoreDB: profiles created, account-wide values stay")
-Check(qnCoreDB.settingsVersion == "1.0" and qnCoreDB.ownProfiles == nil, "qnCoreDB: settingsVersion written, no ownProfiles marker")
+Check(qnCoreDB.settingsVersion == "1.1" and qnCoreDB.ownProfiles == nil, "qnCoreDB: settingsVersion written, no ownProfiles marker")
 Check(core.store and core.db == qnCoreDB.profiles[raid] and core.db.questTextSize == 0, "qnCore has one profile per layout, default 0")
 Check(qnCore.Profiles.stores.qnCore == core.store, "qnCore appears among the profiles")
 Check(M.updates == 0 and select(2, line:GetFont()) == 12, "default: Blizzard's font unchanged, no rebuild")
