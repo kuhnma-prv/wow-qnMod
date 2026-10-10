@@ -42,7 +42,8 @@ qnInventory's own windows. It holds a character dropdown and buttons for the oth
 
 - **Bags** – your own bags open in Blizzard's window; other characters' bags open in a replica of
   the **Combined Backpack** with their gold at the bottom. Reagent bag and keyring are not shown
-  (Blizzard's combined backpack does not show them either).
+  (Blizzard's combined backpack does not show them either). The slots are in the same order as
+  in Blizzard's window: backpack first, slots ascending, starting at the bottom right.
 - **Bank** – the last stored state of the bank of any character, also of the logged-in one away
   from the bank: all tabs, page tabs on the right, bag slots and the price of the next tab.
   Sorting and purchasing are disabled here (only possible at a banker).

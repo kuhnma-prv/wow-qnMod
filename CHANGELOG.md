@@ -56,6 +56,9 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 - **qnCore 0.2.1:** new option "Hide the gamepad bag bar" (Bag Automation, off by default): hides the
   stray backpack icon Forever shows next to the search box of the combined bags, which covered the
   sort button and showed the ammo count.
+- **qnInventory 0.3.4:** the bags view of another character listed the bags and slots in reverse
+  order; it now matches Blizzard's combined bags (backpack first, slots ascending, from the
+  bottom right).
 - **qnUnitFrames 0.2.1:** the range icon showed the auto attack icon for a friendly target within
   about 10 yards (e.g. as a druid in caster form); units you cannot attack now get no icon.
 

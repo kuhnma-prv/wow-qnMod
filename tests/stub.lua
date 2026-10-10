@@ -199,7 +199,7 @@ function Frame:SetBackdropBorderColor(r, g, b, a) self._bdBorder = { r, g, b, a 
 function Frame:GetID() return 0 end
 function Frame:GetChecked() return self._checked end
 function Frame:SetChecked(v) self._checked = v end
-function Frame:GetText() return self._text end
+function Frame:GetText() return self._text or (self._kind == "EditBox" and "" or nil) end
 function Frame:SetText(v) self._text = v end
 -- The client also formats secret numbers (tables in the scenarios) with %d/%f: output them as %s then
 function Frame:SetFormattedText(f, ...)
@@ -262,6 +262,7 @@ function Frame:PickRadio(i) self._radios[i].setSel() self:GenerateMenu() end
 function CreateFrame(kind, name, parent, template)
 	local f = NewFrame(kind, name, parent)
 	f._template = template
+	if kind == "ItemButton" then f.searchOverlay = NewFrame("Frame", nil, f) end   -- ItemButtonTemplate
 	-- Secure* templates inherit SecureFrameTemplate (protected="true", SecureTemplatesBase.xml)
 	if template and template:find("Secure") then f._protected = true end
 	-- templates with hidden="true" in qnBuffMod
@@ -536,6 +537,23 @@ Enum.BagIndex.ReagentBag = 5
 ContainerFrameCombinedBags = NewFrame("Frame", "ContainerFrameCombinedBags", UIParent)
 BankFrame = NewFrame("Frame", "BankFrame", UIParent)
 MailFrame = NewFrame("Frame", "MailFrame", UIParent)
+-- replica windows of qnInventory (grid layout, nine slice, money frame)
+GridLayoutMixin = { Direction = { BottomRightToTopLeft = 1, TopLeftToBottomRight = 2 } }
+AnchorUtil = {
+	CreateAnchor = function(point, rel, relPoint, x, y) return { point, rel, relPoint, x, y } end,
+	CreateGridLayout = function(direction, columns, hSpacing, vSpacing) return { direction, columns, hSpacing, vSpacing } end,
+	GridLayout = function(items, anchor, layout) end,
+}
+NineSliceUtil = { ApplyLayoutByName = function() end, UpdateCornerCropping = function() end }
+function MoneyFrame_SetType() end
+function MoneyFrame_Update() end
+C_Item = C_Item or {}
+C_Item.GetItemIconByID = function() return 134400 end
+C_Item.GetItemInfo = function() return nil end
+C_Item.GetItemQualityByID = function() return 1 end
+function SetItemButtonTexture() end
+function SetItemButtonCount() end
+function SetItemButtonQuality() end
 UISpecialFrames = {}
 -- Blizzard addons are always already loaded in the stub
 EventUtil = { ContinueOnAddOnLoaded = function(name, fn) fn() end }
@@ -624,7 +642,7 @@ function C_Spell.PickupSpell(spell)
 	end
 	if QN_SPELLS[spell] then QN_CURSOR = { type = "spell", id = spell, text = nil } end
 end
-Constants = { MacroConsts = { MAX_ACCOUNT_MACROS = 120, MAX_CHARACTER_MACROS = 30 } }
+Constants = { MacroConsts = { MAX_ACCOUNT_MACROS = 120, MAX_CHARACTER_MACROS = 30 }, InventoryConstants = { NumBagSlots = 4, NumReagentBagSlots = 1 } }
 function SecureCmdOptionParse(c) return "show", nil end
 function GetInventoryItemTexture() return 134400 end
 function CancelUnitBuff() end
@@ -689,7 +707,7 @@ function GetSendMailCOD() return 0 end
 -- connected realms (C_AutoComplete, AutoCompleteDocumentation); scenarios set QN_CONNECTED_REALMS
 C_AutoComplete = C_AutoComplete or {}
 function C_AutoComplete.GetAutoCompleteRealms() return QN_CONNECTED_REALMS or {} end
-C_Item = { IsItemInRange = function() return nil end }
+C_Item.IsItemInRange = function() return nil end
 -- Item names: QN_ITEM_NAMES[id] = name once cached; RequestLoadItemDataByID only records QN_ITEM_REQUESTS[id]
 -- (scenarios then set the name and fire ITEM_DATA_LOAD_RESULT)
 QN_ITEM_NAMES, QN_ITEM_REQUESTS = {}, {}
