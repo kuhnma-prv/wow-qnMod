@@ -43,7 +43,9 @@ anderen Ansichten (**Taschen**, **Bank**, **Post**).
 
 - **Taschen** – deine eigenen Taschen öffnen sich in Blizzards Fenster; die Taschen anderer
   Charaktere in einem Nachbau des **Kombinierten Rucksacks** mit ihrem Gold unten. Reagenzientasche
-  und Schlüsselbund erscheinen nicht (Blizzards kombinierter Rucksack zeigt sie auch nicht).
+  und Schlüsselbund erscheinen nicht (Blizzards kombinierter Rucksack zeigt sie auch nicht). Die
+  Plätze haben dieselbe Reihenfolge wie in Blizzards Fenster: zuerst der Rucksack, die Plätze
+  aufsteigend, beginnend unten rechts.
 - **Bank** – der zuletzt gespeicherte Stand der Bank jedes Charakters, auch des eingeloggten fern
   der Bank: alle Fächer, Seitenreiter rechts, Taschenplätze und der Preis des nächsten Fachs.
   Sortieren und Kaufen sind hier gesperrt (geht nur beim Bankier).
