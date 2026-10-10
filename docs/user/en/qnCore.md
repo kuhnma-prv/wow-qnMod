@@ -63,6 +63,10 @@ All bag settings apply account-wide (for all characters and all profiles).
 - **Also open profession bags** – when all your bags open (B key, merchant, bank …), profession bags
   such as herb or enchanting bags and the reagent bag open as well. Off: they stay closed; clicking
   one still opens it. With combined bags this only affects the reagent bag. Default: on.
+- **Hide the gamepad bag bar** – Forever shows a stray backpack icon at the top right of the combined
+  bags (next to the search box). It covers the sort button, so clicking there does nothing, and it
+  shows your ammo count and the free bag slots. On: hides it as long as the gamepad interface is
+  off. Default: off.
 - **Same at every location** – on: one setting applies to every location. Off: each location is set
   up separately. Default: off.
 - **Everywhere: on open** – what happens to your bags when one of the locations opens (only usable

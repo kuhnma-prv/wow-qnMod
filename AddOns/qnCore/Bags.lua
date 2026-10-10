@@ -36,6 +36,7 @@ Bags.defaults = {
 	allOpen = "all",
 	allClose = true,
 	openProfessionBags = true,   -- when opening all own bags, also open profession bags (like Blizzard)
+	hideGamepadBar = false,      -- opt-in: hide Blizzard's stray gamepad bag bar (see below)
 }
 for _, v in ipairs(Bags.VENUES) do
 	Bags.defaults[v.key .. "Open"] = "all"
@@ -85,6 +86,33 @@ local function HookOpenAllBags()
 end
 
 ---------------------------------------------------------------------------
+-- Stray gamepad bag bar
+-- Forever parents GamepadBagBar to ContainerFrameCombinedBags (TOPRIGHT -5,-19). Its OnLoad
+-- only hides the buttons through GetBagButton, which returns nil without the gamepad
+-- interface, so the backpack button stays visible there: it covers the sort button, shows the
+-- ammo count (button ID 0 = ammo slot) and the free slots. Opt-in: hide the whole bar
+-- while the gamepad interface is off.
+---------------------------------------------------------------------------
+
+local gamepadBarHidden = false   -- we hid it, so we may show it again
+
+function Bags.ApplyGamepadBar()
+	local bar = GamepadBagBar
+	if not bar then
+		return
+	end
+	if Bags.Config().hideGamepadBar and not InputUtil.IsGamepadUIEnabled() then
+		if bar:IsShown() then
+			bar:Hide()
+			gamepadBarHidden = true
+		end
+	elseif gamepadBarHidden then
+		bar:Show()
+		gamepadBarHidden = false
+	end
+end
+
+---------------------------------------------------------------------------
 -- Execution
 ---------------------------------------------------------------------------
 
@@ -123,6 +151,8 @@ end
 
 function Bags.Init()
 	HookOpenAllBags()
+	Bags.ApplyGamepadBar()
+	ns.events.Register("PLAYER_ENTERING_WORLD", Bags.ApplyGamepadBar)
 
 	-- one frame later (Blizzard's own windows have already opened bags by then), several
 	-- events in the same frame only once

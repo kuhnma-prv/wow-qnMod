@@ -50,6 +50,10 @@ local function Build(category, layout)
 	BB:Checkbox(bags, "openProfessionBags", L["Also open profession bags"],
 		L["When all your bags open (B key, merchant, bank …), also open profession bags such as herb or enchanting bags and the reagent bag. Off: they stay closed; clicking one still opens it. With combined bags this only affects the reagent bag."])
 
+	BB:Checkbox(bags, "hideGamepadBar", L["Hide the gamepad bag bar"],
+		L["Forever shows a stray backpack icon at the top right of the combined bags (it covers the sort button and shows the ammo count). On: hides it as long as the gamepad interface is off."],
+		Bags.ApplyGamepadBar)
+
 	local same = BB:Checkbox(bags, "sameEverywhere", L["Same at every location"],
 		L["On: one setting applies to every location (auction house, bank, merchant …). Off: each location is set up separately."])
 

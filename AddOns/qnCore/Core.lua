@@ -20,7 +20,7 @@ ns.profileDefaults = {
 }
 
 -- Version of qnCore's settings (see qnCore.Migrate)
-local SETTINGS_VERSION = "1.0"
+local SETTINGS_VERSION = "1.1"
 
 -- Keys of qnCoreDB dropped without replacement
 local OBSOLETE = {
