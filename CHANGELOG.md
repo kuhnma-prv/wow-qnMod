@@ -11,6 +11,11 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ## [Unreleased]
 
+### Fixed
+
+- **qnViewPort 0.1.9:** submenus of Blizzard menus (e.g. the chat window menu) now open completely inside
+  the monitor of their parent entry, to the left if there is no room on the right.
+
 ### Added
 
 - **qnViewPort 0.1.6:** optional "Talent window on" (page "Placement"): the talent window keeps

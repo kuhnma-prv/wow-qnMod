@@ -402,6 +402,51 @@ function Layout.FitToMonitor(tip, owner)
 	tip:SetPoint(v .. hz, owner, (v == "TOP" and "BOTTOM" or "TOP") .. hz, dx / s, dy / s)
 end
 
+-- Keeps a submenu (Blizzard_Menu: TOPLEFT to the TOPRIGHT of the parent entry) inside the monitor
+-- of its parent entry: to the left of the entry if it does not fit on the right, and pushed
+-- vertically into the monitor. Does nothing if it fits.
+function Layout.FitSubmenu(menu)
+	if not (menu and menu:IsShown()) then
+		return
+	end
+	local point, rel, relPoint = menu:GetPoint(1)
+	if point ~= "TOPLEFT" or relPoint ~= "TOPRIGHT" or not rel or rel == UIParent then
+		return
+	end
+	local area, b = Layout.MonitorAt(rel), Visible.FrameAbs(rel)
+	local s = menu:GetEffectiveScale()
+	local w, h = (menu:GetWidth() or 0) * s, (menu:GetHeight() or 0) * s
+	if not (area and b and w > 0 and h > 0) then
+		return
+	end
+	local e = 0.5   -- rounding
+	local toLeft = b.r + w > area.r + e and b.l - w >= area.l - e
+	local left = toLeft and (b.l - w) or b.r
+	local dx = 0
+	if not toLeft and left + w > area.r + e then
+		dx = area.r - (left + w)
+	end
+	if left + dx < area.l - e then
+		dx = area.l - left
+	end
+	local dy = 0
+	if b.t - h < area.b - e then
+		dy = area.b - (b.t - h)
+	end
+	if b.t + dy > area.t + e then
+		dy = area.t - b.t
+	end
+	if not toLeft and dx == 0 and dy == 0 then
+		return
+	end
+	menu:ClearAllPoints()
+	if toLeft then
+		menu:SetPoint("TOPRIGHT", rel, "TOPLEFT", dx / s, dy / s)
+	else
+		menu:SetPoint("TOPLEFT", rel, "TOPRIGHT", dx / s, dy / s)
+	end
+end
+
 -- Side on which the comparison tooltips hang on tip: true = right, false = left, nil = unknown.
 -- Blizzard: RIGHT to LEFT or LEFT to RIGHT of tip; here: TOPRIGHT to TOPLEFT or TOPLEFT to TOPRIGHT.
 local function CompareSide(tip, shown)
