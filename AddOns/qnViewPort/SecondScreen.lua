@@ -1459,6 +1459,13 @@ function ns.InitSecondScreen()
 	hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", OnAnchorShoppingTooltips)
 	-- Minimap tooltips and tracking menu
 	HookMinimap()
+	-- Submenus of every Blizzard menu (e.g. chat window): on the monitor of their parent entry
+	EventRegistry:RegisterCallback("MenuProxy.OnShow", function(_, menu)
+		ns.Layout.FitSubmenu(menu)
+		C_Timer.After(0, function()
+			ns.Layout.FitSubmenu(menu)
+		end)
+	end, ns)
 	-- Zone Map, World Map and clock (window, tooltip): already loaded or later via ADDON_LOADED
 	HookZoneMap()
 	HookWorldMap()

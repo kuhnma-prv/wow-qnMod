@@ -20,8 +20,8 @@ Titan Panel, puts the Titan bars on individual monitors.
 - World Map extras: follow the current zone, open on login, do not fade while moving.
 - Visibility check: lists interface elements that are fully or partly outside every monitor and
   moves them one at a time on request.
-- Tooltips of bag slots, the minimap (tracking, zone text, mail, calendar, clock) and the tracking
-  menu stay completely on their monitor.
+- Tooltips of bag slots, the minimap (tracking, zone text, mail, calendar, clock), the tracking
+  menu and the submenus of Blizzard menus stay completely on their monitor.
 - With Titan Panel: each full-width Titan bar on a chosen monitor, plugin tooltips on the plugin's
   monitor, scale factor per monitor.
 
