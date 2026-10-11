@@ -23,7 +23,7 @@ mit Titan Panel die Titan-Leisten auf einzelne Monitore.
 - Sichtbarkeitsprüfung: listet Oberflächenelemente, die ganz oder teilweise auf keinem Monitor
   liegen, und holt sie auf Wunsch einzeln in den sichtbaren Bereich.
 - Tooltips der Taschenplätze, der Minikarte (Verfolgung, Zonentext, Post, Kalender, Uhr), das
-  Verfolgungsmenü und die Untermenüs der Blizzard-Menüs bleiben vollständig auf ihrem Monitor.
+  Verfolgungsmenü und die Blizzard-Menüs und ihre Untermenüs bleiben vollständig auf ihrem Monitor.
 - Mit Titan Panel: jede durchgehende Titan-Leiste auf einem gewählten Monitor, Plugin-Tooltips auf
   dem Monitor des Plugins, Skalierung je Monitor.
 
