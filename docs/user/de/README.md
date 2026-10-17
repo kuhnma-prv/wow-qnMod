@@ -32,6 +32,7 @@ Sprache: Deutsche Clients zeigen deutsche Texte, alle anderen Clients englische.
 | [qnUnitFrames](qnUnitFrames.md) | Klickzauber auf Blizzards Gruppen-, Schlachtzugs- und Begleiterrahmen (wie HealBot), je Klasse und Profil; optional ein Reichweitensymbol am Ziel- und Fokusrahmen. | `/qnuf`, `/qnunitframes` |
 | [qnTooltip](qnTooltip.md) | Anpassbare Tooltips: Hintergrund, Rahmen, Schriften, Skalierung, Position auf Wunsch, Lebensbalken, Kopfzeilen von Einheiten aus Bausteinen, Ziel und „Anvisiert von“, 3D-Modell, Gegenstandsstufe, IDs. | `/qntt`, `/qntooltip` |
 | [qnSkins](qnSkins.md) | Schmückende Bilder (Band mit Kordel, Kästen, 3D-Figur) um Aktionsleisten, Statusleisten und Mikromenü; gibt diesen Elementen auf Wunsch eine vordefinierte Position und Skalierung auf einem gewählten Monitor. | `/qnskins` |
+| [qnGatherer](qnGatherer.md) | Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze (in Entwicklung: nur der Datenkern, noch nichts sichtbar). | – |
 
 ## Optionale Addons
 
