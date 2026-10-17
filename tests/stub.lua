@@ -97,6 +97,11 @@ VALID.ACCOUNT_MONEY = true   -- CurrencyInfoDocumentation (qnInventory)
 VALID.SPELLS_CHANGED = true   -- SpellBookDocumentation (qnUnitFrames)
 VALID.ITEM_DATA_LOAD_RESULT = true   -- ItemDocumentation (qnLoadout)
 VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInventory)
+-- UnitDocumentation, LootDocumentation, SystemDocumentation (qnGatherer)
+for _, e in ipairs({ "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
+	"UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "LOOT_OPENED", "UI_ERROR_MESSAGE", "PLAYER_LOGOUT" }) do
+	VALID[e] = true
+end
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
 
 local Frame = {}
@@ -1470,3 +1475,18 @@ function UnitTooltipData(unit)
 	for _, extra in ipairs(d.extra or {}) do lines[#lines + 1] = { type = 0, leftText = extra } end
 	return { type = Enum.TooltipDataType.Unit, guid = d.guid, lines = lines, healthGUID = d.guid }
 end
+
+-- qnGatherer needs: loot window, player position and facing, item class
+-- (scenarios set QN_LOOT = { { item = id, n = count, source = guid }, ... }, QN_POS = { x, y },
+-- QN_FACING, QN_ITEMCLASS[id] = { classID, subClassID })
+Enum.LootSlotType = { None = 0, Item = 1, Money = 2, Currency = 3 }
+Enum.ItemClass = Enum.ItemClass or { Tradegoods = 7 }
+QN_LOOT = {}
+function GetNumLootItems() return #QN_LOOT end
+function GetLootSlotType(i) local l = QN_LOOT[i] if not l then return 0 end return l.item and 1 or 2 end
+function GetLootSlotLink(i) local l = QN_LOOT[i] return l and l.item and ("|cffffffff|Hitem:" .. l.item .. "::::::::|h[x]|h|r") end
+function GetLootSlotInfo(i) local l = QN_LOOT[i] if l then return 134400, "x", l.n or 1 end end
+function GetLootSourceInfo(i) local l = QN_LOOT[i] if l and l.source then return l.source, l.n or 1 end end
+function GetPlayerFacing() return QN_FACING end
+C_Map.GetPlayerMapPosition = function() if QN_POS then return { GetXY = function() return QN_POS[1], QN_POS[2] end } end end
+C_Item.GetItemInfoInstant = function(id) local c = QN_ITEMCLASS and QN_ITEMCLASS[id] if c then return id, "", "", "", 134400, c[1], c[2] end end

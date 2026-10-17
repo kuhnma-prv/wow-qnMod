@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fGatherer|r] |cff00aa000.1.0|r
+## Title: qnMod [|cffeda55fGatherer|r] |cff00aa000.2.0|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
-## Notes: Gathering database for herbs, ore, fishing and treasure (in development: data core only).
-## Notes-deDE: Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze (in Entwicklung: nur der Datenkern).
+## Notes: Gathering database for herbs, ore, fishing and treasure (in development: records nodes and catches, no display yet).
+## Notes-deDE: Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze (in Entwicklung: erfasst Punkte und Fänge, noch keine Anzeige).
 ## Author: qn
-## Version: 0.1.0
+## Version: 0.2.0
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
@@ -24,3 +24,5 @@ Locale.lua
 Core.lua
 Kinds.lua
 DB.lua
+Collector.lua
+Fishing.lua
