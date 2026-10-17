@@ -21,6 +21,7 @@ ns.defaults = {
 		herb = "profession", mine = "profession", fish = "profession", treasure = "always",
 		gas = "profession", archaeology = "profession", logging = "tracking",
 	},
+	soundBoost = false,   -- effect sound on and at full volume while fishing (opt-in)
 }
 
 -- "Name-Realm" of the logged-in character
@@ -36,4 +37,5 @@ ns.OnLoad(function()
 		defaults = ns.defaults,
 	})
 	ns.DB.Init(ns.store.global)
+	ns.Fishing.SoundOff()   -- sound values left over from a crash while fishing
 end)

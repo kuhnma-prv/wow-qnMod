@@ -79,6 +79,7 @@ local function Sub(t, a, b, create)
 	return tb
 end
 
+-- Width and height of a map in yards
 local function MapSize(map)
 	local size = sizes[map]
 	if not size then
@@ -91,6 +92,8 @@ local function MapSize(map)
 	end
 	return size[1], size[2]
 end
+
+DB.MapSize = MapSize
 
 -- Distance in yards between two positions of the same map
 function DB.Yards(map, x1, y1, x2, y2)
@@ -490,6 +493,83 @@ end
 
 function DB.GetCatches(char, map)
 	return Sub(g.catches, char, map) or {}
+end
+
+-- Resource of kind whose name in locale is name (catalog), or nil
+function DB.FindRes(kind, name, locale)
+	for res, entry in pairs(g.catalog) do
+		if entry.kind == kind and entry.names[locale] == name then
+			return res
+		end
+	end
+end
+
+-- Resource of kind with main product item (catalog), or nil; prefers an object key
+function DB.FindResByItem(kind, item)
+	local found
+	for res, entry in pairs(g.catalog) do
+		if entry.kind == kind and entry.item == item then
+			if res:sub(1, 2) == "o:" then
+				return res
+			end
+			found = found or res
+		end
+	end
+	return found
+end
+
+-- Replaces the resource key old by new in all nodes and areas of kind (a name key
+-- "n:<kind>:<name>" becomes "o:"/"i:" once the resource is known). Moves the catalog values
+-- of old that new does not have yet. Returns the number of changed entries.
+function DB.ReplaceRes(kind, old, new)
+	if old == new or not ValidRes(new) or DB.IsLocked(kind) then
+		return 0
+	end
+	local count = 0
+	for map, nodes in pairs(g.nodes[kind] or {}) do
+		local moved = {}
+		for coord, packed in pairs(nodes) do
+			local n = Unpack(packed)
+			if n and n.res == old then
+				n.res = new
+				nodes[coord] = nil
+				n.x, n.y = DB.Decode(coord)
+				moved[#moved + 1] = n
+			end
+		end
+		for _, n in ipairs(moved) do
+			Place(nodes, kind, map, n.x, n.y, n)   -- may merge with a node already stored under new
+		end
+		if #moved > 0 then
+			count = count + #moved
+			Fire(kind, map)
+		end
+	end
+	for map, list in pairs(g.areas[kind] or {}) do
+		for _, a in ipairs(list) do
+			for i, res in ipairs(a.res) do
+				if res == old then
+					table.remove(a.res, i)
+					MergeRes(a.res, { new })
+					count = count + 1
+					Fire(kind, map)
+					break
+				end
+			end
+		end
+	end
+	local from = g.catalog[old]
+	if from then
+		local to = g.catalog[new] or { kind = kind, names = {} }
+		g.catalog[new] = to
+		to.skill = to.skill or from.skill
+		to.item = to.item or from.item
+		for locale, name in pairs(from.names) do
+			to.names[locale] = to.names[locale] or name
+		end
+		g.catalog[old] = nil
+	end
+	return count
 end
 
 ---------------------------------------------------------------------------
