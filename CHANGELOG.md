@@ -29,6 +29,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
+- **qnGatherer 0.1.0:** new addon (in development): data core of a gathering database for herbs, ore,
+  fishing and treasure. It does not collect or show anything yet.
 - **qnViewPort 0.1.6:** optional "Talent window on" (page "Placement"): the talent window keeps
   Blizzard's position, but relative to a chosen monitor instead of centered across all monitors.
 - User documentation in English and German (`docs/user/en`, `docs/user/de`): overview and one page

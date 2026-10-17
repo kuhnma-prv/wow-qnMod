@@ -504,7 +504,7 @@ function C_CVar.SetCVar(k, v) C_CVar._v[k] = v log("SetCVar %s=%s", k, tostring(
 function C_CVar.GetCVarBool(k) return C_CVar._v[k] == "1" end
 C_VideoOptions = { GetCurrentGameWindowSize = function() return { x = 5760, y = 2160 } end }
 C_Container = { GetContainerNumSlots = function(id) return 16 end, GetContainerItemInfo = function() return nil end }
-C_Map = { GetBestMapForUnit = function() return 1 end }
+C_Map = { GetBestMapForUnit = function() return 1 end, GetMapWorldSize = function() return 1000, 1000 end }
 C_ActionBar = setmetatable({}, { __index = function() return function() return false end end })
 C_Bank = { FetchPurchasedBankTabData = function() return {} end }
 

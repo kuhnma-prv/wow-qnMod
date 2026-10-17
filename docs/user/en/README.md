@@ -32,6 +32,7 @@ Language: German clients show German texts, all other clients English.
 | [qnUnitFrames](qnUnitFrames.md) | Click casting on Blizzard's party, raid and pet frames (like HealBot), per class and profile; optional range icon next to the target and focus frame. | `/qnuf`, `/qnunitframes` |
 | [qnTooltip](qnTooltip.md) | Customizable tooltips: background, border, fonts, scale, optional position, health bar, unit lines built from elements, target and "Targeted by", 3D model, item level, IDs. | `/qntt`, `/qntooltip` |
 | [qnSkins](qnSkins.md) | Decorative artwork (band with cord, boxes, 3D figure) around action bars, status bars and micro menu; optionally gives these elements a predefined position and scale on a chosen monitor. | `/qnskins` |
+| [qnGatherer](qnGatherer.md) | Gathering database for herbs, ore, fishing and treasure (in development: data core only, nothing visible yet). | – |
 
 ## Optional addons
 
