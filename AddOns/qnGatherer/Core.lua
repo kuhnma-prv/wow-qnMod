@@ -28,6 +28,7 @@ ns.defaults = {
 	filter = {},                                                 -- filter[kind][res] = false: hidden
 	origins = { guild = true, import = true },                   -- show nodes found by the guild / imported
 	soundBoost = false,   -- effect sound on and at full volume while fishing (opt-in)
+	mini = { fishing = true, gathering = false, delay = 8 },   -- info window: open automatically, close after seconds
 }
 
 -- "Name-Realm" of the logged-in character
@@ -52,6 +53,8 @@ ns.OnLoad(function()
 	ns.Fishing.SoundOff()   -- sound values left over from a crash while fishing
 	ns.Display.Init()
 	ns.Minimap.Init()
+	ns.Journal.Init()
+	ns.Mini.Init()
 	ns.InitOptions()
 	ns.InitSlash()
 	ns.Launcher.Init()

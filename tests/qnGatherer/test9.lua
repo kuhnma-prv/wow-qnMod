@@ -42,10 +42,14 @@ SlashCmdList.QNGATHERER("sound")
 local opened = 0
 local open = gt.OpenOptions
 gt.OpenOptions = function() opened = opened + 1 end
-SlashCmdList.QNGATHERER("")
 SlashCmdList.QNGATHERER("options")
 SlashCmdList.QNGATHERER("help")
-Check(opened == 2, "/qngatherer and /qngatherer options open the options, help does not")
+Check(opened == 1, "/qngatherer options opens the options, help does not")
+SlashCmdList.QNGATHERER("")
+Check(gt.Journal.frame:IsShown(), "/qngatherer opens the journal")
+SlashCmdList.QNGATHERER("")
+Check(not gt.Journal.frame:IsShown(), "/qngatherer again closes it")
+opened = opened + 1   -- keep the counts below
 Check(SLASH_QNGATHERER1 == "/qngatherer" and SLASH_QNGATHERER2 == "/qng", "slash commands")
 Check(BINDING_NAME_QNGATHERER_TOGGLE_MINIMAP == L["Minimap icons on/off"], "key binding names")
 
@@ -94,11 +98,17 @@ Check(Near(x, 80) and Near(y, 80), "square minimap: button in the corner")
 Lc.Click("RightButton")
 Check(opened == 3, "right-click opens the options")
 Lc.Click("LeftButton")
-Check(gt.db.minimap.show == false, "left-click toggles the minimap icons")
+Check(gt.Journal.frame and gt.Journal.frame:IsShown(), "left-click opens the journal")
+Lc.Click("LeftButton")
+Check(not gt.Journal.frame:IsShown(), "and closes it")
 IsShiftKeyDown = function() return true end
 Lc.Click("LeftButton")
-Check(gt.db.worldMap.show == false, "Shift-left-click toggles the world map icons")
+Check(gt.db.minimap.show == false, "Shift-left-click toggles the minimap icons")
 IsShiftKeyDown = function() return false end
+IsControlKeyDown = function() return true end
+Lc.Click("LeftButton")
+Check(gt.db.worldMap.show == false, "Ctrl-left-click toggles the world map icons")
+IsControlKeyDown = function() return false end
 Check(Lc.button:IsShown(), "button shown by default")
 gt.builders.launcher.settings.show:SetValue(false)
 Check(not Lc.button:IsShown() and DB.global.launcher.show == false, "button hidden from the options")

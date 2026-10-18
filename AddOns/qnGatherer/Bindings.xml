@@ -1,5 +1,8 @@
 <Bindings>
-	<Binding name="QNGATHERER_TOGGLE_MINIMAP" header="QNGATHERER" category="ADDONS">
+	<Binding name="QNGATHERER_JOURNAL" header="QNGATHERER" category="ADDONS">
+		qnGatherer.Journal.Toggle()
+	</Binding>
+	<Binding name="QNGATHERER_TOGGLE_MINIMAP" category="ADDONS">
 		qnGatherer.ToggleMinimap()
 	</Binding>
 	<Binding name="QNGATHERER_TOGGLE_WORLDMAP" category="ADDONS">

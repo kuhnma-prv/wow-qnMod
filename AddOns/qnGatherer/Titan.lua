@@ -1,7 +1,7 @@
 -- qnGatherer: Titan plugin (only if Titan is loaded, ## OptionalDeps: Titan).
 --   qnGatherer  [icon] Nodes: 12   shown nodes of the current zone. Tooltip: nodes per kind in this
---               zone and in total, state of the icons. Left-click: minimap icons on/off,
---               Shift-left-click: world map icons on/off. Right-click: Titan menu with options.
+--               zone and in total, state of the icons. Clicks like the minimap button (left: journal,
+--               Shift-left: minimap icons, Ctrl-left: world map icons). Right-click: Titan menu.
 -- Titan registers plugins on entering the world; the button is therefore created at load time.
 
 local ADDON, ns = ...
@@ -52,6 +52,7 @@ local function Tooltip()
 end
 
 local function Menu(_, root)
+	Titan_Menu.AddCommand(root, ID, L["Open/close the journal"], ns.Journal.Toggle)
 	Titan_Menu.AddCommand(root, ID, L["Minimap icons on/off"], ns.ToggleMinimap)
 	Titan_Menu.AddCommand(root, ID, L["World map icons on/off"], ns.ToggleWorldMap)
 	Titan_Menu.AddDivider(root)
@@ -80,7 +81,7 @@ if Titan.active then
 		menuContextFunction = Menu,
 		icon = ICON,
 		iconWidth = 16,
-		notes = L["Shown gathering nodes of the current zone; left-click: minimap icons on/off, Shift-left-click: world map icons on/off."],
+		notes = L["Shown gathering nodes of the current zone; left-click: journal, Shift-left-click: minimap icons on/off, Ctrl-left-click: world map icons on/off."],
 		controlVariables = { ShowIcon = true, ShowLabelText = true, DisplayOnRightSide = true },
 		savedVariables = { ShowIcon = true, ShowLabelText = true, DisplayOnRightSide = false },
 	}
