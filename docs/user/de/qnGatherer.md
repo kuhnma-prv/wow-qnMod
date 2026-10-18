@@ -15,8 +15,10 @@ ist geplant).
   Schlossknacken). Die Position ist die Stelle, an der du beim Sammeln stehst. Punkte derselben
   Ressource dicht beieinander (Zusammenfassungsradius, 15 Meter) zählen als ein Punkt.
 - **Punkte, die du noch nicht abbauen kannst**: Meldet das Spiel „Benötigt Bergbau 175“ oder ist die
-  Truhe verschlossen, wird der Punkt mit seinem Namen und der benötigten Fertigkeit gespeichert.
-  Baust du ihn später ab, wird er zu einem normalen Punkt.
+  Truhe verschlossen, wird der Punkt mit seinem Namen und der benötigten Fertigkeit gespeichert. Das
+  klappt auch bei Charakteren ohne den Beruf: Klick auf das Kraut oder die Ader, und die
+  Fehlermeldung („Benötigt Kräuterkunde“) zeichnet den Punkt an deiner Position mit dem Namen aus
+  seinem Tooltip auf. Baust du ihn später ab, wird er zu einem normalen Punkt.
 - **Angeln**: Jeder geangelte Gegenstand wird pro Charakter und Zone gezählt (auch Müll). Fische
   werden als **Angelgebiete** um die Stelle gespeichert, an der du die Angel auswirfst; nahe
   Würfe ergänzen dasselbe Gebiet (höchstens 30 gelernte Gebiete pro Zone). Angelst du in einem

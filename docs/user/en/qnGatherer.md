@@ -14,7 +14,9 @@ GatherTogether, or from another qnGatherer user (an exchange with your guild is 
   The node's position is the place where you stand when you gather it. Nodes of the same resource
   close to each other (merge radius, 15 yards) count as one node.
 - **Nodes you cannot gather yet**: if the game says "Requires Mining 175" or the chest is locked,
-  the node is stored by its name together with the required skill. When you gather it later, it is
+  the node is stored by its name together with the required skill. This also works on characters
+  without the profession: click the herb or the vein, and the error message ("Requires Herbalism")
+  records it at your position with the name from its tooltip. When you gather it later, it is
   stored as a normal node.
 - **Fishing**: every item you fish up is counted per character and zone (junk included). Fish
   are stored as **fishing areas** around the place where you cast; casts close to each other add

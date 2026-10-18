@@ -29,9 +29,10 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
-- **qnGatherer 0.6.0:** new addon (in development): gathering database for herbs, ore, fishing and
-  treasure. Records nodes while gathering (also nodes you lack the skill for, with the required skill),
-  fish schools, every fishing catch per character and the fishing areas you learn. Shows the nodes on
+- **qnGatherer 0.6.1:** new addon (in development): gathering database for herbs, ore, fishing and
+  treasure. Records nodes while gathering (also nodes you lack the skill or the profession for, with
+  the required skill), fish schools, every fishing catch per character and the fishing areas you
+  learn. Shows the nodes on
   the world map (tooltip, right-click menu: delete, waypoint, TomTom) and on the minimap (tracking
   ring nearby, nodes outside slide along the edge, rotating and square minimaps). Options pages
   (visibility per kind, world map, minimap, filter, fishing, data maintenance), `/qngatherer`, key
