@@ -1,0 +1,8 @@
+<Bindings>
+	<Binding name="QNGATHERER_TOGGLE_MINIMAP" header="QNGATHERER" category="ADDONS">
+		qnGatherer.ToggleMinimap()
+	</Binding>
+	<Binding name="QNGATHERER_TOGGLE_WORLDMAP" category="ADDONS">
+		qnGatherer.ToggleWorldMap()
+	</Binding>
+</Bindings>

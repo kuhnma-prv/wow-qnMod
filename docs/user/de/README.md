@@ -32,14 +32,15 @@ Sprache: Deutsche Clients zeigen deutsche Texte, alle anderen Clients englische.
 | [qnUnitFrames](qnUnitFrames.md) | Klickzauber auf Blizzards Gruppen-, Schlachtzugs- und Begleiterrahmen (wie HealBot), je Klasse und Profil; optional ein Reichweitensymbol am Ziel- und Fokusrahmen. | `/qnuf`, `/qnunitframes` |
 | [qnTooltip](qnTooltip.md) | Anpassbare Tooltips: Hintergrund, Rahmen, Schriften, Skalierung, Position auf Wunsch, Lebensbalken, Kopfzeilen von Einheiten aus Bausteinen, Ziel und „Anvisiert von“, 3D-Modell, Gegenstandsstufe, IDs. | `/qntt`, `/qntooltip` |
 | [qnSkins](qnSkins.md) | Schmückende Bilder (Band mit Kordel, Kästen, 3D-Figur) um Aktionsleisten, Statusleisten und Mikromenü; gibt diesen Elementen auf Wunsch eine vordefinierte Position und Skalierung auf einem gewählten Monitor. | `/qnskins` |
-| [qnGatherer](qnGatherer.md) | Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze (in Entwicklung): erfasst Sammelpunkte, Fänge und Angelgebiete und zeigt die Punkte auf Weltkarte und Minikarte.. | – |
+| [qnGatherer](qnGatherer.md) | Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze (in Entwicklung): erfasst Sammelpunkte, Fänge und Angelgebiete und zeigt die Punkte auf Weltkarte und Minikarte; Minikarten-Knopf und Titan-Panel-Plugin. | `/qngatherer`, `/qng` |
 
 ## Optionale Addons
 
 - [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0): weitere Schriften,
   Texturen und Rahmen für qnThreatMeter und qnTooltip.
 - [Titan Panel](https://www.curseforge.com/wow/addons/titan-panel): Leisten je Monitor (qnViewPort),
-  Bank- und Gold-Plugins (qnInventory).
+  Bank- und Gold-Plugins (qnInventory), Sammel-Plugin (qnGatherer).
+- [TomTom](https://www.curseforge.com/wow/addons/tomtom): Wegpunkte aus dem Weltkartenmenü von qnGatherer.
 
 ## Allgemeine Hinweise
 

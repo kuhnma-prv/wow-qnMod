@@ -4,17 +4,15 @@ Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze – **in Entwicklung**.
 
 Zurück zur [Übersicht](README.md) · English: [English](../en/qnGatherer.md)
 
-## Aktueller Stand (0.3.0)
-
-qnGatherer zeichnet beim Spielen Sammelpunkte auf und zeigt sie auf Weltkarte und Minikarte. Eine
-Optionsseite und einen Slash-Befehl gibt es noch nicht; die Einstellungen unten gelten mit ihren
-Standardwerten.
+qnGatherer zeichnet die Sammelpunkte auf, die du findest, und zeigt sie auf Weltkarte und
+Minikarte. Es bringt keine Daten mit: Die Karten füllen sich beim Sammeln (Import aus anderen
+Sammel-Addons und ein Austausch mit der Gilde sind geplant).
 
 ## Aufzeichnen
 
 - **Sammelpunkte**, wenn du sie abbaust: Kräuter (Kräuterkunde), Erz (Bergbau) und Truhen (Öffnen,
-  Schlossknacken). Die Position ist die Stelle, an der du beim Sammeln stehst. Punkte derselben Art
-  dicht beieinander (15 Meter) zählen als ein Punkt.
+  Schlossknacken). Die Position ist die Stelle, an der du beim Sammeln stehst. Punkte derselben
+  Ressource dicht beieinander (Zusammenfassungsradius, 15 Meter) zählen als ein Punkt.
 - **Punkte, die du noch nicht abbauen kannst**: Meldet das Spiel „Benötigt Bergbau 175“ oder ist die
   Truhe verschlossen, wird der Punkt mit seinem Namen und der benötigten Fertigkeit gespeichert.
   Baust du ihn später ab, wird er zu einem normalen Punkt.
@@ -22,6 +20,7 @@ Standardwerten.
   werden als **Angelgebiete** um die Stelle gespeichert, an der du die Angel auswirfst; nahe
   Würfe ergänzen dasselbe Gebiet (höchstens 30 gelernte Gebiete pro Zone). Angelst du in einem
   **Fischschwarm**, wird auch der Schwarm etwa 15 Meter vor dir gespeichert.
+- Kürschnerei wird nicht aufgezeichnet (Tiere haben keinen festen Ort).
 
 ## Weltkarte
 
@@ -30,43 +29,104 @@ Standardwerten.
   mehrere Punkte unter der Maus werden zusammen aufgelistet.
 - **Rechtsklick** auf einen Punkt: **Löschen: <Name>** (der Punkt kommt auch über Gilde oder Import
   nicht wieder), **Wegpunkt setzen** (Blizzards Kartenmarkierung) und mit TomTom
-  **TomTom-Wegpunkt hinzufügen**.
-- Angelgebiete lassen sich als farbige Ellipsen anzeigen (standardmäßig aus).
+  **TomTom-Wegpunkt hinzufügen**. Rechtsklick auf freie Kartenfläche zoomt weiter heraus.
+- Angelgebiete lassen sich als farbige Ellipsen anzeigen.
 
 ## Minikarte
 
-- Punkte in deiner Nähe erscheinen mit ihrem Symbol; innerhalb der **Verfolgungsdistanz**
-  (100 Meter) wird das Symbol zu einem **Ring** in der Farbe der Art (Kräuter grün, Erz rot, Fische
-  gelb, Schätze lila).
+- Punkte in deiner Nähe erscheinen mit ihrem Symbol; innerhalb der **Verfolgungsdistanz** wird das
+  Symbol zu einem **Ring** in der Farbe der Art (Kräuter grün, Erz rot, Fische gelb, Schätze lila).
 - Punkte außerhalb des Ausschnitts gleiten am Rand der Minikarte entlang und verblassen mit der
   Entfernung.
 - Funktioniert mit drehender Minikarte und mit eckigen oder anderen Minikartenformen von
   Minikarten-Addons.
 - Maus über einem Symbol zeigt den Tooltip; Linksklick pingt die Minikarte an dieser Stelle.
 
-## Was angezeigt wird (Standard)
+## Optionen
 
-| Art | Angezeigt |
+*Optionen → Addons → qnGatherer*. Alle Seiten außer **Daten** und dem Minikarten-Knopf gehören zum
+aktiven Profil (Layout des Bearbeitungsmodus).
+
+### qnGatherer
+
+| Option | Standard | Bedeutung |
+|---|---|---|
+| **Angezeigte Punkte**: Kräuterkunde, Bergbau, Angeln, Schätze | Mit dem Beruf (Schätze: Immer) | **Immer**, **Mit dem Beruf** (nur wenn dieser Charakter ihn hat), **Beim Aufspüren** (nur solange Kräutersuche, Mineraliensuche … aktiv ist), **Nie** (ausgeblendet, wird weiter aufgezeichnet) |
+| Von der Gilde gefundene Punkte anzeigen | an | |
+| Importierte Punkte anzeigen | an | |
+| Minikarten-Knopf anzeigen | an | account-weit |
+
+### Weltkarte
+
+| Option | Standard |
 |---|---|
-| Kräuter, Erz, Fische | nur wenn dein Charakter den Beruf hat |
-| Schätze | immer |
+| Symbole auf der Weltkarte anzeigen | an |
+| Symbole anklickbar (Tooltip und Rechtsklick-Menü) | an |
+| Symbolgröße | 100 % |
+| Deckkraft der Symbole | 100 % |
+| Angelgebiete anzeigen | aus |
 
-Weitere Standardwerte: Weltkartensymbole Größe 100 %, voll deckend, anklickbar; Minikartensymbole
-Größe 75 %, Tooltips und Rand an; von der Gilde gefundene und importierte Punkte werden angezeigt.
-Diese Einstellungen werden in einer späteren Version auf der Optionsseite einstellbar.
+### Minikarte
 
-## Lautstärke beim Angeln
+| Option | Standard |
+|---|---|
+| Symbole auf der Minikarte anzeigen | an |
+| Tooltips auf der Minikarte | an |
+| Punkte am Rand anzeigen | an |
+| Symbolgröße | 75 % |
+| Deckkraft der Symbole | 100 % |
+| Verfolgungsring anzeigen | Immer |
+| Verfolgungsdistanz (Meter) | 100 |
+| Farbe je Art | grün, rot, gelb, lila |
 
-qnGatherer kann beim Angeln die Effektgeräusche einschalten und auf volle Lautstärke stellen,
-damit das Platschen gut zu hören ist, und stellt deine Einstellungen am Ende des Wurfs wieder her
-(auch nach dem Ausloggen oder einem Absturz). **Standardmäßig aus**; die Option kommt mit der
-Optionsseite.
+### Filter
 
-Als Nächstes geplant: Optionsseite, ein Nachschlagefenster mit Angel- und Sammelinformationen,
-Import aus anderen Sammel-Addons und ein abschaltbarer Datenaustausch mit der Gilde.
+Ein Kontrollkästchen je bekannter Ressource (gesammelt, importiert oder von der Gilde erhalten),
+nach Art gruppiert, mit **Alle** und **Keine**. Ausgeblendete Ressourcen werden weiter
+aufgezeichnet. „Standard“ blendet alles wieder ein.
+
+### Angeln
+
+| Option | Standard | Bedeutung |
+|---|---|---|
+| Lautstärke beim Angeln anheben | aus | Effektgeräusche beim Angeln an und auf volle Lautstärke; deine Einstellungen werden am Ende des Wurfs wiederhergestellt (auch nach dem Ausloggen oder einem Absturz) |
+
+### Daten (account-weit)
+
+- **Zusammenfassungsradius (Meter)** je Art (Standard 15) und **Datenbank bereinigen**: fasst
+  Punkte innerhalb des Radius erneut zusammen, z. B. nach einer Änderung.
+- **Datenbanksperre** je Art: Für eine gesperrte Art wird nichts hinzugefügt, gelöscht, bereinigt
+  oder importiert.
+- **Löschen**: Art wählen, dann **In der aktuellen Zone löschen** (diese Punkte kommen auch über
+  Gilde oder Import nicht wieder) oder **Alle Punkte der Art löschen**; **Gildendaten entfernen**,
+  **Importierte Daten entfernen**. Jeweils mit Rückfrage.
+
+## Minikarten-Knopf und Titan Panel
+
+- **Minikarten-Knopf**: Linksklick Minikartensymbole an/aus, Umschalt-Linksklick
+  Weltkartensymbole an/aus, Rechtsklick Optionen; per Ziehen am Rand der Minikarte verschieben.
+- **Titan Panel** (optional): Plugin **qnGatherer** mit der Zahl der angezeigten Punkte in der
+  aktuellen Zone; Tooltip mit Punkten je Art (Zone / gesamt); Klicks wie beim Minikarten-Knopf,
+  Rechtsklick-Menü mit den Schaltern und den Optionen.
+
+## Slash-Befehle und Tastenbelegungen
+
+| Befehl | Wirkung |
+|---|---|
+| `/qngatherer`, `/qng` | Optionen öffnen |
+| `/qngatherer minimap` | Minikartensymbole an/aus |
+| `/qngatherer worldmap` | Weltkartensymbole an/aus |
+| `/qngatherer sound` | Lautstärke beim Angeln an/aus |
+| `/qngatherer cleanup` | Datenbank bereinigen |
+| `/qngatherer help` | Liste der Befehle |
+
+Tastenbelegungen (*Optionen → Tastaturbelegung → Addons → qnGatherer*): **Minikartensymbole
+an/aus**, **Weltkartensymbole an/aus**.
 
 ## Gespeicherte Daten
 
 Alle gesammelten Daten gelten account-weit (für alle Charaktere gemeinsam); Fänge werden pro
-Charakter gespeichert. Anzeige-Einstellungen gehören wie bei den anderen qn-Addons zum aktiven
-Profil (Layout des Bearbeitungsmodus).
+Charakter gespeichert.
+
+Als Nächstes geplant: ein Nachschlagefenster mit Angel- und Sammelinformationen, Import aus
+GatherMate2 und GatherTogether, ein abschaltbarer Datenaustausch mit der Gilde.

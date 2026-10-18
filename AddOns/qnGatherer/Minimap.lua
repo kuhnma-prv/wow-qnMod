@@ -33,6 +33,8 @@ local SHAPES = {
 	["TRICORNER-BOTTOMRIGHT"] = { true, true, true, false },
 }
 
+M.SHAPES = SHAPES
+
 local frame
 local pins = {}
 local candidates = {}   -- { kind, res, origin, x, y, circle } of the current map

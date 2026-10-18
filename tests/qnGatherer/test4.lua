@@ -49,6 +49,6 @@ Check(g.sync.enabled == true and g.sync.shareImports == false and g.sync.relayGu
 Check(g.radius.herb == 15 and g.radius.gas == 50 and g.radius.logging == 20, "radius defaults")
 Check(qnGathererDB.settingsVersion == "1.0", "settings version")
 Check(gt.db and gt.db.show and gt.db.show.treasure == "always" and gt.db.show.herb == "profession", "profile defaults")
-Check(gt.KINDS.mine.name == gt.L["Mining"], "kind names localized")
+Check(gt.KINDS.mine.name == MINING and gt.KINDS.treasure.name == gt.L["Treasure"], "kind names: Blizzard texts or localized")
 Check(gt.KindAvailable("mine") == (C_Spell.GetSpellName(2575) ~= nil), "kind availability from the spell")
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

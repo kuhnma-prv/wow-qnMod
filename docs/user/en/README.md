@@ -32,14 +32,15 @@ Language: German clients show German texts, all other clients English.
 | [qnUnitFrames](qnUnitFrames.md) | Click casting on Blizzard's party, raid and pet frames (like HealBot), per class and profile; optional range icon next to the target and focus frame. | `/qnuf`, `/qnunitframes` |
 | [qnTooltip](qnTooltip.md) | Customizable tooltips: background, border, fonts, scale, optional position, health bar, unit lines built from elements, target and "Targeted by", 3D model, item level, IDs. | `/qntt`, `/qntooltip` |
 | [qnSkins](qnSkins.md) | Decorative artwork (band with cord, boxes, 3D figure) around action bars, status bars and micro menu; optionally gives these elements a predefined position and scale on a chosen monitor. | `/qnskins` |
-| [qnGatherer](qnGatherer.md) | Gathering database for herbs, ore, fishing and treasure (in development): records nodes, fishing catches and areas, shows the nodes on the world map and the minimap.. | – |
+| [qnGatherer](qnGatherer.md) | Gathering database for herbs, ore, fishing and treasure (in development): records nodes, fishing catches and areas, shows the nodes on the world map and the minimap; minimap button and Titan Panel plugin. | `/qngatherer`, `/qng` |
 
 ## Optional addons
 
 - [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0): more fonts,
   textures and borders for qnThreatMeter and qnTooltip.
 - [Titan Panel](https://www.curseforge.com/wow/addons/titan-panel): bars per monitor (qnViewPort),
-  bank and gold plugins (qnInventory).
+  bank and gold plugins (qnInventory), gathering plugin (qnGatherer).
+- [TomTom](https://www.curseforge.com/wow/addons/tomtom): waypoints from the world map menu of qnGatherer.
 
 ## General notes
 

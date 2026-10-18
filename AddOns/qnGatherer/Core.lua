@@ -52,6 +52,10 @@ ns.OnLoad(function()
 	ns.Fishing.SoundOff()   -- sound values left over from a crash while fishing
 	ns.Display.Init()
 	ns.Minimap.Init()
+	ns.InitOptions()
+	ns.InitSlash()
+	ns.Launcher.Init()
+	ns.Titan.Init()
 	-- the world map may be loaded on demand: add the pins as soon as it exists
 	if WorldMapFrame then
 		ns.WorldMap.Init()

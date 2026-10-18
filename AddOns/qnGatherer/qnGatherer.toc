@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fGatherer|r] |cff00aa000.3.0|r
+## Title: qnMod [|cffeda55fGatherer|r] |cff00aa000.4.0|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
-## Notes: Gathering database for herbs, ore, fishing and treasure with icons on the world map and the minimap (in development: no options yet).
-## Notes-deDE: Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze mit Symbolen auf Weltkarte und Minikarte (in Entwicklung: noch ohne Optionen).
+## Notes: Gathering database for herbs, ore, fishing and treasure with icons on the world map and the minimap (in development).
+## Notes-deDE: Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze mit Symbolen auf Weltkarte und Minikarte (in Entwicklung).
 ## Author: qn
-## Version: 0.3.0
+## Version: 0.4.0
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
@@ -19,6 +19,7 @@
 ## Category-zhTW: 使用者介面
 ## SavedVariables: qnGathererDB
 ## Dependencies: qnCore
+## OptionalDeps: Titan, TomTom
 
 Locale.lua
 Core.lua
@@ -30,3 +31,6 @@ Display.lua
 WorldMap.lua
 WorldMapPins.xml
 Minimap.lua
+Options.lua
+Launcher.lua
+Titan.lua
