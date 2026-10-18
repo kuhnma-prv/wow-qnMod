@@ -13,9 +13,13 @@ local floor, sqrt, abs, min, max = math.floor, math.sqrt, math.abs, math.min, ma
 -- qnGathererDB.global
 --   nodes[kind][map][coord]      = "res|first|last|seen|originId"   points
 --   areas[kind][map]             = { { x, y, rx, ry, class, o = originId, res = { res, ... } }, ... }
---   zones[kind][map]             = { min, max, o = originId }       skill range of a zone
+--   zones[kind][map]             = { min, max, o = originId, res = { res, ... } }   skill range and
+--                                  resources of a zone without positions (e.g. fish lists)
 --   catalog[res]                 = { kind, item, skill, names = { [locale] = name }, rareOf, cond }
 --   catches[charKey][map][item]  = count                            fishing loot per character
+--   overlays[artID]["w:h:x:y"]   = { w, h, x, y, files = { fileID, ... }, o }  exploration overlays (import)
+--   skinning                     = { { low, high, skill, skillHigh, item, maps = { map, ... }, o }, ... }
+--   pendingImport                = { { adapter, version, records = { rec, ... } }, ... }  from the offline tool
 --   tombstones[kind][map][coord] = time()   deleted locally; blocks sync and import within the radius
 --   origins                      = { "own", "guild:Name-Realm", "import:gm2", ... }  index = originId
 --   locks[kind]                  = true     database lock: nothing is added, deleted or cleaned up
@@ -35,7 +39,9 @@ local floor, sqrt, abs, min, max = math.floor, math.sqrt, math.abs, math.min, ma
 
 local GLOBAL_DEFAULTS = {
 	nodes = {}, areas = {}, zones = {}, catalog = {}, catches = {}, tombstones = {},
+	overlays = {}, skinning = {},
 	origins = { "own" }, locks = {}, imports = {}, radius = {},
+	importOptions = { auto = false },   -- import again when an adapter has a newer data version
 	sync = { enabled = true, relayGuild = false, shareImports = false, ignore = {} },
 	launcher = { show = true, angle = 225 },   -- minimap button (Launcher.lua)
 	windows = { journal = {}, mini = { pinned = false } },   -- positions, journal kind, mini pinned
@@ -48,7 +54,8 @@ DB.LOCK_DEFAULTS = {}                          -- filled with false in DB.Init
 
 local AREA_CLASSES = { learned = true, reported = true, school = true }
 local LEARNED_MAX = 30              -- learned areas per kind and map
-local NEAR_X, NEAR_Y = 0.05, 0.06   -- an area within this distance of another of the same class is merged
+local NEAR_X, NEAR_Y = 0.05, 0.06   -- a learned area within this distance of another one is merged
+local SAME_POS = 0.001              -- other areas: merged only at (almost) the same position
 local DEFAULT_SIZE = 1000           -- yards of a map without world size (instances)
 
 local g                 -- qnGathererDB.global
@@ -367,8 +374,13 @@ local function IngestArea(rec, origin)
 	local list = Sub(g.areas, kind, map, true)
 	local oid = OriginId(origin)
 	local learned = 0
+	-- learned areas grow from nearby casts; other areas (imports) are only merged at the same position
+	local nearX, nearY = NEAR_X, NEAR_Y
+	if class ~= "learned" then
+		nearX, nearY = SAME_POS, SAME_POS
+	end
 	for _, a in ipairs(list) do
-		if a.class == class and abs(a.x - x) <= NEAR_X and abs(a.y - y) <= NEAR_Y then
+		if a.class == class and abs(a.x - x) <= nearX and abs(a.y - y) <= nearY then
 			local changed = MergeRes(a.res, resList)
 			if origin == "own" and a.o ~= oid then
 				a.o = oid
@@ -393,29 +405,106 @@ local function IngestArea(rec, origin)
 	return "added"
 end
 
+-- Zone info: skill range (min and max) and/or resources without positions (res list)
 local function IngestZone(rec, origin)
 	local lo, hi = tonumber(rec.min), tonumber(rec.max)
-	if not lo or not hi or lo < 0 or hi < lo or hi > 1000 then
+	local hasRange = lo ~= nil or hi ~= nil
+	if hasRange and (not lo or not hi or lo < 0 or hi < lo or hi > 1000) then
+		return nil, "invalid"
+	end
+	local resList = rec.res
+	if resList ~= nil then
+		if type(resList) ~= "table" then return nil, "invalid" end
+		for _, res in ipairs(resList) do
+			if not ValidRes(res) then return nil, "invalid" end
+		end
+	end
+	if not hasRange and not (resList and #resList > 0) then
 		return nil, "invalid"
 	end
 	local zones = g.zones[rec.kind] or {}
 	g.zones[rec.kind] = zones
-	local old = zones[rec.map]
-	if old and origin ~= "own" and old.o == originIndex.own then
-		return "kept"   -- learned ourselves: imports do not overwrite it
+	local zone = zones[rec.map]
+	local result = zone and "merged" or "added"
+	if not zone then
+		zone = { o = OriginId(origin) }
+		zones[rec.map] = zone
 	end
-	zones[rec.map] = { min = floor(lo), max = floor(hi), o = OriginId(origin) }
-	return old and "merged" or "added"
+	local changed = false
+	-- a range learned ourselves is not overwritten by others
+	if hasRange and (zone.min == nil or origin == "own" or zone.o ~= originIndex.own) then
+		changed = changed or zone.min ~= floor(lo) or zone.max ~= floor(hi)
+		zone.min, zone.max = floor(lo), floor(hi)
+		zone.o = OriginId(origin)
+	end
+	if resList and #resList > 0 then
+		zone.res = zone.res or {}
+		changed = MergeRes(zone.res, resList) or changed
+	end
+	if result == "merged" and not changed then
+		return "kept"
+	end
+	return result
 end
 
-local function IngestCatch(rec)
+-- Exploration overlay of a map art (import): { art, w, h, x, y, files }
+local function IngestOverlay(rec, origin)
+	local art = PositiveInt(rec.art)
+	local w, h, x, y = tonumber(rec.w), tonumber(rec.h), tonumber(rec.x), tonumber(rec.y)
+	if not art or not w or not h or not x or not y or w <= 0 or h <= 0 or x < 0 or y < 0
+		or type(rec.files) ~= "table" or #rec.files == 0 then
+		return nil, "invalid"
+	end
+	local files = {}
+	for i, file in ipairs(rec.files) do
+		files[i] = PositiveInt(file)
+		if not files[i] then return nil, "invalid" end
+	end
+	local list = g.overlays[art] or {}
+	g.overlays[art] = list
+	local key = ("%d:%d:%d:%d"):format(w, h, x, y)
+	local result = list[key] and "kept" or "added"
+	list[key] = { w = w, h = h, x = x, y = y, files = files, o = OriginId(origin) }
+	return result
+end
+
+-- Skinning level band (import): { low, high, skill, skillHigh, item, maps }
+local function IngestSkinning(rec, origin)
+	local low, high = PositiveInt(rec.low), PositiveInt(rec.high)
+	local skill, skillHigh, item = PositiveInt(rec.skill), PositiveInt(rec.skillHigh), PositiveInt(rec.item)
+	if not low or not high or high < low or not skill or not skillHigh or not item or type(rec.maps) ~= "table" then
+		return nil, "invalid"
+	end
+	local maps = {}
+	for _, map in ipairs(rec.maps) do
+		if ValidMap(map) then maps[#maps + 1] = map end
+	end
+	local band = { low = low, high = high, skill = skill, skillHigh = skillHigh, item = item, maps = maps, o = OriginId(origin) }
+	for i, old in ipairs(g.skinning) do
+		if old.low == low and old.high == high then
+			g.skinning[i] = band
+			return "merged"
+		end
+	end
+	g.skinning[#g.skinning + 1] = band
+	table.sort(g.skinning, function(a, b) return a.low < b.low end)
+	return "added"
+end
+
+-- Own catches are added up; imported counts replace the stored count (importing again does not double them)
+local function IngestCatch(rec, origin)
 	local item, n = PositiveInt(rec.item), PositiveInt(rec.n)
 	if type(rec.char) ~= "string" or rec.char == "" or not ValidMap(rec.map) or not item or not n then
 		return nil, "invalid"
 	end
 	local items = Sub(g.catches, rec.char, rec.map, true)
-	items[item] = (items[item] or 0) + n
-	return "added"
+	local old = items[item]
+	if origin == "own" then
+		items[item] = (old or 0) + n
+		return "added"
+	end
+	items[item] = n
+	return (old == nil and "added") or (old == n and "kept") or "merged"
 end
 
 local function IngestRes(rec, origin)
@@ -459,6 +548,8 @@ local INGEST = {
 	zone = IngestZone,
 	catch = IngestCatch,
 	res = IngestRes,
+	overlay = IngestOverlay,
+	skinning = IngestSkinning,
 }
 -- records bound to a kind and a map; points and areas are subject to the database lock
 local NEEDS_MAP = { node = true, area = true, zone = true }
@@ -522,14 +613,15 @@ function DB.MapsWithData(kind)
 	return maps
 end
 
--- Resources of kind on map: { { res, nodes = count, areas = count, catches = count of char }, ... }
--- from nodes, areas and (fishing) the catches of char that are fish (catalog kind "fish").
+-- Resources of kind on map: { { res, nodes, areas, catches (of char), catchesAll, listed }, ... }
+-- from nodes, areas, the resource list of the zone (listed) and (fishing) the catches that are fish
+-- (catalog kind "fish").
 function DB.ZoneResources(kind, map, char)
 	local byRes, list = {}, {}
 	local function Entry(res)
 		local e = byRes[res]
 		if not e then
-			e = { res = res, nodes = 0, areas = 0, catches = 0 }
+			e = { res = res, nodes = 0, areas = 0, catches = 0, catchesAll = 0, listed = false }
 			byRes[res] = e
 			list[#list + 1] = e
 		end
@@ -545,12 +637,22 @@ function DB.ZoneResources(kind, map, char)
 			e.areas = e.areas + 1
 		end
 	end
-	if kind == "fish" and char then
-		for item, n in pairs(DB.GetCatches(char, map)) do
-			local res = "i:" .. item
-			local entry = g.catalog[res]
-			if entry and entry.kind == "fish" then
-				Entry(res).catches = n
+	local zone = DB.GetZone(kind, map)
+	for _, res in ipairs(zone and zone.res or {}) do
+		Entry(res).listed = true
+	end
+	if kind == "fish" then
+		for charKey, perMap in pairs(g.catches) do
+			for item, n in pairs(perMap[map] or {}) do
+				local res = "i:" .. item
+				local entry = g.catalog[res]
+				if entry and entry.kind == "fish" then
+					local e = Entry(res)
+					e.catchesAll = e.catchesAll + n
+					if charKey == char then
+						e.catches = n
+					end
+				end
 			end
 		end
 	end
@@ -705,9 +807,41 @@ function DB.DeleteOrigin(origin)
 				end
 				Fire(kind, map)
 			end
+			for _, zone in pairs(g.zones[kind] or {}) do
+				if ids[zone.o] then
+					zone.min, zone.max, zone.res = nil, nil, nil
+				end
+			end
 		end
 	end
+	-- zone entries without content, overlays and skinning bands of the origin
+	for _, zones in pairs(g.zones) do
+		for map, zone in pairs(zones) do
+			if zone.min == nil and not zone.res then zones[map] = nil end
+		end
+	end
+	for _, list in pairs(g.overlays) do
+		for key, o in pairs(list) do
+			if ids[o.o] then list[key] = nil end
+		end
+	end
+	for i = #g.skinning, 1, -1 do
+		if ids[g.skinning[i].o] then table.remove(g.skinning, i) end
+	end
 	return count
+end
+
+-- Exploration overlays of a map art in the format of C_MapExplorationInfo.GetExploredMapTextures
+function DB.GetOverlays(art)
+	local list = {}
+	for _, o in pairs(art and g.overlays[art] or {}) do
+		list[#list + 1] = { textureWidth = o.w, textureHeight = o.h, offsetX = o.x, offsetY = o.y, fileDataIDs = o.files }
+	end
+	return list
+end
+
+function DB.GetSkinning()
+	return g.skinning
 end
 
 ---------------------------------------------------------------------------

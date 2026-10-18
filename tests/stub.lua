@@ -1511,3 +1511,4 @@ AM_PIN_SCALE_STYLE_WITH_TERRAIN = 3
 C_Map.GetMapArtLayers = function(map) local a = QN_MAPART and QN_MAPART[map] return a and { a.layer } or {} end
 C_Map.GetMapArtLayerTextures = function(map) local a = QN_MAPART and QN_MAPART[map] return a and a.textures or {} end
 C_MapExplorationInfo = { GetExploredMapTextures = function(map) return QN_EXPLORED and QN_EXPLORED[map] or {} end }
+C_Map.GetMapArtID = function(map) return QN_MAPARTID and QN_MAPARTID[map] or map end

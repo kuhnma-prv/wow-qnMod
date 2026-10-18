@@ -5,8 +5,9 @@ Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze – **in Entwicklung**.
 Zurück zur [Übersicht](README.md) · English: [English](../en/qnGatherer.md)
 
 qnGatherer zeichnet die Sammelpunkte auf, die du findest, und zeigt sie auf Weltkarte und
-Minikarte. Es bringt keine Daten mit: Die Karten füllen sich beim Sammeln (Import aus anderen
-Sammel-Addons und ein Austausch mit der Gilde sind geplant).
+Minikarte. Es bringt keine Daten mit: Die Karten füllen sich beim Sammeln, durch Import aus
+GatherMate2 oder GatherTogether oder von einem anderen qnGatherer-Nutzer (ein Austausch mit der Gilde
+ist geplant).
 
 ## Aufzeichnen
 
@@ -128,6 +129,38 @@ aufgezeichnet. „Standard“ blendet alles wieder ein.
   Gilde oder Import nicht wieder) oder **Alle Punkte der Art löschen**; **Gildendaten entfernen**,
   **Importierte Daten entfernen**. Jeweils mit Rückfrage.
 
+### Importieren (account-weit)
+
+- **Importart**: **Zusammenführen** (fügt Neues hinzu; von dir gelöschte Punkte bleiben gelöscht)
+  oder **Ersetzen** (entfernt zuerst alles, was vorher aus diesem Addon importiert wurde).
+- **GatherMate2**, **GatherTogether**: importiert die Daten des Addons, solange es geladen ist.
+  GatherMate2: seine Punkte (über den Namen den dir bekannten Ressourcen zugeordnet; andere
+  erscheinen mit ihrem Namen, bis du sie abbaust). GatherTogether: Kräuter- und Erzgebiete,
+  Angelgebiete (gemeldet, Schwärme, seine gelernten Stellen), Fertigkeitsbereiche und Fischlisten
+  der Zonen, seine Fänge, die Kartenüberlagerungen (das Nachschlagefenster zeigt dann ganze Zonen)
+  und die Stufenbereiche der Kürschnerei (Eintrag **Kürschnerei** im Nachschlagefenster).
+- **Automatisch importieren** (aus): importiert beim Einloggen erneut aus einem geladenen Addon,
+  dessen Version sich geändert hat.
+- **Eigene Punkte exportieren** / **Exporttext importieren**: deine eigenen Punkte und Angelgebiete
+  als Text für einen anderen qnGatherer-Nutzer (kopieren mit Strg+C, einfügen mit Strg+V).
+
+Importierte Daten sind mit „Importiert aus …“ gekennzeichnet und lassen sich ausblenden (Seite
+qnGatherer) oder entfernen (Seite Daten).
+
+### Offline-Import
+
+Für ein Addon, das auf Forever nicht lädt (z. B. GatherMate2) oder nicht installiert ist: Spiel
+beenden und im Repository ausführen:
+
+```
+pwsh tools\Convert-QnGatherer.ps1 -SavedVariables '<WoW>\_classic_beta_\WTF\Account\<ACCOUNT>\SavedVariables' -GatherMate2 '<Ordner von GatherMate2>' -GatherTogether '<Ordner von GatherTogether>'
+```
+
+Es liest die gespeicherten Daten und Dateien dieser Addons und legt die Datensätze in den
+gespeicherten Variablen von qnGatherer ab (Sicherung `qnGatherer.lua.bak`); qnGatherer importiert
+sie beim nächsten Einloggen und meldet das Ergebnis im Chat. `-Locale` (Standard deDE) bestimmt die
+Sprache der Punktnamen von GatherMate2.
+
 ## Minikarten-Knopf und Titan Panel
 
 - **Minikarten-Knopf**: Linksklick Nachschlagefenster, Umschalt-Linksklick Minikartensymbole
@@ -158,5 +191,4 @@ Tastenbelegungen (*Optionen → Tastaturbelegung → Addons → qnGatherer*): **
 Alle gesammelten Daten gelten account-weit (für alle Charaktere gemeinsam); Fänge werden pro
 Charakter gespeichert.
 
-Als Nächstes geplant: Import aus GatherMate2 und GatherTogether, ein abschaltbarer Datenaustausch
-mit der Gilde.
+Als Nächstes geplant: ein abschaltbarer Datenaustausch mit der Gilde.

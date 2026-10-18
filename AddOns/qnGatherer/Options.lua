@@ -272,6 +272,59 @@ local function BuildData(category)
 end
 
 ---------------------------------------------------------------------------
+-- Import page: adapters of other addons, text export/import (account-wide)
+---------------------------------------------------------------------------
+
+local POPUP_EXPORT = "QNGATHERER_EXPORT"
+local POPUP_IMPORT_TEXT = "QNGATHERER_IMPORT_TEXT"
+local IMPORT_BUTTON = COOLDOWN_VIEWER_SETTINGS_IMPORT_LAYOUT   -- "Import"
+
+-- Imports from adapter key with the mode chosen on the page; message if its data is missing
+function Actions.Import(key, mode)
+	local adapter = ns.Import.Get(key)
+	if not adapter then
+		return nil
+	end
+	if not adapter.Available() then
+		ns.Print(L["No data of %s found. It has to be loaded; for addons that do not load on Forever use the offline tool (tools\\Convert-QnGatherer.ps1)."]:format(adapter.name))
+		return nil
+	end
+	return ns.Import.Run(key, { mode = mode })
+end
+
+local function BuildImport(category)
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, IMPORT_BUTTON)
+	local pick = { mode = "merge" }
+	local P = S.New({ prefix = "QNGATHERER_IMPORTMODE_", source = function() return pick end, defaults = { mode = "merge" } })
+	S.Header(layout, L["Other addons"])
+	P:Dropdown(cat, "mode", L["Import mode"], {
+		{ "merge", L["Merge"], L["Adds what is new; nodes you deleted stay deleted."] },
+		{ "replace", REPLACE, L["First removes everything imported from this addon before, then imports again."] },
+	}, nil, Settings.VarType.String)
+	for _, adapter in ipairs(ns.Import.adapters) do
+		S.Button(layout, adapter.name, IMPORT_BUTTON, function()
+			Actions.Import(adapter.key, pick.mode)
+		end, L["Imports the data of %s (nodes, areas, zone information) as \"imported\". The addon has to be loaded."]:format(adapter.name))
+	end
+	local auto = S.New({ prefix = "QNGATHERER_IMPORTOPT_", source = function() return DB.global.importOptions end,
+		defaults = { auto = false } })
+	ns.builders.importOptions = auto
+	auto:Checkbox(cat, "auto", L["Import automatically"],
+		L["On login, imports again from every loaded addon whose data version changed since the last import."])
+
+	S.Header(layout, L["Exchange with other qnGatherer users"])
+	qnCore.Popup.EditText(POPUP_EXPORT, L["Copy the text (Ctrl+C):"], function() return ns.Import.Export() end, function() end, 1000000)
+	qnCore.Popup.EditText(POPUP_IMPORT_TEXT, L["Paste an export text (Ctrl+V):"], function() return "" end,
+		function(text) ns.Import.FromText(text) end, 1000000)
+	S.Button(layout, L["Export your nodes"], L["Export"], function()
+		StaticPopup_Show(POPUP_EXPORT)
+	end, L["Your own nodes and fishing areas as text for another qnGatherer."])
+	S.Button(layout, L["Import an export text"], IMPORT_BUTTON, function()
+		StaticPopup_Show(POPUP_IMPORT_TEXT)
+	end, L["Imports the text of another qnGatherer as \"imported\"."])
+end
+
+---------------------------------------------------------------------------
 -- Filter page (canvas): one checkbox per known resource, grouped by kind
 ---------------------------------------------------------------------------
 
@@ -412,6 +465,7 @@ local function Build(category, layout)
 	BuildFilter(category)
 	BuildFishing(category)
 	BuildData(category)
+	BuildImport(category)
 end
 
 -- sets ns.category and ns.OpenOptions
