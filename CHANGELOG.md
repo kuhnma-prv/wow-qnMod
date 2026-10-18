@@ -29,13 +29,15 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
-- **qnGatherer 0.4.0:** new addon (in development): gathering database for herbs, ore, fishing and
+- **qnGatherer 0.5.0:** new addon (in development): gathering database for herbs, ore, fishing and
   treasure. Records nodes while gathering (also nodes you lack the skill for, with the required skill),
   fish schools, every fishing catch per character and the fishing areas you learn. Shows the nodes on
   the world map (tooltip, right-click menu: delete, waypoint, TomTom) and on the minimap (tracking
   ring nearby, nodes outside slide along the edge, rotating and square minimaps). Options pages
   (visibility per kind, world map, minimap, filter, fishing, data maintenance), `/qngatherer`, key
-  bindings, minimap button and Titan plugin.
+  bindings, minimap button and Titan plugin. Journal window (zones with search, map preview with
+  nodes and areas, resources with required skill and catches) and an info window that opens while
+  fishing (optionally while gathering).
 - **qnViewPort 0.1.6:** optional "Talent window on" (page "Placement"): the talent window keeps
   Blizzard's position, but relative to a chosen monitor instead of centered across all monitors.
 - User documentation in English and German (`docs/user/en`, `docs/user/de`): overview and one page

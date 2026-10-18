@@ -145,7 +145,7 @@ local function BuildMain(cat, layout)
 	ns.builders.launcher = launcher
 	S.Header(layout, L["Minimap button"])
 	launcher:Checkbox(cat, "show", L["Show minimap button"],
-		L["Left-click: minimap icons on/off. Shift-left-click: world map icons on/off. Right-click: options. Drag to move it along the minimap. Applies to all characters."])
+		L["Left-click: journal. Shift-left-click: minimap icons on/off. Ctrl-left-click: world map icons on/off. Right-click: options. Drag to move it along the minimap. Applies to all characters."])
 end
 
 local function BuildWorldMap(category)
@@ -191,11 +191,22 @@ local function BuildMinimap(category)
 end
 
 local function BuildFishing(category)
-	local cat = Settings.RegisterVerticalLayoutSubcategory(category, FISHING)
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, FISHING)
 	local B = S.New({ store = ns.store, prefix = "QNGATHERER_FISHING_" })
 	ns.builders.fishing = B
 	B:Checkbox(cat, "soundBoost", L["Sound boost while fishing"],
 		L["Turns the effect sound on and to full volume while you fish, so that the splash is easy to hear. Your settings are restored when the cast ends."])
+
+	local M = S.New({ store = ns.store, prefix = "QNGATHERER_MINI_", source = function() return ns.db.mini end,
+		defaults = ns.defaults.mini, apply = function() ns.Mini.Refresh() end })
+	ns.builders.mini = M
+	S.Header(layout, L["Info window"])
+	M:Checkbox(cat, "fishing", L["Open while fishing"],
+		L["Shows the zone, its skill range and the fish of the zone with your catches when you cast."])
+	M:Checkbox(cat, "gathering", L["Open while gathering"],
+		L["Shows the resources of the zone with the required skill when you gather herbs, ore or open chests."])
+	M:Slider(cat, "delay", L["Close after (seconds)"], 3, 30, 1, nil,
+		L["The window closes this long after the cast unless \"Keep open\" is checked (/qngatherer mini)."])
 end
 
 local function BuildData(category)
@@ -412,12 +423,16 @@ end
 -- Slash command (English only)
 ---------------------------------------------------------------------------
 
-local HELP = L["qnGatherer commands:\n/qngatherer - options\n/qngatherer minimap - minimap icons on/off\n/qngatherer worldmap - world map icons on/off\n/qngatherer sound - sound boost while fishing on/off\n/qngatherer cleanup - clean up the database\n/qngatherer help - this help"]
+local HELP = L["qnGatherer commands:\n/qngatherer - journal\n/qngatherer options - options\n/qngatherer mini - info window: keep open on/off\n/qngatherer minimap - minimap icons on/off\n/qngatherer worldmap - world map icons on/off\n/qngatherer sound - sound boost while fishing on/off\n/qngatherer cleanup - clean up the database\n/qngatherer help - this help"]
 
 function ns.InitSlash()
 	qnCore.RegisterSlash("QNGATHERER", { "/qngatherer", "/qng" }, function(cmd)
-		if cmd == "" or cmd == "options" then
+		if cmd == "" or cmd == "journal" then
+			ns.Journal.Toggle()
+		elseif cmd == "options" then
 			ns.OpenOptions()
+		elseif cmd == "mini" then
+			ns.Mini.TogglePinned()
 		elseif cmd == "minimap" then
 			ns.ToggleMinimap()
 		elseif cmd == "worldmap" then
@@ -434,5 +449,6 @@ end
 
 -- Key bindings (Bindings.xml)
 BINDING_HEADER_QNGATHERER = "qnGatherer"   -- do not translate
+BINDING_NAME_QNGATHERER_JOURNAL = L["Open/close the journal"]
 BINDING_NAME_QNGATHERER_TOGGLE_MINIMAP = L["Minimap icons on/off"]
 BINDING_NAME_QNGATHERER_TOGGLE_WORLDMAP = L["World map icons on/off"]

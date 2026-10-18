@@ -65,6 +65,8 @@ function AdvanceTime(dt) now = now + dt end
 local timers = {}
 C_Timer = {}
 function C_Timer.After(s, fn) timers[#timers + 1] = fn end
+-- one-shot timer that can be cancelled (runs with RunTimers like C_Timer.After)
+function C_Timer.NewTimer(s, fn) local t = {} function t:Cancel() self.cancelled = true end timers[#timers + 1] = function() if not t.cancelled then fn() end end return t end
 -- Tickers only run via RunTickers() (one pass over all non-cancelled ones)
 local tickers = {}
 function C_Timer.NewTicker(s, fn) local t = { fn = fn } function t:Cancel() self.cancelled = true end tickers[#tickers + 1] = t return t end
@@ -100,7 +102,7 @@ VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInv
 -- UnitDocumentation, LootDocumentation, SystemDocumentation (qnGatherer)
 for _, e in ipairs({ "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
 	"UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "LOOT_OPENED", "UI_ERROR_MESSAGE", "PLAYER_LOGOUT",
-	"SKILL_LINES_CHANGED" }) do
+	"SKILL_LINES_CHANGED", "UNIT_SPELLCAST_STOP" }) do
 	VALID[e] = true
 end
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
@@ -207,6 +209,7 @@ function Frame:GetChecked() return self._checked end
 function Frame:SetChecked(v) self._checked = v end
 function Frame:GetText() return self._text or (self._kind == "EditBox" and "" or nil) end
 function Frame:SetText(v) self._text = v end
+function Frame:GetStringHeight() local n = 1 for _ in tostring(self._text or ""):gmatch("\n") do n = n + 1 end return n * 12 end
 -- The client also formats secret numbers (tables in the scenarios) with %d/%f: output them as %s then
 function Frame:SetFormattedText(f, ...)
 	local ok, text = pcall(string.format, f, ...)
@@ -510,7 +513,8 @@ function C_CVar.SetCVar(k, v) C_CVar._v[k] = v log("SetCVar %s=%s", k, tostring(
 function C_CVar.GetCVarBool(k) return C_CVar._v[k] == "1" end
 C_VideoOptions = { GetCurrentGameWindowSize = function() return { x = 5760, y = 2160 } end }
 C_Container = { GetContainerNumSlots = function(id) return 16 end, GetContainerItemInfo = function() return nil end }
-C_Map = { GetBestMapForUnit = function() return 1 end, GetMapWorldSize = function() return 1000, 1000 end }
+C_Map = { GetBestMapForUnit = function() return 1 end, GetMapWorldSize = function() return 1000, 1000 end,
+	GetMapInfo = function(m) return QN_MAPINFO and QN_MAPINFO[m] or { mapID = m, name = "Map " .. tostring(m) } end }
 C_ActionBar = setmetatable({}, { __index = function() return function() return false end end })
 C_Bank = { FetchPurchasedBankTabData = function() return {} end }
 
@@ -678,6 +682,7 @@ function CreateColor(r, g, b, a)
 	local c = { r = r, g = g, b = b, a = a or 1 }
 	function c:GetRGB() return self.r, self.g, self.b end
 	function c:GenerateHexColor() return ("ff%02x%02x%02x"):format(math.floor(self.r * 255 + 0.5), math.floor(self.g * 255 + 0.5), math.floor(self.b * 255 + 0.5)) end
+	function c:WrapTextInColorCode(s) return "|c" .. self:GenerateHexColor() .. s .. "|r" end
 	return c
 end
 function CreateColorFromHexString(h)
@@ -1501,3 +1506,8 @@ C_Minimap.GetViewRadius = function() return QN_VIEW_RADIUS or 100 end
 MapCanvasDataProviderMixin = MapCanvasDataProviderMixin or { GetMap = function(self) return self.owningMap end }
 MapCanvasPinMixin = MapCanvasPinMixin or {}
 AM_PIN_SCALE_STYLE_WITH_TERRAIN = 3
+
+-- qnGatherer journal: map art (QN_MAPART[map] = { layer, textures }) and explored overlays (QN_EXPLORED[map])
+C_Map.GetMapArtLayers = function(map) local a = QN_MAPART and QN_MAPART[map] return a and { a.layer } or {} end
+C_Map.GetMapArtLayerTextures = function(map) local a = QN_MAPART and QN_MAPART[map] return a and a.textures or {} end
+C_MapExplorationInfo = { GetExploredMapTextures = function(map) return QN_EXPLORED and QN_EXPLORED[map] or {} end }

@@ -40,6 +40,30 @@ exchange with your guild are planned).
 - Works with the rotating minimap and with square or other minimap shapes of minimap addons.
 - Mouse over a pin shows the tooltip; left-click pings the minimap at that place.
 
+## Journal
+
+`/qngatherer` or left-click on the minimap button opens the journal:
+
+- At the top the **kind** (dropdown); the title shows your skill with bonus, e.g. "Fishing 150 (+25)".
+- On the left the **zones** with data of this kind, with their skill range (if known) or the number
+  of nodes. The **search** finds zones by zone name or by resource name; **Current zone** jumps to
+  the zone you are in.
+- On the right a **preview of the zone map** (fully explored areas of your account) with the nodes
+  and areas; mouse over shows the tooltip.
+- Below it the **resources** of the zone: icon, name, required skill, number of nodes, your catches.
+  Mouse over shows the item tooltip; clicking a resource shows only its nodes and areas on the
+  preview, clicking it again shows all.
+
+The journal only contains what is recorded, imported or received from your guild.
+
+## Info window
+
+A small window that opens when you **fish** (and optionally when you gather): your skill, the zone
+with its skill range and the resources of the zone with required skill and your catches; while
+fishing it shows "Listen for the splash …". It closes a few seconds after the cast. **Keep open**
+(or `/qngatherer mini`) pins it; closing it with the X unpins it. **Journal** opens the journal on
+this zone.
+
 ## Options
 
 *Options → AddOns → qnGatherer*. All pages except **Data** and the minimap button belong to the
@@ -87,6 +111,9 @@ with **All** and **None**. Hidden resources are still recorded. "Defaults" shows
 | Option | Default | Meaning |
 |---|---|---|
 | Sound boost while fishing | off | effect sound on and at full volume while you fish; your settings are restored when the cast ends (also after logging out or a crash) |
+| **Info window**: Open while fishing | on | |
+| Open while gathering | off | herbs, ore, chests |
+| Close after (seconds) | 8 | unless "Keep open" is checked |
 
 ### Data (account-wide)
 
@@ -99,29 +126,30 @@ with **All** and **None**. Hidden resources are still recorded. "Defaults" shows
 
 ## Minimap button and Titan Panel
 
-- **Minimap button**: left-click minimap icons on/off, Shift-left-click world map icons on/off,
-  right-click options; drag it along the edge of the minimap.
+- **Minimap button**: left-click journal, Shift-left-click minimap icons on/off, Ctrl-left-click
+  world map icons on/off, right-click options; drag it along the edge of the minimap.
 - **Titan Panel** (optional): plugin **qnGatherer** with the number of shown nodes in the current
   zone; tooltip with nodes per kind (zone / total); same clicks as the minimap button, right-click
-  menu with the toggles and the options.
+  menu with the journal, the toggles and the options.
 
 ## Slash commands and key bindings
 
 | Command | Effect |
 |---|---|
-| `/qngatherer`, `/qng` | open the options |
+| `/qngatherer`, `/qng` | open/close the journal |
+| `/qngatherer options` | open the options |
+| `/qngatherer mini` | info window: keep open on/off |
 | `/qngatherer minimap` | minimap icons on/off |
 | `/qngatherer worldmap` | world map icons on/off |
 | `/qngatherer sound` | sound boost while fishing on/off |
 | `/qngatherer cleanup` | clean up the database |
 | `/qngatherer help` | list of the commands |
 
-Key bindings (*Options → Keybindings → AddOns → qnGatherer*): **Minimap icons on/off**,
-**World map icons on/off**.
+Key bindings (*Options → Keybindings → AddOns → qnGatherer*): **Open/close the journal**,
+**Minimap icons on/off**, **World map icons on/off**.
 
 ## Saved data
 
 All gathered data is account-wide (shared by all characters); catches are stored per character.
 
-Planned next: a journal window with fishing and gathering information, import from GatherMate2 and
-GatherTogether, an optional data exchange with your guild.
+Planned next: import from GatherMate2 and GatherTogether, an optional data exchange with your guild.

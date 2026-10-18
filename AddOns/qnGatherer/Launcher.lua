@@ -1,5 +1,6 @@
 -- qnGatherer: minimap button (account-wide, qnGathererDB.global.launcher = { show, angle }).
--- Left-click: minimap icons on/off, Shift-left-click: world map icons on/off, right-click: options.
+-- Left-click: journal, Shift-left-click: minimap icons on/off, Ctrl-left-click: world map icons on/off,
+-- right-click: options.
 -- Dragging moves it along the edge of the minimap (also square minimap shapes of other addons).
 
 local ADDON, ns = ...
@@ -52,9 +53,11 @@ function Launcher.Click(mouse)
 	if mouse == "RightButton" then
 		ns.OpenOptions()
 	elseif IsShiftKeyDown() then
+		ns.ToggleMinimap()
+	elseif IsControlKeyDown() then
 		ns.ToggleWorldMap()
 	else
-		ns.ToggleMinimap()
+		ns.Journal.Toggle()
 	end
 end
 
@@ -66,7 +69,7 @@ function Launcher.Tooltip(tip)
 	tip:AddLine(ADDON)
 	tip:AddDoubleLine(L["Minimap icons"], OnOff(ns.db.minimap.show), 1, 1, 1, 1, 1, 1)
 	tip:AddDoubleLine(L["World map icons"], OnOff(ns.db.worldMap.show), 1, 1, 1, 1, 1, 1)
-	tip:AddLine(L["Left-click: minimap icons on/off\nShift-left-click: world map icons on/off\nRight-click: options"], 0, 1, 0)
+	tip:AddLine(L["Left-click: journal\nShift-left-click: minimap icons on/off\nCtrl-left-click: world map icons on/off\nRight-click: options"], 0, 1, 0)
 end
 
 function Launcher.Update()

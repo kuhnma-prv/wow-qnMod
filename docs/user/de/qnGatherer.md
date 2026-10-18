@@ -42,6 +42,30 @@ Sammel-Addons und ein Austausch mit der Gilde sind geplant).
   Minikarten-Addons.
 - Maus über einem Symbol zeigt den Tooltip; Linksklick pingt die Minikarte an dieser Stelle.
 
+## Nachschlagefenster
+
+`/qngatherer` oder Linksklick auf den Minikarten-Knopf öffnet das Nachschlagefenster:
+
+- Oben die **Art** (Auswahlliste); der Titel zeigt deine Fertigkeit mit Bonus, z. B. „Angeln 150 (+25)“.
+- Links die **Zonen** mit Daten dieser Art, mit ihrem Fertigkeitsbereich (falls bekannt) oder der
+  Zahl der Punkte. Die **Suche** findet Zonen über den Zonennamen oder den Namen einer Ressource;
+  **Aktuelle Zone** springt zur Zone, in der du bist.
+- Rechts eine **Vorschau der Zonenkarte** (vollständig mit den erkundeten Bereichen deines Accounts)
+  mit den Punkten und Gebieten; Maus darüber zeigt den Tooltip.
+- Darunter die **Ressourcen** der Zone: Symbol, Name, benötigte Fertigkeit, Zahl der Punkte, deine
+  Fänge. Maus darüber zeigt den Gegenstands-Tooltip; ein Klick auf eine Ressource zeigt nur ihre
+  Punkte und Gebiete in der Vorschau, ein weiterer Klick wieder alle.
+
+Das Nachschlagefenster enthält nur, was aufgezeichnet, importiert oder von der Gilde erhalten wurde.
+
+## Infofenster
+
+Ein kleines Fenster, das sich beim **Angeln** öffnet (auf Wunsch auch beim Sammeln): deine
+Fertigkeit, die Zone mit ihrem Fertigkeitsbereich und die Ressourcen der Zone mit benötigter
+Fertigkeit und deinen Fängen; beim Angeln steht dort „Auf das Platschen achten …“. Es schließt sich
+einige Sekunden nach dem Wurf. **Offen halten** (oder `/qngatherer mini`) heftet es an; schließt du
+es mit dem X, ist es wieder gelöst. **Nachschlagen** öffnet das Nachschlagefenster auf dieser Zone.
+
 ## Optionen
 
 *Optionen → Addons → qnGatherer*. Alle Seiten außer **Daten** und dem Minikarten-Knopf gehören zum
@@ -90,6 +114,9 @@ aufgezeichnet. „Standard“ blendet alles wieder ein.
 | Option | Standard | Bedeutung |
 |---|---|---|
 | Lautstärke beim Angeln anheben | aus | Effektgeräusche beim Angeln an und auf volle Lautstärke; deine Einstellungen werden am Ende des Wurfs wiederhergestellt (auch nach dem Ausloggen oder einem Absturz) |
+| **Infofenster**: Beim Angeln öffnen | an | |
+| Beim Sammeln öffnen | aus | Kräuter, Erz, Truhen |
+| Schließen nach (Sekunden) | 8 | außer „Offen halten“ ist angehakt |
 
 ### Daten (account-weit)
 
@@ -103,30 +130,33 @@ aufgezeichnet. „Standard“ blendet alles wieder ein.
 
 ## Minikarten-Knopf und Titan Panel
 
-- **Minikarten-Knopf**: Linksklick Minikartensymbole an/aus, Umschalt-Linksklick
-  Weltkartensymbole an/aus, Rechtsklick Optionen; per Ziehen am Rand der Minikarte verschieben.
+- **Minikarten-Knopf**: Linksklick Nachschlagefenster, Umschalt-Linksklick Minikartensymbole
+  an/aus, Strg-Linksklick Weltkartensymbole an/aus, Rechtsklick Optionen; per Ziehen am Rand der
+  Minikarte verschieben.
 - **Titan Panel** (optional): Plugin **qnGatherer** mit der Zahl der angezeigten Punkte in der
   aktuellen Zone; Tooltip mit Punkten je Art (Zone / gesamt); Klicks wie beim Minikarten-Knopf,
-  Rechtsklick-Menü mit den Schaltern und den Optionen.
+  Rechtsklick-Menü mit Nachschlagefenster, den Schaltern und den Optionen.
 
 ## Slash-Befehle und Tastenbelegungen
 
 | Befehl | Wirkung |
 |---|---|
-| `/qngatherer`, `/qng` | Optionen öffnen |
+| `/qngatherer`, `/qng` | Nachschlagefenster öffnen/schließen |
+| `/qngatherer options` | Optionen öffnen |
+| `/qngatherer mini` | Infofenster: offen halten an/aus |
 | `/qngatherer minimap` | Minikartensymbole an/aus |
 | `/qngatherer worldmap` | Weltkartensymbole an/aus |
 | `/qngatherer sound` | Lautstärke beim Angeln an/aus |
 | `/qngatherer cleanup` | Datenbank bereinigen |
 | `/qngatherer help` | Liste der Befehle |
 
-Tastenbelegungen (*Optionen → Tastaturbelegung → Addons → qnGatherer*): **Minikartensymbole
-an/aus**, **Weltkartensymbole an/aus**.
+Tastenbelegungen (*Optionen → Tastaturbelegung → Addons → qnGatherer*): **Nachschlagefenster
+öffnen/schließen**, **Minikartensymbole an/aus**, **Weltkartensymbole an/aus**.
 
 ## Gespeicherte Daten
 
 Alle gesammelten Daten gelten account-weit (für alle Charaktere gemeinsam); Fänge werden pro
 Charakter gespeichert.
 
-Als Nächstes geplant: ein Nachschlagefenster mit Angel- und Sammelinformationen, Import aus
-GatherMate2 und GatherTogether, ein abschaltbarer Datenaustausch mit der Gilde.
+Als Nächstes geplant: Import aus GatherMate2 und GatherTogether, ein abschaltbarer Datenaustausch
+mit der Gilde.

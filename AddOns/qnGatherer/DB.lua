@@ -38,6 +38,7 @@ local GLOBAL_DEFAULTS = {
 	origins = { "own" }, locks = {}, imports = {}, radius = {},
 	sync = { enabled = true, relayGuild = false, shareImports = false, ignore = {} },
 	launcher = { show = true, angle = 225 },   -- minimap button (Launcher.lua)
+	windows = { journal = {}, mini = { pinned = false } },   -- positions, journal kind, mini pinned
 }
 
 -- Defaults of the account-wide option tables (options page "Data", minimap button)
@@ -499,6 +500,61 @@ end
 
 function DB.GetCatches(char, map)
 	return Sub(g.catches, char, map) or {}
+end
+
+-- Maps with data of kind (nodes, areas, zone info; for fishing also catches): { [map] = true }
+function DB.MapsWithData(kind)
+	local maps = {}
+	for _, t in ipairs({ g.nodes[kind], g.areas[kind], g.zones[kind] }) do
+		for map, content in pairs(t or {}) do
+			if next(content) ~= nil then
+				maps[map] = true
+			end
+		end
+	end
+	if kind == "fish" then
+		for _, perMap in pairs(g.catches) do
+			for map in pairs(perMap) do
+				maps[map] = true
+			end
+		end
+	end
+	return maps
+end
+
+-- Resources of kind on map: { { res, nodes = count, areas = count, catches = count of char }, ... }
+-- from nodes, areas and (fishing) the catches of char that are fish (catalog kind "fish").
+function DB.ZoneResources(kind, map, char)
+	local byRes, list = {}, {}
+	local function Entry(res)
+		local e = byRes[res]
+		if not e then
+			e = { res = res, nodes = 0, areas = 0, catches = 0 }
+			byRes[res] = e
+			list[#list + 1] = e
+		end
+		return e
+	end
+	for _, n in DB.Nodes(kind, map) do
+		local e = Entry(n.res)
+		e.nodes = e.nodes + 1
+	end
+	for _, a in ipairs(DB.GetAreas(kind, map)) do
+		for _, res in ipairs(a.res) do
+			local e = Entry(res)
+			e.areas = e.areas + 1
+		end
+	end
+	if kind == "fish" and char then
+		for item, n in pairs(DB.GetCatches(char, map)) do
+			local res = "i:" .. item
+			local entry = g.catalog[res]
+			if entry and entry.kind == "fish" then
+				Entry(res).catches = n
+			end
+		end
+	end
+	return list
 end
 
 -- Resource of kind whose name in locale is name (catalog), or nil
