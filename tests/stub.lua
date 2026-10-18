@@ -640,7 +640,9 @@ C_UnitAuras = { GetAuraDataByIndex = function(unit, i, filter)
 	end
 end }
 C_Spell = { IsSpellUsable = function() return true, false end }
-function C_Spell.GetSpellName(id) return QN_SPELLS[id] end
+-- gathering spells of Forever (qnGatherer offers its kinds only if the client knows the spell)
+QN_GATHER_SPELLS = { [2366] = "Herb Gathering", [2575] = "Mining", [7620] = "Fishing", [3365] = "Opening", [22810] = "Opening", [1804] = "Pick Lock" }
+function C_Spell.GetSpellName(id) return QN_SPELLS[id] or QN_GATHER_SPELLS[id] end
 -- spell ID or name (SpellIdentifier)
 function C_Spell.PickupSpell(spell)
 	if type(spell) == "string" then

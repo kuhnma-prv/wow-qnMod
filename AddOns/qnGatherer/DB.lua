@@ -37,7 +37,13 @@ local GLOBAL_DEFAULTS = {
 	nodes = {}, areas = {}, zones = {}, catalog = {}, catches = {}, tombstones = {},
 	origins = { "own" }, locks = {}, imports = {}, radius = {},
 	sync = { enabled = true, relayGuild = false, shareImports = false, ignore = {} },
+	launcher = { show = true, angle = 225 },   -- minimap button (Launcher.lua)
 }
+
+-- Defaults of the account-wide option tables (options page "Data", minimap button)
+DB.LAUNCHER_DEFAULTS = GLOBAL_DEFAULTS.launcher
+DB.RADIUS_DEFAULTS = GLOBAL_DEFAULTS.radius   -- filled from the kinds in DB.Init
+DB.LOCK_DEFAULTS = {}                          -- filled with false in DB.Init
 
 local AREA_CLASSES = { learned = true, reported = true, school = true }
 local LEARNED_MAX = 30              -- learned areas per kind and map
@@ -705,6 +711,7 @@ end
 function DB.Init(global)
 	for key, kind in pairs(ns.KINDS) do
 		GLOBAL_DEFAULTS.radius[key] = kind.radius
+		DB.LOCK_DEFAULTS[key] = false
 	end
 	g = qnCore.MergeDefaults(global, GLOBAL_DEFAULTS)
 	wipe(originIndex)

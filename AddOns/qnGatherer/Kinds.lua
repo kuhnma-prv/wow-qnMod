@@ -20,17 +20,17 @@ local L = ns.L
 ns.KIND_ORDER = { "herb", "mine", "fish", "treasure", "gas", "archaeology", "logging" }
 
 ns.KINDS = {
-	herb = { name = L["Herbalism"], spells = { 2366 }, track = { 2383 }, skill = 182,
+	herb = { name = HERBALISM, spells = { 2366 }, track = { 2383 }, skill = 182,
 		color = { 0, 1, 0, 1 }, radius = 15, maxRadius = 30 },
-	mine = { name = L["Mining"], spells = { 2575 }, track = { 2580 }, skill = 186,
+	mine = { name = MINING, spells = { 2575 }, track = { 2580 }, skill = 186,
 		color = { 1, 0.1, 0.1, 1 }, radius = 15, maxRadius = 30 },
-	fish = { name = L["Fishing"], spells = { 7620 }, track = {}, skill = 356,
+	fish = { name = FISHING, spells = { 7620 }, track = {}, skill = 356,
 		color = { 1, 1, 0, 1 }, radius = 15, maxRadius = 30 },
 	treasure = { name = L["Treasure"], spells = { 3365, 22810, 1804 }, track = { 2481 },
 		color = { 1, 0, 1, 1 }, radius = 15, maxRadius = 30 },
 	gas = { name = L["Gas"], spells = { 30427 }, track = {}, skill = 202,
 		color = { 0, 1, 1, 1 }, radius = 50, maxRadius = 100 },
-	archaeology = { name = L["Archaeology"], spells = { 73979 }, track = {}, skill = 794,
+	archaeology = { name = PROFESSIONS_ARCHAEOLOGY, spells = { 73979 }, track = {}, skill = 794,
 		color = { 1, 1, 0.5, 1 }, radius = 10, maxRadius = 30 },
 	logging = { name = L["Logging"], spells = { 167895 }, track = {},
 		color = { 0.4, 0.7, 1, 1 }, radius = 20, maxRadius = 30 },
