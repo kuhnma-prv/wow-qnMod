@@ -170,6 +170,7 @@ Sprache der Punktnamen von GatherMate2.
 | Punkte mit der Gilde austauschen | an | deine Punkte gehen an die Gildenmitglieder mit qnGatherer, deren Punkte kommen zu dir („Gefunden von …“) |
 | Von der Gilde gefundene Punkte weitergeben | aus | Mitglieder, die später online kommen, erhalten auch die Punkte, die du von anderen bekommen hast |
 | Importierte Daten teilen | aus | auch die aus anderen Addons importierten Punkte senden |
+| Empfangene Punkte im Chat melden | an | eine Chatzeile je Mitglied und Zone, z. B. „Gilde: 3 neue Punkte (Bergbau) in Wald von Elwynn von Bob.“ |
 | Ignorierte Mitglieder | – | von diesen Mitgliedern wird nichts übernommen (Name-Realm, durch Kommas getrennt) |
 | Status | – | Mitglieder mit qnGatherer, gesendete Nachrichten, empfangene/abgelehnte Punkte (auch `/qngatherer sync`) |
 

@@ -42,7 +42,7 @@ local GLOBAL_DEFAULTS = {
 	overlays = {}, skinning = {},
 	origins = { "own" }, locks = {}, imports = {}, radius = {},
 	importOptions = { auto = false },   -- import again when an adapter has a newer data version
-	sync = { enabled = true, relayGuild = false, shareImports = false, ignore = {}, seen = {} },
+	sync = { enabled = true, relayGuild = false, shareImports = false, announce = true, ignore = {}, seen = {} },
 	launcher = { show = true, angle = 225 },   -- minimap button (Launcher.lua)
 	windows = { journal = {}, mini = { pinned = false } },   -- positions, journal kind, mini pinned
 }
