@@ -12,6 +12,7 @@ ns.Collector = C
 local BOBBER = 35591        -- game object of the fishing bobber (never a fish school)
 local CAST_TIMEOUT = 30     -- seconds from the cast to its loot (a fishing channel lasts up to ~20 s)
 local ERROR_WINDOW = 2      -- seconds from the cast to a skill error
+local REPEAT_WINDOW = 30    -- seconds in which the same error at the same node is recorded once
 
 -- C.cast = { kind, spell, guid, target, time, map, x, y } of the last gathering cast, or nil
 C.cast = nil
@@ -176,6 +177,55 @@ function C.OnError(cast, message)
 	return true
 end
 
+-- Profession in an error message -> kind of the node ("Requires Herbalism", "Requires Mining 175",
+-- locked chest "Requires Pick Lock"). Built on first use from the client's texts.
+local errorKinds
+local function ErrorKind(message)
+	if not errorKinds then
+		errorKinds = { { HERBALISM, "herb" }, { MINING, "mine" } }
+		for _, id in ipairs(ns.KINDS.treasure.spells) do
+			local name = C_Spell.GetSpellName(id)
+			if name then
+				errorKinds[#errorKinds + 1] = { name, "treasure" }
+			end
+		end
+	end
+	for _, e in ipairs(errorKinds) do
+		if e[1] and message:find(e[1], 1, true) then
+			return e[2]
+		end
+	end
+end
+
+local lastError   -- { key, time }: clicking the same node again records it once
+
+-- Skill or lock error without a gathering cast (the character does not have the profession, so
+-- no cast is sent): node by the name in the tooltip of the world object under the mouse, at the
+-- player's position. Only world tooltips count (owner UIParent), not those of bag items.
+function C.OnErrorWithoutCast(message)
+	local kind = ErrorKind(message)
+	if not kind or not GameTooltip:IsShown() or GameTooltip:GetOwner() ~= UIParent then
+		return false
+	end
+	local name = GameTooltipTextLeft1 and GameTooltipTextLeft1:GetText()
+	if type(name) ~= "string" or name == "" or ns.IsSecret(name) then
+		return false
+	end
+	local map, x, y = C.PlayerPosition()
+	if not map then
+		return false
+	end
+	local key = kind .. ":" .. name .. ":" .. DB.Encode(x, y)
+	if lastError and lastError.key == key and GetTime() - lastError.time < REPEAT_WINDOW then
+		return true
+	end
+	lastError = { key = key, time = GetTime() }
+	local _, value = message:match(Pattern(ERR_USE_LOCKED_WITH_SPELL_KNOWN_SI) or "^$")
+	local res = DB.FindRes(kind, name, GetLocale()) or ("n:" .. kind .. ":" .. name)
+	C.Record({ kind = kind, target = name, map = map, x = x, y = y }, res, nil, tonumber(value))
+	return true
+end
+
 ---------------------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------------------
@@ -200,14 +250,15 @@ ns.events.Register("UNIT_SPELLCAST_SENT", function(_, unit, target, castGUID, sp
 end)
 
 ns.events.Register("UI_ERROR_MESSAGE", function(_, _, message)
-	local cast = C.cast
-	if not cast or cast.kind == "fish" or type(message) ~= "string" or ns.IsSecret(message)
-		or GetTime() - cast.time > ERROR_WINDOW then
+	if type(message) ~= "string" or ns.IsSecret(message) then
 		return
 	end
-	if C.OnError(cast, message) then
+	local cast = C.cast
+	if cast and cast.kind ~= "fish" and GetTime() - cast.time <= ERROR_WINDOW and C.OnError(cast, message) then
 		C.cast = nil
+		return
 	end
+	C.OnErrorWithoutCast(message)
 end)
 
 ns.events.Register("LOOT_OPENED", function(_, _, isFromItem)
