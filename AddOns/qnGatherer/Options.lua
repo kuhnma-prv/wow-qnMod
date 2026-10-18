@@ -346,7 +346,7 @@ end
 local function BuildSync(category)
 	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, GUILD)
 	local B = S.New({ prefix = "QNGATHERER_SYNC_", source = function() return DB.global.sync end,
-		defaults = { enabled = true, relayGuild = false, shareImports = false },
+		defaults = { enabled = true, relayGuild = false, shareImports = false, announce = true },
 		apply = function() ns.Sync.OptionsChanged() end })
 	ns.builders.sync = B
 	B:Checkbox(cat, "enabled", L["Exchange nodes with your guild"],
@@ -355,6 +355,8 @@ local function BuildSync(category)
 		L["Members who come online later also get the nodes you received from others. Off: only your own nodes are sent."])
 	B:Checkbox(cat, "shareImports", L["Share imported data"],
 		L["Also sends the nodes you imported from other addons."])
+	B:Checkbox(cat, "announce", L["Report received nodes in the chat"],
+		L["One chat line per member and zone when new nodes arrive from the guild."])
 	qnCore.Popup.EditText(POPUP_IGNORE, L["Ignore these members (Name-Realm, separated by commas):"], ns.IgnoreText, ns.SetIgnoreText)
 	S.Button(layout, L["Ignored members"], L["Edit …"], function()
 		StaticPopup_Show(POPUP_IGNORE)

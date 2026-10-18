@@ -161,6 +161,7 @@ result in the chat. `-Locale` (default deDE) sets the language of GatherMate2's 
 | Exchange nodes with your guild | on | your nodes go to the guild members who use qnGatherer, theirs come to you ("Found by …") |
 | Pass on nodes found by your guild | off | members who come online later also get the nodes you received from others |
 | Share imported data | off | also send the nodes imported from other addons |
+| Report received nodes in the chat | on | one chat line per member and zone, e.g. "Guild: 3 new nodes (Mining) in Elwynn Forest from Bob." |
 | Ignored members | – | nothing is taken over from these members (Name-Realm, separated by commas) |
 | Status | – | members with qnGatherer, messages sent, nodes received/rejected (also `/qngatherer sync`) |
 

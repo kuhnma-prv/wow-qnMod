@@ -34,6 +34,7 @@ local LIVE_DELAY = 5         -- new own nodes are collected this long, then sent
 local MAX_RECORDS = 5000     -- nodes per member and hour
 local BACKOFF = 5            -- ticks without sending after the server throttled
 local REQUEST_TIMEOUT = 120  -- seconds after which an unanswered exchange may start again
+local ANNOUNCE_DELAY = 3     -- seconds in which received nodes are collected for one chat line
 
 local queue = {}
 local backoff = 0
@@ -258,8 +259,40 @@ local function ValidKindMap(kind, map)
 	return ns.KINDS[kind] and map and map > 0 and C_Map.GetMapInfo(map) ~= nil
 end
 
+-- Chat message about new nodes (option sync.announce): counted per member, kind and map and
+-- reported together a moment later, so that a large exchange gives one line per zone
+local announce = {}      -- ["sender\tkind\tmap"] = count
+local announceQueued = false
+
+local function FlushAnnounce()
+	announceQueued = false
+	local keys = {}
+	for key in pairs(announce) do keys[#keys + 1] = key end
+	table.sort(keys)
+	for _, key in ipairs(keys) do
+		local sender, kind, map = key:match("^(.-)\t(.-)\t(%d+)$")
+		local info = C_Map.GetMapInfo(tonumber(map))
+		ns.Print(L["Guild: %d new nodes (%s) in %s from %s."]:format(announce[key], ns.KINDS[kind].name,
+			info and info.name or map, Ambiguate(sender, "none")))
+	end
+	wipe(announce)
+end
+
+local function Announce(sender, kind, map, count)
+	if count <= 0 or not DB.global.sync.announce then
+		return
+	end
+	local key = sender .. "\t" .. kind .. "\t" .. map
+	announce[key] = (announce[key] or 0) + count
+	if not announceQueued then
+		announceQueued = true
+		C_Timer.After(ANNOUNCE_DELAY, FlushAnnounce)
+	end
+end
+
 -- Takes over "coord,res;..." of sender; respects the rate limit
 local function IngestEntries(sender, kind, map, list)
+	local new = 0
 	local r = received[sender]
 	if not r or GetTime() - r.start > 3600 then
 		r = { start = GetTime(), count = 0 }
@@ -274,8 +307,12 @@ local function IngestEntries(sender, kind, map, list)
 		elseif coord and coord < 100000000 then
 			r.count = r.count + 1
 			local x, y = DB.Decode(coord)
-			if DB.Ingest({ t = "node", kind = kind, map = map, x = x, y = y, res = res }, origin) then
+			local result = DB.Ingest({ t = "node", kind = kind, map = map, x = x, y = y, res = res }, origin)
+			if result then
 				Sync.stats.received = Sync.stats.received + 1
+				if result == "added" or result == "replaced" then
+					new = new + 1
+				end
 			else
 				Sync.stats.rejected = Sync.stats.rejected + 1
 			end
@@ -283,6 +320,7 @@ local function IngestEntries(sender, kind, map, list)
 			Sync.stats.rejected = Sync.stats.rejected + 1
 		end
 	end
+	Announce(sender, kind, map, new)
 end
 
 local function Finished(sender)

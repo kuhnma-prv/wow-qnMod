@@ -29,7 +29,7 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
-- **qnGatherer 0.7.0:** new addon (in development): gathering database for herbs, ore, fishing and
+- **qnGatherer 0.7.1:** new addon (in development): gathering database for herbs, ore, fishing and
   treasure. Records nodes while gathering (also nodes you lack the skill or the profession for, with
   the required skill), fish schools, every fishing catch per character and the fishing areas you
   learn. Shows the nodes on the world map (tooltip, right-click menu: delete, waypoint, TomTom) and on the minimap (tracking
@@ -40,7 +40,7 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
   fishing (optionally while gathering). Import from GatherMate2 and GatherTogether (in the game while
   they are loaded, otherwise with the offline tool `tools\Convert-QnGatherer.ps1`), text export/import
   between qnGatherer users. Exchange of nodes with guild members who use qnGatherer (on by default,
-  can be switched off; nothing is deleted through it).
+  can be switched off; nothing is deleted through it), with a chat line when new nodes arrive.
 - **qnViewPort 0.1.6:** optional "Talent window on" (page "Placement"): the talent window keeps
   Blizzard's position, but relative to a chosen monitor instead of centered across all monitors.
 - User documentation in English and German (`docs/user/en`, `docs/user/de`): overview and one page

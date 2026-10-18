@@ -114,4 +114,23 @@ for _, m in ipairs(QN_SENT) do
 	end
 end
 Check(parts > 1 and longest <= 250, "split into parts of at most 250 bytes")
+
+-- chat line for new nodes: one per member, kind and zone; nothing for known nodes or when switched off
+RunTimers()
+local lines = {}
+local Print = gt.Print
+gt.Print = function(msg) lines[#lines + 1] = msg end
+Msg("B~1~mine~1429~" .. DB.Encode(0.15, 0.85) .. ",o:1731;" .. DB.Encode(0.25, 0.85) .. ",o:1731", "GUILD")
+Msg("B~1~mine~1429~" .. DB.Encode(0.35, 0.85) .. ",o:1731", "GUILD")
+RunTimers()
+Check(#lines == 1 and lines[1] == gt.L["Guild: %d new nodes (%s) in %s from %s."]:format(3, MINING, "Map 1429", "Bob"),
+	"one chat line for the new nodes: " .. tostring(lines[1]))
+Msg("B~1~mine~1429~" .. DB.Encode(0.35, 0.85) .. ",o:1731", "GUILD")
+RunTimers()
+Check(#lines == 1, "known node: no chat line")
+DB.global.sync.announce = false
+Msg("B~1~mine~1429~" .. DB.Encode(0.45, 0.85) .. ",o:1731", "GUILD")
+RunTimers()
+Check(#lines == 1 and DB.GetNode("mine", MAP, DB.Encode(0.45, 0.85)) ~= nil, "switched off: taken over without a chat line")
+gt.Print = Print
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")
