@@ -25,6 +25,14 @@ local frame
 local state = { kind = nil, map = nil, search = "", focus = nil }
 J.state = state
 
+-- Skinning: no nodes, only the level bands of an import (zones and leather per band)
+local SKINNING_KEY = "skinning"
+local SKINNING_INFO = { name = SKINNING, skill = 393, spells = { 8613 } }
+
+local function KindInfo(kind)
+	return ns.KINDS[kind] or (kind == SKINNING_KEY and SKINNING_INFO)
+end
+
 ---------------------------------------------------------------------------
 -- Content (also used by the tests and the mini window)
 ---------------------------------------------------------------------------
@@ -34,9 +42,21 @@ function J.ZoneName(map)
 	return info and info.name or ("#" .. map)
 end
 
+-- Maps of kind with data: { [map] = true }
+local function ZoneSet(kind)
+	if kind == SKINNING_KEY then
+		local maps = {}
+		for _, band in ipairs(DB.GetSkinning()) do
+			for _, map in ipairs(band.maps) do maps[map] = true end
+		end
+		return maps
+	end
+	return DB.MapsWithData(kind)
+end
+
 -- "Fishing 150 (+25)", "Fishing 150" or only the name if the skill is unknown
 function J.SkillText(kind)
-	local k = ns.KINDS[kind]
+	local k = KindInfo(kind)
 	local info = k.skill and C_SkillInfo.GetSkillLineInfoByID(k.skill)
 	local rank = info and ns.Plain(info.rank, 0) or 0
 	if rank <= 0 then
@@ -72,9 +92,9 @@ end
 function J.Zones(kind, search)
 	local text = (search or ""):lower()
 	local list = {}
-	for map in pairs(DB.MapsWithData(kind)) do
+	for map in pairs(ZoneSet(kind)) do
 		local name = J.ZoneName(map)
-		if text == "" or name:lower():find(text, 1, true) or ResourceMatches(kind, map, text) then
+		if text == "" or name:lower():find(text, 1, true) or (kind ~= SKINNING_KEY and ResourceMatches(kind, map, text)) then
 			list[#list + 1] = { map = map, name = name, nodes = DB.CountNodes(kind, map), skill = J.ZoneSkillText(kind, map) }
 		end
 	end
@@ -85,6 +105,20 @@ end
 -- Resources of the zone sorted by required skill, then name: entries of DB.ZoneResources plus
 -- name, item and skill
 function J.Resources(kind, map)
+	if kind == SKINNING_KEY then
+		-- level bands that suggest this zone, with their leather
+		local list = {}
+		for _, band in ipairs(DB.GetSkinning()) do
+			for _, m in ipairs(band.maps) do
+				if m == map then
+					list[#list + 1] = { res = "i:" .. band.item, item = band.item, nodes = 0, catches = 0, catchesAll = 0,
+						name = L["Level %d – %d"]:format(band.low, band.high),
+						detail = L["Skill %d – %d"]:format(band.skill, band.skillHigh) .. " · " .. D.ResourceName("i:" .. band.item) }
+				end
+			end
+		end
+		return list
+	end
 	local list = DB.ZoneResources(kind, map, ns.CharKey())
 	for _, e in ipairs(list) do
 		local entry = DB.GetResource(e.res)
@@ -102,18 +136,22 @@ end
 
 -- Detail line of a resource row: required skill, nodes, own catches
 function J.ResourceDetail(e)
+	if e.detail then
+		return e.detail
+	end
 	local parts = {}
 	if e.skill then parts[#parts + 1] = L["Required skill: %d"]:format(e.skill) end
 	if e.nodes > 0 then parts[#parts + 1] = L["%d nodes"]:format(e.nodes) end
 	if e.catches > 0 then parts[#parts + 1] = L["caught: %d"]:format(e.catches) end
+	if (e.catchesAll or 0) > e.catches then parts[#parts + 1] = L["all characters: %d"]:format(e.catchesAll) end
 	if e.cond then parts[#parts + 1] = e.cond end
 	return table.concat(parts, " · ")
 end
 
--- Exploration overlays from imports (Import adapters may replace this); same format as
+-- Exploration overlays from imports (whole zone visible); same format as
 -- C_MapExplorationInfo.GetExploredMapTextures
 function J.ExtraOverlays(map)
-	return {}
+	return DB.GetOverlays(C_Map.GetMapArtID(map))
 end
 
 local AREA_CLASS_TEXT = {}
@@ -249,6 +287,9 @@ function J.DrawPreview()
 	end
 
 	-- areas, then nodes (filtered by the selected resource)
+	if not ns.KINDS[kind] then
+		return 0, 0   -- skinning: map only
+	end
 	local focus = state.focus
 	local c = D.Color(kind)
 	local count, shownNodes, shownAreas = 0, 0, 0
@@ -360,7 +401,7 @@ local function RefreshZones()
 	end
 	frame.zoneContent:SetHeight(math.max(1, #zones * ROW_HEIGHT))
 	frame.empty:SetShown(#zones == 0)
-	frame.empty:SetText(L["No data for %s yet. Gather, import or receive nodes from your guild to fill the journal."]:format(ns.KINDS[state.kind].name))
+	frame.empty:SetText(L["No data for %s yet. Gather, import or receive nodes from your guild to fill the journal."]:format(KindInfo(state.kind).name))
 	return zones
 end
 
@@ -391,10 +432,10 @@ function J.Refresh()
 		return
 	end
 	frame:SetTitle(J.SkillText(state.kind))
-	frame:SetPortraitToAsset(C_Spell.GetSpellTexture(ns.KINDS[state.kind].spells[1]) or 134400)
+	frame:SetPortraitToAsset(C_Spell.GetSpellTexture(KindInfo(state.kind).spells[1]) or 134400)
 	frame.kindDropdown:Refresh()
 	local zones = RefreshZones()
-	if state.map and not DB.MapsWithData(state.kind)[state.map] then
+	if state.map and not ZoneSet(state.kind)[state.map] then
 		state.map = nil
 	end
 	if not state.map and zones[1] then
@@ -474,6 +515,9 @@ local function KindEntries()
 	local list = {}
 	for _, key in ipairs(ns.OptionKinds()) do
 		list[#list + 1] = { key, ns.KINDS[key].name }
+	end
+	if #DB.GetSkinning() > 0 then
+		list[#list + 1] = { SKINNING_KEY, SKINNING }
 	end
 	return list
 end
@@ -562,6 +606,6 @@ end
 function J.Init()
 	local kinds = ns.OptionKinds()
 	local saved = DB.global.windows.journal.kind
-	state.kind = (saved and ns.KINDS[saved]) and saved or kinds[1] or ns.KIND_ORDER[1]
+	state.kind = (saved and KindInfo(saved)) and saved or kinds[1] or ns.KIND_ORDER[1]
 	D.OnRefresh(J.Refresh)
 end

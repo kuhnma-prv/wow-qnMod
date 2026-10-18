@@ -5,8 +5,8 @@ Gathering database for herbs, ore, fishing and treasure – **in development**.
 Back to the [overview](README.md) · German: [Deutsch](../de/qnGatherer.md)
 
 qnGatherer records the gathering nodes you find and shows them on the world map and the minimap.
-It comes without data: the maps fill up as you gather (import from other gathering addons and an
-exchange with your guild are planned).
+It comes without data: the maps fill up as you gather, by importing from GatherMate2 or
+GatherTogether, or from another qnGatherer user (an exchange with your guild is planned).
 
 ## Recording
 
@@ -124,6 +124,34 @@ with **All** and **None**. Hidden resources are still recorded. "Defaults" shows
   through the guild or an import) or **Delete all nodes of the kind**; **Remove guild data**,
   **Remove imported data**. Each asks for confirmation.
 
+### Import (account-wide)
+
+- **Import mode**: **Merge** (adds what is new; nodes you deleted stay deleted) or **Replace**
+  (first removes everything imported from this addon before).
+- **GatherMate2**, **GatherTogether**: imports the data of the addon while it is loaded. GatherMate2:
+  its nodes (matched by name with the resources you know; others appear by name until you gather
+  them). GatherTogether: herb and ore areas, fishing areas (reported, schools, its learned spots),
+  zone skill ranges and fish lists, its catches, the map overlays (the journal then shows whole
+  zones) and the skinning level bands (journal entry **Skinning**).
+- **Import automatically** (off): on login, imports again from a loaded addon whose version changed.
+- **Export your nodes** / **Import an export text**: your own nodes and fishing areas as text for
+  another qnGatherer user (copy with Ctrl+C, paste with Ctrl+V).
+
+Imported data is marked "Imported from …" and can be hidden (page qnGatherer) or removed (page Data).
+
+### Offline import
+
+For an addon that does not load on Forever (e.g. GatherMate2) or is not installed, close the game and
+run in the repository:
+
+```
+pwsh tools\Convert-QnGatherer.ps1 -SavedVariables '<WoW>\_classic_beta_\WTF\Account\<ACCOUNT>\SavedVariables' -GatherMate2 '<folder of GatherMate2>' -GatherTogether '<folder of GatherTogether>'
+```
+
+It reads the saved data and files of those addons and stores the records in qnGatherer's saved
+variables (backup `qnGatherer.lua.bak`); qnGatherer imports them on the next login and reports the
+result in the chat. `-Locale` (default deDE) sets the language of GatherMate2's node names.
+
 ## Minimap button and Titan Panel
 
 - **Minimap button**: left-click journal, Shift-left-click minimap icons on/off, Ctrl-left-click
@@ -152,4 +180,4 @@ Key bindings (*Options → Keybindings → AddOns → qnGatherer*): **Open/close
 
 All gathered data is account-wide (shared by all characters); catches are stored per character.
 
-Planned next: import from GatherMate2 and GatherTogether, an optional data exchange with your guild.
+Planned next: an optional data exchange with your guild.

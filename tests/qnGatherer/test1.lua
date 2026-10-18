@@ -100,8 +100,11 @@ Check(DB.Ingest({ t = "zone", kind = "fish", map = MAP, min = 5, max = 30 }, "im
 
 -- catches
 DB.Ingest({ t = "catch", char = "Tester-Realm", map = MAP, item = 6303, n = 2 }, "own")
-DB.Ingest({ t = "catch", char = "Tester-Realm", map = MAP, item = 6303, n = 3 }, "import:gt")
-Check(DB.GetCatches("Tester-Realm", MAP)[6303] == 5, "catches added up per character")
+DB.Ingest({ t = "catch", char = "Tester-Realm", map = MAP, item = 6303, n = 3 }, "own")
+Check(DB.GetCatches("Tester-Realm", MAP)[6303] == 5, "own catches added up per character")
+DB.Ingest({ t = "catch", char = "GatherTogether", map = MAP, item = 6303, n = 4 }, "import:gt")
+Check(DB.Ingest({ t = "catch", char = "GatherTogether", map = MAP, item = 6303, n = 4 }, "import:gt") == "kept"
+	and DB.GetCatches("GatherTogether", MAP)[6303] == 4, "imported catches replace the count (no doubling)")
 Check(gt.CharKey() == "Tester-Realm", "character key")
 
 -- change listener

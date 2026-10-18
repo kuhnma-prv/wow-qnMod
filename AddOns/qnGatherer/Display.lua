@@ -146,7 +146,8 @@ function D.ResourceIcon(key, res)
 	local icon = icons[res]
 	if not icon then
 		local item = D.ResourceItem(res)
-		icon = item and C_Item.GetItemIconByID(item) or C_Spell.GetSpellTexture(ns.KINDS[key].spells[1]) or 134400
+		local kind = ns.KINDS[key]
+		icon = item and C_Item.GetItemIconByID(item) or (kind and C_Spell.GetSpellTexture(kind.spells[1])) or 134400
 		icons[res] = icon
 	end
 	return icon
