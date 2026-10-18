@@ -15,12 +15,18 @@ _G.qnGatherer = ns   -- API for other addons (do not translate)
 
 local SETTINGS_VERSION = "1.0"
 
--- Defaults of a profile. show[kind]: "always", "profession", "tracking" or "never"
+-- Defaults of a profile.
+-- Visibility modes ("show", "circle.show"): "always", "profession", "tracking" or "never"
 ns.defaults = {
 	show = {
 		herb = "profession", mine = "profession", fish = "profession", treasure = "always",
 		gas = "profession", archaeology = "profession", logging = "tracking",
 	},
+	worldMap = { show = true, clickable = true, scale = 1, alpha = 1, areas = false },
+	minimap = { show = true, tooltips = true, edge = true, scale = 0.75, alpha = 1 },
+	circle = { show = "always", distance = 100, colors = {} },   -- tracking circle; colors[kind] = { r, g, b, a }
+	filter = {},                                                 -- filter[kind][res] = false: hidden
+	origins = { guild = true, import = true },                   -- show nodes found by the guild / imported
 	soundBoost = false,   -- effect sound on and at full volume while fishing (opt-in)
 }
 
@@ -30,12 +36,30 @@ function ns.CharKey()
 end
 
 ns.OnLoad(function()
+	for key, kind in pairs(ns.KINDS) do   -- Kinds.lua is loaded after this file
+		ns.defaults.circle.colors[key] = kind.color
+	end
 	ns.store = qnCore.Profiles.Register({
 		ns = ns,
 		sv = "qnGathererDB",
 		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.defaults,
+		onSwitch = function()
+			ns.Display.Refresh()
+		end,
 	})
 	ns.DB.Init(ns.store.global)
 	ns.Fishing.SoundOff()   -- sound values left over from a crash while fishing
+	ns.Display.Init()
+	ns.Minimap.Init()
+	-- the world map may be loaded on demand: add the pins as soon as it exists
+	if WorldMapFrame then
+		ns.WorldMap.Init()
+	else
+		ns.events.Register("ADDON_LOADED", function(_, name)
+			if name == "Blizzard_WorldMap" and WorldMapFrame and not ns.WorldMap.provider:GetMap() then
+				ns.WorldMap.Init()
+			end
+		end)
+	end
 end)

@@ -36,7 +36,7 @@ local floor, sqrt, abs, min, max = math.floor, math.sqrt, math.abs, math.min, ma
 local GLOBAL_DEFAULTS = {
 	nodes = {}, areas = {}, zones = {}, catalog = {}, catches = {}, tombstones = {},
 	origins = { "own" }, locks = {}, imports = {}, radius = {},
-	sync = { enabled = true, showGuild = true, relayGuild = false, shareImports = false, ignore = {} },
+	sync = { enabled = true, relayGuild = false, shareImports = false, ignore = {} },
 }
 
 local AREA_CLASSES = { learned = true, reported = true, school = true }

@@ -21,11 +21,11 @@ function nop() end
 function Mixin(obj, ...) for i = 1, select("#", ...) do for k, v in pairs((select(i, ...))) do obj[k] = v end end return obj end
 function CreateFromMixins(...) return Mixin({}, ...) end
 function GetClassAtlas(class) return "classicon-" .. tostring(class):lower() end
--- Context menu: MENU_LOG holds the entries of the most recently created menu ({ kind, text })
+-- Context menu: MENU_LOG holds the entries of the most recently created menu ({ kind, text, callback })
 MENU_LOG = {}
 local function MenuRoot()
 	local root = {}
-	local function add(kind) return function(_, text) MENU_LOG[#MENU_LOG + 1] = { kind, text } return MenuRoot() end end
+	local function add(kind) return function(_, text, fn) MENU_LOG[#MENU_LOG + 1] = { kind, text, fn } return MenuRoot() end end
 	root.CreateTitle, root.CreateButton, root.CreateCheckbox, root.CreateRadio = add("title"), add("button"), add("checkbox"), add("radio")
 	root.CreateDivider, root.CreateSpacer, root.SetTag = add("divider"), add("spacer"), nop
 	return root
@@ -99,7 +99,8 @@ VALID.ITEM_DATA_LOAD_RESULT = true   -- ItemDocumentation (qnLoadout)
 VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInventory)
 -- UnitDocumentation, LootDocumentation, SystemDocumentation (qnGatherer)
 for _, e in ipairs({ "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
-	"UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "LOOT_OPENED", "UI_ERROR_MESSAGE", "PLAYER_LOGOUT" }) do
+	"UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "LOOT_OPENED", "UI_ERROR_MESSAGE", "PLAYER_LOGOUT",
+	"SKILL_LINES_CHANGED" }) do
 	VALID[e] = true
 end
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
@@ -1490,3 +1491,11 @@ function GetLootSourceInfo(i) local l = QN_LOOT[i] if l and l.source then return
 function GetPlayerFacing() return QN_FACING end
 C_Map.GetPlayerMapPosition = function() if QN_POS then return { GetXY = function() return QN_POS[1], QN_POS[2] end } end end
 C_Item.GetItemInfoInstant = function(id) local c = QN_ITEMCLASS and QN_ITEMCLASS[id] if c then return id, "", "", "", 134400, c[1], c[2] end end
+
+-- qnGatherer needs: skill lines (QN_SKILLS[skillLineID] = rank), minimap view radius, map canvas mixins
+QN_SKILLS = {}
+C_SkillInfo = { GetSkillLineInfoByID = function(id) local r = QN_SKILLS[id] if r then return { skillID = id, name = "", rank = r, maxRank = 300 } end end }
+C_Minimap.GetViewRadius = function() return QN_VIEW_RADIUS or 100 end
+MapCanvasDataProviderMixin = MapCanvasDataProviderMixin or { GetMap = function(self) return self.owningMap end }
+MapCanvasPinMixin = MapCanvasPinMixin or {}
+AM_PIN_SCALE_STYLE_WITH_TERRAIN = 3
