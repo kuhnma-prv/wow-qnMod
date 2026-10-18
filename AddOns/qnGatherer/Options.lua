@@ -325,6 +325,46 @@ local function BuildImport(category)
 end
 
 ---------------------------------------------------------------------------
+-- Guild page: exchange of nodes with the guild (account-wide)
+---------------------------------------------------------------------------
+
+local POPUP_IGNORE = "QNGATHERER_SYNC_IGNORE"
+
+-- Ignore list as text "Name-Realm, Name2" and back
+function ns.IgnoreText()
+	return table.concat(DB.global.sync.ignore, ", ")
+end
+
+function ns.SetIgnoreText(text)
+	local list = {}
+	for name in tostring(text or ""):gmatch("[^,;%s]+") do
+		list[#list + 1] = name
+	end
+	DB.global.sync.ignore = list
+end
+
+local function BuildSync(category)
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, GUILD)
+	local B = S.New({ prefix = "QNGATHERER_SYNC_", source = function() return DB.global.sync end,
+		defaults = { enabled = true, relayGuild = false, shareImports = false },
+		apply = function() ns.Sync.OptionsChanged() end })
+	ns.builders.sync = B
+	B:Checkbox(cat, "enabled", L["Exchange nodes with your guild"],
+		L["Sends the nodes you find to the guild members who use qnGatherer and takes over theirs (shown as \"Found by …\"). Nothing is deleted through the exchange; nodes you deleted stay deleted."])
+	B:Checkbox(cat, "relayGuild", L["Pass on nodes found by your guild"],
+		L["Members who come online later also get the nodes you received from others. Off: only your own nodes are sent."])
+	B:Checkbox(cat, "shareImports", L["Share imported data"],
+		L["Also sends the nodes you imported from other addons."])
+	qnCore.Popup.EditText(POPUP_IGNORE, L["Ignore these members (Name-Realm, separated by commas):"], ns.IgnoreText, ns.SetIgnoreText)
+	S.Button(layout, L["Ignored members"], L["Edit …"], function()
+		StaticPopup_Show(POPUP_IGNORE)
+	end, L["Nothing is taken over from these members."])
+	S.Button(layout, STATUS, SHOW, function()
+		ns.Sync.Status()
+	end, L["Shows in the chat how many members use qnGatherer and how many nodes were exchanged (/qngatherer sync)."])
+end
+
+---------------------------------------------------------------------------
 -- Filter page (canvas): one checkbox per known resource, grouped by kind
 ---------------------------------------------------------------------------
 
@@ -466,6 +506,7 @@ local function Build(category, layout)
 	BuildFishing(category)
 	BuildData(category)
 	BuildImport(category)
+	BuildSync(category)
 end
 
 -- sets ns.category and ns.OpenOptions
@@ -477,7 +518,7 @@ end
 -- Slash command (English only)
 ---------------------------------------------------------------------------
 
-local HELP = L["qnGatherer commands:\n/qngatherer - journal\n/qngatherer options - options\n/qngatherer mini - info window: keep open on/off\n/qngatherer minimap - minimap icons on/off\n/qngatherer worldmap - world map icons on/off\n/qngatherer sound - sound boost while fishing on/off\n/qngatherer cleanup - clean up the database\n/qngatherer help - this help"]
+local HELP = L["qnGatherer commands:\n/qngatherer - journal\n/qngatherer options - options\n/qngatherer mini - info window: keep open on/off\n/qngatherer minimap - minimap icons on/off\n/qngatherer worldmap - world map icons on/off\n/qngatherer sound - sound boost while fishing on/off\n/qngatherer sync - status of the guild exchange\n/qngatherer cleanup - clean up the database\n/qngatherer help - this help"]
 
 function ns.InitSlash()
 	qnCore.RegisterSlash("QNGATHERER", { "/qngatherer", "/qng" }, function(cmd)
@@ -493,6 +534,8 @@ function ns.InitSlash()
 			ns.ToggleWorldMap()
 		elseif cmd == "sound" then
 			ns.ToggleSoundBoost()
+		elseif cmd == "sync" then
+			ns.Sync.Status()
 		elseif cmd == "cleanup" then
 			Actions.Cleanup()
 		else

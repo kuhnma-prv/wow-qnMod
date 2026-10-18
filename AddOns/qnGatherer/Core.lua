@@ -60,6 +60,7 @@ ns.OnLoad(function()
 	ns.Launcher.Init()
 	ns.Titan.Init()
 	ns.Import.Init()   -- records of the offline tool, auto import
+	ns.Sync.Init()
 	-- the world map may be loaded on demand: add the pins as soon as it exists
 	if WorldMapFrame then
 		ns.WorldMap.Init()

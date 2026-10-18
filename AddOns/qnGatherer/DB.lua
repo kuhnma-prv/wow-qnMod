@@ -42,7 +42,7 @@ local GLOBAL_DEFAULTS = {
 	overlays = {}, skinning = {},
 	origins = { "own" }, locks = {}, imports = {}, radius = {},
 	importOptions = { auto = false },   -- import again when an adapter has a newer data version
-	sync = { enabled = true, relayGuild = false, shareImports = false, ignore = {} },
+	sync = { enabled = true, relayGuild = false, shareImports = false, ignore = {}, seen = {} },
 	launcher = { show = true, angle = 225 },   -- minimap button (Launcher.lua)
 	windows = { journal = {}, mini = { pinned = false } },   -- positions, journal kind, mini pinned
 }
@@ -62,6 +62,7 @@ local g                 -- qnGathererDB.global
 local originIndex = {}  -- origin -> originId
 local sizes = {}        -- map -> { width, height } in yards
 local listeners = {}
+local nodeListeners = {}
 
 ---------------------------------------------------------------------------
 -- Helpers
@@ -248,8 +249,9 @@ local function Place(nodes, kind, map, x, y, n)
 					other.oid = ownId
 				end
 				nodes[coord] = nil
-				nodes[DB.Encode(mx, my)] = Pack(other)   -- returns right away: no further traversal
-				return "merged"
+				local newCoord = DB.Encode(mx, my)
+				nodes[newCoord] = Pack(other)   -- returns right away: no further traversal
+				return "merged", newCoord
 			elseif RareOf(other.res) == n.res then
 				return "kept"
 			elseif RareOf(n.res) == other.res then
@@ -268,7 +270,7 @@ local function Place(nodes, kind, map, x, y, n)
 		return "kept"
 	end
 	nodes[coord] = Pack(n)
-	return replaced and "replaced" or "added"
+	return replaced and "replaced" or "added", coord
 end
 
 local function IngestNode(rec, origin)
@@ -293,11 +295,21 @@ local function IngestNode(rec, origin)
 		seen = PositiveInt(rec.seen, 1),
 		oid = OriginId(origin),
 	}
-	local result = Place(Sub(g.nodes, kind, map, true), kind, map, x, y, n)
+	local result, coord = Place(Sub(g.nodes, kind, map, true), kind, map, x, y, n)
 	if result ~= "kept" then
 		Fire(kind, map)
 	end
+	if result == "added" or result == "replaced" then
+		for _, fn in ipairs(nodeListeners) do
+			fn(kind, map, coord, res, origin)
+		end
+	end
 	return result
+end
+
+-- fn(kind, map, coord, res, origin) after a new node was stored (not for merged ones)
+function DB.OnNodeAdded(fn)
+	nodeListeners[#nodeListeners + 1] = fn
 end
 
 -- Node at coord: { res, first, last, seen, origin } or nil

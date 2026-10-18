@@ -102,7 +102,7 @@ VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInv
 -- UnitDocumentation, LootDocumentation, SystemDocumentation (qnGatherer)
 for _, e in ipairs({ "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
 	"UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "LOOT_OPENED", "UI_ERROR_MESSAGE", "PLAYER_LOGOUT",
-	"SKILL_LINES_CHANGED", "UNIT_SPELLCAST_STOP" }) do
+	"SKILL_LINES_CHANGED", "UNIT_SPELLCAST_STOP", "CHAT_MSG_ADDON" }) do
 	VALID[e] = true
 end
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
@@ -1512,3 +1512,16 @@ C_Map.GetMapArtLayers = function(map) local a = QN_MAPART and QN_MAPART[map] ret
 C_Map.GetMapArtLayerTextures = function(map) local a = QN_MAPART and QN_MAPART[map] return a and a.textures or {} end
 C_MapExplorationInfo = { GetExploredMapTextures = function(map) return QN_EXPLORED and QN_EXPLORED[map] or {} end }
 C_Map.GetMapArtID = function(map) return QN_MAPARTID and QN_MAPARTID[map] or map end
+
+-- qnGatherer guild exchange: addon messages (QN_SENT collects { prefix, text, channel, target },
+-- QN_SEND_RESULT overrides the result, QN_CHAT_LOCKDOWN, QN_IN_GUILD = false outside a guild)
+Enum.SendAddonMessageResult = { Success = 0, InvalidPrefix = 1, InvalidMessage = 2, AddonMessageThrottle = 3, InvalidChatType = 4,
+	NotInGroup = 5, TargetRequired = 6, InvalidChannel = 7, ChannelThrottle = 8, GeneralError = 9, NotInGuild = 10,
+	AddOnMessageLockdown = 11, TargetOffline = 12 }
+QN_SENT = {}
+C_ChatInfo = C_ChatInfo or {}
+C_ChatInfo.RegisterAddonMessagePrefix = function(p) QN_PREFIXES = QN_PREFIXES or {} QN_PREFIXES[p] = true return 0 end
+C_ChatInfo.SendAddonMessage = function(p, t, c, tg) local r = QN_SEND_RESULT or 0 if r == 0 then QN_SENT[#QN_SENT + 1] = { p, t, c, tg } end return r end
+C_ChatInfo.InChatMessagingLockdown = function() return QN_CHAT_LOCKDOWN or false end
+function IsInGuild() return QN_IN_GUILD ~= false end
+function Ambiguate(name) return (name:gsub("%-" .. GetNormalizedRealmName() .. "$", "")) end

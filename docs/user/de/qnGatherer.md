@@ -6,8 +6,8 @@ Zurück zur [Übersicht](README.md) · English: [English](../en/qnGatherer.md)
 
 qnGatherer zeichnet die Sammelpunkte auf, die du findest, und zeigt sie auf Weltkarte und
 Minikarte. Es bringt keine Daten mit: Die Karten füllen sich beim Sammeln, durch Import aus
-GatherMate2 oder GatherTogether oder von einem anderen qnGatherer-Nutzer (ein Austausch mit der Gilde
-ist geplant).
+GatherMate2 oder GatherTogether von einem anderen qnGatherer-Nutzer oder über den Austausch mit der
+Gilde.
 
 ## Aufzeichnen
 
@@ -71,7 +71,7 @@ es mit dem X, ist es wieder gelöst. **Nachschlagen** öffnet das Nachschlagefen
 
 ## Optionen
 
-*Optionen → Addons → qnGatherer*. Alle Seiten außer **Daten** und dem Minikarten-Knopf gehören zum
+*Optionen → Addons → qnGatherer*. Alle Seiten außer **Daten**, **Importieren**, **Gilde** und dem Minikarten-Knopf gehören zum
 aktiven Profil (Layout des Bearbeitungsmodus).
 
 ### qnGatherer
@@ -163,6 +163,23 @@ gespeicherten Variablen von qnGatherer ab (Sicherung `qnGatherer.lua.bak`); qnGa
 sie beim nächsten Einloggen und meldet das Ergebnis im Chat. `-Locale` (Standard deDE) bestimmt die
 Sprache der Punktnamen von GatherMate2.
 
+### Gilde (account-weit)
+
+| Option | Standard | Bedeutung |
+|---|---|---|
+| Punkte mit der Gilde austauschen | an | deine Punkte gehen an die Gildenmitglieder mit qnGatherer, deren Punkte kommen zu dir („Gefunden von …“) |
+| Von der Gilde gefundene Punkte weitergeben | aus | Mitglieder, die später online kommen, erhalten auch die Punkte, die du von anderen bekommen hast |
+| Importierte Daten teilen | aus | auch die aus anderen Addons importierten Punkte senden |
+| Ignorierte Mitglieder | – | von diesen Mitgliedern wird nichts übernommen (Name-Realm, durch Kommas getrennt) |
+| Status | – | Mitglieder mit qnGatherer, gesendete Nachrichten, empfangene/abgelehnte Punkte (auch `/qngatherer sync`) |
+
+So funktioniert es: Neue Punkte, die du findest, gehen einige Sekunden später an die Gilde. Nach dem
+Einloggen meldet jedes qnGatherer eine kurze Prüfsumme seiner Daten; Mitglieder mit abweichenden
+Daten tauschen nur die geänderten Zonen aus (per Flüstern). Über den Austausch wird nichts gelöscht,
+und von dir gelöschte Punkte werden nicht wieder übernommen. Die Nachrichten gehen langsam und nicht
+im Kampf hinaus, damit sie den Chat nicht stören; ein Mitglied kann höchstens 5000 Punkte pro Stunde
+senden.
+
 ## Minikarten-Knopf und Titan Panel
 
 - **Minikarten-Knopf**: Linksklick Nachschlagefenster, Umschalt-Linksklick Minikartensymbole
@@ -182,6 +199,7 @@ Sprache der Punktnamen von GatherMate2.
 | `/qngatherer minimap` | Minikartensymbole an/aus |
 | `/qngatherer worldmap` | Weltkartensymbole an/aus |
 | `/qngatherer sound` | Lautstärke beim Angeln an/aus |
+| `/qngatherer sync` | Status des Gildenaustauschs |
 | `/qngatherer cleanup` | Datenbank bereinigen |
 | `/qngatherer help` | Liste der Befehle |
 
@@ -192,5 +210,3 @@ Tastenbelegungen (*Optionen → Tastaturbelegung → Addons → qnGatherer*): **
 
 Alle gesammelten Daten gelten account-weit (für alle Charaktere gemeinsam); Fänge werden pro
 Charakter gespeichert.
-
-Als Nächstes geplant: ein abschaltbarer Datenaustausch mit der Gilde.
