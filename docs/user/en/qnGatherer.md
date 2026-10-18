@@ -6,7 +6,7 @@ Back to the [overview](README.md) · German: [Deutsch](../de/qnGatherer.md)
 
 qnGatherer records the gathering nodes you find and shows them on the world map and the minimap.
 It comes without data: the maps fill up as you gather, by importing from GatherMate2 or
-GatherTogether, or from another qnGatherer user (an exchange with your guild is planned).
+GatherTogether, from another qnGatherer user or through the exchange with your guild.
 
 ## Recording
 
@@ -68,7 +68,7 @@ this zone.
 
 ## Options
 
-*Options → AddOns → qnGatherer*. All pages except **Data** and the minimap button belong to the
+*Options → AddOns → qnGatherer*. All pages except **Data**, **Import**, **Guild** and the minimap button belong to the
 active profile (Edit Mode layout).
 
 ### qnGatherer
@@ -154,6 +154,22 @@ It reads the saved data and files of those addons and stores the records in qnGa
 variables (backup `qnGatherer.lua.bak`); qnGatherer imports them on the next login and reports the
 result in the chat. `-Locale` (default deDE) sets the language of GatherMate2's node names.
 
+### Guild (account-wide)
+
+| Option | Default | Meaning |
+|---|---|---|
+| Exchange nodes with your guild | on | your nodes go to the guild members who use qnGatherer, theirs come to you ("Found by …") |
+| Pass on nodes found by your guild | off | members who come online later also get the nodes you received from others |
+| Share imported data | off | also send the nodes imported from other addons |
+| Ignored members | – | nothing is taken over from these members (Name-Realm, separated by commas) |
+| Status | – | members with qnGatherer, messages sent, nodes received/rejected (also `/qngatherer sync`) |
+
+How it works: new nodes you find are sent to the guild a few seconds later. After logging in, each
+qnGatherer announces a short checksum of its data; members whose data differs exchange only the
+zones that changed (by whisper). Nothing is deleted through the exchange, and nodes you deleted
+yourself are not taken over again. Messages are sent slowly and not in combat, so they do not
+disturb the chat; a member can send at most 5000 nodes per hour.
+
 ## Minimap button and Titan Panel
 
 - **Minimap button**: left-click journal, Shift-left-click minimap icons on/off, Ctrl-left-click
@@ -172,6 +188,7 @@ result in the chat. `-Locale` (default deDE) sets the language of GatherMate2's 
 | `/qngatherer minimap` | minimap icons on/off |
 | `/qngatherer worldmap` | world map icons on/off |
 | `/qngatherer sound` | sound boost while fishing on/off |
+| `/qngatherer sync` | status of the guild exchange |
 | `/qngatherer cleanup` | clean up the database |
 | `/qngatherer help` | list of the commands |
 
@@ -181,5 +198,3 @@ Key bindings (*Options → Keybindings → AddOns → qnGatherer*): **Open/close
 ## Saved data
 
 All gathered data is account-wide (shared by all characters); catches are stored per character.
-
-Planned next: an optional data exchange with your guild.
