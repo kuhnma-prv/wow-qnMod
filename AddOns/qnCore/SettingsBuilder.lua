@@ -294,6 +294,18 @@ function Builder:KeepVisible(cat, layout, opts)
 	return init
 end
 
+-- Predicate for S.Depends that reads key from the builder's table: without value true while the
+-- value is set, with value false while it is not set, otherwise while it equals value.
+function Builder:When(key, value)
+	local b = self
+	if value == nil then
+		return function() return b:Table()[key] and true or false end
+	elseif value == false then
+		return function() return not b:Table()[key] end
+	end
+	return function() return b:Table()[key] == value end
+end
+
 -- Control only usable if predicate() is true (indented under parent).
 function S.Depends(initializer, parent, predicate)
 	initializer:SetParentInitializer(parent, predicate)

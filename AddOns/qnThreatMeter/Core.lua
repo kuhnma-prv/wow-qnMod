@@ -142,7 +142,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnThreatMeterDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		obsolete = OBSOLETE,
 		onSwitch = function()
 			ns.Threat.ApplySettings()

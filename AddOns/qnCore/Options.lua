@@ -57,8 +57,7 @@ local function Build(category, layout)
 	local same = BB:Checkbox(bags, "sameEverywhere", L["Same at every location"],
 		L["On: one setting applies to every location (auction house, bank, merchant …). Off: each location is set up separately."])
 
-	local function Same() return Bags.Config().sameEverywhere end
-	local function NotSame() return not Bags.Config().sameEverywhere end
+	local Same, NotSame = BB:When("sameEverywhere"), BB:When("sameEverywhere", false)
 
 	S.Depends(BB:Dropdown(bags, "allOpen", L["Everywhere: on open"], Bags.OPEN_MODES,
 		L["What happens to your bags when one of the locations opens."], Settings.VarType.String), same, Same)

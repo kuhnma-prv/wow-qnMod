@@ -37,9 +37,7 @@ local function Build(category, layout)
 	}
 	for _, entry in ipairs(ns.RANGE_UNITS) do
 		local key = entry.key
-		local function IsOn()
-			return R.settings[key]:GetValue()
-		end
+		local IsOn = R:When(key)
 		local on = R:Checkbox(category, key, frames[key][1], frames[key][2])
 		local size, offset = ns.RANGE_SIZE, ns.RANGE_OFFSET
 		S.Depends(R:Slider(category, key .. "Size", HUD_EDIT_MODE_SETTING_ACTION_BAR_ICON_SIZE, size[1], size[2], 1), on, IsOn)

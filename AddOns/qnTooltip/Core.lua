@@ -285,7 +285,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnTooltipDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		onSwitch = function()
 			ns.Apply()
 			ns.RefreshElementsPages()

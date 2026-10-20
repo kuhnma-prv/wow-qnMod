@@ -150,10 +150,7 @@ local SETTINGS_VERSION = "1.1"
 
 -- number within limits, otherwise nil (= default)
 local function Clamp(v, limits)
-	if type(v) ~= "number" then
-		return nil
-	end
-	return math.min(math.max(v, limits[1]), limits[2])
+	return lib.Clamp(v, limits[1], limits[2])
 end
 
 -- Check of a profile on every load: removes broken entries (unknown action, wrong key).
@@ -209,7 +206,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnUnitFramesDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		sanitize = Sanitize,
 		onSwitch = function()
 			ns.Apply()

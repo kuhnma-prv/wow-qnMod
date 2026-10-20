@@ -397,7 +397,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnViewPortDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		onSwitch = ns.ApplyProfile,
 	})
 	ns.global = lib.MergeDefaults(store.global, GLOBAL_DEFAULTS)

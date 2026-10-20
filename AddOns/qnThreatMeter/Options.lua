@@ -29,9 +29,7 @@ local function Build(cat, layout)
 	local link = B:Checkbox(cat, "linkDamageMeter", L["Use Damage Meter settings"],
 		L["Takes style, bar height, spacing, text size, icons, class colors and transparency from the Edit Mode settings of the built-in Damage Meter."])
 	-- Only usable as long as the values do not come from the Damage Meter.
-	local function NotLinked()
-		return not ns.db.linkDamageMeter
-	end
+	local NotLinked = B:When("linkDamageMeter", false)
 	S.Depends(B:Dropdown(cat, "style", HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE, {
 		{ 0, HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE_DEFAULT },
 		{ 1, HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE_THIN },
