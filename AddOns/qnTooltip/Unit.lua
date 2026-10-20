@@ -12,12 +12,7 @@ local UD = ns.UnitData
 local Unit = {}
 ns.Unit = Unit
 
-local function Plain(v)
-	if IsSecret(v) then
-		return nil
-	end
-	return v
-end
+local Plain = ns.Plain
 
 local function TextIs(text, ...)
 	if IsSecret(text) or text == nil then

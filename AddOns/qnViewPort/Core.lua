@@ -190,10 +190,6 @@ for _, p in ipairs(lib.Patterns) do
 	ns.PATTERNS[#ns.PATTERNS + 1] = { p[1], p[2], p[3] }
 end
 
-local function LSM()
-	return LibStub and LibStub("LibSharedMedia-3.0", true)
-end
-
 -- Comparable file path: case and separators make no difference to WoW
 local function FileKey(file)
 	return type(file) == "string" and file:lower():gsub("/", "\\") or nil
@@ -215,7 +211,7 @@ function ns.PatternChoices()
 		list[#list + 1] = { p[1], p[2] }
 		seen[FileKey(p[3])] = true
 	end
-	local lsm = LSM()
+	local lsm = lib.LSM()
 	if lsm then
 		for _, name in ipairs(lsm:List("background")) do
 			local key = FileKey(lsm:Fetch("background", name))
@@ -235,7 +231,7 @@ local function PatternFile(key)
 		end
 	end
 	local name = type(key) == "string" and key:match("^lsm:(.+)$")
-	local lsm = name and LSM()
+	local lsm = name and lib.LSM()
 	return lsm and lsm:IsValid("background", name) and lsm:Fetch("background", name) or nil
 end
 
