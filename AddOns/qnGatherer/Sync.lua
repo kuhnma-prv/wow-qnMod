@@ -42,7 +42,6 @@ local peers = {}             -- [sender] = time of the last hello
 local outstanding = {}       -- [sender] = { maps = count, total = digest }
 local received = {}          -- [sender] = { start, count } rate limit
 local live = {}              -- ["kind,map"] = { "coord,res", ... }
-local liveQueued = false
 local digests                -- cache: { maps = { ["kind,map"] = digest }, total = digest }
 local helloSent              -- digest and time of the last hello
 Sync.stats = { sent = 0, received = 0, rejected = 0 }
@@ -219,8 +218,7 @@ function Sync.Hello(force)
 	Sync.Send(table.concat({ "H", VERSION, total }, SEP), "GUILD")
 end
 
-local function FlushLive()
-	liveQueued = false
+local QueueLive = qnCore.Debounce(function()
 	if not Sync.Enabled() then
 		wipe(live)
 		return
@@ -230,7 +228,7 @@ local function FlushLive()
 		Sync.SendList(table.concat({ "B", VERSION, kind, map }, SEP), items, "GUILD")
 	end
 	wipe(live)
-end
+end, LIVE_DELAY)
 
 -- a new own node: send it to the guild soon
 local function OnNodeAdded(kind, map, coord, res, origin)
@@ -245,10 +243,7 @@ local function OnNodeAdded(kind, map, coord, res, origin)
 	local key = kind .. "," .. map
 	live[key] = live[key] or {}
 	table.insert(live[key], entry)
-	if not liveQueued then
-		liveQueued = true
-		C_Timer.After(LIVE_DELAY, FlushLive)
-	end
+	QueueLive()
 end
 
 ---------------------------------------------------------------------------
@@ -262,10 +257,8 @@ end
 -- Chat message about new nodes (option sync.announce): counted per member, kind and map and
 -- reported together a moment later, so that a large exchange gives one line per zone
 local announce = {}      -- ["sender\tkind\tmap"] = count
-local announceQueued = false
 
-local function FlushAnnounce()
-	announceQueued = false
+local QueueAnnounce = qnCore.Debounce(function()
 	local keys = {}
 	for key in pairs(announce) do keys[#keys + 1] = key end
 	table.sort(keys)
@@ -276,7 +269,7 @@ local function FlushAnnounce()
 			info and info.name or map, Ambiguate(sender, "none")))
 	end
 	wipe(announce)
-end
+end, ANNOUNCE_DELAY)
 
 local function Announce(sender, kind, map, count)
 	if count <= 0 or not DB.global.sync.announce then
@@ -284,10 +277,7 @@ local function Announce(sender, kind, map, count)
 	end
 	local key = sender .. "\t" .. kind .. "\t" .. map
 	announce[key] = (announce[key] or 0) + count
-	if not announceQueued then
-		announceQueued = true
-		C_Timer.After(ANNOUNCE_DELAY, FlushAnnounce)
-	end
+	QueueAnnounce()
 end
 
 -- Takes over "coord,res;..." of sender; respects the rate limit
