@@ -166,7 +166,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnNumKeyPadProfiles",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		sanitize = Sanitize,
 		onSwitch = ns.ApplyAndCheck,
 	})

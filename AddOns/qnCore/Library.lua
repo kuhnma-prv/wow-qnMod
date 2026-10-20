@@ -178,6 +178,27 @@ function lib.SortedKeys(t, cmp)
 	return keys
 end
 
+-- For sanitize: v within minV..maxV (clamped), nil if v is not a number (= default)
+function lib.Clamp(v, minV, maxV)
+	if type(v) ~= "number" then
+		return nil
+	end
+	return math.min(math.max(v, minV), maxV)
+end
+
+-- For sanitize: true if c is a color list { r, g, b, a } of numbers
+function lib.ValidColor(c)
+	if type(c) ~= "table" then
+		return false
+	end
+	for i = 1, 4 do
+		if type(c[i]) ~= "number" then
+			return false
+		end
+	end
+	return true
+end
+
 -- Nearest integer (halves upwards)
 function lib.Round(v)
 	return math.floor(v + 0.5)

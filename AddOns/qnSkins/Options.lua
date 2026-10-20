@@ -29,9 +29,7 @@ local function Build(cat, layout)
 			ns.Refresh()
 		end)
 	-- only used while the elements are positioned
-	local function Positioned()
-		return ns.db.position
-	end
+	local Positioned = B:When("position")
 	S.Depends(B:Dropdown(cat, "monitor", PRIMARY_MONITOR, MonitorEntries,
 		L["Monitor the skin is placed on. Automatic: the monitor with the 3D view (qnViewPort), otherwise the largest."]), position, Positioned)
 	S.Depends(B:Slider(cat, "offsetX", L["Horizontal offset"], -800, 800, 5), position, Positioned)

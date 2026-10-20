@@ -184,9 +184,7 @@ local function BuildGeneral(category, layout)
 	S.Header(layout, PROFESSIONS_COLUMN_HEADER_EXPIRATION)
 	G:Slider(cat, "flashTime", L["Flash icon before expiry"], 0, 60, 1, ns.SecondsLabel)
 	local warn = G:Checkbox(cat, "enableExpiration", L["Warn in chat"], L["Reports in chat that a buff is about to expire."])
-	local function Warn()
-		return ns.db.enableExpiration
-	end
+	local Warn = G:When("enableExpiration")
 	S.Depends(G:Checkbox(cat, "expirationCastOnly", L["Only buffs you can cast"]), warn, Warn)
 	S.Depends(G:Checkbox(cat, "expirationSound", L["Play sound"]), warn, Warn)
 	S.Depends(G:Slider(cat, "expirationTime1", L["Warn for duration 2:00 – 10:00"], 0, 60, 5, ns.SecondsLabel), warn, Warn)

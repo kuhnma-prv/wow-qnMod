@@ -191,18 +191,14 @@ local function Build(category, layout)
 	S.Header(visLayout, L["Fading"])
 	local fade = B:Checkbox(vis, "fade", L["Fade out without mouseover"],
 		L["Fades the bar to the opacity set below while the mouse is not over it."])
-	local function Fading()
-		return ns.db.fade
-	end
+	local Fading = B:When("fade")
 	S.Depends(B:Slider(vis, "fadeAlpha", L["Faded opacity"], 0, 1, 0.05, S.FractionFormatter), fade, Fading)
 	S.Depends(B:Slider(vis, "fadeDelay", L["Delay"], 0, 3, 0.1, S.SecondsFormatter), fade, Fading)
 
 	S.Header(visLayout, L["Hiding"])
 	local custom = B:Checkbox(vis, "useCustom", L["Use custom condition"],
 		L["Replaces all of the following switches with a custom macro condition."])
-	local function NotCustom()
-		return not ns.db.useCustom
-	end
+	local NotCustom = B:When("useCustom", false)
 	S.Depends(B:Checkbox(vis, "hideVehicle", L["Hide in vehicle / while possessing"]), custom, NotCustom)
 	S.Depends(B:Checkbox(vis, "hideCombat", L["Hide in combat"]), custom, NotCustom)
 	S.Depends(B:Checkbox(vis, "hideNoCombat", L["Hide out of combat"]), custom, NotCustom)

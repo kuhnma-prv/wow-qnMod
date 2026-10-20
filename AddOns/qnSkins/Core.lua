@@ -43,9 +43,7 @@ local function Sanitize(db)
 	if db.skin ~= ns.NONE and not (ns.skins and ns.skins[db.skin]) then
 		db.skin = nil
 	end
-	if type(db.scale) ~= "number" or db.scale < 0.5 or db.scale > 2 then
-		db.scale = nil
-	end
+	db.scale = lib.Clamp(db.scale, 0.5, 2)
 end
 
 -- Apply the settings (debounced: several changes in a row are merged)
@@ -58,7 +56,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnSkinsDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		obsolete = OBSOLETE,
 		sanitize = Sanitize,
 		onSwitch = function()

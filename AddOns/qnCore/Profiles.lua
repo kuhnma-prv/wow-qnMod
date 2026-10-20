@@ -241,7 +241,7 @@ end
 -- opts.ns               namespace; ns.db is set on every switch
 -- opts.name             addon name (display, key in P.stores); default: name from qnCore.NewAddon
 -- opts.sv               name of the saved variable (## SavedVariables)
--- opts.defaults         defaults of a profile
+-- opts.defaults         defaults of a profile (default: opts.ns.defaults)
 -- opts.settingsVersion  version of the settings, "1.0" (see qnCore.Migrate)
 -- opts.migrations       { [major] = function(sv) } - conversions for a new major version (optional)
 -- opts.obsolete         keys of a profile dropped without replacement, also "dual.uiOnMain" (optional)
@@ -266,7 +266,7 @@ function P.Register(opts)
 		ns = opts.ns,
 		sv = sv,
 		global = sv.global,
-		defaults = opts.defaults or {},
+		defaults = opts.defaults or (opts.ns and opts.ns.defaults) or {},
 		obsolete = opts.obsolete or {},
 		sanitize = opts.sanitize,
 		onSwitch = opts.onSwitch,
