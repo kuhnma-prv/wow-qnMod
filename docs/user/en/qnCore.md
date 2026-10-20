@@ -104,7 +104,7 @@ In combat, copying and resetting are applied after combat (a chat message says s
 
 | Command | Effect |
 |---|---|
-| `/qncore`, `/qnc` (or `/qncore config`) | Opens the qnCore options |
+| `/qncore`, `/qnc` (or `/qncore config`, `/qncore options`) | Opens the qnCore options |
 | `/qncore profile` | Opens the Profiles page |
 | `/qncore status` | Shows the qnCore version, the active profile and the number of profiles per qn addon in chat |
 | `/qncore locale` | German client: lists texts that were shown without translation in this session |

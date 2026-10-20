@@ -37,12 +37,8 @@ function Tooltip.OwnerOf(unit)
 end
 
 local function NameAndColor(unit)
-	local name = Plain(UnitName(unit), nil)
-	if type(name) ~= "string" or name == "" then
-		name = UNKNOWN
-	end
 	local _, classFile = UnitClass(unit)
-	return name, lib.ClassColor(classFile) or CASTER_DEFAULT
+	return ns.UnitLabel(unit), lib.ClassColor(classFile) or CASTER_DEFAULT
 end
 
 -- Caster in class color, for companions/vehicles additionally "<owner>"
