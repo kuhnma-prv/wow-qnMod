@@ -183,30 +183,6 @@ ns.defaults = {
 }
 
 ---------------------------------------------------------------------------
--- Media
----------------------------------------------------------------------------
-
--- entries of an LSM media type as { name, name } (for dropdowns), without the names in skip
-function ns.LSMEntries(kind, skip)
-	local list = {}
-	local lsm = lib.LSM()
-	if lsm then
-		for _, name in ipairs(lsm:List(kind)) do
-			if not (skip and skip[name]) then
-				list[#list + 1] = { name, name }
-			end
-		end
-	end
-	return list
-end
-
--- path of an LSM file or nil
-function ns.LSMFetch(kind, name)
-	local lsm = lib.LSM()
-	return lsm and lsm:IsValid(kind, name) and lsm:Fetch(kind, name) or nil
-end
-
----------------------------------------------------------------------------
 -- Tooltip lines
 ---------------------------------------------------------------------------
 

@@ -86,6 +86,13 @@ function lib.ClassColoredName(name, classFile, fallback)
 	return ("|cff%s%s|r"):format(lib.Hex(c.r, c.g, c.b), name)
 end
 
+-- r, g, b, a of a color list { r, g, b, a } (as stored by Settings.Builder:Color); missing
+-- r, g, b = default (0), missing a = 1
+function lib.UnpackColor(c, default)
+	local d = default or 0
+	return c[1] or d, c[2] or d, c[3] or d, c[4] or 1
+end
+
 -- "rrggbb" for color values 0-1
 function lib.Hex(r, g, b)
 	return ("%02x%02x%02x"):format(lib.Round(r * 255), lib.Round(g * 255), lib.Round(b * 255))

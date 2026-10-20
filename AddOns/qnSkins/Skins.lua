@@ -58,10 +58,10 @@ ns.targets = {
 }
 
 -- Blizzard textures (file paths from Blizzard's source)
-local ROCK = "Interface\\FrameGeneral\\UI-Background-Rock"
-local MARBLE = "Interface\\FrameGeneral\\UI-Background-Marble"
-local BOX_BG = "Interface\\Tooltips\\UI-Tooltip-Background"
-local BOX_EDGE = "Interface\\Tooltips\\UI-Tooltip-Border"
+local ROCK = qnCore.Media.ROCK
+local MARBLE = qnCore.Media.MARBLE
+local BOX_BG = qnCore.Media.TOOLTIP_BG
+local BOX_EDGE = qnCore.Media.TOOLTIP_BORDER
 -- own texture (tools\New-QnSkinArt.ps1): red and gold cord
 local ROPE = "Interface\\AddOns\\qnSkins\\Media\\Rope"
 

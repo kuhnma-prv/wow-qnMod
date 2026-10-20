@@ -38,9 +38,9 @@ local function NewPanel(spec)
 		insets = { left = inset, right = inset, top = inset, bottom = inset },
 	})
 	local c = spec.bgColor or {}
-	f:SetBackdropColor(c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1)
+	f:SetBackdropColor(qnCore.UnpackColor(c, 1))
 	c = spec.edgeColor or {}
-	f:SetBackdropBorderColor(c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1)
+	f:SetBackdropBorderColor(qnCore.UnpackColor(c, 1))
 	return f
 end
 
@@ -491,7 +491,7 @@ local function Fill(f, spec, l, b, r, t)
 	tex:SetTexture(spec.bg, "REPEAT", "REPEAT")
 	tex:SetTexCoord(l / size, r / size, -t / size, -b / size)
 	local c = spec.bgColor or {}
-	tex:SetVertexColor(c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1)
+	tex:SetVertexColor(qnCore.UnpackColor(c, 1))
 	tex:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", l, b)
 	tex:SetPoint("TOPRIGHT", f, "BOTTOMLEFT", r, t)
 end
