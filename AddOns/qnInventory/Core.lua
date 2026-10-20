@@ -77,17 +77,9 @@ end
 -- (character deleted, faction option changed)
 ---------------------------------------------------------------------------
 
-local listeners = {}
-
-function ns.OnDataChanged(fn)
-	listeners[#listeners + 1] = fn
-end
-
-function ns.DataChanged(kind)
-	for _, fn in ipairs(listeners) do
-		fn(kind)
-	end
-end
+local dataChanged = qnCore.NewSignal()
+ns.OnDataChanged = dataChanged.Add
+ns.DataChanged = dataChanged.Fire
 
 -- Deletes a stored character (not the logged-in one); true on success
 function ns.DeleteChar(realm, name)
@@ -159,12 +151,7 @@ end
 
 -- Characters of a realm (default: this one), alphabetical
 function ns.SortedChars(realmDB)
-	local list = {}
-	for name in pairs(realmDB or ns.realmDB) do
-		list[#list + 1] = name
-	end
-	table.sort(list, function(a, b) return strcmputf8i(a, b) < 0 end)
-	return list
+	return qnCore.SortedKeys(realmDB or ns.realmDB, function(a, b) return strcmputf8i(a, b) < 0 end)
 end
 
 ---------------------------------------------------------------------------

@@ -290,7 +290,7 @@ local function SetMonitorScale(i, percent)
 		t = {}
 		DB().scale = t
 	end
-	local v = math.floor(percent / 5 + 0.5) * 5 / 100
+	local v = qnCore.Round(percent / 5) * 5 / 100
 	if v ~= Titan.MonitorScale(i) then
 		t[i] = v
 		ApplySoon()

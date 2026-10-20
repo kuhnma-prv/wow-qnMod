@@ -117,7 +117,7 @@ local function PreviewText(e, c, raw, fmt)
 	if raw or not UD.COLORS[c.color] then
 		r, g, b = UD.Color(c.color, raw)
 	end
-	return r and ("|cff" .. ns.Hex(r, g, b) .. text .. "|r") or text
+	return r and ("|cff" .. qnCore.Hex(r, g, b) .. text .. "|r") or text
 end
 
 local INVALID = "|cffff4040%s|r"
@@ -137,7 +137,7 @@ end
 
 local function PickColor(kind, key)
 	local c = Config(kind, key)
-	local r, g, b = ns.RGB(c.color)
+	local r, g, b = qnCore.HexToRGB(c.color)
 	if not r then
 		r, g, b = 1, 1, 1
 	end
@@ -149,7 +149,7 @@ local function PickColor(kind, key)
 	ColorPickerFrame:SetupColorPickerAndShow({
 		r = r, g = g, b = b,
 		swatchFunc = function()
-			Set(ns.Hex(ColorPickerFrame:GetColorRGB()))
+			Set(qnCore.Hex(ColorPickerFrame:GetColorRGB()))
 		end,
 		-- Blizzard passes the previous values as a table (ColorPickerFrameMixin:OnCancel);
 		-- but we need the saved value, which may also be a color function
@@ -460,7 +460,7 @@ local function RefreshEditor(p)
 		return
 	end
 	ed.color:Refresh()
-	local r, g, b = ns.RGB(c.color)
+	local r, g, b = qnCore.HexToRGB(c.color)
 	if r then
 		ed.swatch:SetColorTexture(r, g, b)
 	else

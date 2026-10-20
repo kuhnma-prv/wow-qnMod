@@ -75,11 +75,7 @@ end
 -- Replaces whole names in text according to map (longest name first, never inside a longer word or
 -- in text that was already replaced).
 local function Translate(text, map)
-	local names = {}
-	for from in pairs(map) do
-		names[#names + 1] = from
-	end
-	table.sort(names, function(a, b) return #a > #b or (#a == #b and a < b) end)
+	local names = qnCore.SortedKeys(map, function(a, b) return #a > #b or (#a == #b and a < b) end)
 	local found = {}
 	for i, from in ipairs(names) do
 		local pos = 1

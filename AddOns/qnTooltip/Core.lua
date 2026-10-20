@@ -246,19 +246,6 @@ function ns.FindLine(tip, text)
 	end
 end
 
--- color 0-1 as a six-digit hex value
-function ns.Hex(r, g, b)
-	return ("%02x%02x%02x"):format(math.floor(r * 255 + 0.5), math.floor(g * 255 + 0.5), math.floor(b * 255 + 0.5))
-end
-
--- hex value as r, g, b (nil for an invalid value)
-function ns.RGB(hex)
-	if type(hex) ~= "string" or not hex:match("^%x%x%x%x%x%x$") then
-		return nil
-	end
-	return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
-end
-
 -- UnitIsUnit as true/false. Non-comparable units (RequiresComparableUnitTokens) raise an error in
 -- the client, secret results are not readable: both count as false.
 function ns.IsUnit(a, b)

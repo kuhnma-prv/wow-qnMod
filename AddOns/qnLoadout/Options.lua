@@ -66,12 +66,8 @@ local function ShowExport(name)
 	output:Show()
 	output.box:SetFocus()
 	output.box:HighlightText()
-	local untranslated = {}
-	for spell in pairs(report.untranslated) do
-		untranslated[#untranslated + 1] = spell
-	end
+	local untranslated = qnCore.SortedKeys(report.untranslated)
 	if #untranslated > 0 then
-		table.sort(untranslated)
 		ns.Print(L["Spells without English name in Spells.json (exported by ID): %s"]:format(table.concat(untranslated, ", ")))
 	end
 	local missing = ns.MissingItems()

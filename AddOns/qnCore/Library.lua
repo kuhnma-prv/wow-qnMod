@@ -1,4 +1,4 @@
--- qnCore: core and library of the qn addons (qnThreatMeter, qnNumKeyPad, qnViewPort, qnInventory, qnBuffMod, qnUnitFrames).
+-- qnCore: core and library of the qn addons.
 -- Library: shared helper functions, globally reachable as qnCore.
 --
 -- The qn addons (qnCore itself included) call
@@ -83,10 +83,24 @@ function lib.ClassColoredName(name, classFile, fallback)
 	if not c then
 		return name
 	end
-	local function Byte(v)
-		return math.floor(v * 255 + 0.5)
+	return ("|cff%s%s|r"):format(lib.Hex(c.r, c.g, c.b), name)
+end
+
+-- "rrggbb" for color values 0-1
+function lib.Hex(r, g, b)
+	return ("%02x%02x%02x"):format(lib.Round(r * 255), lib.Round(g * 255), lib.Round(b * 255))
+end
+
+-- r, g, b (0-1) of exactly "rrggbb"; nil for any other value
+function lib.HexToRGB(hex)
+	local r, g, b
+	if type(hex) == "string" then
+		r, g, b = hex:match("^(%x%x)(%x%x)(%x%x)$")
 	end
-	return ("|cff%02x%02x%02x%s|r"):format(Byte(c.r), Byte(c.g), Byte(c.b), name)
+	if not r then
+		return nil
+	end
+	return tonumber(r, 16) / 255, tonumber(g, 16) / 255, tonumber(b, 16) / 255
 end
 
 ---------------------------------------------------------------------------
@@ -139,6 +153,21 @@ function lib.MergeDefaults(db, defaults)
 		end
 	end
 	return db
+end
+
+-- Keys of t as a sorted list (cmp as for table.sort, optional)
+function lib.SortedKeys(t, cmp)
+	local keys = {}
+	for k in pairs(t) do
+		keys[#keys + 1] = k
+	end
+	table.sort(keys, cmp)
+	return keys
+end
+
+-- Nearest integer (halves upwards)
+function lib.Round(v)
+	return math.floor(v + 0.5)
 end
 
 -- Deletes obsolete keys from t; "dual.uiOnMain" stands for t.dual.uiOnMain.
@@ -252,6 +281,25 @@ function lib.NewEventHub()
 	return hub
 end
 
+-- List of callbacks: signal.Add(fn), signal.Fire(...) calls every fn(...) in registration order;
+-- an error does not stop the others.
+function lib.NewSignal()
+	local listeners = {}
+	local signal = {}
+	function signal.Add(fn)
+		listeners[#listeners + 1] = fn
+	end
+	function signal.Fire(...)
+		for _, fn in ipairs(listeners) do
+			local ok, err = pcall(fn, ...)
+			if not ok then
+				geterrorhandler()(err)
+			end
+		end
+	end
+	return signal
+end
+
 ---------------------------------------------------------------------------
 -- Position of frames relative to UIParent
 -- All calculations use the effective scale; UIParent may be moved or shrunk
@@ -362,6 +410,26 @@ function lib.Debounce(fn, delay)
 			fn()
 		end)
 	end
+end
+
+-- OnUpdate handler that calls fn(frame) at most every interval seconds (number or function that
+-- returns it, read on every frame). Counts per frame, so one handler can serve several frames.
+-- Returns the handler and reset(frame) (count from 0 again, e.g. when showing).
+function lib.Throttle(interval, fn)
+	local elapsed = setmetatable({}, { __mode = "k" })
+	local function OnUpdate(frame, dt)
+		local e = (elapsed[frame] or 0) + dt
+		if e < (type(interval) == "function" and interval() or interval) then
+			elapsed[frame] = e
+			return
+		end
+		elapsed[frame] = 0
+		fn(frame)
+	end
+	local function Reset(frame)
+		elapsed[frame] = 0
+	end
+	return OnUpdate, Reset
 end
 
 ---------------------------------------------------------------------------

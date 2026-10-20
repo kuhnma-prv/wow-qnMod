@@ -230,11 +230,7 @@ end
 
 -- /qnskins frames: every element with its Edit Mode name, visibility, size and position
 function Layout.Report()
-	local keys = {}
-	for key in pairs(ns.targets) do
-		keys[#keys + 1] = key
-	end
-	table.sort(keys)
+	local keys = qnCore.SortedKeys(ns.targets)
 	local ui = Layout.UIScale()
 	for _, key in ipairs(keys) do
 		local f = Layout.Frame(key)

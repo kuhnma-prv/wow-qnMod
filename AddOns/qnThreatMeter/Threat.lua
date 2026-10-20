@@ -426,7 +426,7 @@ local function ShowPlainBar(bar, e, top, tankValue)
 	local showTPS = db.showTPS and e.tps ~= nil
 	local text = db.showValue and FormatValue(e.value) or ""
 	if showTPS then
-		local tps = FormatValue(math.floor(e.tps * 10 + 0.5) / 10)
+		local tps = FormatValue(qnCore.Round(e.tps * 10) / 10)
 		text = text ~= "" and ("%s (%s)"):format(text, tps) or tps
 	end
 	if db.showPercent then
@@ -727,15 +727,8 @@ function T.Init()
 		Window.SavePosition(frame)
 	end)
 
-	local elapsed = 0
 	T.driver = CreateFrame("Frame")
-	T.driver:SetScript("OnUpdate", function(_, dt)
-		elapsed = elapsed + dt
-		if elapsed >= db.updateInterval then
-			elapsed = 0
-			T.Refresh()
-		end
-	end)
+	T.driver:SetScript("OnUpdate", (qnCore.Throttle(function() return db.updateInterval end, function() T.Refresh() end)))
 
 	for _, name in ipairs(DM_SETTERS) do
 		hooksecurefunc(DamageMeter, name, OnDamageMeterChanged)

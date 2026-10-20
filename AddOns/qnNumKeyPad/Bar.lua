@@ -21,9 +21,7 @@ local cursorGrid = false    -- player is currently holding an action on the curs
 local keepPending = false   -- anchor change in combat: offsets not yet converted
 
 -- Offsets are stored rounded to whole UIParent units.
-local function Round(v)
-	return math.floor(v + 0.5)
-end
+local Round = qnCore.Round
 
 ---------------------------------------------------------------------------
 -- Action slots
@@ -265,17 +263,12 @@ end
 
 local function CreateFader()
 	fader = CreateFrame("Frame")
-	local elapsed, lastOver = 0, 0
+	local lastOver = 0
 	local lastAlpha   -- last opacity set; nil = set on the next pass
 	fader:SetScript("OnShow", function()
 		lastAlpha = nil   -- without fading, ApplyCosmetic sets the opacity itself
 	end)
-	fader:SetScript("OnUpdate", function(_, e)
-		elapsed = elapsed + e
-		if elapsed < 0.05 then
-			return
-		end
-		elapsed = 0
+	fader:SetScript("OnUpdate", (qnCore.Throttle(0.05, function()
 		local db = ns.db
 		local now = GetTime()
 		local over = bar:IsVisible() and (bar:IsMouseOver()
@@ -288,7 +281,7 @@ local function CreateFader()
 			lastAlpha = alpha
 			bar:SetAlpha(alpha)
 		end
-	end)
+	end)))
 	fader:Hide()
 end
 
