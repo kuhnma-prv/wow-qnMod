@@ -172,14 +172,7 @@ end
 
 -- Movable by dragging the window area, Escape closes (name required for UISpecialFrames)
 function ns.SetupWindow(frame)
-	frame:SetMovable(true)
-	frame:EnableMouse(true)
-	frame:SetClampedToScreen(true)
-	frame:SetToplevel(true)
-	frame:RegisterForDrag("LeftButton")
-	frame:SetScript("OnDragStart", frame.StartMoving)
-	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-	tinsert(UISpecialFrames, frame:GetName())
+	qnCore.UI.Movable(frame, { toplevel = true, escape = true })
 	frame:Hide()
 end
 

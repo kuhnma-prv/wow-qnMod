@@ -276,6 +276,24 @@ function S.Button(layout, name, buttonText, onClick, tooltip)
 	return init
 end
 
+-- Option "Keep in visible area automatically" (checkbox for key, default "autoVisible") and the
+-- button "Find window"/"Find bar" that calls opts.move() (qnCore.Visible).
+--   opts.key     setting key (default "autoVisible")
+--   opts.bar     true: texts for a bar instead of a window
+--   opts.move    function for the button
+--   opts.slash   slash command doing the same, e.g. "/qnm visible" (shown in the tooltip)
+-- Returns the initializer of the checkbox.
+function Builder:KeepVisible(cat, layout, opts)
+	local L = ns.L
+	local init = self:Checkbox(cat, opts.key or "autoVisible", L["Keep in visible area automatically"], opts.bar
+		and L["Moves the bar back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."]
+		or L["Moves the window back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."])
+	S.Button(layout, opts.bar and L["Find bar"] or L["Find window"], L["Move into visible area"], opts.move,
+		(opts.bar and L["Moves the bar onto the nearest visible monitor now (%s)."]
+			or L["Moves the window onto the nearest visible monitor now (%s)."]):format(opts.slash))
+	return init
+end
+
 -- Control only usable if predicate() is true (indented under parent).
 function S.Depends(initializer, parent, predicate)
 	initializer:SetParentInitializer(parent, predicate)

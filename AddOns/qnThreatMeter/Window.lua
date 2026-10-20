@@ -213,12 +213,16 @@ end
 
 -- After moving or resizing: remember the position, move into the visible area if needed
 -- (f.checkVisible from qnCore.Visible.Keep, Threat.lua).
-local function FinishMove(f)
-	f:StopMovingOrSizing()
+local function AfterMove(f)
 	Window.SavePosition(f)
 	if f.checkVisible then
 		f.checkVisible()
 	end
+end
+
+local function FinishMove(f)
+	f:StopMovingOrSizing()
+	AfterMove(f)
 end
 
 local function CreateResizeButton(f)
@@ -255,8 +259,6 @@ function Window.Create(name, db)
 	f.db = db
 	f.bars = {}
 	f:SetFrameStrata("MEDIUM")
-	f:SetClampedToScreen(true)
-	f:SetMovable(true)
 	f:SetResizable(true)
 	f:SetResizeBounds(150, 60, 800, 900)
 
@@ -287,14 +289,7 @@ function Window.Create(name, db)
 	f.resizeButton = CreateResizeButton(f)
 
 	-- move by dragging the whole window, right-click opens the menu.
-	f:EnableMouse(true)
-	f:RegisterForDrag("LeftButton")
-	f:SetScript("OnDragStart", function(self)
-		if not self.db.locked then
-			self:StartMoving()
-		end
-	end)
-	f:SetScript("OnDragStop", FinishMove)
+	qnCore.UI.Movable(f, { canMove = function() return not f.db.locked end, onStop = AfterMove })
 	f:SetScript("OnMouseUp", function(self, button)
 		if button == "RightButton" then
 			self:OnMenu(self)
@@ -335,24 +330,16 @@ function Window.Create(name, db)
 end
 
 -- Stores the position relative to UIParent, in units of UIParent (independent of the window's
--- scale). Not via GetPoint: after dragging the anchor may be attached to the screen instead of
--- UIParent, and with qnViewPort UIParent may not be at 0,0.
+-- scale, qnCore.SavePoint).
 function Window.SavePosition(f)
-	local x, y = qnCore.PointOffset(f, "TOPLEFT", "BOTTOMLEFT", true)
-	if x then
-		f.db.point = { "TOPLEFT", "BOTTOMLEFT", qnCore.Round(x), qnCore.Round(y) }
-	end
-	f.db.width = math.floor(f:GetWidth() + 0.5)
-	f.db.height = math.floor(f:GetHeight() + 0.5)
+	f.db.point = qnCore.SavePoint(f, "TOPLEFT", "BOTTOMLEFT") or f.db.point
+	f.db.width = qnCore.Round(f:GetWidth())
+	f.db.height = qnCore.Round(f:GetHeight())
 end
 
--- Offsets in units of UIParent: divide by the window's scale when setting, so that
--- it stays at its corner when the scale changes.
+-- Divided by the window's scale when setting, so that it stays at its corner when the scale changes.
 function Window.RestorePosition(f)
-	local p = f.db.point
-	local s = f.db.scale or 1
-	f:ClearAllPoints()
-	f:SetPoint(p[1] or "CENTER", UIParent, p[2] or "CENTER", (p[3] or 0) / s, (p[4] or 0) / s)
+	qnCore.RestorePoint(f, f.db.point, f.db.scale or 1)
 	f:SetSize(f.db.width, f.db.height)
 end
 

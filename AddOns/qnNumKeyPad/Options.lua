@@ -184,10 +184,7 @@ local function Build(category, layout)
 	S.Button(posLayout, L["Center horizontally"], L["Center"], function() ns.CenterBar(true) end)
 	S.Button(posLayout, L["Center vertically"], L["Center"], function() ns.CenterBar(false) end)
 	S.Button(posLayout, L["Reset position"], RESET, ns.ResetPosition)
-	B:Checkbox(pos, "autoVisible", L["Keep in visible area automatically"],
-		L["Moves the bar back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."])
-	S.Button(posLayout, L["Find bar"], L["Move into visible area"], ns.MoveIntoVisible,
-		L["Moves the bar onto the nearest visible monitor now (/qnnkp visible)."])
+	B:KeepVisible(pos, posLayout, { bar = true, move = ns.MoveIntoVisible, slash = "/qnnkp visible" })
 
 	-- Visibility ----------------------------------------------------------
 	local vis, visLayout = Settings.RegisterVerticalLayoutSubcategory(category, HUD_EDIT_MODE_SETTING_AURA_FRAME_VISIBLE_SETTING)

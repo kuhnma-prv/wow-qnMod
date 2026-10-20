@@ -95,6 +95,39 @@ function UI.Label(parent, widget, text, gap)
 	return fs
 end
 
+-- Frame movable by dragging with the left mouse button.
+--   opts.handle    frame that receives the drag (default: frame itself)
+--   opts.canMove() false: dragging does not start (e.g. locked, in combat)
+--   opts.onStop(frame)  after dropping (save the position)
+--   opts.toplevel  raise above other windows on click
+--   opts.escape    Escape closes the window (frame needs a name, UISpecialFrames)
+-- The frame always stays on the screen (SetClampedToScreen).
+function UI.Movable(frame, opts)
+	opts = opts or {}
+	local handle = opts.handle or frame
+	frame:SetMovable(true)
+	frame:SetClampedToScreen(true)
+	if opts.toplevel then
+		frame:SetToplevel(true)
+	end
+	handle:EnableMouse(true)
+	handle:RegisterForDrag("LeftButton")
+	handle:SetScript("OnDragStart", function()
+		if not opts.canMove or opts.canMove() then
+			frame:StartMoving()
+		end
+	end)
+	handle:SetScript("OnDragStop", function()
+		frame:StopMovingOrSizing()
+		if opts.onStop then
+			opts.onStop(frame)
+		end
+	end)
+	if opts.escape then
+		tinsert(UISpecialFrames, frame:GetName())
+	end
+end
+
 ---------------------------------------------------------------------------
 -- Options page (canvas) looking like Blizzard's vertical pages (SettingsListTemplate in
 -- Blizzard_Settings_Shared): heading, optional "Defaults" button, divider, below it the

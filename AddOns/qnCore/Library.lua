@@ -343,6 +343,23 @@ function lib.PointOffset(frame, point, relPoint, inParentUnits)
 	return (px - rx) / s, (py - ry) / s
 end
 
+-- Position to store: { point, relPoint, x, y } relative to UIParent in UIParent units (independent
+-- of the frame's scale), rounded; nil as long as frame has no position. Not via GetPoint: after
+-- dragging the anchor may be attached to the screen, and UIParent may not be at 0,0 (qnViewPort).
+function lib.SavePoint(frame, point, relPoint)
+	local x, y = lib.PointOffset(frame, point, relPoint, true)
+	if x then
+		return { point, relPoint, lib.Round(x), lib.Round(y) }
+	end
+end
+
+-- Sets a position from lib.SavePoint; scale = the frame's scale (default frame:GetScale()).
+function lib.RestorePoint(frame, p, scale)
+	local s = scale or frame:GetScale()
+	frame:ClearAllPoints()
+	frame:SetPoint(p[1] or "CENTER", UIParent, p[2] or "CENTER", (p[3] or 0) / s, (p[4] or 0) / s)
+end
+
 -- Corner of UIParent closest to point of frame (default CENTER), e.g. "TOPRIGHT".
 function lib.NearestCorner(frame, point)
 	local px, py = PointAbs(frame, point or "CENTER")

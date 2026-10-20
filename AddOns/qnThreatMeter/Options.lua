@@ -30,10 +30,7 @@ local function Build(cat, layout)
 	})
 	B:Checkbox(cat, "showTitle", L["Show title bar"])
 	B:Slider(cat, "scale", L["Scale"], 0.5, 2, 0.05, S.DecimalFormatter)
-	B:Checkbox(cat, "autoVisible", L["Keep in visible area automatically"],
-		L["Moves the window back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas actually visible on a monitor count."])
-	S.Button(layout, L["Find window"], L["Move into visible area"],
-		function() ns.Threat.MoveIntoVisible() end, L["Moves the window onto the nearest visible monitor now (/qnm visible)."])
+	B:KeepVisible(cat, layout, { move = function() ns.Threat.MoveIntoVisible() end, slash = "/qnm visible" })
 
 	S.Header(layout, L["Bars"])
 	local link = B:Checkbox(cat, "linkDamageMeter", L["Use Damage Meter settings"],

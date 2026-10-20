@@ -103,6 +103,12 @@ L["Bricks"] = "Ziegel"
 L["Weave"] = "Geflecht"
 L["Scanlines"] = "Scanlinien"
 L["Grain"] = "Körnung"
+-- SettingsBuilder.lua: B:KeepVisible
+L["Moves the window back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."] = "Holt das Fenster nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."
+L["Moves the bar back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."] = "Holt die Leiste nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."
+L["Moves the window onto the nearest visible monitor now (%s)."] = "Verschiebt das Fenster jetzt auf den nächsten sichtbaren Monitor (%s)."
+L["Moves the bar onto the nearest visible monitor now (%s)."] = "Verschiebt die Leiste jetzt auf den nächsten sichtbaren Monitor (%s)."
+L["Find bar"] = "Leiste suchen"
 
 -- Shared texts: used by several qn addons (their L falls back to these)
 L["Background opacity"] = "Deckkraft des Hintergrunds"
