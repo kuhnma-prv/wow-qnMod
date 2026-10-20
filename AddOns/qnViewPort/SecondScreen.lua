@@ -881,29 +881,15 @@ end
 
 -- Checkbox for DB()[key]; with getter/setter instead of a key (e.g. Blizzard state).
 local function Check(label, key, tooltip, onChange, getter, setter)
-	local cb = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-	local fs = UI.Text(page, "GameFontHighlight", label)
-	fs:SetPoint("LEFT", cb, "RIGHT", 2, 0)
-	cb:SetScript("OnClick", function(self)
-		local on = self:GetChecked() and true or false
+	-- Refresh (Dual.RefreshOptions): check mark from getter or DB()[key]
+	local cb = UI.Checkbox(page, label, getter or function() return DB()[key] end, function(on)
 		if setter then
 			setter(on)
 		else
 			DB()[key] = on
 		end
 		if onChange then onChange() end
-	end)
-	if tooltip then
-		UI.Tooltip(cb, label, tooltip)
-	end
-	-- Refresh (Dual.RefreshOptions): check mark from getter or DB()[key]
-	function cb:Refresh()
-		if getter then
-			self:SetChecked(getter())
-		else
-			self:SetChecked(DB()[key])
-		end
-	end
+	end, tooltip)
 	widgets[#widgets + 1] = cb
 	return cb
 end
@@ -1129,24 +1115,8 @@ end
 
 -- Slider for the Zone Map size (50–200 % in 5 % steps, like the Titan scale)
 local function ZoneMapScaleSlider()
-	local s = CreateFrame("Frame", nil, page, "MinimalSliderWithSteppersTemplate")
-	s:SetSize(220, 20)
+	local s = UI.Slider(page, 220, 50, 200, 30, function() return ZoneMapScale() * 100 end, Dual.SetZoneMapScale)
 	s.label = UI.Label(page, s, HUD_EDIT_MODE_SETTING_MINIMAP_SIZE)
-	s:Init(ZoneMapScale() * 100, 50, 200, 30, {
-		[MinimalSliderWithSteppersMixin.Label.Right] = function(v)
-			return ("%d %%"):format(v + 0.5)
-		end,
-	})
-	s:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
-		if not s.quiet then
-			Dual.SetZoneMapScale(value)
-		end
-	end, s)
-	function s:Refresh()
-		self.quiet = true
-		self:SetValue(ZoneMapScale() * 100)
-		self.quiet = false
-	end
 	widgets[#widgets + 1] = s
 	return s
 end
@@ -1301,11 +1271,7 @@ local function Row(i)
 	row:SetHeight(ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
 	row:SetPoint("RIGHT", listContent, "RIGHT")
-	if i % 2 == 0 then
-		local bg = row:CreateTexture(nil, "BACKGROUND")
-		bg:SetAllPoints()
-		bg:SetColorTexture(1, 1, 1, 0.04)
-	end
+	UI.Stripe(row, i)
 	row.name = UI.Text(row, "GameFontHighlight")
 	row.name:SetPoint("LEFT", 4, 0)
 	row.name:SetWidth(210)

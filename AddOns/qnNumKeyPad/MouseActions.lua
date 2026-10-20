@@ -196,11 +196,7 @@ local function CreateRow(i)
 	row:SetHeight(ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", i == 1 and anchor or rows[i - 1], "BOTTOMLEFT", 0, i == 1 and -12 or 0)
 	row:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
-	if i % 2 == 0 then
-		local bg = row:CreateTexture(nil, "BACKGROUND")
-		bg:SetAllPoints()
-		bg:SetColorTexture(1, 1, 1, 0.04)
-	end
+	UI.Stripe(row, i)
 
 	row.label = UI.Text(row, "GameFontNormal")
 	row.label:SetPoint("LEFT", 6, 0)
@@ -288,10 +284,7 @@ local function RefreshRow(row, mouse, button)
 	row:Show()
 end
 
-function ns.RefreshMouseActions()
-	if not (page and page.panel:IsVisible()) then
-		return
-	end
+local function Fill()
 	-- a set switched off in the meantime (or in another profile): back to the normal actions
 	if set ~= "" and not ns.SetPage(set) then
 		set = ""
@@ -318,34 +311,34 @@ function ns.RefreshMouseActions()
 	page.Fit()
 end
 
+function ns.RefreshMouseActions()
+	if page then
+		page.Refresh()
+	end
+end
+
 ---------------------------------------------------------------------------
 -- Setup
 ---------------------------------------------------------------------------
 
 function ns.InitMouseActions(category)
 	page = UI.Page(L["Mouse Buttons"], { desc =
-		L["Places a spell or macro into the action slot of the numpad key that a mouse button sends. The bar shows it right away; WoW stores action slots per character. The Ctrl set (page \"Action slots\") holds the actions for Ctrl + button. With stance switching, keys 1–12 use the stance bar's slots while in a stance – this page sets the bar's own slots. Not possible in combat."] })
+		L["Places a spell or macro into the action slot of the numpad key that a mouse button sends. The bar shows it right away; WoW stores action slots per character. The Ctrl set (page \"Action slots\") holds the actions for Ctrl + button. With stance switching, keys 1–12 use the stance bar's slots while in a stance – this page sets the bar's own slots. Not possible in combat."],
+		refresh = Fill, parent = category })
 	parent = page.content
 
-	infoText = UI.Text(parent, "GameFontNormal")
-	infoText:SetPoint("TOPLEFT", page.top, "BOTTOMLEFT", 0, -14)
-
-	setDropdown = UI.Dropdown(parent, 200, SetEntries, function() return set end, function(v)
+	infoText, setDropdown = UI.PageHeader(page, L["Set:"], 200, SetEntries, function() return set end, function(v)
 		set = v
 		for _, row in ipairs(rows) do
 			row.pending = nil
 		end
 		ns.RefreshMouseActions()
 	end)
-	setDropdown:SetPoint("TOPLEFT", infoText, "BOTTOMLEFT", 110, -12)
 	ns.mouseUI.set = setDropdown
-	UI.Label(parent, setDropdown, L["Set:"])
 
 	anchor = CreateFrame("Frame", nil, parent)
 	anchor:SetSize(1, 1)
 	anchor:SetPoint("TOPLEFT", infoText, "BOTTOMLEFT", 0, -44)
 
-	page.panel:SetScript("OnShow", ns.RefreshMouseActions)
 	ns.events.Register("ACTIONBAR_SLOT_CHANGED", ns.RefreshMouseActions)
-	Settings.RegisterCanvasLayoutSubcategory(category, page.panel, L["Mouse Buttons"])
 end

@@ -93,11 +93,7 @@ local function Row(i)
 	row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
 	row:SetPoint("RIGHT", listContent, "RIGHT")
 	row:EnableMouse(true)   -- for the tooltip; the buttons are child frames and lie above it
-	if i % 2 == 0 then
-		local bg = row:CreateTexture(nil, "BACKGROUND")
-		bg:SetAllPoints()
-		bg:SetColorTexture(1, 1, 1, 0.04)
-	end
+	UI.Stripe(row, i)
 	row.name = UI.Text(row, "GameFontHighlight")
 	row.name:SetPoint("LEFT", 4, 0)
 	row.name:SetWidth(300)

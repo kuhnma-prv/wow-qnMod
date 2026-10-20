@@ -243,15 +243,8 @@ local function CreateOverlay()
 			ns.OpenOptions()
 		end
 	end)
-	overlay:SetScript("OnEnter", function(self)
-		GameTooltip:SetOwner(self, "ANCHOR_TOP")
-		GameTooltip:AddLine("qnNumKeyPad")
-		GameTooltip:AddLine(L["Left-click and drag: move"], 1, 1, 1)
-		GameTooltip:AddLine(L["Right-click: options"], 1, 1, 1)
-		GameTooltip:AddLine(L["/qnnkp lock: lock position"], 1, 1, 1)
-		GameTooltip:Show()
-	end)
-	overlay:SetScript("OnLeave", GameTooltip_Hide)
+	qnCore.UI.Tooltip(overlay, "qnNumKeyPad", table.concat({
+		L["Left-click and drag: move"], L["Right-click: options"], L["/qnnkp lock: lock position"] }, "\n"), "ANCHOR_TOP")
 	overlay:Hide()
 end
 

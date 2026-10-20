@@ -302,24 +302,15 @@ local function ScaleSlider(i)
 	if s then
 		return s
 	end
-	s = CreateFrame("Frame", nil, page, "MinimalSliderWithSteppersTemplate")
-	s:SetSize(220, 20)
+	s = UI.Slider(page, 220, 50, 200, 30, function() return Titan.MonitorScale(i) * 100 end, function(value)
+		SetMonitorScale(i, value)
+	end)
 	if i == 1 then
 		s:SetPoint("TOPLEFT", scaleText, "BOTTOMLEFT", 164, -14)
 	else
 		s:SetPoint("TOPLEFT", sliders[i - 1], "BOTTOMLEFT", 0, -10)
 	end
 	s.label = UI.Label(page, s, "")
-	s:Init(100, 50, 200, 30, {
-		[MinimalSliderWithSteppersMixin.Label.Right] = function(v)
-			return ("%d %%"):format(v + 0.5)
-		end,
-	})
-	s:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
-		if not s.quiet then
-			SetMonitorScale(i, value)
-		end
-	end, s)
 	sliders[i] = s
 	return s
 end
@@ -335,9 +326,7 @@ function Titan.RefreshOptions()
 	for i, r in ipairs(monitors) do
 		local s = ScaleSlider(i)
 		s.label:SetText(L["Monitor %d (%d × %d)"]:format(i, r.w, r.h))
-		s.quiet = true
-		s:SetValue(Titan.MonitorScale(i) * 100)
-		s.quiet = false
+		s:Refresh()
 		s:Show()
 		s.label:Show()
 	end
