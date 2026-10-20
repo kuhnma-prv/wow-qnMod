@@ -91,32 +91,32 @@ end
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNSKINS", { "/qnskins" }, function(cmd, rest)
-	if cmd == "" or cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "apply" then
+lib.RegisterCommands(ns, "QNSKINS", { "/qnskins" }, {
+	apply = function()
 		ns.Layout.Refresh()
 		ns.Print(L["Skin applied."])
-	elseif cmd == "list" then
+	end,
+	list = function()
 		for _, entry in ipairs(ns.SkinEntries()) do
 			ns.Print("%s%s – %s", entry[1] == ns.db.skin and "> " or "  ", entry[1], entry[2])   -- do not translate
 		end
-	elseif cmd == "frames" then
+	end,
+	frames = function()
 		ns.Layout.Report()
 		ns.Art.Report()
-	elseif cmd == "camera" then
-		-- tuning figures: /qnskins camera <art> <zoom> [sideways] [height]
+	end,
+	-- tuning figures: /qnskins camera <art> <zoom> [sideways] [height]
+	camera = function(rest)
 		local key, zoom, side, height = rest:match("^(%S+)%s+(%S+)%s*(%S*)%s*(%S*)")
 		if not key or not ns.Art.TryCamera(key, tonumber(zoom), tonumber(side), tonumber(height)) then
 			ns.Print(L["Usage: /qnskins camera <artwork> <zoom> [sideways] [height]"])
 		end
-	elseif cmd == "model" then
-		-- trying out figures: /qnskins model <art> <creatureID | d:displayID> [animation] [rotation]
+	end,
+	-- trying out figures: /qnskins model <art> <creatureID | d:displayID> [animation] [rotation]
+	model = function(rest)
 		local key, id, anim, rot = rest:match("^(%S+)%s+(%S+)%s*(%S*)%s*(%S*)")
 		if not key or not ns.Art.TryModel(key, id, tonumber(anim), tonumber(rot)) then
 			ns.Print(L["Usage: /qnskins model <artwork> <creature ID | d:display ID> [animation] [rotation]"])
 		end
-	else
-		ns.Print(L["Commands: /qnskins [config | apply | list | frames | model | camera]\n  config – open options    apply – apply the skin again\n  list – list the skins    frames – list elements and figures\n  model <artwork> <creature ID | d:display ID> [animation] [rotation] – try out a figure until the next reload\n  camera <artwork> <zoom> [sideways] [height] – zoom and move a figure (also on the page Figures)"])
-	end
-end)
+	end,
+}, L["Commands: /qnskins [config | apply | list | frames | model | camera]\n  config – open options    apply – apply the skin again\n  list – list the skins    frames – list elements and figures\n  model <artwork> <creature ID | d:display ID> [animation] [rotation] – try out a figure until the next reload\n  camera <artwork> <zoom> [sideways] [height] – zoom and move a figure (also on the page Figures)"])

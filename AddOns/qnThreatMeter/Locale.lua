@@ -17,7 +17,6 @@ L["Window locked."] = "Fenster gesperrt."
 L["Window unlocked."] = "Fenster entsperrt."
 L["Test mode on."] = "Testmodus an."
 L["Test mode off."] = "Testmodus aus."
-L["In combat: settings will be reset after combat."] = "Im Kampf: Einstellungen werden nach dem Kampf zurückgesetzt."
 
 -- Options.lua
 L["Show window"] = "Fenster anzeigen"

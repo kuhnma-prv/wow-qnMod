@@ -191,20 +191,14 @@ end
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, function(cmd)
-	if cmd == "" or cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "clicks" then
-		ns.OpenClicksPage()
-	elseif cmd == "on" then
-		ns.store:Set("enabled", true)
-	elseif cmd == "off" then
+lib.RegisterCommands(ns, "QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, {
+	clicks = function() ns.OpenClicksPage() end,
+	on = function() ns.store:Set("enabled", true) end,
+	off = function()
 		ns.store:Set("enabled", false)
 		ns.Print(L["Click casting turned off. Turn it on with /qnuf on"])
-	else
-		ns.Print(L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"])
-	end
-end)
+	end,
+}, L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"])
 
 ---------------------------------------------------------------------------
 -- Events

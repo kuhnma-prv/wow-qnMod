@@ -50,10 +50,8 @@ end
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNLOADOUT", { "/qnloadout" }, function(cmd)
-	if cmd == "" or cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "list" then
+lib.RegisterCommands(ns, "QNLOADOUT", { "/qnloadout" }, {
+	list = function()
 		local sets = ns.SetsForClass(ns.PlayerClass())
 		if #sets == 0 then
 			ns.Print(L["No sets for your class."])
@@ -61,11 +59,8 @@ lib.RegisterSlash("QNLOADOUT", { "/qnloadout" }, function(cmd)
 		for _, set in ipairs(sets) do
 			ns.Print(set.name)
 		end
-	else
-		-- one key; Print outputs each line as a separate chat line
-		ns.Print(L["Commands:\n  /qnloadout – open options\n  /qnloadout list – sets for your class"])
-	end
-end)
+	end,
+}, L["Commands:\n  /qnloadout – open options\n  /qnloadout list – sets for your class"])
 
 ---------------------------------------------------------------------------
 -- Events

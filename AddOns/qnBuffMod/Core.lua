@@ -105,11 +105,7 @@ local function Create(settings)
 end
 
 local function CombatBlocked()
-	if InCombatLockdown() then
-		ns.Print(L["Not possible in combat."])
-		return true
-	end
-	return false
+	return lib.Blocked(ns.Print)
 end
 
 -- New window with defaults or with the settings of copyFrom; appears in the center of the screen

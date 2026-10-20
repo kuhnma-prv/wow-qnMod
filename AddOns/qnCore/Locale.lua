@@ -103,6 +103,9 @@ L["Bricks"] = "Ziegel"
 L["Weave"] = "Geflecht"
 L["Scanlines"] = "Scanlinien"
 L["Grain"] = "Körnung"
+-- Library.lua: Blocked, RegisterCommands
+L["Not possible in combat."] = "Im Kampf nicht möglich."
+L["In combat: settings will be reset after combat."] = "Im Kampf: Einstellungen werden nach dem Kampf zurückgesetzt."
 -- SettingsBuilder.lua: B:KeepVisible
 L["Moves the window back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."] = "Holt das Fenster nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."
 L["Moves the bar back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."] = "Holt die Leiste nach dem Verschieben, beim Einloggen und bei Änderungen der Monitoranordnung auf einen Monitor zurück. Mit qnViewPort und Monitordaten zählen nur Bereiche, die wirklich auf einem Monitor zu sehen sind."

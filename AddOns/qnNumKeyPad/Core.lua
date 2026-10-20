@@ -130,29 +130,29 @@ end
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNNUMKEYPAD", { "/qnnumkeypad", "/qnnkp", "/numpad" }, function(cmd)
-	if cmd == "" or cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "lock" then
+local function Enable()
+	ns.store:Set("enabled", true)
+end
+
+local function Disable()
+	ns.store:Set("enabled", false)
+	ns.Print(L["Disabled. To enable it, type /qnnkp on"])
+end
+
+lib.RegisterCommands(ns, "QNNUMKEYPAD", { "/qnnumkeypad", "/qnnkp", "/numpad" }, {
+	lock = function()
 		ns.store:Set("locked", true)
 		ns.Print(L["Position locked."])
-	elseif cmd == "unlock" then
+	end,
+	unlock = function()
 		ns.store:Set("locked", false)
 		ns.Print(L["Position unlocked. Left-click to drag, right-click to open the options."])
-	elseif cmd == "on" or cmd == "show" then
-		ns.store:Set("enabled", true)
-	elseif cmd == "off" or cmd == "hide" then
-		ns.store:Set("enabled", false)
-		ns.Print(L["Disabled. To enable it, type /qnnkp on"])
-	elseif cmd == "reset" then
-		ns.ResetPosition()
-	elseif cmd == "visible" then
-		ns.MoveIntoVisible()
-	else
-		-- one key; Print outputs each line as a separate chat line
-		ns.Print(L["Commands:\n  /qnnkp – open options\n  /qnnkp lock | unlock – lock/unlock position\n  /qnnkp on | off – enable/disable numpad\n  /qnnkp reset – reset position\n  /qnnkp visible – move bar into the visible area"])
-	end
-end)
+	end,
+	on = Enable, show = Enable,
+	off = Disable, hide = Disable,
+	reset = function() ns.ResetPosition() end,
+	visible = function() ns.MoveIntoVisible() end,
+}, L["Commands:\n  /qnnkp – open options\n  /qnnkp lock | unlock – lock/unlock position\n  /qnnkp on | off – enable/disable numpad\n  /qnnkp reset – reset position\n  /qnnkp visible – move bar into the visible area"])
 
 ---------------------------------------------------------------------------
 -- Events
