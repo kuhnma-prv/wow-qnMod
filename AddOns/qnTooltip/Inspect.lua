@@ -44,7 +44,7 @@ function Inspect.ItemLevel(unit, guid)
 	end
 	if guid == UnitGUID("player") then
 		local _, equipped = GetAverageItemLevel()
-		return equipped and math.floor(equipped + 0.5) or nil
+		return equipped and qnCore.Round(equipped) or nil
 	end
 	local entry = cache[guid]
 	if entry and GetTime() - entry[2] < CACHE_TIME then
@@ -66,7 +66,7 @@ local function OnReady(_, guid)
 	end
 	local level = C_PaperDollInfo.GetInspectItemLevel(p.unit)
 	if not IsSecret(level) and level and level > 0 then
-		cache[guid] = { math.floor(level + 0.5), GetTime() }
+		cache[guid] = { qnCore.Round(level), GetTime() }
 	end
 	if not InspectFrameOpen() then
 		ClearInspectPlayer()

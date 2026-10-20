@@ -30,7 +30,7 @@ local KEEP_SECONDS = 20
 local function Quotient(value)
 	local s = ("%.2f"):format(value)
 	for a = 1, 100 do
-		local near = math.floor(value * a + 0.5)
+		local near = qnCore.Round(value * a)
 		for b = math.max(1, near - 1), math.min(100, near + 1) do
 			if ("%.2f"):format(b / a) == s then
 				return ("%s |r(|cffffffff%d/%d|r)"):format(s, b, a)
@@ -393,7 +393,7 @@ local function Build()
 		end,
 	})
 	alphaSlider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
-		ns.db.patternAlpha = math.floor(value + 0.5) / 100
+		ns.db.patternAlpha = qnCore.Round(value) / 100
 		ns.UpdateBorderLook()
 	end, alphaSlider)
 

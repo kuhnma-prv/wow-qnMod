@@ -340,7 +340,7 @@ end
 function Window.SavePosition(f)
 	local x, y = qnCore.PointOffset(f, "TOPLEFT", "BOTTOMLEFT", true)
 	if x then
-		f.db.point = { "TOPLEFT", "BOTTOMLEFT", math.floor(x + 0.5), math.floor(y + 0.5) }
+		f.db.point = { "TOPLEFT", "BOTTOMLEFT", qnCore.Round(x), qnCore.Round(y) }
 	end
 	f.db.width = math.floor(f:GetWidth() + 0.5)
 	f.db.height = math.floor(f:GetHeight() + 0.5)

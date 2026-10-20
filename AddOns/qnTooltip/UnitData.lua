@@ -108,7 +108,7 @@ local function Speed(unit)
 	if not speed or speed == 0 then
 		return nil
 	end
-	return math.floor(speed / BASE_MOVEMENT_SPEED * 100 + 0.5)
+	return qnCore.Round(speed / BASE_MOVEMENT_SPEED * 100)
 end
 
 ---------------------------------------------------------------------------
@@ -395,7 +395,7 @@ function UD.Color(key, raw)
 	if fn then
 		return fn(raw)
 	end
-	return ns.RGB(key)
+	return qnCore.HexToRGB(key)
 end
 
 ---------------------------------------------------------------------------
@@ -526,7 +526,7 @@ function UD.Rows(kind, elements, raw, opts)
 						hex = "aaaaaa"
 					else
 						local r, g, b = UD.Color(cfg.color, raw)
-						hex = r and ns.Hex(r, g, b)
+						hex = r and qnCore.Hex(r, g, b)
 					end
 					if hex then
 						part = "|cff" .. hex .. part .. "|r"

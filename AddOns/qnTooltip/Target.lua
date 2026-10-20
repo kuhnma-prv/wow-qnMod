@@ -25,13 +25,13 @@ local function Colored(unit)
 		local _, class = UnitClass(unit)
 		local c = qnCore.ClassColor(class)
 		if c then
-			hex = ns.Hex(c.r, c.g, c.b)
+			hex = qnCore.Hex(c.r, c.g, c.b)
 		end
 	end
 	if not hex then
 		local r, g, b = UnitSelectionColor(unit)
 		if not ns.AnySecret(r, g, b) then
-			hex = ns.Hex(r, g, b)
+			hex = qnCore.Hex(r, g, b)
 		end
 	end
 	local wrap = isPlayer and "%s" or (Plain(UnitIsOtherPlayersPet(unit)) and "<%s>" or "[%s]")
@@ -118,17 +118,11 @@ function Target.Add(tip, unit, cfg, isPlayer)
 end
 
 function Target.Init()
-	local elapsed = 0
-	GameTooltip:HookScript("OnUpdate", function(tip, dt)
-		elapsed = elapsed + dt
-		if elapsed < UPDATE then
-			return
-		end
-		elapsed = 0
+	GameTooltip:HookScript("OnUpdate", (qnCore.Throttle(UPDATE, function(tip)
 		if tip.qnTarget then
 			Update(tip)
 		end
-	end)
+	end)))
 	GameTooltip:HookScript("OnTooltipCleared", function(tip)
 		tip.qnTarget = nil
 	end)

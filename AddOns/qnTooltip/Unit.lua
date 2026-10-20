@@ -147,7 +147,7 @@ local function NpcTitle(tip, index, cfg, raw, gray)
 		r, g, b = UD.Color(c.color, raw)
 	end
 	if r then
-		fmt = "|cff" .. ns.Hex(r, g, b) .. fmt .. "|r"
+		fmt = "|cff" .. qnCore.Hex(r, g, b) .. fmt .. "|r"
 	end
 	left:SetFormattedText(fmt, text)
 end

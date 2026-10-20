@@ -31,7 +31,7 @@ lib.Profiles = P
 local stores = {}          -- registration order
 P.stores = stores
 local activeKey            -- nil as long as the layout is not known yet
-local listeners = {}
+local changed = lib.NewSignal()   -- fn(newKey, oldKey) on every profile switch
 
 local TYPE_PRESET = Enum.EditModeLayoutType.Preset
 local TYPE_ACCOUNT = Enum.EditModeLayoutType.Account
@@ -283,7 +283,8 @@ end
 -- Active Edit Mode layout
 ---------------------------------------------------------------------------
 
-local function CharName()
+-- "Name-Realm" of the logged-in character (only "Name" without a realm), nil as long as unknown
+function lib.PlayerKey()
 	local name = UnitName("player")
 	local realm = GetRealmName()
 	if not name or name == "" or name == UNKNOWNOBJECT then
@@ -307,7 +308,7 @@ local function ReadActiveLayout()
 	if info.layoutType == TYPE_PRESET then
 		return "preset:" .. index, { kind = "preset", name = name }
 	elseif info.layoutType == TYPE_CHARACTER then
-		local char = CharName()
+		local char = lib.PlayerKey()
 		if not char then
 			return nil
 		end
@@ -358,7 +359,7 @@ end
 
 -- Callback on every profile switch: fn(newKey, oldKey)
 function P.OnChange(fn)
-	listeners[#listeners + 1] = fn
+	changed.Add(fn)
 end
 
 local Queue
@@ -383,13 +384,7 @@ local function Check()
 			store:Switched()
 		end
 	end
-	-- an error does not stop the others
-	for _, fn in ipairs(listeners) do
-		local ok, err = pcall(fn, key, old)
-		if not ok then
-			geterrorhandler()(err)
-		end
-	end
+	changed.Fire(key, old)
 end
 
 -- Merge several triggers in the same frame; only afterwards has Blizzard

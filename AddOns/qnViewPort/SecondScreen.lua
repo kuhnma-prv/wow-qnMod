@@ -425,7 +425,7 @@ end
 -- Chosen size, rounded to 5 % and clamped like the slider (50–200 %)
 local function ZoneMapScale()
 	local s = tonumber(DB().zoneMapScale) or 1
-	return math.max(0.5, math.min(2, math.floor(s * 20 + 0.5) / 20))
+	return math.max(0.5, math.min(2, qnCore.Round(s * 20) / 20))
 end
 
 -- Size of tab + map (Blizzard itself offers none). At 100 % qnViewPort does not touch the size,
@@ -459,7 +459,7 @@ function Dual.ScaleZoneMap(keepCenter)
 end
 
 function Dual.SetZoneMapScale(percent)
-	DB().zoneMapScale = math.floor(percent / 5 + 0.5) * 5 / 100
+	DB().zoneMapScale = qnCore.Round(percent / 5) * 5 / 100
 	Dual.ScaleZoneMap(true)
 	Dual.PlaceZoneMap()
 end
