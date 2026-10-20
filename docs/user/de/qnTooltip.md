@@ -231,7 +231,7 @@ Spielern wird sie außerhalb des Kampfes per Betrachten abgefragt und zeigt „?
 | Befehl | Wirkung |
 |---|---|
 | `/qntt`, `/qntooltip` (auch `config`, `options`) | Optionen öffnen |
-| `/qntt reset` | Alle Einstellungen des aktiven Profils zurücksetzen |
+| `/qntt reset` | Alle Einstellungen des aktiven Profils zurücksetzen (im Kampf: nach dem Kampf) |
 | `/qntt` + etwas anderes | Liste der Befehle zeigen |
 
 ## Tipps & Hinweise

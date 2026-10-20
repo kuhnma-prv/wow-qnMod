@@ -340,8 +340,11 @@ lib.RegisterSlash("QNTOOLTIP", { "/qntt", "/qntooltip" }, function(cmd)
 	if cmd == "" or cmd == "config" or cmd == "options" then
 		ns.OpenOptions()
 	elseif cmd == "reset" then
-		ns.store:ResetActive()
-		ns.Print(L["Settings reset."])
+		if ns.store:ResetActive() then
+			ns.Print(L["In combat: settings will be reset after combat."])
+		else
+			ns.Print(L["Settings reset."])
+		end
 	else
 		ns.Print(L["Commands: /qntt [config | reset]\n  config – open options\n  reset – reset all settings of the active profile"])
 	end

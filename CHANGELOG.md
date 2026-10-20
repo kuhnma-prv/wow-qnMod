@@ -13,6 +13,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Fixed
 
+- **qnTooltip 0.1.5:** `/qntt reset` in combat now says that the settings will be reset after combat
+  instead of "Settings reset.".
 - **qnViewPort 0.1.9:** Blizzard menus (e.g. the chat button menu) and their submenus now open completely inside
   the monitor they belong to; submenus go to the left of their entry if there is no room on the right.
 

@@ -21,6 +21,7 @@ L["Movement Speed"] = "Bewegungstempo"
 L["Quest Icon"] = "Quest-Symbol"
 L["Creature Type"] = "Kreaturtyp"
 L["Settings reset."] = "Einstellungen zurückgesetzt."
+L["In combat: settings will be reset after combat."] = "Im Kampf: Einstellungen werden nach dem Kampf zurückgesetzt."
 L["Commands: /qntt [config | reset]\n  config – open options\n  reset – reset all settings of the active profile"] = "Befehle: /qntt [config | reset]\n  config – Optionen öffnen\n  reset – alle Einstellungen des aktiven Profils zurücksetzen"
 
 -- Style.lua, StatusBar.lua
