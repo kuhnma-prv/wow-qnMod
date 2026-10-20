@@ -479,9 +479,15 @@ end
 -- Window
 ---------------------------------------------------------------------------
 
+-- Offsets relative to UIParent, not the raw GetPoint values: after dragging the anchor may be
+-- attached to the screen instead of UIParent, and with qnViewPort UIParent may not be at 0,0.
 local function SavePosition(f, key)
-	local point, _, relPoint, x, y = f:GetPoint()
-	DB.global.windows[key].pos = { point, relPoint, x, y }
+	local point, _, relPoint = f:GetPoint()
+	point, relPoint = point or "CENTER", relPoint or "CENTER"
+	local x, y = qnCore.PointOffset(f, point, relPoint)
+	if x then
+		DB.global.windows[key].pos = { point, relPoint, math.floor(x + 0.5), math.floor(y + 0.5) }
+	end
 end
 J.SavePosition = SavePosition
 
