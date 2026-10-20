@@ -127,7 +127,7 @@ local function Right(i) return f.bars[i] and f.bars[i]._shown and f.bars[i].righ
 ---------------------------------------------------------------------------
 Check(f.titleText._text == L["Threat"], "title set")
 Check(meter.GetTexturePath("Damage Meter") == "UI-HUD-CoolDownManager-Bar", "texture as atlas without prefix")
-Check(meter.textureLabels["Damage Meter"] == DAMAGE_METER_LABEL, "texture name via DAMAGE_METER_LABEL")
+Check(meter.TEXTURES[1][1] == "Damage Meter" and meter.TEXTURES[1][2] == DAMAGE_METER_LABEL, "texture name via DAMAGE_METER_LABEL")
 Check(db.linkDamageMeter and f.eff.linked and f.eff.barHeight == 30 and f.eff.barSpacing == 4, "values taken from the damage meter")
 
 ---------------------------------------------------------------------------

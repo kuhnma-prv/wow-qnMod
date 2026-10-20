@@ -17,13 +17,15 @@ local MASK_HEIGHT = 32
 -- Backgrounds and borders
 ---------------------------------------------------------------------------
 
--- { key, display name, file, tile }
+local Media = lib.Media
+
+-- { key, display name, file }
 Style.BACKGROUNDS = {
-	{ "rock", L["Rock"], "Interface\\FrameGeneral\\UI-Background-Rock" },
-	{ "marble", L["Marble"], "Interface\\FrameGeneral\\UI-Background-Marble" },
+	{ "rock", L["Rock"], Media.ROCK },
+	{ "marble", L["Marble"], Media.MARBLE },
 	{ "dark", L["Dark"], "Interface\\DialogFrame\\UI-DialogBox-Background-Dark" },
-	{ "alpha", L["Translucent"], "Interface\\Tooltips\\UI-Tooltip-Background" },
-	{ "flat", L["Flat"], "Interface\\Buttons\\WHITE8X8" },
+	{ "alpha", L["Translucent"], Media.TOOLTIP_BG },
+	{ "flat", L["Flat"], Media.WHITE },
 }
 
 function Style.BackgroundEntries()
@@ -35,7 +37,7 @@ function Style.BackgroundEntries()
 		list[#list + 1] = { p[1], p[2] }
 		skip[p[4]] = true   -- own patterns registered with LSM are not listed twice
 	end
-	for _, e in ipairs(ns.LSMEntries("background", skip)) do
+	for _, e in ipairs(Media.LSMEntries("background", skip)) do
 		list[#list + 1] = e
 	end
 	return list
@@ -53,7 +55,7 @@ local function Background(key)
 			return p[3], true
 		end
 	end
-	local file = ns.LSMFetch("background", key)
+	local file = Media.LSMFetch("background", key)
 	if file then
 		return file, false
 	end
@@ -89,10 +91,10 @@ local function Backdrop()
 		insets = { left = inset, right = inset, top = inset, bottom = inset },
 	}
 	if db.borderStyle == "angular" then
-		backdrop.edgeFile = "Interface\\Buttons\\WHITE8X8"
+		backdrop.edgeFile = Media.WHITE
 		backdrop.edgeSize = db.borderSize
 	elseif db.borderStyle ~= "none" then
-		backdrop.edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border"
+		backdrop.edgeFile = Media.TOOLTIP_BORDER
 		backdrop.edgeSize = 14
 	end
 	backdropKey = key
@@ -103,9 +105,7 @@ end
 -- Colors per tooltip
 ---------------------------------------------------------------------------
 
-local function Unpack(c)
-	return c[1], c[2], c[3], c[4] or 1
-end
+local Unpack = lib.UnpackColor
 
 local function ApplyColors(tip)
 	local frame = tip.qnBackdrop
@@ -227,7 +227,7 @@ end
 
 function Style.FontEntries()
 	local list = { { "default", DEFAULT } }
-	for _, e in ipairs(ns.LSMEntries("font")) do
+	for _, e in ipairs(Media.LSMEntries("font")) do
 		list[#list + 1] = e
 	end
 	return list
@@ -235,7 +235,7 @@ end
 
 -- font for settings: font (LSM name or "default"), size (0 = default), flag
 function Style.Font(defaultFont, defaultSize, defaultFlag, font, size, flag)
-	local file = font ~= "default" and ns.LSMFetch("font", font) or defaultFont
+	local file = font ~= "default" and Media.LSMFetch("font", font) or defaultFont
 	local s = (size and size > 0) and size or defaultSize
 	local f = FLAGS[flag]
 	if f == nil or f == true then

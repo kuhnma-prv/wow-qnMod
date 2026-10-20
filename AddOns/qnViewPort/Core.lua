@@ -170,18 +170,18 @@ eBottom:SetPoint("TOP", WorldFrame, "BOTTOM")
 function ns.SetBorderColor(c)
 	c = c or ns.defaults.color
 	for _, tex in ipairs(edges) do
-		tex:SetColorTexture(c[1] or 0, c[2] or 0, c[3] or 0, c[4] or 1)
+		tex:SetColorTexture(lib.UnpackColor(c))
 	end
 end
 
 -- Tileable Blizzard textures (used with horizTile/vertTile in the Forever source)
 ns.PATTERNS = {
-	{ "rock", L["Rock"], "Interface\\FrameGeneral\\UI-Background-Rock" },
-	{ "marble", L["Marble"], "Interface\\FrameGeneral\\UI-Background-Marble" },
+	{ "rock", L["Rock"], lib.Media.ROCK },
+	{ "marble", L["Marble"], lib.Media.MARBLE },
 	{ "wood", L["Wood"], "Interface\\BlackMarket\\BlackMarketBackground-Tile" },
 	{ "dialog", L["Dialog"], "Interface\\DialogFrame\\UI-DialogBox-Background" },
 	{ "dialogDark", L["Dialog (dark)"], "Interface\\DialogFrame\\UI-DialogBox-Background-Dark" },
-	{ "tooltip", L["Tooltip"], "Interface\\Tooltips\\UI-Tooltip-Background" },
+	{ "tooltip", L["Tooltip"], lib.Media.TOOLTIP_BG },
 	{ "parchment", L["Parchment"], "Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal" },
 	{ "achievement", ACHIEVEMENTS, "Interface\\AchievementFrame\\UI-Achievement-AchievementBackground" },
 }
@@ -231,8 +231,7 @@ local function PatternFile(key)
 		end
 	end
 	local name = type(key) == "string" and key:match("^lsm:(.+)$")
-	local lsm = name and lib.LSM()
-	return lsm and lsm:IsValid("background", name) and lsm:Fetch("background", name) or nil
+	return name and lib.Media.LSMFetch("background", name) or nil
 end
 
 function ns.SetBorderPattern(key, alpha)

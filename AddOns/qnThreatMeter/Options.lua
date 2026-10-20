@@ -9,13 +9,6 @@ local S = qnCore.Settings
 -- Values from the menu and slash commands are set via ns.store:Set (qnCore): that way the
 -- settings window shows them too.
 
-local function TextureEntries()
-	local list = {}
-	for _, name in ipairs(ns.GetTextureNames()) do
-		list[#list + 1] = { name, ns.textureLabels[name] or name }
-	end
-	return list
-end
 
 local function Build(cat, layout)
 	local B = S.New({ store = ns.store, prefix = "QNTHREATMETER_", apply = function() ns.Threat.ApplySettings() end })
@@ -51,7 +44,7 @@ local function Build(cat, layout)
 	S.Depends(B:Checkbox(cat, "showIcons", L["Show class icons"]), link, NotLinked)
 	S.Depends(B:Checkbox(cat, "classColors", CLASS_COLORS), link, NotLinked)
 	S.Depends(B:Slider(cat, "bgAlpha", L["Background opacity"], 0, 1, 0.05, S.FractionFormatter), link, NotLinked)
-	B:Dropdown(cat, "texture", L["Bar texture"], TextureEntries)
+	B:Dropdown(cat, "texture", L["Bar texture"], ns.TextureEntries)
 	B:Checkbox(cat, "showRank", L["Rank before the name"])
 	B:Checkbox(cat, "useMyColor", L["Color your own bar red"])
 	B:Checkbox(cat, "useTankColor", L["Color the tank bar dark red"])

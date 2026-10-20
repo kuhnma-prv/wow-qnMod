@@ -72,49 +72,22 @@ ns.defaults = {
 -- Media
 ---------------------------------------------------------------------------
 
--- Atlas or file path; the key is stored, not the value.
-ns.textures = {
-	["Damage Meter"] = "UI-HUD-CoolDownManager-Bar",
-	["Blizzard"] = "Interface\\TargetingFrame\\UI-StatusBar",
-	["Flat"] = "Interface\\Buttons\\WHITE8X8",
-	["Raid"] = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill",
-	["Fertigkeit"] = "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar",
+-- { key, display name, atlas or file path }; the key is stored, not the value.
+ns.TEXTURES = {
+	{ "Damage Meter", DAMAGE_METER_LABEL, "UI-HUD-CoolDownManager-Bar" },
 }
+for _, t in ipairs(lib.Media.STATUSBARS) do
+	ns.TEXTURES[#ns.TEXTURES + 1] = t
+end
+ns.TEXTURES[#ns.TEXTURES + 1] = { "Fertigkeit", SKILL, "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar" }   -- do not translate: stored key
 
--- Display names of our own textures; the keys above are stored values.
-ns.textureLabels = {
-	["Damage Meter"] = DAMAGE_METER_LABEL,
-	["Flat"] = L["Flat"],
-	["Fertigkeit"] = SKILL,
-}
-
-function ns.GetTexturePath(name)
-	local LSM = lib.LSM()
-	if LSM then
-		local path = LSM:Fetch("statusbar", name, true)
-		if path then
-			return path
-		end
-	end
-	return ns.textures[name] or ns.textures["Damage Meter"]
+-- Dropdown entries: own textures, then those of LibSharedMedia
+function ns.TextureEntries()
+	return lib.Media.Entries(ns.TEXTURES, "statusbar")
 end
 
-function ns.GetTextureNames()
-	local names, seen = {}, {}
-	for name in pairs(ns.textures) do
-		names[#names + 1] = name
-		seen[name] = true
-	end
-	local LSM = lib.LSM()
-	if LSM then
-		for _, name in ipairs(LSM:List("statusbar")) do
-			if not seen[name] then
-				names[#names + 1] = name
-			end
-		end
-	end
-	table.sort(names)
-	return names
+function ns.GetTexturePath(name)
+	return lib.Media.File(ns.TEXTURES, "statusbar", name) or ns.TEXTURES[1][3]
 end
 
 
