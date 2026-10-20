@@ -210,10 +210,9 @@ end
 -- Save the position at the configured anchor: relative to UIParent (with qnViewPort possibly not
 -- at 0,0), in UIParent units
 local function SavePosition()
-	local point = ns.db.point
-	local x, y = qnCore.PointOffset(bar, point, point, true)
-	if x then
-		ns.store:SetValues({ x = Round(x), y = Round(y) })
+	local p = qnCore.SavePoint(bar, ns.db.point, ns.db.point)
+	if p then
+		ns.store:SetValues({ x = p[3], y = p[4] })
 	end
 end
 
@@ -221,8 +220,6 @@ local function CreateOverlay()
 	overlay = CreateFrame("Frame", nil, bar)
 	overlay:SetAllPoints()
 	overlay:SetFrameLevel(bar:GetFrameLevel() + 50)
-	overlay:EnableMouse(true)
-	overlay:RegisterForDrag("LeftButton")
 
 	local tex = overlay:CreateTexture(nil, "BACKGROUND")
 	tex:SetAllPoints()
@@ -232,18 +229,15 @@ local function CreateOverlay()
 	text:SetPoint("TOP", 0, -INSET - 2)
 	text:SetText("qnNumKeyPad")
 
-	overlay:SetScript("OnDragStart", function()
-		if InCombatLockdown() then
-			return
-		end
-		bar:StartMoving()
-	end)
-	overlay:SetScript("OnDragStop", function()
-		bar:StopMovingOrSizing()
-		if not InCombatLockdown() then
-			SavePosition()   -- ns.Apply then triggers the visible-area check
-		end
-	end)
+	qnCore.UI.Movable(bar, {
+		handle = overlay,
+		canMove = function() return not InCombatLockdown() end,
+		onStop = function()
+			if not InCombatLockdown() then
+				SavePosition()   -- ns.Apply then triggers the visible-area check
+			end
+		end,
+	})
 	overlay:SetScript("OnMouseUp", function(_, mouse)
 		if mouse == "RightButton" then
 			ns.OpenOptions()
@@ -383,9 +377,7 @@ local function ApplyPosition()
 	end
 	local db = ns.db
 	bar:SetScale(db.scale)
-	local s = bar:GetScale()
-	bar:ClearAllPoints()
-	bar:SetPoint(db.point, UIParent, db.point, db.x / s, db.y / s)
+	qnCore.RestorePoint(bar, { db.point, db.point, db.x, db.y })
 end
 
 -- Page for keys 1-12: modifier set (Ctrl and Alt together: neither), then the stance; nil = always 0.
