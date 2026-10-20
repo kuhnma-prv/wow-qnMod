@@ -9,7 +9,7 @@ local L = ns.L
 local P = lib.Profiles
 local UI = lib.UI
 
-local page, sub   -- page: UI.Page
+local page        -- UI.Page
 local activeText, scopeDropdown, listContent, emptyText
 local rows = {}
 local scope = "*"          -- "*" = all qn addons, otherwise addon name
@@ -124,10 +124,7 @@ local function Row(i)
 	return row
 end
 
-function ns.RefreshProfilesPage()
-	if not (page and page.panel:IsVisible()) then
-		return
-	end
+local function Fill()
 	local active = P.GetActiveKey()
 	activeText:SetText("|cffcccccc" .. L["Active profile:"] .. "|r " .. P.GetLabel(active))
 	scopeDropdown:Refresh()
@@ -150,13 +147,20 @@ function ns.RefreshProfilesPage()
 	page.Fit()
 end
 
+function ns.RefreshProfilesPage()
+	if page then
+		page.Refresh()
+	end
+end
+
 ---------------------------------------------------------------------------
 -- Construction
 ---------------------------------------------------------------------------
 
 local function Build()
 	page = UI.Page(L["Profiles"], { desc =
-		L["All qn addons store their settings per Edit Mode layout (Esc → Edit Mode). Switching the layout there switches the profile as well. Character-specific layouts have their own profiles, used only by that character. A new layout starts with a copy of the previously active profile."] })
+		L["All qn addons store their settings per Edit Mode layout (Esc → Edit Mode). Switching the layout there switches the profile as well. Character-specific layouts have their own profiles, used only by that character. A new layout starts with a copy of the previously active profile."],
+		refresh = Fill, parent = ns.category })
 	local parent = page.content
 
 	activeText = UI.Text(parent, "GameFontNormal")
@@ -191,16 +195,13 @@ local function Build()
 
 	emptyText = UI.Text(listContent, "GameFontDisable", L["No profiles yet – the layout has not been determined."])
 	emptyText:SetPoint("LEFT", 8, 0)
-
-	page.panel:SetScript("OnShow", ns.RefreshProfilesPage)
 end
 
 function ns.InitProfilesPage()
 	Build()
-	sub = Settings.RegisterCanvasLayoutSubcategory(ns.category, page.panel, L["Profiles"])
 	P.OnChange(ns.RefreshProfilesPage)
 end
 
 function ns.OpenProfiles()
-	lib.OpenCategory(sub)
+	page.Open()
 end
