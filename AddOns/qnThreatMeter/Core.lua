@@ -88,12 +88,8 @@ ns.textureLabels = {
 	["Fertigkeit"] = SKILL,
 }
 
-local function GetLSM()
-	return LibStub and LibStub("LibSharedMedia-3.0", true)
-end
-
 function ns.GetTexturePath(name)
-	local LSM = GetLSM()
+	local LSM = lib.LSM()
 	if LSM then
 		local path = LSM:Fetch("statusbar", name, true)
 		if path then
@@ -109,7 +105,7 @@ function ns.GetTextureNames()
 		names[#names + 1] = name
 		seen[name] = true
 	end
-	local LSM = GetLSM()
+	local LSM = lib.LSM()
 	if LSM then
 		for _, name in ipairs(LSM:List("statusbar")) do
 			if not seen[name] then

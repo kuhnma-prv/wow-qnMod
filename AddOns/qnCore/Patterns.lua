@@ -23,10 +23,15 @@ lib.Patterns = {
 	{ "qnGrain", L["Grain"], PATH .. "Grain", "qn Grain" },
 }
 
--- LibSharedMedia may only arrive with a later loaded addon (e.g. Titan)
+-- LibSharedMedia-3.0 or nil; it may only arrive with a later loaded addon (e.g. Titan),
+-- therefore look it up on every use
+function lib.LSM()
+	return LibStub and LibStub("LibSharedMedia-3.0", true)
+end
+
 local registered = false
 local function RegisterLSM()
-	local lsm = not registered and LibStub and LibStub("LibSharedMedia-3.0", true)
+	local lsm = not registered and lib.LSM()
 	if lsm then
 		for _, p in ipairs(lib.Patterns) do
 			lsm:Register("background", p[4], p[3])

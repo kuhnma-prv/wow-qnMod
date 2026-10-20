@@ -4,19 +4,13 @@
 
 local _, ns = ...
 local L = ns.L
-local IsSecret = ns.IsSecret
 
 local Target = {}
 ns.Target = Target
 
 local UPDATE = 0.2   -- seconds between two updates of the target line
 
-local function Plain(v)
-	if IsSecret(v) then
-		return nil
-	end
-	return v
-end
+local Plain = ns.Plain
 
 -- format pattern and name for a unit (class color, otherwise selection color)
 local function Colored(unit)

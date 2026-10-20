@@ -17,12 +17,7 @@ local function Has(v)
 end
 UD.Has = Has
 
-local function Plain(v)
-	if IsSecret(v) then
-		return nil
-	end
-	return v
-end
+local Plain = ns.Plain
 
 ---------------------------------------------------------------------------
 -- Icons
