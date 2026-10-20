@@ -156,31 +156,23 @@ end)
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNTHREATMETER", { "/qnm", "/qnthreatmeter" }, function(cmd)
-	local T = ns.Threat
-	if cmd == "" or cmd == "toggle" then
-		T.Toggle()
-	elseif cmd == "lock" then
-		ns.store:Set("locked", not ns.db.locked)
-		ns.Print(ns.db.locked and L["Window locked."] or L["Window unlocked."])
-	elseif cmd == "test" then
+local function Toggle()
+	ns.Threat.Toggle()
+end
+
+-- reset also applies the settings via onSwitch; in combat only afterwards (deferred)
+lib.RegisterCommands(ns, "QNTHREATMETER", { "/qnm", "/qnthreatmeter" }, {
+	[""] = Toggle,
+	toggle = Toggle,
+	lock = function()
+		ns.Print(ns.store:Toggle("locked") and L["Window locked."] or L["Window unlocked."])
+	end,
+	test = function()
+		local T = ns.Threat
 		T.SetTestMode(not T.testMode)
 		ns.Print(T.testMode and L["Test mode on."] or L["Test mode off."])
-	elseif cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "check" then
-		ns.Diagnose()
-	elseif cmd == "visible" then
-		T.MoveIntoVisible()
-	elseif cmd == "reset" then
-		-- also applies the settings via onSwitch; in combat only afterwards (deferred)
-		if ns.store:ResetActive() then
-			ns.Print(L["In combat: settings will be reset after combat."])
-		else
-			ns.Print(L["Settings reset."])
-		end
-	else
-		-- one key for the whole help; Print outputs each line as a separate chat line
-		ns.Print(L["Commands: /qnm [toggle | lock | test | config | check | visible | reset]\n  toggle – show/hide window    lock – lock/unlock window\n  test – test mode             config – open options\n  check – API check            visible – move window into the visible area\n  reset – reset all settings"])
-	end
-end)
+	end,
+	check = function() ns.Diagnose() end,
+	visible = function() ns.Threat.MoveIntoVisible() end,
+	reset = "reset",
+}, L["Commands: /qnm [toggle | lock | test | config | check | visible | reset]\n  toggle – show/hide window    lock – lock/unlock window\n  test – test mode             config – open options\n  check – API check            visible – move window into the visible area\n  reset – reset all settings"])

@@ -31,18 +31,16 @@ local OBSOLETE = {
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNCORE", { "/qncore", "/qnc" }, function(cmd)
-	if cmd == "" or cmd == "config" then
-		ns.OpenOptions()
-	elseif cmd == "profile" then
-		ns.OpenProfiles()
-	elseif cmd == "status" then
+lib.RegisterCommands(ns, "QNCORE", { "/qncore", "/qnc" }, {
+	profile = function() ns.OpenProfiles() end,
+	status = function()
 		ns.Print(L["Version %s, active profile: %s"], lib.version, lib.Profiles.GetLabel(lib.Profiles.GetActiveKey()))
 		for _, store in ipairs(lib.Profiles.stores) do
 			ns.Print(L["  %s – %d profile(s)"], store.name, #store:ProfileKeys())
 		end
-	elseif cmd == "locale" then
-		-- texts shown without translation in this session (only German clients translate)
+	end,
+	-- texts shown without translation in this session (only German clients translate)
+	locale = function()
 		if not lib.GERMAN then
 			ns.Print(L["Non-German client: all texts are shown in the original (English)."])
 			return
@@ -57,10 +55,8 @@ lib.RegisterSlash("QNCORE", { "/qncore", "/qnc" }, function(cmd)
 		if not any then
 			ns.Print(L["No untranslated text has been shown so far."])
 		end
-	else
-		ns.Print(L["/qncore – options   |   /qncore profile – profiles   |   /qncore status – show active profile   |   /qncore locale – missing translations"])
-	end
-end)
+	end,
+}, L["/qncore – options   |   /qncore profile – profiles   |   /qncore status – show active profile   |   /qncore locale – missing translations"])
 
 ---------------------------------------------------------------------------
 -- Start

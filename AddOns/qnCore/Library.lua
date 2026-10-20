@@ -426,6 +426,21 @@ lib.NewEventHub().Register("PLAYER_REGEN_ENABLED", function()
 	end
 end)
 
+-- true (with a message via print) if a change is not possible now: in combat (combatText,
+-- default "Not possible in combat.") or, with checkCursor, while something is on the cursor
+-- (PlaceAction and similar would swap with it).
+function lib.Blocked(print, combatText, checkCursor)
+	if InCombatLockdown() then
+		print(combatText or ns.L["Not possible in combat."])
+		return true
+	end
+	if checkCursor and GetCursorInfo() then
+		print(ns.L["Something is on the cursor – place or drop it first."])
+		return true
+	end
+	return false
+end
+
 -- Returns a function that calls fn after delay seconds (default 0 = in the next frame).
 -- Further calls until then are merged; arguments are not passed on.
 function lib.Debounce(fn, delay)
@@ -478,6 +493,29 @@ function lib.RegisterSlash(id, commands, handler)
 		local cmd, rest = msg:match("^(%S*)%s*(.-)$")
 		handler(cmd:lower(), rest, msg)
 	end
+end
+
+-- Slash commands of a qn addon: list = { [subcommand] = fn(rest, msg) | "reset" }. Without a
+-- matching entry "", "config" and "options" open the options (addonNS.OpenOptions), everything
+-- else prints help (one key, each line becomes a chat line). "reset" resets the active profile
+-- (addonNS.store; in combat only afterwards) and reports it.
+function lib.RegisterCommands(addonNS, id, commands, list, help)
+	lib.RegisterSlash(id, commands, function(cmd, rest, msg)
+		local fn = list[cmd]
+		if fn == "reset" then
+			if addonNS.store:ResetActive() then
+				addonNS.Print(ns.L["In combat: settings will be reset after combat."])
+			else
+				addonNS.Print(ns.L["Settings reset."])
+			end
+		elseif fn then
+			fn(rest, msg)
+		elseif cmd == "" or cmd == "config" or cmd == "options" then
+			addonNS.OpenOptions()
+		else
+			addonNS.Print(help)
+		end
+	end)
 end
 
 ---------------------------------------------------------------------------

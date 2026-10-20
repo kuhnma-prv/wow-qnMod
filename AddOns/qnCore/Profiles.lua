@@ -71,6 +71,13 @@ function Store:Set(key, value)
 	end
 end
 
+-- Switches a boolean value of the active profile (like Set) and returns the new value.
+function Store:Toggle(key)
+	local on = not self.db[key]
+	self:Set(key, on)
+	return on
+end
+
 -- Several values at once: write, re-read the settings window (without callbacks) and
 -- then call apply of the first builder only once - no intermediate state is applied
 -- (e.g. new x with old y).

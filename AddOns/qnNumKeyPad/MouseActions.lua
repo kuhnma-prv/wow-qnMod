@@ -42,15 +42,7 @@ end
 
 -- Changes only out of combat and with an empty cursor (PlaceAction would swap with it).
 local function CanChange()
-	if InCombatLockdown() then
-		ns.Print(L["Action slots cannot be changed in combat."])
-		return false
-	end
-	if GetCursorInfo() then
-		ns.Print(L["Something is on the cursor – place or drop it first."])
-		return false
-	end
-	return true
+	return not lib.Blocked(ns.Print, L["Action slots cannot be changed in combat."], true)
 end
 
 -- pickup puts the new action on the cursor; PlaceAction puts it into the slot and the previous

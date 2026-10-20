@@ -30,7 +30,6 @@ L["Spell ID: %d"] = "Zauber-ID: %d"
 L["In combat the client withholds aura data. Until then the windows show the last known state."] = "Im Kampf hält der Client Aurendaten zurück. Die Fenster zeigen bis danach den letzten bekannten Stand."
 
 -- Window management and options (Core, Config): messages and dialogs
-L["Not possible in combat."] = "Im Kampf nicht möglich."
 L["No more than %d windows are possible."] = "Mehr als %d Fenster sind nicht möglich."
 L["Window %d added, copying settings from window %d."] = "Fenster %d mit den Einstellungen von Fenster %d angelegt."
 L["Window %d added."] = "Fenster %d angelegt."
