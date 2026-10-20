@@ -109,6 +109,10 @@ generated with `tools\New-QnPatterns.ps1`, additionally registered with LibShare
   `Library.lua`):
   `local ADDON, ns = ...` / `local L = qnCore.NewLocale(ns, ADDON)` / `if not qnCore.GERMAN then return end` /
   `L["English text"] = "Deutscher Text"`. In all other files `local L = ns.L`.
+- **Shared texts:** a key that several addons use with the same German text is translated only once,
+  in qnCore's `Locale.lua` (section "Shared texts"); every addon's `L` falls back to qnCore's
+  translations. An addon translates such a key itself only if it needs a different German text
+  (e.g. "Center" as a button: "Zentrieren"). `check-locale.mjs` reports identical copies as SHARED.
 - **Order when choosing a text:**
   1. **Blizzard GlobalString** if there is one whose **English text exactly matches** the intended
      English text and whose meaning fits: then use the Blizzard variable directly in the code

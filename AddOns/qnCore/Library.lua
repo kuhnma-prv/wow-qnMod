@@ -112,6 +112,8 @@ end
 --   local L = qnCore.NewLocale(ns, ADDON)
 --   if not qnCore.GERMAN then return end
 --   L["English text"] = "Deutscher Text"
+-- Texts that several addons use are translated once in qnCore's Locale.lua ("shared
+-- texts"); every addon's L falls back to them.
 -- If a translation is missing, the English text appears; /qncore locale lists
 -- such keys. If Blizzard has a matching text (GlobalStrings like CANCEL,
 -- DELETE), it is used instead of an own key.
@@ -125,6 +127,10 @@ function lib.NewLocale(addonNS, name)
 		return addonNS.L
 	end
 	local L = setmetatable({}, { __index = function(_, key)
+		local shared = key ~= nil and ns.L and rawget(ns.L, key)
+		if shared then
+			return shared
+		end
 		if lib.GERMAN and key ~= nil then
 			local list = lib.missing[name or "?"] or {}
 			lib.missing[name or "?"] = list

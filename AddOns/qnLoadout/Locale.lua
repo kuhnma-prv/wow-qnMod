@@ -17,7 +17,6 @@ L["%s: keys 13 and higher do not switch with Ctrl or Alt."] = "%s: Tasten ab 13 
 L["%s: spell %s is not known."] = "%s: Zauber %s ist nicht bekannt."
 L["%s: macro %s not found."] = "%s: Makro %s nicht gefunden."
 L["Sets cannot be loaded in combat."] = "Sätze können im Kampf nicht geladen werden."
-L["Something is on the cursor – place or drop it first."] = "Am Mauszeiger hängt etwas – zuerst ablegen oder fallen lassen."
 L["Set %s loaded: %d macros created, %d changed, %d numpad keys set, %d cleared."] = "Satz %s geladen: %d Makros angelegt, %d geändert, %d Ziffernblocktasten belegt, %d geleert."
 L["Skipped: %s"] = "Übersprungen: %s"
 
