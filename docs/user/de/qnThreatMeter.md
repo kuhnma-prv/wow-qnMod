@@ -73,7 +73,7 @@ Alle Einstellungen gelten je Profil (= je Layout des Bearbeitungsmodus, siehe qn
 - **Klassensymbole anzeigen** – Standard: an.
 - **Klassenfarben** – färbt die Balken nach Klasse (sonst grau). Standard: an.
 - **Deckkraft des Hintergrunds** – 0–100 %. Standard: 50 %.
-- **Balkentextur** – **Schadensanzeige**, **Blizzard**, **Flach**, **Raid**, **Fertigkeit** sowie alle
+- **Balkentextur** – **Schadensanzeige**, **Blizzard**, **Flach**, **Schlachtzug**, **Fertigkeit**, danach alle
   Balkentexturen von LibSharedMedia, falls installiert. Standard: Schadensanzeige.
 - **Rang vor dem Namen** – „1. Name“. Standard: an.
 - **Eigenen Balken rot färben** – Standard: aus.

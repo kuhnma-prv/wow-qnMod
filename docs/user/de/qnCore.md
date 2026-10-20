@@ -111,7 +111,7 @@ darauf hin).
 
 | Befehl | Wirkung |
 |---|---|
-| `/qncore`, `/qnc` (oder `/qncore config`) | Öffnet die Optionen von qnCore |
+| `/qncore`, `/qnc` (oder `/qncore config`, `/qncore options`) | Öffnet die Optionen von qnCore |
 | `/qncore profile` | Öffnet die Seite „Profile“ |
 | `/qncore status` | Zeigt im Chat die Version von qnCore, das aktive Profil und die Anzahl der Profile je qn-Addon |
 | `/qncore locale` | Deutscher Client: listet Texte, die in dieser Sitzung ohne Übersetzung angezeigt wurden |

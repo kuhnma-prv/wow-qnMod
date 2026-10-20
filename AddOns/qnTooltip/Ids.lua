@@ -11,13 +11,9 @@ local ICON = "|T%s:16:16:0:0:32:32:2:30:2:30|t %s"
 
 local Plain = ns.Plain
 
+-- first line of lineType, otherwise the first line
 local function LineIndex(data, lineType)
-	for _, line in ipairs(data.lines or {}) do
-		if line.type == lineType then
-			return line.lineIndex
-		end
-	end
-	return 1
+	return ns.LineIndex(data, lineType) or 1
 end
 
 -- icon before the text of a line (the text may be secret)

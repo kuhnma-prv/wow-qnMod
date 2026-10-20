@@ -11,6 +11,13 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ## [Unreleased]
 
+### Changed
+
+- **qnCore 0.2.2:** texts used by several qn addons are translated once in qnCore; `/qncore options`
+  opens the options like `/qncore config`.
+- **qnThreatMeter 0.2.2:** the bar texture list shows the own textures first, then those of
+  LibSharedMedia; "Raid" uses Blizzard's name (German client: "Schlachtzug").
+
 ### Fixed
 
 - **qnTooltip 0.1.5:** `/qntt reset` in combat now says that the settings will be reset after combat

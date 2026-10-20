@@ -160,6 +160,7 @@ local function Threshold(duration)
 	return db.expirationTime3
 end
 
+-- Name of a unit, UNKNOWN if it is missing or secret (also for Tooltip.lua)
 local function UnitLabel(unit)
 	local name = Plain(UnitName(unit), nil)
 	if type(name) ~= "string" or name == "" then
@@ -167,6 +168,7 @@ local function UnitLabel(unit)
 	end
 	return name
 end
+ns.UnitLabel = UnitLabel
 
 local function Consider(unit, rec, now)
 	local st = rec.state

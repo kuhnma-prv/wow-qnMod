@@ -222,6 +222,15 @@ function ns.FindLine(tip, text)
 	end
 end
 
+-- Index of the first line of lineType in tooltip data (C_TooltipInfo), nil if there is none
+function ns.LineIndex(data, lineType)
+	for _, line in ipairs(data.lines or {}) do
+		if line.type == lineType then
+			return line.lineIndex
+		end
+	end
+end
+
 -- UnitIsUnit as true/false. Non-comparable units (RequiresComparableUnitTokens) raise an error in
 -- the client, secret results are not readable: both count as false.
 function ns.IsUnit(a, b)

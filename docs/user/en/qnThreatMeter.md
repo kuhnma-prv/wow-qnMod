@@ -65,7 +65,7 @@ All settings are stored per profile (= per Edit Mode layout, see qnCore).
 - **Show class icons** – Default: on.
 - **Class Colors** – colors bars by class (otherwise gray). Default: on.
 - **Background opacity** – 0–100 %. Default: 50 %.
-- **Bar texture** – **Damage Meter**, **Blizzard**, **Flat**, **Raid**, **Skill**, plus all bar
+- **Bar texture** – **Damage Meter**, **Blizzard**, **Flat**, **Raid**, **Skill**, followed by all bar
   textures of LibSharedMedia if installed. Default: Damage Meter.
 - **Rank before the name** – "1. Name". Default: on.
 - **Color your own bar red** – Default: off.
