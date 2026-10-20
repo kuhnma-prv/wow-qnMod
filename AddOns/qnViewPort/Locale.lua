@@ -6,8 +6,6 @@ local L = qnCore.NewLocale(ns, ADDON)
 if not qnCore.GERMAN then return end
 
 -- Core.lua
-L["Rock"] = "Fels"
-L["Marble"] = "Marmor"
 L["Wood"] = "Holz"
 L["Dialog"] = "Dialog"
 L["Dialog (dark)"] = "Dialog dunkel"
@@ -42,7 +40,6 @@ L["Monitor data without window size."] = "Monitordaten ohne Fenstergröße."
 L["Game window %d × %d does not match the monitor data (%d × %d) – run Set-WowWindow.ps1."] = "Spielfenster %d × %d passt nicht zu den Monitordaten (%d × %d) – Set-WowWindow.ps1 ausführen."
 L["Monitor data without a monitor."] = "Monitordaten ohne Monitor."
 L["unnamed"] = "unbenannt"
-L["%s is protected – cannot be moved in combat."] = "%s ist geschützt – im Kampf nicht verschiebbar."
 L["Monitor layout applied: %d monitors, 3D world on the main monitor (%d × %d)."] = "Monitoranordnung übernommen: %d Monitore, 3D-Welt auf dem Hauptmonitor (%d × %d)."
 L["No monitor data."] = "Keine Monitordaten."
 L["Main monitor"] = "Hauptmonitor"
@@ -120,7 +117,6 @@ L["Outlines the areas: blue bags, yellow Zone Map, green World Map, purple \"Map
 L["Moves only this element onto a monitor by the shortest path. Marked in red: its current area."] = "Verschiebt nur dieses Element auf dem kürzesten Weg auf einen Monitor. Rot markiert: seine jetzige Fläche."
 L["Edit Mode frame: lasts until /reload or until the layout is reloaded. To keep it: move it in Edit Mode."] = "Rahmen des Bearbeitungsmodus: gilt bis /reload bzw. bis das Layout neu geladen wird. Dauerhaft: im Bearbeitungsmodus verschieben."
 L["Protected frame: not in combat. Moving it from addon code can cause \"action blocked\" messages (taint)."] = "Geschützter Rahmen: nicht im Kampf. Verschieben aus Addon-Code kann „Aktion blockiert“-Meldungen (Taint) auslösen."
-L["Move into visible area"] = "In sichtbaren Bereich holen"
 L["All shown interface elements are on a monitor."] = "Alle eingeblendeten Oberflächenelemente liegen auf einem Monitor."
 L["%d element(s) fully or partly outside the monitors"] = "%d Element(e) ganz oder teilweise außerhalb der Monitore"
 L["Not checked yet – press \"Check visibility\"."] = "Noch nicht geprüft – „Sichtbarkeit prüfen“ drücken."
