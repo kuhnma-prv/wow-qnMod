@@ -172,13 +172,7 @@ function Import.Export()
 	return table.concat(lines, "\n")
 end
 
-local function Split(s, sep)
-	local out = {}
-	for part in (s .. sep):gmatch("(.-)" .. sep:gsub("%p", "%%%0")) do
-		out[#out + 1] = part
-	end
-	return out
-end
+local Split = ns.Split
 
 -- Records of an export text; nil and the reason if it is not one
 function Import.ParseText(text)

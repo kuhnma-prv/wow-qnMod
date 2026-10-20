@@ -36,6 +36,15 @@ function ns.CharKey()
 	return UnitName("player") .. "-" .. GetRealmName()
 end
 
+-- Parts of s between the separator sep (plain text, empty parts included)
+function ns.Split(s, sep)
+	local out = {}
+	for part in (s .. sep):gmatch("(.-)" .. sep:gsub("%p", "%%%0")) do
+		out[#out + 1] = part
+	end
+	return out
+end
+
 ns.OnLoad(function()
 	for key, kind in pairs(ns.KINDS) do   -- Kinds.lua is loaded after this file
 		ns.defaults.circle.colors[key] = kind.color
