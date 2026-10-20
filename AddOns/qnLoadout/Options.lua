@@ -29,10 +29,7 @@ local function SetEntries()
 	return list
 end
 
-local function Refresh()
-	if not (page and page.panel:IsVisible()) then
-		return
-	end
+local function Fill()
 	local set = ns.SelectedSet()
 	if set then
 		infoText:SetText(L["Sets for %s:"]:format(ClassName()))
@@ -50,6 +47,12 @@ local function Refresh()
 	loadButton:SetShown(set ~= nil)
 	setDropdown:Refresh()
 	page.Fit()
+end
+
+local function Refresh()
+	if page then
+		page.Refresh()
+	end
 end
 ns.RefreshOptions = Refresh
 
@@ -95,23 +98,19 @@ end
 
 local function Build()
 	page = UI.Page("qnLoadout", { desc =
-		L["Loads a set of qn macros and numpad assignments (qnNumKeyPad) for your class. Only macros whose name starts with \"qn\" are created or changed – other macros stay untouched, nothing is deleted. Numpad keys listed in the set are assigned or cleared, all others stay unchanged. Not possible in combat."] })
+		L["Loads a set of qn macros and numpad assignments (qnNumKeyPad) for your class. Only macros whose name starts with \"qn\" are created or changed – other macros stay untouched, nothing is deleted. Numpad keys listed in the set are assigned or cleared, all others stay unchanged. Not possible in combat."],
+		refresh = Fill })
 	local parent = page.content
 	ns.ui.panel = page.panel
 
-	infoText = UI.Text(parent, "GameFontNormal")
-	infoText:SetPoint("TOPLEFT", page.top, "BOTTOMLEFT", 0, -14)
-	infoText:SetWidth(600)
-
-	setDropdown = UI.Dropdown(parent, 300, SetEntries, function()
+	infoText, setDropdown = UI.PageHeader(page, L["Set:"], 300, SetEntries, function()
 		local set = ns.SelectedSet()
 		return set and set.name
 	end, function(name)
 		ns.db.lastSet[ns.PlayerClass()] = name
 		Refresh()
 	end)
-	setDropdown:SetPoint("TOPLEFT", infoText, "BOTTOMLEFT", 110, -12)
-	UI.Label(parent, setDropdown, L["Set:"])
+	infoText:SetWidth(600)
 	ns.ui.set = setDropdown
 
 	loadButton = UI.Button(parent, L["Load set"], 140, function()
@@ -136,15 +135,8 @@ local function Build()
 	exportDesc:SetPoint("TOPLEFT", exportTitle, "BOTTOMLEFT", 0, -8)
 	exportDesc:SetWidth(600)
 
-	nameBox = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
-	nameBox:SetSize(250, 22)
-	nameBox:SetAutoFocus(false)
-	nameBox:SetMaxLetters(60)
+	nameBox = UI.EditBox(parent, 250, nil, DoExport, { enterOnly = true })
 	nameBox:SetPoint("TOPLEFT", exportDesc, "BOTTOMLEFT", 115, -14)
-	nameBox:SetScript("OnEnterPressed", function(self)
-		self:ClearFocus()
-		DoExport()
-	end)
 	UI.Label(parent, nameBox, HOUSING_NEIGHBORHOOD_SETTINGS_NAME, 14)   -- Blizzard "Name:"
 	ns.ui.name = nameBox
 
@@ -162,11 +154,10 @@ local function Build()
 	output:Hide()
 	ns.ui.output = output
 
-	page.panel:SetScript("OnShow", function()
+	page.panel:HookScript("OnShow", function()
 		if (nameBox:GetText() or "") == "" then
 			nameBox:SetText(("%s %s"):format(ClassName(), UnitName("player")))   -- do not translate
 		end
-		Refresh()
 	end)
 end
 

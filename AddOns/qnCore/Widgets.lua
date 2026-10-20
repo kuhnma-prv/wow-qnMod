@@ -95,6 +95,108 @@ function UI.Label(parent, widget, text, gap)
 	return fs
 end
 
+-- Checkbox with label to the right. get() returns the state, set(on) takes it over (true/false).
+-- cb:Refresh() shows get() (call it when showing the page); cb.label is the text.
+function UI.Checkbox(parent, label, get, set, tooltip)
+	local cb = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
+	cb.label = UI.Text(parent, "GameFontHighlight", label)
+	cb.label:SetPoint("LEFT", cb, "RIGHT", 2, 0)
+	cb:SetScript("OnClick", function(self)
+		set(self:GetChecked() and true or false)
+	end)
+	if tooltip then
+		UI.Tooltip(cb, label, tooltip)
+	end
+	function cb:Refresh()
+		self:SetChecked(get() and true or false)
+	end
+	return cb
+end
+
+-- Single-line text field. Enter and leaving the field take the text over with set(text) (numbers
+-- with opts.numeric: set(number or nil)), then it shows get() again; Escape restores get().
+--   opts.numeric     digits only      opts.maxLetters  default 60
+--   opts.center      centered text    opts.enterOnly   only Enter takes it over
+-- get may be nil (the field keeps its text).
+function UI.EditBox(parent, width, get, set, opts)
+	opts = opts or {}
+	local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+	box:SetSize(width, 22)
+	box:SetAutoFocus(false)
+	box:SetMaxLetters(opts.maxLetters or 60)
+	if opts.numeric then
+		box:SetNumeric(true)
+	end
+	if opts.center then
+		box:SetJustifyH("CENTER")
+	end
+	local function Show(self)
+		if get then
+			self:SetText(get() or "")
+		end
+	end
+	local function Commit(self)
+		local value = self:GetText()
+		if opts.numeric then
+			value = tonumber(value)
+		end
+		set(value)
+		Show(self)
+	end
+	box:SetScript("OnEnterPressed", function(self)
+		Commit(self)
+		self:ClearFocus()
+	end)
+	if not opts.enterOnly then
+		box:SetScript("OnEditFocusLost", function(self)
+			self:HighlightText(0, 0)
+			Commit(self)
+		end)
+		box:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+	end
+	box:SetScript("OnEscapePressed", function(self)
+		Show(self)
+		self:ClearFocus()
+	end)
+	return box
+end
+
+-- "50 %" for slider values in percent
+function UI.PercentLabel(v)
+	return ("%d %%"):format(lib.Round(v))
+end
+
+-- Slider with steppers (Blizzard's MinimalSliderWithSteppersTemplate) from minV to maxV in steps
+-- steps. get() returns the value, set(v) takes a change by the player over; s:Refresh() shows
+-- get() again without calling set. format(v) = text on the right (default UI.PercentLabel).
+function UI.Slider(parent, width, minV, maxV, steps, get, set, format)
+	local s = CreateFrame("Frame", nil, parent, "MinimalSliderWithSteppersTemplate")
+	s:SetSize(width, 20)
+	s:Init(get() or minV, minV, maxV, steps, {
+		[MinimalSliderWithSteppersMixin.Label.Right] = format or UI.PercentLabel,
+	})
+	s:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
+		if not s.quiet then
+			set(value)
+		end
+	end, s)
+	function s:Refresh()
+		self.quiet = true
+		self:SetValue(get() or minV)
+		self.quiet = false
+	end
+	return s
+end
+
+-- Every second row of a list slightly lighter (like Blizzard's lists)
+function UI.Stripe(row, i)
+	if i % 2 == 0 then
+		local bg = row:CreateTexture(nil, "BACKGROUND")
+		bg:SetAllPoints()
+		bg:SetColorTexture(1, 1, 1, 0.04)
+	end
+end
+
 -- Frame movable by dragging with the left mouse button.
 --   opts.handle    frame that receives the drag (default: frame itself)
 --   opts.canMove() false: dragging does not start (e.g. locked, in combat)
@@ -136,12 +238,16 @@ end
 --   title          heading (page name as in the list on the left)
 --   opts.desc      description at the top of the content (optional), opts.descWidth its width
 --   opts.defaults  function(): "Defaults" button to the right of the heading (optional)
+--   opts.refresh   function(): fills the page; called on showing and by page.Refresh() (optional)
+--   opts.parent    category: registers the page as its subpage under title (optional)
 -- Returns a table:
 --   panel    frame for Settings.RegisterCanvasLayout...; set OnShow etc. here
 --   content  parent of the controls
 --   top      anchor for the first element (description or top edge of the content)
 --   Fit()    re-measure the content height (after showing/hiding elements)
 --   padLeft, padTop  position of top in the content (for elements attached to the content itself)
+--   Refresh()  opts.refresh, but only while the page is visible
+--   category, Open()  with opts.parent: the subpage and opening it in the settings window
 ---------------------------------------------------------------------------
 
 local PAGE_PAD_LEFT, PAGE_PAD_TOP = 40, 10   -- content aligned with Blizzard's section headers
@@ -220,7 +326,33 @@ function UI.Page(title, opts)
 		page.Fit()
 	end)
 	content:SetScript("OnShow", page.Fit)
+
+	if opts.refresh then
+		function page.Refresh()
+			if panel:IsVisible() then
+				opts.refresh()
+			end
+		end
+		panel:SetScript("OnShow", page.Refresh)
+	end
+	if opts.parent then
+		page.category = Settings.RegisterCanvasLayoutSubcategory(opts.parent, panel, title)
+		function page.Open()
+			lib.OpenCategory(page.category)
+		end
+	end
 	return page
+end
+
+-- Head of a page with a list: a line of text below the description and a dropdown with label
+-- below it (like Blizzard's filter lines). Returns the text and the dropdown (UI.Dropdown).
+function UI.PageHeader(page, label, width, entries, get, set)
+	local info = UI.Text(page.content, "GameFontNormal")
+	info:SetPoint("TOPLEFT", page.top, "BOTTOMLEFT", 0, -14)
+	local dd = UI.Dropdown(page.content, width, entries, get, set)
+	dd:SetPoint("TOPLEFT", info, "BOTTOMLEFT", 110, -12)
+	UI.Label(page.content, dd, label)
+	return info, dd
 end
 
 ---------------------------------------------------------------------------

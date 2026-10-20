@@ -47,30 +47,7 @@ end
 -- Number field (digits only). get() returns the displayed value, set(v) takes an input
 -- (Enter or focus loss; v = nil for an empty field). Escape restores the value.
 function ns.NumBox(parent, width, get, set)
-	local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
-	box:SetSize(width, 22)
-	box:SetAutoFocus(false)
-	box:SetNumeric(true)
-	box:SetMaxLetters(5)
-	box:SetJustifyH("CENTER")
-	local function Commit(self)
-		set(tonumber(self:GetText()))
-		self:SetText(get())
-	end
-	box:SetScript("OnEnterPressed", function(self)
-		Commit(self)
-		self:ClearFocus()
-	end)
-	box:SetScript("OnEditFocusLost", function(self)
-		self:HighlightText(0, 0)
-		Commit(self)
-	end)
-	box:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
-	box:SetScript("OnEscapePressed", function(self)
-		self:SetText(get())
-		self:ClearFocus()
-	end)
-	return box
+	return UI.EditBox(parent, width, get, set, { numeric = true, maxLetters = 5, center = true })
 end
 
 ---------------------------------------------------------------------------
@@ -345,14 +322,9 @@ local function Build()
 	ratioView = UI.Text(content, "GameFontHighlight")
 	ratioView:SetPoint("TOPLEFT", ratioScreen, "BOTTOMLEFT", 0, -6)
 
-	local check = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
+	local check = UI.Checkbox(content, L["Suppress the on-load message"],
+		function() return ns.db.suppressMessage end, function(on) ns.db.suppressMessage = on end)
 	check:SetPoint("TOPLEFT", ratioView, "BOTTOMLEFT", -4, -16)
-	check:SetChecked(ns.db.suppressMessage)
-	check:SetScript("OnClick", function(self)
-		ns.db.suppressMessage = self:GetChecked() and true or false
-	end)
-	local checkText = UI.Text(content, "GameFontHighlight", L["Suppress the on-load message"])
-	checkText:SetPoint("LEFT", check, "RIGHT", 2, 0)
 
 	colorSwatch = CreateFrame("Button", nil, content)
 	colorSwatch:SetSize(20, 20)
@@ -384,18 +356,11 @@ local function Build()
 
 	local alphaText = UI.Text(content, "GameFontHighlight", L["Pattern opacity"])
 	alphaText:SetPoint("TOPLEFT", patternText, "BOTTOMLEFT", 0, -22)
-	alphaSlider = CreateFrame("Frame", nil, content, "MinimalSliderWithSteppersTemplate")
-	alphaSlider:SetSize(220, 20)
-	alphaSlider:SetPoint("LEFT", alphaText, "LEFT", 170, 0)
-	alphaSlider:Init(ns.db.patternAlpha * 100, 0, 100, 20, {
-		[MinimalSliderWithSteppersMixin.Label.Right] = function(v)
-			return ("%d %%"):format(v + 0.5)
-		end,
-	})
-	alphaSlider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
+	alphaSlider = UI.Slider(content, 220, 0, 100, 20, function() return ns.db.patternAlpha * 100 end, function(value)
 		ns.db.patternAlpha = qnCore.Round(value) / 100
 		ns.UpdateBorderLook()
-	end, alphaSlider)
+	end)
+	alphaSlider:SetPoint("LEFT", alphaText, "LEFT", 170, 0)
 
 	local function OnShow()
 		ns.UpdateScreenSize()
@@ -403,10 +368,10 @@ local function Build()
 		preview:SetHeight(PREVIEW_WIDTH * sh / sw)
 		PlaceLower()
 		pending = CopyTable(ns.GetViewport())
-		check:SetChecked(ns.db.suppressMessage)
+		check:Refresh()
 		UpdateSwatch()
 		patternDropdown:Refresh()
-		alphaSlider:SetValue(ns.db.patternAlpha * 100)
+		alphaSlider:Refresh()
 		alphaSlider:SetEnabled(ns.db.pattern ~= "none")
 		Refresh()
 	end
