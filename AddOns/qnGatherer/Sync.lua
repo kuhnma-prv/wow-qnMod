@@ -53,13 +53,7 @@ Sync.peers = peers
 -- Helpers
 ---------------------------------------------------------------------------
 
-local function Split(s, sep)
-	local out = {}
-	for part in (s .. sep):gmatch("(.-)" .. sep:gsub("%p", "%%%0")) do
-		out[#out + 1] = part
-	end
-	return out
-end
+local Split = ns.Split
 
 -- own name as in CHAT_MSG_ADDON ("Name-Realm")
 local function Self()
