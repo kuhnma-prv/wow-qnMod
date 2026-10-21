@@ -69,10 +69,11 @@ function J.SkillText(kind)
 	return L["%s %d"]:format(k.name, rank)
 end
 
--- Text of the skill range of a zone ("Skill 1 – 75"), nil if unknown
+-- Text of the skill range of a zone ("Skill 1 – 75"), nil if unknown (a zone may only have
+-- a resource list)
 function J.ZoneSkillText(kind, map)
 	local zone = DB.GetZone(kind, map)
-	if zone then
+	if zone and zone.min and zone.max then
 		return L["Skill %d – %d"]:format(zone.min, zone.max)
 	end
 end

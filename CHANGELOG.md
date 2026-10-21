@@ -13,7 +13,7 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
-- **qnGatherer 0.7.3:** new addon (in development): gathering database for herbs, ore, fishing and
+- **qnGatherer 0.7.4:** new addon (in development): gathering database for herbs, ore, fishing and
   treasure. Records nodes while gathering (also nodes you lack the skill or the profession for, with
   the required skill), fish schools, every fishing catch per character and the fishing areas you
   learn. Shows the nodes on the world map (tooltip, right-click menu: delete, waypoint, TomTom) and on the minimap (tracking
@@ -35,6 +35,13 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Fixed
 
+- **qnInventory 0.3.5:** the bags, bank and mail views of other characters close again when you click
+  their button a second time, your own bank and mail views update while open, and opening your own bags
+  hides the bags view of another character instead of overlapping it.
+- **qnCore 0.2.3:** after going back to an older addon version, settings saved by a newer version are
+  left untouched (this session works on a copy and says that changes are not saved).
+- **qnBuffMod 0.1.3:** changing target, focus or pet in combat no longer leaves the auras of the previous
+  unit in its window until the end of the fight.
 - **qnTooltip 0.1.5:** `/qntt reset` in combat now says that the settings will be reset after combat
   instead of "Settings reset.".
 - **qnViewPort 0.1.9:** Blizzard menus (e.g. the chat button menu) and their submenus now open completely inside

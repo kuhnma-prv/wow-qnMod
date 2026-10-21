@@ -216,6 +216,17 @@ local function LoadSavedVariable(opts)
 	if type(sv) ~= "table" then
 		sv = {}
 	end
+	local stored = lib.ParseSettingsVersion(sv.settingsVersion)
+	local current = lib.ParseSettingsVersion(opts.settingsVersion or "1.0")
+	if stored and current and stored > current then
+		-- stored major newer than this addon version (see qnCore.Migrate): the saved variable
+		-- stays untouched, this session works on a copy
+		local copy = CopyTable(sv)
+		lib.RemoveKeys(copy, ROOT_OBSOLETE)
+		copy.profiles = type(copy.profiles) == "table" and copy.profiles or {}
+		copy.global = type(copy.global) == "table" and copy.global or {}
+		return copy
+	end
 	lib.RemoveKeys(sv, ROOT_OBSOLETE)
 	sv.profiles = type(sv.profiles) == "table" and sv.profiles or {}
 	sv.global = type(sv.global) == "table" and sv.global or {}
@@ -255,12 +266,15 @@ function P.Register(opts)
 
 	local name = opts.name or (opts.ns and ns.addonNames[opts.ns])
 	assert(name, "qnCore.Profiles.Register: name missing (register ns with qnCore.NewAddon first).")   -- do not translate: developer hint
-	lib.Migrate(sv, {
+	local out = opts.ns and opts.ns.Print or print
+	if not lib.Migrate(sv, {
 		name = name,
 		settingsVersion = opts.settingsVersion,
 		migrations = opts.migrations,
-		print = opts.ns and opts.ns.Print,
-	})
+		print = out,
+	}) then
+		out(L["Changes to the settings of %s in this session are not saved."]:format(name))
+	end
 	local store = setmetatable({
 		name = name,
 		ns = opts.ns,

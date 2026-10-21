@@ -18,6 +18,7 @@ L["Objective Tracker text size below Blizzard's minimum of 12 (headers 2 larger)
 
 -- Library.lua
 L["Saved settings of %s have version %s, this addon version knows %s: nothing is converted."] = "Die gespeicherten Einstellungen von %s haben die Version %s, diese Addon-Version kennt %s: es wird nichts umgewandelt."
+L["Changes to the settings of %s in this session are not saved."] = "Änderungen an den Einstellungen von %s werden in dieser Sitzung nicht gespeichert."
 
 -- Profiles.lua
 L["not yet determined"] = "noch nicht ermittelt"

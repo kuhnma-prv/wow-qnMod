@@ -124,6 +124,10 @@ darauf hin).
   an oder wechselst sie. Beim Profilwechsel erscheint im Chat „Profil gewechselt: …“. Bis das Layout
   nach dem Einloggen bekannt ist, gilt das Profil der letzten Sitzung dieses Charakters.
 - Kopieren in das aktive Profil überschreibt dessen bisherige Einstellungen.
+- Gehst du zu einer älteren Version eines qn-Addons zurück, dessen Einstellungen eine neuere Version
+  gespeichert hat, bleiben die gespeicherten Einstellungen unverändert: Das Addon arbeitet in dieser
+  Sitzung mit einer Kopie, und eine Chatmeldung weist darauf hin, dass Änderungen nicht gespeichert
+  werden.
 - Die Taschen-Automatik greift einen Frame nach Blizzards eigenen Fenstern und hat damit das letzte
   Wort. Nutzt du ein anderes Taschen-Addon, schalte **Taschen-Automatik aktiv** aus.
 - Beim Wiederherstellen der Verfolgung werden Verfolgungszauber nacheinander gewirkt (mit kurzer Pause
