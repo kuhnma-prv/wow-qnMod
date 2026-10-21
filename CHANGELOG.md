@@ -13,13 +13,16 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
-- **qnMarkers 0.1.0:** new addon: movable raid marker bar. Left-click a marker to place its world
+- **qnMarkers 0.2.0:** new addon: movable raid marker bar. Left-click a marker to place its world
   marker, right-click to set it on your target; placed world markers glow (also those of others).
   Buttons for ready check, pull timer 5/10 seconds, clearing world markers or the target marker and
   leaving the group (with confirmation), each can be switched off. The grip moves, minimizes
   (left-click) and clears all markers (right-click). Horizontal/vertical, floating, scale, icon size,
   spacing, colors; visibility always / in a group / in a raid (also in combat), optionally only as
-  leader or assistant. Options page, `/qnmarkers`.
+  leader or assistant. Opt-in markers above nameplates: class, role or texture icon (with fallback)
+  for friendly players, group members, enemy players (opt-in), PvP-flagged players, NPCs and pets;
+  role filter, hearts for friends and shields for guild members, size, offset, shape, background,
+  class-colored border, target glow, optionally only in arenas. Options pages, `/qnmarkers`.
 - **qnGatherer 0.7.4:** new addon (in development): gathering database for herbs, ore, fishing and
   treasure. Records nodes while gathering (also nodes you lack the skill or the profession for, with
   the required skill), fish schools, every fishing catch per character and the fishing areas you

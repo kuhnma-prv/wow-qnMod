@@ -1,8 +1,9 @@
-# qnMarkers – raid marker bar
+# qnMarkers – raid marker bar and nameplate markers
 
 qnMarkers adds a small, movable bar for marking: one button per raid marker places the world
 marker on the ground (left-click) or sets the target marker on your current target (right-click).
 Further buttons start a ready check or a pull timer, clear the markers or leave the group.
+Optionally it shows an icon above nameplates – class, role, friend or guild member at a glance.
 
 ## Features
 
@@ -22,6 +23,14 @@ Further buttons start a ready check or a pull timer, clear the markers or leave 
 - Works with key bindings too: the buttons are named `qnMarkersBarMarker1` … `qnMarkersBarMarker8`
   (bar order), `qnMarkersBarClearWorld`, `qnMarkersBarClearTarget`, `qnMarkersBarGrip`, so a macro
   like `/click qnMarkersBarMarker1 RightButton` sets the skull on your target.
+- **Markers above nameplates** (off by default): an icon above the nameplates of friendly players,
+  group members, enemy players, PvP-flagged players, NPCs or pets – you choose which.
+  - Icon per unit: **class** icon, **role** icon (group members) or a **texture** (arrow, heart,
+    shield, dot, skull, star or your own), with a second icon type as fallback.
+  - Hearts for friends (friend list and Battle.net), shields for guild members, portraits for pets.
+  - Size, offset, square or round, background, border in class color – separately for friendly and
+    enemy units. Optionally glow around the marker of your target, fading with the nameplate, only
+    in arenas.
 
 ## Getting started
 
@@ -72,6 +81,66 @@ All settings are stored per profile (= per Edit Mode layout, see qnCore).
   now (same as `/qnmarkers visible`).
 - **Reset position** – puts the bar back to its default position.
 
+### Nameplate Markers
+
+- **Show markers above nameplates** – an icon above the nameplate of the units chosen below.
+  Nameplates must be switched on in the game. Default: off. All other options of this page and of
+  the pages **Friendly Markers** and **Enemy Markers** are only usable while this is on.
+
+**Filters** – which units get a marker:
+
+- **Friendly Players** – default: on.
+- **Group members** – default: on.
+- **Enemy Players** – values of enemies can be hidden by the game in combat; then they get no
+  marker. Default: off.
+- **Players flagged for PvP** – default: off.
+- **NPCs** – default: off.
+- **Pets** – pets of other players, smaller, with their portrait. Default: off.
+- **Your pet** – also when the option for pets is off. Default: off.
+- **Only in arenas** – default: off.
+
+Totems and your own nameplate never get a marker.
+
+**Roles** – **Tanks**, **Healers**, **Damage dealers** (default: on). Only group members with an
+assigned role are filtered; all others are not affected.
+
+**Special icons**
+
+- **Friends** – a heart for your friends (friend list and Battle.net). Default: on.
+- **Guild** – a shield for members of your guild. Default: on.
+
+**Appearance**
+
+- **Class Colors** – role and texture icons in the class color of the unit. Default: on.
+- **Desaturate icons** – role and texture icons in gray before coloring them. Default: on.
+- **Enemies in red** – role and texture icons of enemies in red. Default: on.
+- **Fade with the nameplate** – the marker becomes as transparent as its nameplate (distance, not
+  targeted). Default: off.
+- **Glow on the target** – a glow around the marker of your current target, with **Color**.
+  Default: off, white.
+- **Texture** – icon of the icon type "Texture": **Arrow**, **Heart**, **Shield**, **Dot**,
+  **Skull**, **Star** or **Custom texture**. Default: Arrow.
+- **Custom texture** – button **Edit …** sets the file or atlas of "Custom texture"
+  (e.g. `Interface\Icons\INV_Misc_QuestionMark`).
+- **Rotation** – of the texture, 0–360°. Default: 0°.
+- **Size of pets** – size of other players' pets, 25–100 %. Default: 50 %.
+
+### Friendly Markers / Enemy Markers
+
+The same options, once for friendly units (also neutral ones and all group members) and once for
+enemy units:
+
+- **Icon type** – **Class** (class icon of players), **Role** (role of group members) or
+  **Texture** (the texture chosen on the page "Nameplate Markers"). Default: Class.
+- **Otherwise** – icon type when the first one is not available (e.g. no role or not a player):
+  **None**, **Class**, **Role** or **Texture**. Default: Texture.
+- **Icon Size** – 16–100. Default: 40.
+- **Horizontal offset**, **Vertical offset** – position above the nameplate, −100 to 100.
+  Default: 0 and 10.
+- **Shape** – **Square** or **Round**. Default: Square.
+- **Background** – black background behind the icon, with **Padding** 0–10. Default: on, 1.
+- **Border** – border in the class color of players. Default: on.
+
 ## Slash commands
 
 | Command | Effect |
@@ -92,5 +161,10 @@ All settings are stored per profile (= per Edit Mode layout, see qnCore).
 - A world marker is placed only after you click on the ground; the glow follows shortly after.
 - If the bar is gone, check **Visibility** and **Only as leader or assistant**, or type
   `/qnmarkers show`.
+- Nameplate markers need the game's nameplates (key V or the interface options). Roles are only
+  known for group members, so enemy players never get a role icon.
+- Some values (class, role, PvP state) can be hidden by the game, mostly for enemies in combat. Then
+  the rule that needs the value is skipped: for example the class icon falls back to the
+  "Otherwise" icon, and the border is left out.
 
 [← Overview](README.md)
