@@ -44,7 +44,7 @@ local S = qnCore.Settings
 -- Settings version and sanitize
 ---------------------------------------------------------------------------
 local db = qnUnitFramesDB.profiles["preset:1"]
-Check(qnUnitFramesDB.settingsVersion == "1.1", "settings version 1.1")
+Check(qnUnitFramesDB.settingsVersion == "1.2", "settings version 1.2")
 Check(db.rangeFocusSize == uf.RANGE_SIZE[2], "too large size limited")
 Check(db.rangeFocusX == 0 and db.rangeTarget == false, "invalid values back to default")
 Check(db.rangeTargetSize == 24 and db.rangeFocusY == 0, "defaults added")

@@ -24,15 +24,18 @@ ns.defaults = {
 	pets = true,          -- party pet frames
 	tooltip = true,       -- show bindings in the frames' tooltip
 	bindings = {},        -- [class] = { [key] = { type, value } }
-	-- range icon (Range.lua) per frame: on/off, size, offset from the frame's right edge
+	-- range icon (Range.lua) per frame: on/off, size, offset from the frame's right edge,
+	-- distance text inside the icon
 	rangeTarget = false,
 	rangeTargetSize = 24,
 	rangeTargetX = 0,
 	rangeTargetY = 0,
+	rangeTargetDistance = true,
 	rangeFocus = false,
 	rangeFocusSize = 24,
 	rangeFocusX = 0,
 	rangeFocusY = 0,
+	rangeFocusDistance = true,
 }
 
 -- limits of the range icon sliders (Options.lua, Sanitize)
@@ -146,7 +149,8 @@ end
 
 -- Version of the settings (see qnCore.Migrate)
 -- 1.1: range icon at the target and focus frame
-local SETTINGS_VERSION = "1.1"
+-- 1.2: distance text inside the range icon
+local SETTINGS_VERSION = "1.2"
 
 -- number within limits, otherwise nil (= default)
 local function Clamp(v, limits)
@@ -156,8 +160,10 @@ end
 -- Check of a profile on every load: removes broken entries (unknown action, wrong key).
 local function Sanitize(db)
 	for _, entry in ipairs({ "rangeTarget", "rangeFocus" }) do
-		if type(db[entry]) ~= "boolean" then
-			db[entry] = nil
+		for _, flag in ipairs({ entry, entry .. "Distance" }) do
+			if type(db[flag]) ~= "boolean" then
+				db[flag] = nil
+			end
 		end
 		db[entry .. "Size"] = Clamp(db[entry .. "Size"], ns.RANGE_SIZE)
 		db[entry .. "X"] = Clamp(db[entry .. "X"], ns.RANGE_OFFSET)
