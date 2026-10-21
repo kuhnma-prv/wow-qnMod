@@ -163,7 +163,6 @@ L["Guild: %d new nodes (%s) in %s from %s."] = "Gilde: %d neue Punkte (%s) in %s
 L["Also sends the nodes you imported from other addons."] = "Sendet auch die Punkte, die du aus anderen Addons importiert hast."
 L["Ignore these members (Name-Realm, separated by commas):"] = "Diese Mitglieder ignorieren (Name-Realm, durch Kommas getrennt):"
 L["Ignored members"] = "Ignorierte Mitglieder"
-L["Edit …"] = "Bearbeiten …"
 L["Nothing is taken over from these members."] = "Von diesen Mitgliedern wird nichts übernommen."
 L["Shows in the chat how many members use qnGatherer and how many nodes were exchanged (/qngatherer sync)."] = "Zeigt im Chat, wie viele Mitglieder qnGatherer nutzen und wie viele Punkte ausgetauscht wurden (/qngatherer sync)."
 
