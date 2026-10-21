@@ -61,8 +61,8 @@ local DEFAULT_SIZE = 1000           -- yards of a map without world size (instan
 local g                 -- qnGathererDB.global
 local originIndex = {}  -- origin -> originId
 local sizes = {}        -- map -> { width, height } in yards
-local listeners = {}
-local nodeListeners = {}
+local changed = qnCore.NewSignal()     -- data of a map changed
+local nodeAdded = qnCore.NewSignal()   -- a new node was stored
 
 ---------------------------------------------------------------------------
 -- Helpers
@@ -142,16 +142,10 @@ local function Unpack(packed)
 	return { res = res, first = tonumber(first), last = tonumber(last), seen = tonumber(seen), oid = tonumber(oid) }
 end
 
-local function Fire(kind, map)
-	for _, fn in ipairs(listeners) do
-		fn(kind, map)
-	end
-end
+local Fire = changed.Fire
 
 -- fn(kind, map) after every change of the data of a map (map nil: the whole kind)
-function DB.OnChange(fn)
-	listeners[#listeners + 1] = fn
-end
+DB.OnChange = changed.Add
 
 ---------------------------------------------------------------------------
 -- Validation
@@ -300,17 +294,13 @@ local function IngestNode(rec, origin)
 		Fire(kind, map)
 	end
 	if result == "added" or result == "replaced" then
-		for _, fn in ipairs(nodeListeners) do
-			fn(kind, map, coord, res, origin)
-		end
+		nodeAdded.Fire(kind, map, coord, res, origin)
 	end
 	return result
 end
 
 -- fn(kind, map, coord, res, origin) after a new node was stored (not for merged ones)
-function DB.OnNodeAdded(fn)
-	nodeListeners[#nodeListeners + 1] = fn
-end
+DB.OnNodeAdded = nodeAdded.Add
 
 -- Node at coord: { res, first, last, seen, origin } or nil
 function DB.GetNode(kind, map, coord)

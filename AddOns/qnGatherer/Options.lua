@@ -62,8 +62,7 @@ function ns.ToggleWorldMap()
 end
 
 function ns.ToggleSoundBoost()
-	ns.SetOption("fishing", "soundBoost", not ns.db.soundBoost)
-	ns.Print(ns.db.soundBoost and L["Sound boost while fishing on."] or L["Sound boost while fishing off."])
+	ns.Print(ns.store:Toggle("soundBoost") and L["Sound boost while fishing on."] or L["Sound boost while fishing off."])
 end
 
 ---------------------------------------------------------------------------
@@ -412,20 +411,17 @@ local function Row(i)
 	if not row then
 		row = {}
 		row.header = UI.Text(filterPage.content, "GameFontNormal", "")
-		row.check = CreateFrame("CheckButton", nil, filterPage.content, "UICheckButtonTemplate")
-		row.check:SetSize(24, 24)
-		row.label = UI.Text(filterPage.content, "GameFontHighlight", "")
-		row.label:SetPoint("LEFT", row.check, "RIGHT", 4, 0)
-		row.all = UI.Button(filterPage.content, ALL, 80, function() ns.SetFilterAll(row.kind, true) filterPage.Rebuild() end)
-		row.none = UI.Button(filterPage.content, NONE, 80, function() ns.SetFilterAll(row.kind, false) filterPage.Rebuild() end)
-		row.check:SetScript("OnClick", function(self)
-			if self:GetChecked() then
-				Filter(row.kind)[row.res] = nil
-			else
-				Filter(row.kind)[row.res] = false
-			end
+		-- shown = nil (default), hidden = false
+		row.check = UI.Checkbox(filterPage.content, "", function()
+			return Filter(row.kind)[row.res] ~= false
+		end, function(on)
+			Filter(row.kind)[row.res] = (not on) and false or nil
 			D.Refresh()
 		end)
+		row.check:SetSize(24, 24)
+		row.label = row.check.label
+		row.all = UI.Button(filterPage.content, ALL, 80, function() ns.SetFilterAll(row.kind, true) filterPage.Rebuild() end)
+		row.none = UI.Button(filterPage.content, NONE, 80, function() ns.SetFilterAll(row.kind, false) filterPage.Rebuild() end)
 		rows[i] = row
 	end
 	return row
@@ -447,6 +443,8 @@ local function BuildFilter(category)
 			D.Refresh()
 			filterPage.Rebuild()
 		end,
+		refresh = function() filterPage.Rebuild() end,
+		parent = category,
 	})
 	function filterPage.Rebuild()
 		for _, row in ipairs(rows) do
@@ -479,7 +477,7 @@ local function BuildFilter(category)
 					row.kind, row.res = kind, e[1]
 					row.check:ClearAllPoints()
 					row.check:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, y)
-					row.check:SetChecked(filter[e[1]] ~= false)
+					row.check:Refresh()
 					row.check:Show()
 					row.label:SetText(e[2])
 					row.label:Show()
@@ -494,8 +492,6 @@ local function BuildFilter(category)
 		filterPage.empty:SetShown(empty)
 		filterPage.Fit()
 	end
-	filterPage.panel:SetScript("OnShow", filterPage.Rebuild)
-	Settings.RegisterCanvasLayoutSubcategory(category, filterPage.panel, FILTER)
 end
 
 ---------------------------------------------------------------------------
@@ -523,27 +519,17 @@ end
 local HELP = L["qnGatherer commands:\n/qngatherer - journal\n/qngatherer options - options\n/qngatherer mini - info window: keep open on/off\n/qngatherer minimap - minimap icons on/off\n/qngatherer worldmap - world map icons on/off\n/qngatherer sound - sound boost while fishing on/off\n/qngatherer sync - status of the guild exchange\n/qngatherer cleanup - clean up the database\n/qngatherer help - this help"]
 
 function ns.InitSlash()
-	qnCore.RegisterSlash("QNGATHERER", { "/qngatherer", "/qng" }, function(cmd)
-		if cmd == "" or cmd == "journal" then
-			ns.Journal.Toggle()
-		elseif cmd == "options" then
-			ns.OpenOptions()
-		elseif cmd == "mini" then
-			ns.Mini.TogglePinned()
-		elseif cmd == "minimap" then
-			ns.ToggleMinimap()
-		elseif cmd == "worldmap" then
-			ns.ToggleWorldMap()
-		elseif cmd == "sound" then
-			ns.ToggleSoundBoost()
-		elseif cmd == "sync" then
-			ns.Sync.Status()
-		elseif cmd == "cleanup" then
-			Actions.Cleanup()
-		else
-			ns.Print(HELP)
-		end
-	end)
+	local function Journal() ns.Journal.Toggle() end
+	qnCore.RegisterCommands(ns, "QNGATHERER", { "/qngatherer", "/qng" }, {
+		[""] = Journal,
+		journal = Journal,
+		mini = function() ns.Mini.TogglePinned() end,
+		minimap = function() ns.ToggleMinimap() end,
+		worldmap = function() ns.ToggleWorldMap() end,
+		sound = function() ns.ToggleSoundBoost() end,
+		sync = function() ns.Sync.Status() end,
+		cleanup = function() Actions.Cleanup() end,
+	}, HELP)
 end
 
 -- Key bindings (Bindings.xml)

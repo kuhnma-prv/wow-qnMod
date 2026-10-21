@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fGatherer|r] |cff00aa000.7.2|r
+## Title: qnMod [|cffeda55fGatherer|r] |cff00aa000.7.3|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
 ## Notes: Gathering database for herbs, ore, fishing and treasure with icons on the world map and the minimap, journal, info window, import from GatherMate2/GatherTogether, exchange with the guild (in development).
 ## Notes-deDE: Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze mit Symbolen auf Weltkarte und Minikarte, Nachschlage- und Infofenster, Import aus GatherMate2/GatherTogether, Austausch mit der Gilde (in Entwicklung).
 ## Author: qn
-## Version: 0.7.2
+## Version: 0.7.3
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface

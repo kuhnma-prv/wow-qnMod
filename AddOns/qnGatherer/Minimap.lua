@@ -39,7 +39,6 @@ local frame
 local pins = {}
 local candidates = {}   -- { kind, res, origin, x, y, circle } of the current map
 local builtMap, builtAt
-local elapsedSince = 0
 
 ---------------------------------------------------------------------------
 -- Geometry
@@ -202,13 +201,7 @@ function M.Update()
 	return count
 end
 
-local function OnUpdate(_, elapsed)
-	elapsedSince = elapsedSince + elapsed
-	if elapsedSince >= UPDATE_INTERVAL then
-		elapsedSince = 0
-		M.Update()
-	end
-end
+local OnUpdate = qnCore.Throttle(UPDATE_INTERVAL, function() M.Update() end)
 
 -- Puts the pins onto another minimap frame (for minimap addons that replace Blizzard's)
 function M.SetParent(parent)
