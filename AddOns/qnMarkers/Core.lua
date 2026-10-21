@@ -43,6 +43,8 @@ ns.defaults = {
 	x = 600,
 	y = -150,
 
+	hideRaidManager = false,      -- hide Blizzard's raid manager (RaidManager.lua)
+
 	-- Markers above nameplates (Plates.lua)
 	plates = {
 		enabled = false,
@@ -85,7 +87,8 @@ ns.ORIENTATION = { horizontal = true, vertical = true }
 
 -- Version of the settings (see qnCore.Migrate)
 -- 1.1: markers above nameplates (plates)
-local SETTINGS_VERSION = "1.1"
+-- 1.2: hide Blizzard's raid manager (hideRaidManager)
+local SETTINGS_VERSION = "1.2"
 
 -- Values of the wrong type fall back to their default (nil); tables with keys are checked inside,
 -- color lists must be complete.
@@ -178,6 +181,7 @@ function ns.Apply()
 	end
 	warned = false
 	ns.ApplyAll()
+	ns.ApplyRaidManager()
 	ns.QueueVisibleCheck()
 end
 
