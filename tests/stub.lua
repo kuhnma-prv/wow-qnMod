@@ -976,20 +976,28 @@ function C_SpellBook.IsAutoAttackSpellBookItem(slot, bank)
 	local item = C_SpellBook.GetSpellBookItemInfo(slot, bank)
 	return item and item.isAutoAttack or false
 end
--- Range checks (qnUnitFrames): QN_SPELLINFO[id] = { maxRange, harmful, usable, noPower, icon },
--- QN_DISTANCE[unit] = distance in yards; nil range = cannot be checked (unknown spell, no unit,
--- QN_FRIENDLY[unit] for harmful spells)
-QN_SPELLINFO, QN_DISTANCE, QN_FRIENDLY = {}, {}, {}
+-- Range checks (qnUnitFrames): QN_SPELLINFO[id] = { name, minRange, maxRange, harmful, usable,
+-- noPower, icon }, QN_DISTANCE[unit] = distance in yards; nil range = cannot be checked (unknown
+-- spell, no unit, QN_FRIENDLY[unit] for harmful spells); QN_DISTANCE_CHECKED[unit]: UnitDistanceSquared
+-- reports the distance (otherwise 0, false)
+QN_SPELLINFO, QN_DISTANCE, QN_FRIENDLY, QN_DISTANCE_CHECKED = {}, {}, {}, {}
 function C_Spell.IsSpellHarmful(id) local s = QN_SPELLINFO[id] return s and s.harmful or false end
 function C_Spell.GetSpellInfo(id)
 	local s = QN_SPELLINFO[id]
-	if s then return { name = s.name or tostring(id), spellID = id, iconID = s.icon or id, originalIconID = s.icon or id, castTime = 0, minRange = 0, maxRange = s.maxRange or 0 } end
+	if s then return { name = s.name or tostring(id), spellID = id, iconID = s.icon or id, originalIconID = s.icon or id, castTime = 0, minRange = s.minRange or 0, maxRange = s.maxRange or 0 } end
 end
 function C_Spell.IsSpellInRange(id, unit)
 	local s, d = QN_SPELLINFO[id], QN_DISTANCE[unit]
 	if not s or s.unchecked or not d or not UnitExists(unit) or (s.harmful and QN_FRIENDLY[unit]) then return nil end
-	-- alwaysInRange: as Heroic Strike in the game (true at charge distance)
-	return s.alwaysInRange or d <= (s.maxRange or 0)
+	-- alwaysInRange: as Heroic Strike in the game (true at charge distance);
+	-- closeInRange: within the minimum range still true (not known how the game reports it)
+	if s.alwaysInRange then return true end
+	return d <= (s.maxRange or 0) and (s.closeInRange or d >= (s.minRange or 0))
+end
+function UnitDistanceSquared(unit)
+	local d = QN_DISTANCE[unit]
+	if d and QN_DISTANCE_CHECKED[unit] then return d * d, true end
+	return 0, false
 end
 -- PlayerScriptDocumentation: 1 inspect (28 yd), 2 trade (11.11), 3 duel (9.9), 4 follow (28)
 function CheckInteractDistance(unit, i)

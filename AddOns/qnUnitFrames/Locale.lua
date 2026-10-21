@@ -39,6 +39,8 @@ L["Shows to the right of the focus frame the icon of your farthest ranged action
 L["Horizontal offset"] = "Horizontaler Versatz"
 L["Distance from the right edge of the frame; negative values move the icon to the left."] = "Abstand vom rechten Rand des Rahmens; negative Werte verschieben das Symbol nach links."
 L["Distance from the vertical center of the frame; positive values move the icon up."] = "Abstand von der vertikalen Mitte des Rahmens; positive Werte verschieben das Symbol nach oben."
+L["Show distance"] = "Entfernung anzeigen"
+L["Shows the distance to the unit in yards inside the icon: exact where the game reports it, otherwise the range between your range checks (e.g. 20-30)."] = "Zeigt im Symbol die Entfernung zur Einheit in Metern: genau, wo das Spiel sie meldet, sonst den Bereich zwischen deinen Reichweitenprüfungen (z. B. 20-30)."
 
 -- ClicksPage.lua
 L["Other spell …"] = "Anderer Zauber …"

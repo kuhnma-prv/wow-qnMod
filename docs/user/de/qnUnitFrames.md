@@ -59,8 +59,12 @@ zusätzlich je Klasse.
   negative Werte verschieben das Symbol nach links.
 - **Vertikaler Versatz** – Abstand von der vertikalen Mitte des Rahmens (−200 bis 200,
   Standard 0); positive Werte verschieben das Symbol nach oben.
+- **Entfernung anzeigen** – zeigt im Symbol die Entfernung zur Einheit in Metern. Standard: an.
+  Genau, wo das Spiel die Entfernung meldet, sonst den Bereich zwischen deinen
+  Reichweitenprüfungen: „20-30“ (zwischen 20 und 30 Metern), „<5“ (Nahkampfreichweite).
 
-Größe und Versatz lassen sich nur ändern, solange das Symbol am jeweiligen Rahmen eingeschaltet ist.
+Größe, Versatz und Entfernung lassen sich nur ändern, solange das Symbol am jeweiligen Rahmen
+eingeschaltet ist.
 
 So entscheidet das Reichweitensymbol, was es zeigt (Prüfung etwa fünfmal pro Sekunde):
 
@@ -69,7 +73,11 @@ So entscheidet das Reichweitensymbol, was es zeigt (Prüfung etwa fünfmal pro S
   (z. B. als Druide ohne Tiergestalt), entscheidet die Duell-Entfernung (etwa 10 Meter).
 - **Sonst:** Es erscheint das Symbol deines gerade einsetzbaren schädlichen Fernkampfzaubers aus
   dem Zauberbuch mit der größten Reichweite, sobald die Einheit in seiner Reichweite ist. Fehlendes
-  Mana, Wut oder Energie blendet es nicht aus.
+  Mana, Wut oder Energie blendet es nicht aus. Mal des Jägers zählt nicht: Seine Reichweite liegt
+  weit über jedem Angriff.
+- **Mindestreichweite:** Zauber mit Mindestreichweite (Schüsse des Jägers) zählen nicht, solange
+  die Einheit außerhalb der Nahkampfreichweite, aber innerhalb der Duell-Entfernung (etwa 10 Meter)
+  ist. Als Jäger siehst du in der toten Zone dann kein Symbol.
 - Kein Symbol, wenn du die Einheit nicht angreifen kannst (z. B. freundliche Einheiten), wenn sie
   außerhalb der Reichweite all dieser Zauber ist oder sich die Reichweite nicht prüfen lässt.
 

@@ -25,6 +25,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
   they are loaded, otherwise with the offline tool `tools\Convert-QnGatherer.ps1`), text export/import
   between qnGatherer users. Exchange of nodes with guild members who use qnGatherer (on by default,
   can be switched off; nothing is deleted through it), with a chat line when new nodes arrive.
+- **qnUnitFrames 0.3.0:** the range icon shows the distance to the unit inside the icon (exact where
+  the game reports it, otherwise the range like "20-30"); option "Show distance" per frame, on by default.
 
 ### Changed
 
@@ -39,6 +41,9 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
   instead of "Settings reset.".
 - **qnViewPort 0.1.9:** Blizzard menus (e.g. the chat button menu) and their submenus now open completely inside
   the monitor they belong to; submenus go to the left of their entry if there is no room on the right.
+- **qnUnitFrames 0.3.0:** for hunters the range icon no longer uses Hunter's Mark (shown up to
+  100 yards, far beyond any attack) and disappears again in the dead zone below the minimum range of
+  the shots.
 
 ## [0.3.0] - 2026-10-10
 

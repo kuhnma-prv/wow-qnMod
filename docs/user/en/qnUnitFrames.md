@@ -55,8 +55,11 @@ profile.
   negative values move the icon to the left.
 - **Vertical offset** – distance from the vertical center of the frame (−200 to 200, default 0);
   positive values move the icon up.
+- **Show distance** – shows the distance to the unit in yards inside the icon. Default: on. Exact
+  where the game reports the distance, otherwise the range between your range checks: "20-30"
+  (between 20 and 30 yards), "<5" (melee range).
 
-The size and offset sliders can only be changed while the icon of that frame is turned on.
+The size, offset and distance options can only be changed while the icon of that frame is turned on.
 
 How the range icon decides what to show (checked about five times per second):
 
@@ -65,7 +68,10 @@ How the range icon decides what to show (checked about five times per second):
   duel distance (about 10 yards) decides.
 - **Otherwise:** the icon of your farthest harmful ranged spell from the spellbook that can be
   used right now appears, as soon as the unit is within its range. Missing mana, rage or energy
-  does not hide it.
+  does not hide it. Hunter's Mark does not count: its range is far beyond every attack.
+- **Minimum range:** spells with a minimum range (hunter shots) do not count while the unit is
+  outside melee range but within the duel distance (about 10 yards). As a hunter you then see no
+  icon in the dead zone.
 - No icon if you cannot attack the unit (e.g. friendly units), if it is out of range of all these
   spells or if the range cannot be checked.
 

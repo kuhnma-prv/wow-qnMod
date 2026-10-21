@@ -45,6 +45,8 @@ local function Build(category, layout)
 			L["Distance from the right edge of the frame; negative values move the icon to the left."]), on, IsOn)
 		S.Depends(R:Slider(category, key .. "Y", L["Vertical offset"], offset[1], offset[2], 1, nil,
 			L["Distance from the vertical center of the frame; positive values move the icon up."]), on, IsOn)
+		S.Depends(R:Checkbox(category, key .. "Distance", L["Show distance"],
+			L["Shows the distance to the unit in yards inside the icon: exact where the game reports it, otherwise the range between your range checks (e.g. 20-30)."]), on, IsOn)
 	end
 
 	ns.InitClicksPage(category)
