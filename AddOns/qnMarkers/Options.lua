@@ -51,6 +51,10 @@ local function BuildBar(cat, layout)
 	S.Header(layout, L["Position"])
 	B:KeepVisible(cat, layout, { bar = true, move = function() ns.MoveIntoVisible() end, slash = "/qnmarkers visible" })
 	S.Button(layout, L["Reset position"], RESET, function() ns.ResetPosition() end)
+
+	S.Header(layout, L["Blizzard's raid manager"])
+	B:Checkbox(cat, "hideRaidManager", L["Hide raid manager"],
+		L["Makes Blizzard's raid manager at the left edge of the screen (panel and its tab) transparent and click-through. The raid frames themselves stay. Applied out of combat; switching it off restores the manager."])
 end
 
 ---------------------------------------------------------------------------

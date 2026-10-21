@@ -23,6 +23,7 @@ Optionally it shows an icon above nameplates – class, role, friend or guild me
 - Works with key bindings too: the buttons are named `qnMarkersBarMarker1` … `qnMarkersBarMarker8`
   (bar order), `qnMarkersBarClearWorld`, `qnMarkersBarClearTarget`, `qnMarkersBarGrip`, so a macro
   like `/click qnMarkersBarMarker1 RightButton` sets the skull on your target.
+- Optionally hides Blizzard's raid manager at the left edge of the screen (the raid frames stay).
 - **Markers above nameplates** (off by default): an icon above the nameplates of friendly players,
   group members, enemy players, PvP-flagged players, NPCs or pets – you choose which.
   - Icon per unit: **class** icon, **role** icon (group members) or a **texture** (arrow, heart,
@@ -80,6 +81,12 @@ All settings are stored per profile (= per Edit Mode layout, see qnCore).
 - **Find bar** – button **Move into visible area** moves the bar onto the nearest visible monitor
   now (same as `/qnmarkers visible`).
 - **Reset position** – puts the bar back to its default position.
+
+**Blizzard's raid manager**
+
+- **Hide raid manager** – makes Blizzard's raid manager at the left edge of the screen (panel and its
+  tab) transparent and click-through. The raid frames themselves stay. Applied out of combat;
+  switching it off restores the manager. Default: off.
 
 ### Nameplate Markers
 

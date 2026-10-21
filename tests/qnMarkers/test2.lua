@@ -29,7 +29,7 @@ local function Refresh() mk.ApplyPlates() RunTimers() end
 ---------------------------------------------------------------------------
 -- Repair on load
 ---------------------------------------------------------------------------
-Check(qnMarkersDB.settingsVersion == "1.1", "settings version 1.1 (nameplate markers added)")
+Check(qnMarkersDB.settingsVersion == "1.2", "settings version raised from 1.0 (minor: only additions)")
 Check(p.texture == "arrow" and p.rotation == 360 and #p.glowColor == 4, "unknown texture, rotation and broken color repaired")
 Check(p.friendly.icon == "class" and p.friendly.size == 100 and p.friendly.shape == "square", "invalid icon type, size and shape repaired")
 Check(p.enabled == false and p.enemies == false, "markers and enemy markers off by default")

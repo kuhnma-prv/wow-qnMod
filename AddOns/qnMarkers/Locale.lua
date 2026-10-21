@@ -35,6 +35,9 @@ L["Prevents moving the bar by its grip."] = "Verhindert das Verschieben der Leis
 L["Floating"] = "Schwebend"
 L["Without background and border: only the buttons are visible."] = "Ohne Hintergrund und Rahmen: nur die Knöpfe sind sichtbar."
 L["Button spacing"] = "Knopfabstand"
+L["Blizzard's raid manager"] = "Blizzards Schlachtzugsmanager"
+L["Hide raid manager"] = "Schlachtzugsmanager ausblenden"
+L["Makes Blizzard's raid manager at the left edge of the screen (panel and its tab) transparent and click-through. The raid frames themselves stay. Applied out of combat; switching it off restores the manager."] = "Macht Blizzards Schlachtzugsmanager am linken Bildschirmrand (Leiste und ihren Reiter) durchsichtig und durchklickbar. Die Schlachtzugsfenster selbst bleiben. Wird außerhalb des Kampfes übernommen; Ausschalten stellt den Manager wieder her."
 
 -- Plates.lua
 L["Arrow"] = "Pfeil"

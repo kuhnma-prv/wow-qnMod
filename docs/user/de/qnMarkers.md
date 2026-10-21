@@ -27,6 +27,8 @@ Rolle, Freund oder Gildenmitglied auf einen Blick.
   `qnMarkersBarMarker8` (Reihenfolge der Leiste), `qnMarkersBarClearWorld`,
   `qnMarkersBarClearTarget`, `qnMarkersBarGrip`; ein Makro wie
   `/click qnMarkersBarMarker1 RightButton` setzt den Totenschädel auf dein Ziel.
+- Blendet wahlweise Blizzards Schlachtzugsmanager am linken Bildschirmrand aus (die
+  Schlachtzugsfenster bleiben).
 - **Symbole über Namensplaketten** (standardmäßig aus): ein Symbol über den Namensplaketten von
   freundlichen Spielern, Gruppenmitgliedern, gegnerischen Spielern, Spielern mit PvP-Markierung, NSCs
   oder Begleitern – du wählst, welche.
@@ -89,6 +91,12 @@ Alle Einstellungen werden pro Profil gespeichert (= pro Layout des Bearbeitungsm
 - **Leiste suchen** – Knopf **In sichtbaren Bereich holen** holt die Leiste sofort auf den nächsten
   sichtbaren Monitor (wie `/qnmarkers visible`).
 - **Position zurücksetzen** – setzt die Leiste an ihre Standardposition zurück.
+
+**Blizzards Schlachtzugsmanager**
+
+- **Schlachtzugsmanager ausblenden** – macht Blizzards Schlachtzugsmanager am linken Bildschirmrand
+  (Leiste und ihren Reiter) durchsichtig und durchklickbar. Die Schlachtzugsfenster selbst bleiben.
+  Wird außerhalb des Kampfes übernommen; Ausschalten stellt den Manager wieder her. Standard: aus.
 
 ### Symbole über Namensplaketten
 
