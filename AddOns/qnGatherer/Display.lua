@@ -9,7 +9,7 @@ local L = ns.L
 local D = {}
 ns.Display = D
 
-local listeners = {}
+local refreshed = qnCore.NewSignal()   -- redraw needed
 local professions     -- [kind] = true/false, nil = read again
 local tracking        -- [spellID] = true for active tracking, nil = read again
 local icons = {}      -- [res] = icon
@@ -18,15 +18,9 @@ local icons = {}      -- [res] = icon
 ns.IMPORT_NAMES = { gm2 = "GatherMate2", gt = "GatherTogether", file = "qnGatherer" }   -- do not translate
 
 -- fn() after every change that needs a redraw (data, settings, profession, tracking)
-function D.OnRefresh(fn)
-	listeners[#listeners + 1] = fn
-end
+D.OnRefresh = refreshed.Add
 
-D.Refresh = qnCore.Debounce(function()
-	for _, fn in ipairs(listeners) do
-		fn()
-	end
-end)
+D.Refresh = qnCore.Debounce(refreshed.Fire)
 
 ---------------------------------------------------------------------------
 -- Visibility

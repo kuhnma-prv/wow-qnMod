@@ -33,7 +33,7 @@ ns.defaults = {
 
 -- "Name-Realm" of the logged-in character
 function ns.CharKey()
-	return UnitName("player") .. "-" .. GetRealmName()
+	return qnCore.PlayerKey() or "?"
 end
 
 -- Parts of s between the separator sep (plain text, empty parts included)

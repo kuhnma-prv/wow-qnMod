@@ -479,24 +479,19 @@ end
 -- Window
 ---------------------------------------------------------------------------
 
--- Offsets relative to UIParent, not the raw GetPoint values: after dragging the anchor may be
--- attached to the screen instead of UIParent, and with qnViewPort UIParent may not be at 0,0.
+-- Position relative to UIParent at the window's current anchor points (qnCore.SavePoint)
 local function SavePosition(f, key)
 	local point, _, relPoint = f:GetPoint()
-	point, relPoint = point or "CENTER", relPoint or "CENTER"
-	local x, y = qnCore.PointOffset(f, point, relPoint)
-	if x then
-		DB.global.windows[key].pos = { point, relPoint, math.floor(x + 0.5), math.floor(y + 0.5) }
-	end
+	DB.global.windows[key].pos = qnCore.SavePoint(f, point or "CENTER", relPoint or "CENTER") or DB.global.windows[key].pos
 end
 J.SavePosition = SavePosition
 
 local function RestorePosition(f, key, default)
 	local pos = DB.global.windows[key].pos
-	f:ClearAllPoints()
 	if pos then
-		f:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4])
+		qnCore.RestorePoint(f, pos)
 	else
+		f:ClearAllPoints()
 		f:SetPoint(unpack(default))
 	end
 end
@@ -504,16 +499,7 @@ J.RestorePosition = RestorePosition
 
 -- Movable window with the position in qnGathererDB.global.windows[key], Escape closes
 function J.SetupWindow(f, key, default)
-	f:SetMovable(true)
-	f:EnableMouse(true)
-	f:SetClampedToScreen(true)
-	f:SetToplevel(true)
-	f:RegisterForDrag("LeftButton")
-	f:SetScript("OnDragStart", f.StartMoving)
-	f:SetScript("OnDragStop", function(self)
-		self:StopMovingOrSizing()
-		SavePosition(self, key)
-	end)
+	UI.Movable(f, { toplevel = true, onStop = function(self) SavePosition(self, key) end })
 	RestorePosition(f, key, default)
 end
 

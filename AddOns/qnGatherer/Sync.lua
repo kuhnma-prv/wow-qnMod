@@ -253,9 +253,7 @@ end
 local announce = {}      -- ["sender\tkind\tmap"] = count
 
 local QueueAnnounce = qnCore.Debounce(function()
-	local keys = {}
-	for key in pairs(announce) do keys[#keys + 1] = key end
-	table.sort(keys)
+	local keys = qnCore.SortedKeys(announce)
 	for _, key in ipairs(keys) do
 		local sender, kind, map = key:match("^(.-)\t(.-)\t(%d+)$")
 		local info = C_Map.GetMapInfo(tonumber(map))
