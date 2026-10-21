@@ -6,13 +6,11 @@ if not qnCore.GERMAN then return end
 
 -- Core.lua
 L["Commands:\n  /qnnkp – open options\n  /qnnkp lock | unlock – lock/unlock position\n  /qnnkp on | off – enable/disable numpad\n  /qnnkp reset – reset position\n  /qnnkp visible – move bar into the visible area"] = "Befehle:\n  /qnnkp – Optionen öffnen\n  /qnnkp lock | unlock – Position sperren/entsperren\n  /qnnkp on | off – Ziffernblock ein-/ausschalten\n  /qnnkp reset – Position zurücksetzen\n  /qnnkp visible – Leiste in den sichtbaren Bereich holen"
-L["Position locked."] = "Position gesperrt."
 L["Position unlocked. Left-click to drag, right-click to open the options."] = "Position entsperrt. Ziehen mit der linken Maustaste, Rechtsklick öffnet die Optionen."
 L["Disabled. To enable it, type /qnnkp on"] = "Ausgeschaltet. Einschalten mit /qnnkp on"
 L["Left-click to drag the bar, right-click to open the options. Lock it with /qnnkp lock."] = "Leiste mit der linken Maustaste verschieben, Rechtsklick öffnet die Optionen. Sperren mit /qnnkp lock."
 
 -- Bar.lua
-L["Bar"] = "Leiste"
 L["Left-click and drag: move"] = "Linke Maustaste ziehen: verschieben"
 L["Right-click: options"] = "Rechtsklick: Optionen"
 L["/qnnkp lock: lock position"] = "/qnnkp lock: Position sperren"
@@ -36,7 +34,6 @@ L["Page 14 – Action Bar 7"] = "Seite 14 – Aktionsleiste 7"
 L["Page 15 – Action Bar 8"] = "Seite 15 – Aktionsleiste 8"
 L["Numpad enabled"] = "Ziffernblock aktiv"
 L["Off: bar hidden and all numpad keybinds removed."] = "Aus: Leiste ausgeblendet und alle Tastenbelegungen des Ziffernblocks aufgehoben."
-L["Lock position"] = "Position sperren"
 L["Prevents accidental moving. When unlocked, the bar shows a green area for dragging; right-clicking it opens these options."] = "Verhindert versehentliches Verschieben. Entsperrt zeigt die Leiste eine grüne Fläche zum Ziehen; Rechtsklick darauf öffnet diese Optionen."
 L["Always lock actions"] = "Aktionen immer sperren"
 L["Actions can only be dragged out with the 'Pick Up Action' key (default: Shift). Works in addition to the Blizzard option 'Lock Action Bars'."] = "Aktionen lassen sich nur mit der Taste für 'Aktion aufnehmen' (Standard: Umschalt) herausziehen. Wirkt zusätzlich zur Blizzard-Einstellung 'Aktionsleisten sperren'."

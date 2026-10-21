@@ -1533,3 +1533,48 @@ C_ChatInfo.SendAddonMessage = function(p, t, c, tg) local r = QN_SEND_RESULT or 
 C_ChatInfo.InChatMessagingLockdown = function() return QN_CHAT_LOCKDOWN or false end
 function IsInGuild() return QN_IN_GUILD ~= false end
 function Ambiguate(name) return (name:gsub("%-" .. GetNormalizedRealmName() .. "$", "")) end
+
+-- qnMarkers needs: raid markers (RaidMarkersDocumentation), group leader functions (PartyInfo-,
+-- UnitDocumentation) and secure clicks of action buttons (SecureTemplates.lua: SecureActionButton_OnClick
+-- for mouse clicks acts on release; SecureButton_GetModifiedAttribute excerpt: "<name><button number>"
+-- before "<name>"; SECURE_ACTIONS.worldmarker, raidtarget, macro).
+-- QN_WORLD_MARKERS = false: world markers not available (IsRaidMarkerSystemEnabled);
+-- QN_WORLD_ACTIVE[index] = placed world markers; QN_RAID_TARGETS[unit] = target marker;
+-- QN_PARTY_CALLS: calls of C_PartyInfo ("readycheck", "countdown 5", "leave"); QN_MACROS_RUN: macro texts;
+-- QN_LEADER / QN_ASSIST: player is group leader / assistant.
+VALID.PARTY_LEADER_CHANGED = true   -- PartyInfoDocumentation
+QN_WORLD_ACTIVE, QN_RAID_TARGETS, QN_PARTY_CALLS, QN_MACROS_RUN = {}, {}, {}, {}
+function IsRaidMarkerSystemEnabled() return QN_WORLD_MARKERS ~= false end
+function IsRaidMarkerActive(i) return QN_WORLD_ACTIVE[i] or false end
+function PlaceRaidMarker(i) QN_WORLD_ACTIVE[i] = true end
+function ClearRaidMarker(i) if i then QN_WORLD_ACTIVE[i] = nil else wipe(QN_WORLD_ACTIVE) end end
+GetRaidTargetIndex = GetRaidTargetIndex or function(u) return QN_RAID_TARGETS[u] end
+function SetRaidTarget(u, i) QN_RAID_TARGETS[u] = i ~= 0 and i or nil end
+function RemoveRaidTargets() wipe(QN_RAID_TARGETS) end
+function UnitIsGroupLeader(u) return u == "player" and QN_LEADER or false end
+function UnitIsGroupAssistant(u) return u == "player" and QN_ASSIST or false end
+C_PartyInfo = C_PartyInfo or {}
+function C_PartyInfo.DoReadyCheck() QN_PARTY_CALLS[#QN_PARTY_CALLS + 1] = "readycheck" end
+function C_PartyInfo.DoCountdown(s) QN_PARTY_CALLS[#QN_PARTY_CALLS + 1] = "countdown " .. s end
+function C_PartyInfo.LeaveParty() QN_PARTY_CALLS[#QN_PARTY_CALLS + 1] = "leave" end
+-- Mouse click on a secure action button (mouseButton "LeftButton"/"RightButton"), then PostClick.
+function SecureClick(f, mouseButton)
+	local suffix = ({ LeftButton = "1", RightButton = "2", MiddleButton = "3" })[mouseButton] or ""
+	local function Attr(name) local v = f:GetAttribute(name .. suffix) if v == nil then v = f:GetAttribute(name) end return v end
+	local kind = Attr("type")
+	if kind == "worldmarker" then
+		local marker, action = tonumber(Attr("marker")), Attr("action") or "toggle"
+		if action == "set" then PlaceRaidMarker(marker or 1)
+		elseif action == "clear" then ClearRaidMarker(marker)
+		elseif action == "toggle" then marker = marker or 1 if IsRaidMarkerActive(marker) then ClearRaidMarker(marker) else PlaceRaidMarker(marker) end end
+	elseif kind == "raidtarget" then
+		local unit, marker, action = Attr("unit") or "target", tonumber(Attr("marker")) or 1, Attr("action") or "toggle"
+		if action == "set" and GetRaidTargetIndex(unit) ~= marker then SetRaidTarget(unit, marker)
+		elseif action == "clear" then SetRaidTarget(unit, 0)
+		elseif action == "clear-all" then RemoveRaidTargets()
+		elseif action == "toggle" then if GetRaidTargetIndex(unit) == marker then SetRaidTarget(unit, 0) else SetRaidTarget(unit, marker) end end
+	elseif kind == "macro" then
+		QN_MACROS_RUN[#QN_MACROS_RUN + 1] = Attr("macrotext")
+	end
+	if f._scripts.PostClick then f._scripts.PostClick(f, mouseButton, false) end
+end
