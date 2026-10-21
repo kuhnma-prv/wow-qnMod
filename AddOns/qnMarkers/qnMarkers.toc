@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: qnMod [|cffeda55fMarkers|r] |cff00aa000.1.0|r
+## Title: qnMod [|cffeda55fMarkers|r] |cff00aa000.2.0|r
 ## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
-## Notes: Raid marker bar: world markers, target markers, ready check and pull timer (for WoW Classic Forever).
-## Notes-deDE: Leiste für Schlachtzugsmarkierungen: Bodenmarkierungen, Zielmarkierungen, Bereitschaftscheck und Pull-Timer (für WoW Classic Forever).
+## Notes: Raid marker bar (world markers, target markers, ready check, pull timer) and markers above nameplates (for WoW Classic Forever).
+## Notes-deDE: Markierungsleiste (Bodenmarkierungen, Zielmarkierungen, Bereitschaftscheck, Pull-Timer) und Symbole über Namensplaketten (für WoW Classic Forever).
 ## Author: qn
-## Version: 0.1.0
+## Version: 0.2.0
 ## Group: qnCore
 ## Category-enUS: User Interface
 ## Category-deDE: Benutzerinterface
@@ -24,4 +24,5 @@ Locale.lua
 Core.lua
 Markers.lua
 Bar.lua
+Plates.lua
 Options.lua

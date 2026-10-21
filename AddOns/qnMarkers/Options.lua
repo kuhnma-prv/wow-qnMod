@@ -9,7 +9,7 @@ local S = qnCore.Settings
 -- Values from slash commands and the grip are set via ns.store:Set or ns.store:SetValues (qnCore):
 -- that way the settings window shows them too.
 
-local function Build(cat, layout)
+local function BuildBar(cat, layout)
 	local B = S.New({ store = ns.store, prefix = "QNMARKERS_", apply = ns.Apply })
 
 	S.Header(layout, L["Raid Marker Bar"])
@@ -51,6 +51,119 @@ local function Build(cat, layout)
 	S.Header(layout, L["Position"])
 	B:KeepVisible(cat, layout, { bar = true, move = function() ns.MoveIntoVisible() end, slash = "/qnmarkers visible" })
 	S.Button(layout, L["Reset position"], RESET, function() ns.ResetPosition() end)
+end
+
+---------------------------------------------------------------------------
+-- Nameplate markers (Plates.lua)
+---------------------------------------------------------------------------
+
+qnCore.Popup.EditText("QNMARKERS_TEXTURE", L["Texture file or atlas name, e.g. Interface\\Icons\\INV_Misc_QuestionMark:"],
+	function() return ns.db.plates.customTexture end,
+	function(text)
+		ns.PlatesBuilder:Set("customTexture", strtrim(text))
+		ns.PlatesBuilder:Set("texture", "custom")
+	end, 300)
+
+local function TextureEntries()
+	local list = {}
+	for _, t in ipairs(ns.TEXTURES) do
+		list[#list + 1] = { t[1], t[2] }
+	end
+	return list
+end
+
+local function BuildPlates(category)
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, L["Nameplate Markers"])
+	local P = S.New({ store = ns.store, prefix = "QNMARKERS_PLATES_", apply = ns.ApplyPlates,
+		source = function() return ns.db.plates end, defaults = ns.defaults.plates })
+	ns.PlatesBuilder = P
+
+	local enabled = P:Checkbox(cat, "enabled", L["Show markers above nameplates"],
+		L["An icon above the nameplate of the units chosen below. Nameplates must be switched on in the game."])
+	local On = P:When("enabled")
+	local function Sub(init)
+		return S.Depends(init, enabled, On)
+	end
+
+	S.Header(layout, FILTERS)
+	Sub(P:Checkbox(cat, "allies", UNIT_NAME_FRIENDLY))
+	Sub(P:Checkbox(cat, "group", L["Group members"]))
+	Sub(P:Checkbox(cat, "enemies", UNIT_NAME_ENEMY, L["Values of enemies can be hidden by the game in combat; then they get no marker."]))
+	Sub(P:Checkbox(cat, "pvp", L["Players flagged for PvP"]))
+	Sub(P:Checkbox(cat, "npcs", L["NPCs"]))
+	Sub(P:Checkbox(cat, "pets", PETS, L["Pets of other players, smaller, with their portrait."]))
+	Sub(P:Checkbox(cat, "ownPet", L["Your pet"], L["Also when the option for pets is off."]))
+	Sub(P:Checkbox(cat, "arenaOnly", L["Only in arenas"]))
+
+	S.Header(layout, L["Roles"])
+	local roleTip = L["Only group members with an assigned role are filtered; all others are not affected."]
+	Sub(P:Checkbox(cat, "tank", L["Tanks"], roleTip))
+	Sub(P:Checkbox(cat, "healer", L["Healers"], roleTip))
+	Sub(P:Checkbox(cat, "dps", L["Damage dealers"], roleTip))
+
+	S.Header(layout, L["Special icons"])
+	Sub(P:Checkbox(cat, "friends", FRIENDS, L["A heart for your friends (friend list and Battle.net)."]))
+	Sub(P:Checkbox(cat, "guild", GUILD, L["A shield for members of your guild."]))
+
+	S.Header(layout, APPEARANCE_LABEL)
+	Sub(P:Checkbox(cat, "classColors", CLASS_COLORS, L["Role and texture icons in the class color of the unit."]))
+	Sub(P:Checkbox(cat, "desaturate", L["Desaturate icons"], L["Role and texture icons in gray before coloring them."]))
+	Sub(P:Checkbox(cat, "enemyRed", L["Enemies in red"], L["Role and texture icons of enemies in red."]))
+	Sub(P:Checkbox(cat, "distanceFade", L["Fade with the nameplate"], L["The marker becomes as transparent as its nameplate (distance, not targeted)."]))
+	local glow = Sub(P:Checkbox(cat, "targetGlow", L["Glow on the target"], L["A glow around the marker of your current target."]))
+	S.Depends(P:Color(cat, "glowColor", COLOR), glow, P:When("targetGlow"))
+	Sub(P:Dropdown(cat, "texture", L["Texture"], TextureEntries, L["Icon of the icon type \"Texture\"."]))
+	Sub(S.Button(layout, L["Custom texture"], L["Edit …"], function() StaticPopup_Show("QNMARKERS_TEXTURE") end,
+		L["Sets the file or atlas of the texture \"Custom texture\"."]))
+	Sub(P:Slider(cat, "rotation", L["Rotation"], 0, 360, 15, function(v) return ("%d°"):format(v) end))
+	Sub(P:Slider(cat, "petScale", L["Size of pets"], 0.25, 1, 0.05, S.FractionFormatter))
+end
+
+local ICON_ENTRIES = {
+	{ "class", CLASS },
+	{ "role", ROLE },
+	{ "texture", L["Texture"] },
+}
+
+-- Page of the friendly or enemy markers; usable while the markers are switched on
+local function BuildSide(category, title, key)
+	local cat, layout = Settings.RegisterVerticalLayoutSubcategory(category, title)
+	local B = S.New({ store = ns.store, prefix = "QNMARKERS_" .. key:upper() .. "_", apply = ns.ApplyPlates,
+		source = function() return ns.db.plates[key] end, defaults = ns.defaults.plates[key] })
+	local function On()
+		return ns.db.plates.enabled
+	end
+	local function Sub(init)
+		init:AddModifyPredicate(On)
+		return init
+	end
+
+	S.Header(layout, L["Icon"])
+	Sub(B:Dropdown(cat, "icon", L["Icon type"], ICON_ENTRIES,
+		L["Class: class icon of players. Role: role of group members. Texture: the texture chosen on the page \"Nameplate Markers\"."]))
+	local fallback = { { "none", NONE } }
+	for _, e in ipairs(ICON_ENTRIES) do
+		fallback[#fallback + 1] = e
+	end
+	Sub(B:Dropdown(cat, "fallback", L["Otherwise"], fallback, L["Icon type when the first one is not available (e.g. no role or not a player)."]))
+
+	S.Header(layout, L["Size and position"])
+	Sub(B:Slider(cat, "size", HUD_EDIT_MODE_SETTING_ACTION_BAR_ICON_SIZE, 16, 100, 2))
+	Sub(B:Slider(cat, "offsetX", L["Horizontal offset"], -100, 100, 1))
+	Sub(B:Slider(cat, "offsetY", L["Vertical offset"], -100, 100, 1))
+
+	S.Header(layout, L["Frame"])
+	Sub(B:Dropdown(cat, "shape", L["Shape"], { { "square", L["Square"] }, { "circle", L["Round"] } }))
+	local bg = Sub(B:Checkbox(cat, "background", BACKGROUND))
+	S.Depends(Sub(B:Slider(cat, "padding", L["Padding"], 0, 10, 1)), bg, B:When("background"))
+	Sub(B:Checkbox(cat, "border", L["Border"], L["Border in the class color of players."]))
+end
+
+local function Build(category, layout)
+	BuildBar(category, layout)
+	BuildPlates(category)
+	BuildSide(category, L["Friendly Markers"], "friendly")
+	BuildSide(category, L["Enemy Markers"], "enemy")
 end
 
 -- sets ns.category and ns.OpenOptions

@@ -42,21 +42,103 @@ ns.defaults = {
 	autoVisible = false,          -- keep in the visible area automatically (with qnViewPort: on one monitor)
 	x = 600,
 	y = -150,
+
+	-- Markers above nameplates (Plates.lua)
+	plates = {
+		enabled = false,
+		-- which units get a marker
+		allies = true,             -- friendly players
+		group = true,              -- group members
+		enemies = false,           -- enemy players
+		pvp = false,               -- players flagged for PvP
+		npcs = false,
+		pets = false,              -- pets of other players
+		ownPet = false,
+		arenaOnly = false,
+		-- roles (only known for group members)
+		tank = true,
+		healer = true,
+		dps = true,
+		-- special icons
+		friends = true,
+		guild = true,
+		-- look
+		classColors = true,        -- role and texture icons in class color
+		desaturate = true,
+		enemyRed = true,           -- role and texture icons of enemies red
+		distanceFade = false,      -- fade with the nameplate
+		targetGlow = false,
+		glowColor = { 1, 1, 1, 1 },
+		texture = "arrow",         -- key in ns.TEXTURES
+		customTexture = "",        -- file or atlas for texture = "custom"
+		rotation = 0,
+		petScale = 0.5,            -- size of other players' pets
+		friendly = { icon = "class", fallback = "texture", size = 40, offsetX = 0, offsetY = 10,
+			background = true, shape = "square", padding = 1, border = true },
+		enemy = { icon = "class", fallback = "texture", size = 40, offsetX = 0, offsetY = 10,
+			background = true, shape = "square", padding = 1, border = true },
+	},
 }
 
 ns.VISIBILITY = { always = true, group = true, raid = true }
 ns.ORIENTATION = { horizontal = true, vertical = true }
 
 -- Version of the settings (see qnCore.Migrate)
-local SETTINGS_VERSION = "1.0"
+-- 1.1: markers above nameplates (plates)
+local SETTINGS_VERSION = "1.1"
+
+-- Values of the wrong type fall back to their default (nil); tables with keys are checked inside,
+-- color lists must be complete.
+local function SanitizeTypes(t, defaults)
+	for key, default in pairs(defaults) do
+		local v = t[key]
+		if v ~= nil then
+			if type(v) ~= type(default) then
+				t[key] = nil
+			elseif type(default) == "table" then
+				if default[1] ~= nil then
+					if not lib.ValidColor(v) then
+						t[key] = nil
+					end
+				else
+					SanitizeTypes(v, default)
+				end
+			end
+		end
+	end
+end
+
+-- ns.TEXTURES and the choices come from Plates.lua (loaded before ADDON_LOADED)
+local function SanitizePlates(p)
+	local known = false
+	for _, t in ipairs(ns.TEXTURES) do
+		if t[1] == p.texture then
+			known = true
+		end
+	end
+	if p.texture ~= nil and not known then
+		p.texture = nil
+	end
+	if p.rotation ~= nil then p.rotation = lib.Clamp(p.rotation, 0, 360) end
+	if p.petScale ~= nil then p.petScale = lib.Clamp(p.petScale, 0.25, 1) end
+	for _, side in ipairs({ p.friendly, p.enemy }) do
+		if type(side) == "table" then
+			if side.icon ~= nil and not ns.ICON_TYPES[side.icon] then side.icon = nil end
+			if side.fallback ~= nil and not ns.FALLBACK_TYPES[side.fallback] then side.fallback = nil end
+			if side.shape ~= nil and not ns.SHAPES[side.shape] then side.shape = nil end
+			if side.size ~= nil then side.size = lib.Clamp(side.size, 16, 100) end
+			if side.padding ~= nil then side.padding = lib.Clamp(side.padding, 0, 10) end
+			if side.offsetX ~= nil then side.offsetX = lib.Clamp(side.offsetX, -100, 100) end
+			if side.offsetY ~= nil then side.offsetY = lib.Clamp(side.offsetY, -100, 100) end
+		end
+	end
+end
 
 -- Check of a profile on every load: invalid values fall back to their default (nil).
 local function Sanitize(db)
-	for key, default in pairs(ns.defaults) do
-		local v = db[key]
-		if v ~= nil and type(v) ~= type(default) then
-			db[key] = nil
-		end
+	SanitizeTypes(db, ns.defaults)
+	if type(db.plates) == "table" then
+		SanitizePlates(db.plates)
 	end
 	if db.visibility ~= nil and not ns.VISIBILITY[db.visibility] then
 		db.visibility = nil
@@ -67,11 +149,6 @@ local function Sanitize(db)
 	if db.scale ~= nil then db.scale = lib.Clamp(db.scale, 0.5, 2) end
 	if db.size ~= nil then db.size = lib.Clamp(db.size, 20, 42) end
 	if db.gap ~= nil then db.gap = lib.Clamp(db.gap, 0, 8) end
-	for _, key in ipairs({ "borderColor", "bgColor" }) do
-		if db[key] ~= nil and not lib.ValidColor(db[key]) then
-			db[key] = nil
-		end
-	end
 end
 ns.Sanitize = Sanitize
 
@@ -148,7 +225,10 @@ ns.OnLoad(function()
 		sv = "qnMarkersDB",
 		settingsVersion = SETTINGS_VERSION,
 		sanitize = Sanitize,
-		onSwitch = ns.Apply,
+		onSwitch = function()
+			ns.Apply()
+			ns.ApplyPlates()
+		end,
 	})
 	ns.CreateBar()
 	ns.InitOptions()

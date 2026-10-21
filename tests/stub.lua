@@ -1543,6 +1543,9 @@ function Ambiguate(name) return (name:gsub("%-" .. GetNormalizedRealmName() .. "
 -- QN_PARTY_CALLS: calls of C_PartyInfo ("readycheck", "countdown 5", "leave"); QN_MACROS_RUN: macro texts;
 -- QN_LEADER / QN_ASSIST: player is group leader / assistant.
 VALID.PARTY_LEADER_CHANGED = true   -- PartyInfoDocumentation
+-- NamePlateManager-, PartyInfo-, FriendList-, GuildInfo-, UnitDocumentation (nameplate markers)
+for _, e in ipairs({ "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "PLAYER_ROLES_ASSIGNED", "FRIENDLIST_UPDATE",
+	"BN_FRIEND_INFO_CHANGED", "PLAYER_GUILD_UPDATE", "UNIT_FACTION" }) do VALID[e] = true end
 QN_WORLD_ACTIVE, QN_RAID_TARGETS, QN_PARTY_CALLS, QN_MACROS_RUN = {}, {}, {}, {}
 function IsRaidMarkerSystemEnabled() return QN_WORLD_MARKERS ~= false end
 function IsRaidMarkerActive(i) return QN_WORLD_ACTIVE[i] or false end
@@ -1577,4 +1580,55 @@ function SecureClick(f, mouseButton)
 		QN_MACROS_RUN[#QN_MACROS_RUN + 1] = Attr("macrotext")
 	end
 	if f._scripts.PostClick then f._scripts.PostClick(f, mouseButton, false) end
+end
+-- qnMarkers needs: nameplates, only on request of a scenario: call EnableNamePlates() after
+-- EnableTooltips() (units in QN_UNITS). Modeled on the Forever source:
+--   C_NamePlate.GetNamePlateForUnit / GetNamePlates (NamePlateDocumentation), events
+--   NAME_PLATE_UNIT_ADDED/REMOVED (the plate is still found while REMOVED is handled,
+--   NamePlateDriverMixin:OnNamePlateRemoved), GetIconForRole (Blizzard_SharedXMLBase\TextureUtil.lua),
+--   UnitCreatureType returns name, id.
+-- AddNamePlate(unit, data) puts data into QN_UNITS and adds a nameplate; RemoveNamePlate(unit).
+-- Unit fields additionally: inParty, myGuild, enemy, pvp, otherPet, creatureID.
+-- QN_NO_ATLAS[atlas] = true: C_Texture.GetAtlasInfo finds no such atlas. QN_BNET[guid]: Battle.net friend.
+-- Textures record SetAtlas (._atlas), SetDesaturated (._desat), SetRotation (._rotation), portraits (._portrait).
+function EnableNamePlates()
+	QN_PLATES, QN_NO_ATLAS, QN_BNET = {}, {}, {}
+	local U = function(u) local r = UNIT_RESOLVE(u) return r and QN_UNITS[r] end
+	C_NamePlate = {
+		GetNamePlateForUnit = function(u) return QN_PLATES[u] end,
+		GetNamePlates = function() local t = {} for _, p in pairs(QN_PLATES) do t[#t + 1] = p end return t end,
+	}
+	function AddNamePlate(unit, data)
+		QN_UNITS[unit] = data
+		if data.guid then QN_GUIDS[data.guid] = unit end
+		QN_PLATES[unit] = QN_PLATES[unit] or NewFrame("Frame", nil, WorldFrame)
+		FireEvent("NAME_PLATE_UNIT_ADDED", unit)
+		RunTimers()
+		return QN_PLATES[unit]
+	end
+	function RemoveNamePlate(unit)
+		FireEvent("NAME_PLATE_UNIT_REMOVED", unit)
+		QN_PLATES[unit], QN_UNITS[unit] = nil, nil
+		RunTimers()
+	end
+	function UnitInParty(u) local d = U(u) return d and d.inParty or false end
+	function UnitIsInMyGuild(u) local d = U(u) return d and d.myGuild or false end
+	function UnitIsEnemy(a, b) local d = U(b) return d and d.enemy or false end
+	function UnitIsPVP(u) local d = U(u) return d and d.pvp or false end
+	function UnitIsOtherPlayersPet(u) local d = U(u) return d and d.otherPet or false end
+	function UnitCreatureType(u) local d = U(u) if d then return d.creature, d.creatureID end end
+	C_Texture = C_Texture or {}
+	C_Texture.GetAtlasInfo = function(a) if a and not QN_NO_ATLAS[a] then return { file = a } end end
+	local ROLE_ICONS = { GUIDE = "UI-LFG-RoleIcon-Leader", TANK = "UI-LFG-RoleIcon-Tank", HEALER = "UI-LFG-RoleIcon-Healer", DAMAGER = "UI-LFG-RoleIcon-DPS", NONE = "UI-LFG-RoleIcon-DPS" }
+	function GetIconForRole(role) return ROLE_ICONS[role] end
+	C_BattleNet = C_BattleNet or {}
+	C_BattleNet.GetAccountInfoByGUID = function(guid) return QN_BNET[guid] and { isFriend = true } or nil end
+	function SetPortraitTexture(tex, unit) tex._portrait = unit tex._texture = nil tex._atlas = nil end
+	function Frame:SetAtlas(a) self._atlas, self._texture = a, nil end
+	function Frame:SetTexture(t) self._texture, self._atlas = t, nil end
+	function Frame:SetDesaturated(on) self._desat = on end
+	function Frame:SetRotation(r) self._rotation = r end
+	function Frame:SetIgnoreParentAlpha(on) self._ignoreAlpha = on end
+	function Frame:AddMaskTexture(m) self._mask = m end
+	function Frame:RemoveMaskTexture() self._mask = nil end
 end
