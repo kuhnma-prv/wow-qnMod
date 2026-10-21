@@ -39,6 +39,7 @@ end
 
 local function Create()
 	frame = CreateFrame("Frame", "qnInventoryBagsFrame", UIParent, "PortraitFrameFlatTemplate")
+	view.frame = frame
 	NineSliceUtil.ApplyLayoutByName(frame.NineSlice, "HeldBagLayout")
 	frame:SetFrameStrata("MEDIUM")
 	frame:SetPortraitToAsset("Interface/Icons/Inv_misc_bag_08")

@@ -117,6 +117,9 @@ In combat, copying and resetting are applied after combat (a chat message says s
   "Profile changed: …" appears when the profile switches. Until the layout is known after logging in,
   the profile of this character's last session applies.
 - Copying a profile into the active profile overwrites the current settings of the active profile.
+- If you go back to an older version of a qn addon whose settings were saved by a newer version, the
+  saved settings stay untouched: the addon works with a copy for this session, and a chat message says
+  that changes are not saved.
 - Bag automation reacts one frame after Blizzard has opened its own windows, so it has the last word.
   If you use another bag addon, turn **Bag automation enabled** off.
 - Tracking restore uses tracking spells one after another (with a short pause for the global

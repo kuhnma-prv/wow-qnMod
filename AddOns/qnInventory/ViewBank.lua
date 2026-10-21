@@ -108,6 +108,7 @@ end
 
 local function Create()
 	frame = CreateFrame("Frame", "qnInventoryBankFrame", UIParent, "PortraitFrameTemplate")
+	view.frame = frame
 	frame:SetSize(BASE_WIDTH, BASE_HEIGHT)
 	frame:SetPortraitToAsset("Interface/ICONS/INV_SideTab_Bank_c60")
 	frame:SetTitle(BANK)

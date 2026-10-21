@@ -310,14 +310,20 @@ function Auras.Read(unit)
 	data.lists = lists
 end
 
--- Re-read if the unit is watched and the data is readable. true = read.
-function Auras.Update(unit)
+-- Re-read if the unit is watched and the data is readable. true = read (or cleared).
+-- changed = another unit is behind the token (target, focus, pet): during the restriction its
+-- data cannot be read, but the auras of the previous unit must not stay.
+function Auras.Update(unit, changed)
 	if not watched[unit] then
 		return false
 	end
 	if Auras.Restricted() then
 		stale = true
 		NoteLock()
+		if changed and units[unit] then
+			units[unit] = nil
+			return true
+		end
 		return false
 	end
 	Auras.Read(unit)
@@ -365,16 +371,17 @@ local dirty = {}
 local Flush = lib.Debounce(function()
 	local list = dirty
 	dirty = {}
-	for unit in pairs(list) do
-		if Auras.Update(unit) then
+	for unit, changed in pairs(list) do
+		if Auras.Update(unit, changed) then
 			ns.UnitChanged(unit)
 		end
 	end
 end)
 
-function Auras.MarkDirty(unit)
+-- changed: see Auras.Update
+function Auras.MarkDirty(unit, changed)
 	if watched[unit] then
-		dirty[unit] = true
+		dirty[unit] = changed or dirty[unit] or false
 		Flush()
 	end
 end
@@ -423,14 +430,14 @@ function Auras.Init()
 		Auras.MarkDirty(unit)
 	end)
 	ev.Register("PLAYER_TARGET_CHANGED", function()
-		Auras.MarkDirty("target")
+		Auras.MarkDirty("target", true)
 	end)
 	ev.Register("PLAYER_FOCUS_CHANGED", function()
-		Auras.MarkDirty("focus")
+		Auras.MarkDirty("focus", true)
 	end)
 	ev.Register("UNIT_PET", function(_, unit)
 		if unit == "player" then
-			Auras.MarkDirty("pet")
+			Auras.MarkDirty("pet", true)
 		end
 	end)
 	ev.Register("UNIT_ENTERED_VEHICLE", function(_, unit)

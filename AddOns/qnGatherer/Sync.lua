@@ -13,7 +13,8 @@
 -- nodes. Whisper requests are only answered for members whose hello came through the guild channel.
 -- Every map digest received from a member is remembered (sync.seen), so a map is only requested
 -- again after it changed there. Own throttle (no ChatThrottleLib), paused in combat and while the
--- game blocks chat messages; per member at most MAX_RECORDS nodes per hour.
+-- game blocks chat messages; per member at most MAX_RECORDS nodes per hour. A request of a member is
+-- answered only once while the answer is still queued, and not at all while MAX_QUEUE messages wait.
 
 local ADDON, ns = ...
 local L = ns.L
@@ -35,8 +36,10 @@ local MAX_RECORDS = 5000     -- nodes per member and hour
 local BACKOFF = 5            -- ticks without sending after the server throttled
 local REQUEST_TIMEOUT = 120  -- seconds after which an unanswered exchange may start again
 local ANNOUNCE_DELAY = 3     -- seconds in which received nodes are collected for one chat line
+local MAX_QUEUE = 2000       -- requests of members are not answered while this many messages wait
 
 local queue = {}
+local answering = {}         -- ["sender\trequest"] = true while the answer is queued
 local backoff = 0
 local peers = {}             -- [sender] = time of the last hello
 local outstanding = {}       -- [sender] = { maps = count, total = digest }
@@ -150,8 +153,19 @@ end
 -- Sending: queue with own throttle
 ---------------------------------------------------------------------------
 
-function Sync.Send(text, channel, target)
-	queue[#queue + 1] = { text, channel, target }
+-- answer = key of the request whose answer ends with this message (see Answer)
+function Sync.Send(text, channel, target, answer)
+	queue[#queue + 1] = { text, channel, target, answer }
+end
+
+-- Key for answering request of sender, nil if that answer is already queued or the queue is full
+local function Answer(sender, request)
+	local key = sender .. "\t" .. request
+	if answering[key] or #queue >= MAX_QUEUE then
+		return nil
+	end
+	answering[key] = true
+	return key
 end
 
 -- Sends items (strings) in as few messages as possible: head .. SEP .. item;item;...
@@ -192,8 +206,12 @@ function Sync.Pump()
 	elseif result == RESULT.AddonMessageThrottle or result == RESULT.ChannelThrottle or result == RESULT.AddOnMessageLockdown then
 		table.insert(queue, 1, msg)   -- again later
 		backoff = BACKOFF
+		return
 	end
 	-- other results (not in a guild, member offline, ...): the message is dropped
+	if msg[4] then
+		answering[msg[4]] = nil
+	end
 end
 
 ---------------------------------------------------------------------------
@@ -330,6 +348,8 @@ end
 -- request for the list of map digests
 function HANDLERS.L(sender, f, channel)
 	if channel ~= "WHISPER" or not peers[sender] then return end
+	local answer = Answer(sender, "L")
+	if not answer then return end
 	local d = Sync.Digests()
 	local items = {}
 	for key, digest in pairs(d.maps) do
@@ -337,7 +357,7 @@ function HANDLERS.L(sender, f, channel)
 	end
 	table.sort(items)
 	Sync.SendList(table.concat({ "M", VERSION }, SEP), items, "WHISPER", sender)
-	Sync.Send(table.concat({ "ME", VERSION, d.total }, SEP), "WHISPER", sender)
+	Sync.Send(table.concat({ "ME", VERSION, d.total }, SEP), "WHISPER", sender, answer)
 end
 
 -- map digests of a member: request the maps that changed
@@ -366,6 +386,8 @@ end
 function HANDLERS.R(sender, f, channel)
 	local kind, map = f[3], tonumber(f[4])
 	if channel ~= "WHISPER" or not peers[sender] or not ns.KINDS[kind] or not map then return end
+	local answer = Answer(sender, "R," .. kind .. "," .. map)
+	if not answer then return end
 	local items = {}
 	for coord, n in DB.Nodes(kind, map) do
 		if Sync.Shareable(n.origin) then
@@ -374,7 +396,7 @@ function HANDLERS.R(sender, f, channel)
 	end
 	table.sort(items)
 	Sync.SendList(table.concat({ "D", VERSION, kind, map }, SEP), items, "WHISPER", sender)
-	Sync.Send(table.concat({ "DE", VERSION, kind, map, Sync.Digests().maps[kind .. "," .. map] or "0" }, SEP), "WHISPER", sender)
+	Sync.Send(table.concat({ "DE", VERSION, kind, map, Sync.Digests().maps[kind .. "," .. map] or "0" }, SEP), "WHISPER", sender, answer)
 end
 
 function HANDLERS.D(sender, f, channel)
@@ -446,6 +468,7 @@ function Sync.OptionsChanged()
 		Sync.Hello(true)
 	else
 		wipe(queue)
+		wipe(answering)
 	end
 end
 

@@ -179,7 +179,8 @@ Einloggen meldet jedes qnGatherer eine kurze Prüfsumme seiner Daten; Mitglieder
 Daten tauschen nur die geänderten Zonen aus (per Flüstern). Über den Austausch wird nichts gelöscht,
 und von dir gelöschte Punkte werden nicht wieder übernommen. Die Nachrichten gehen langsam und nicht
 im Kampf hinaus, damit sie den Chat nicht stören; ein Mitglied kann höchstens 5000 Punkte pro Stunde
-senden.
+senden. Eine Anfrage, die wiederholt wird, während ihre Antwort noch wartet, wird nur einmal
+beantwortet, und solange viele Nachrichten warten, bleiben Anfragen unbeantwortet.
 
 ## Minikarten-Knopf und Titan Panel
 

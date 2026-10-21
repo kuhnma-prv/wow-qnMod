@@ -169,7 +169,8 @@ How it works: new nodes you find are sent to the guild a few seconds later. Afte
 qnGatherer announces a short checksum of its data; members whose data differs exchange only the
 zones that changed (by whisper). Nothing is deleted through the exchange, and nodes you deleted
 yourself are not taken over again. Messages are sent slowly and not in combat, so they do not
-disturb the chat; a member can send at most 5000 nodes per hour.
+disturb the chat; a member can send at most 5000 nodes per hour. A request that is repeated while
+its answer is still waiting is answered only once, and requests wait while many messages are queued.
 
 ## Minimap button and Titan Panel
 

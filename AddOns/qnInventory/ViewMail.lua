@@ -159,6 +159,7 @@ end
 
 local function Create()
 	frame = CreateFrame("Frame", "qnInventoryMailFrame", UIParent, "ButtonFrameTemplate")
+	view.frame = frame
 	frame:SetPortraitToAsset("Interface\\MailFrame\\Mail-Icon")
 	frame:SetTitle(INBOX)
 	ButtonFrameTemplate_HideButtonBar(frame)
