@@ -3,7 +3,7 @@
 -- Forever (SecureTemplates.lua): SECURE_ACTIONS.worldmarker (attributes marker, action = set,
 -- clear, toggle; clear without marker clears all) and SECURE_ACTIONS.raidtarget (marker, action =
 -- set, clear, toggle; unit default "target"). World markers only exist while
--- IsRaidMarkerSystemEnabled() is true; otherwise the left button sets the target marker too.
+-- IsRaidMarkerSystemEnabled() is true; otherwise the right button sets the target marker too.
 
 local _, ns = ...
 
@@ -28,16 +28,21 @@ function ns.WorldMarkersEnabled()
 	return IsRaidMarkerSystemEnabled()
 end
 
--- Left button: place world marker (or set target marker without world markers),
--- right button: set target marker on the current target.
-function ns.ConfigureMarker(button, marker)
+-- One mouse button sets the target marker on the current target (player or NPC), the other places
+-- the world marker (or sets the target marker too without world markers).
+-- leftClick: "target" = left button target marker, right button world marker; "world" = the other way.
+function ns.ConfigureMarker(button, marker, leftClick)
 	local world = ns.WorldMarkersEnabled()
-	button:SetAttribute("type1", world and "worldmarker" or "raidtarget")
-	button:SetAttribute("marker1", world and marker.world or marker.target)
-	button:SetAttribute("action1", "set")
-	button:SetAttribute("type2", "raidtarget")
-	button:SetAttribute("marker2", marker.target)
-	button:SetAttribute("action2", "set")
+	local worldButton, targetButton = 2, 1
+	if leftClick == "world" then
+		worldButton, targetButton = 1, 2
+	end
+	button:SetAttribute("type" .. targetButton, "raidtarget")
+	button:SetAttribute("marker" .. targetButton, marker.target)
+	button:SetAttribute("action" .. targetButton, "set")
+	button:SetAttribute("type" .. worldButton, world and "worldmarker" or "raidtarget")
+	button:SetAttribute("marker" .. worldButton, world and marker.world or marker.target)
+	button:SetAttribute("action" .. worldButton, "set")
 end
 
 -- Clear all world markers (left button)

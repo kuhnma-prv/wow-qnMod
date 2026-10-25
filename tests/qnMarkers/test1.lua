@@ -7,7 +7,7 @@
 -- Profile of the last session with broken values
 qnCoreCharDB = { layout = "preset:1" }
 qnMarkersDB = { profiles = { ["preset:1"] = {
-	size = 99, visibility = "bogus", orientation = 5, borderColor = { 1 }, shown = "yes", gap = -3,
+	leftClick = "both", size = 99, visibility = "bogus", orientation = 5, borderColor = { 1 }, shown = "yes", gap = -3,
 } } }
 
 -- group membership as with EnableTooltips (QN_GROUP = list of group members)
@@ -32,7 +32,7 @@ local function Set(key, value) SETTINGS["QNMARKERS_" .. key:upper()]:SetValue(va
 -- Repair on load
 ---------------------------------------------------------------------------
 Check(db.size == 42 and db.gap == 0, "size and spacing clamped into their range")
-Check(db.visibility == "always" and db.orientation == "horizontal", "invalid choices fall back to the default")
+Check(db.visibility == "always" and db.orientation == "horizontal" and db.leftClick == "target", "invalid choices fall back to the default")
 Check(db.shown == true and #db.borderColor == 4 and db.borderColor[1] == 0.22, "wrong types and broken colors fall back to the default")
 Set("size", 28)
 Set("gap", 2)
@@ -58,20 +58,20 @@ Check(bar:GetWidth() == 432 and bar.bg._color[4] == 0.92, "buttons and backgroun
 -- Secure actions
 ---------------------------------------------------------------------------
 local skull, moon = qnMarkersBarMarker1, qnMarkersBarMarker2
-Check(A(skull, "type1") == "worldmarker" and A(skull, "marker1") == 8 and A(skull, "action1") == "set", "skull: left places world marker 8")
-Check(A(skull, "type2") == "raidtarget" and A(skull, "marker2") == 8 and A(skull, "action2") == "set", "skull: right sets target marker 8")
-Check(A(moon, "marker1") == 7 and A(moon, "marker2") == 5, "moon: world marker 7, target marker 5")
+Check(A(skull, "type1") == "raidtarget" and A(skull, "marker1") == 8 and A(skull, "action1") == "set", "skull: left sets target marker 8")
+Check(A(skull, "type2") == "worldmarker" and A(skull, "marker2") == 8 and A(skull, "action2") == "set", "skull: right places world marker 8")
+Check(A(moon, "marker1") == 5 and A(moon, "marker2") == 7, "moon: target marker 5, world marker 7")
 Check(A(grip, "type2") == "macro" and A(grip, "macrotext2") == SLASH_CLEAR_WORLD_MARKER1 .. " " .. ALL .. "\n" .. SLASH_TARGET_MARKER1 .. " 0",
 	"grip right-click: macro clears world markers (localized ALL) and the target marker")
 
-SecureClick(moon, "LeftButton")
+SecureClick(moon, "RightButton")
 RunTimers()
-Check(QN_WORLD_ACTIVE[7] and moon.glow:IsShown() and not skull.glow:IsShown(), "left-click places the world marker, its button glows")
+Check(QN_WORLD_ACTIVE[7] and moon.glow:IsShown() and not skull.glow:IsShown(), "right-click places the world marker, its button glows")
 QN_WORLD_ACTIVE[8] = true   -- placed by another group member
 mk.UpdateGlows()
 Check(skull.glow:IsShown(), "glow also for markers of others")
-SecureClick(skull, "RightButton")
-Check(QN_RAID_TARGETS.target == 8, "right-click sets the target marker")
+SecureClick(skull, "LeftButton")
+Check(QN_RAID_TARGETS.target == 8, "left-click sets the target marker")
 SecureClick(qnMarkersBarClearTarget, "LeftButton")
 Check(QN_RAID_TARGETS.target == nil, "clear target marker")
 SecureClick(qnMarkersBarClearWorld, "LeftButton")
@@ -80,15 +80,29 @@ Check(next(QN_WORLD_ACTIVE) == nil and not moon.glow:IsShown() and not skull.glo
 SecureClick(grip, "RightButton")
 Check(QN_MACROS_RUN[#QN_MACROS_RUN] == A(grip, "macrotext2"), "grip right-click runs the clear macro")
 
+-- Option: left-click places the world marker
+Check(INITIALIZERS.QNMARKERS_LEFTCLICK and #INITIALIZERS.QNMARKERS_LEFTCLICK.getOptions() == 2, "left-click as a dropdown with two choices")
+Set("leftClick", "world")
+Check(A(skull, "type1") == "worldmarker" and A(skull, "marker1") == 8 and A(skull, "type2") == "raidtarget" and A(skull, "marker2") == 8,
+	"option world marker: left places world marker, right sets target marker")
+SecureClick(moon, "LeftButton")
+SecureClick(skull, "RightButton")
+Check(QN_WORLD_ACTIVE[7] and QN_RAID_TARGETS.target == 8, "clicks follow the option")
+skull._scripts.OnEnter(skull)
+Check(TOOLTIP.lines[2].text == L["Left-click: place world marker\nRight-click: set target marker"], "tooltip follows the option")
+QN_WORLD_ACTIVE[7], QN_RAID_TARGETS.target = nil, nil
+Set("leftClick", "target")
+Check(A(skull, "type1") == "raidtarget" and A(skull, "type2") == "worldmarker", "back to target marker on left-click")
+
 -- Without world markers both buttons set the target marker
 QN_WORLD_MARKERS = false
 FireEvent("GROUP_ROSTER_UPDATE")
-Check(A(skull, "type1") == "raidtarget" and A(skull, "marker1") == 8 and A(moon, "marker1") == 5, "without world markers: left sets the target marker")
+Check(A(skull, "type2") == "raidtarget" and A(skull, "marker2") == 8 and A(moon, "marker2") == 5, "without world markers: right sets the target marker too")
 Check(A(grip, "macrotext2") == SLASH_TARGET_MARKER1 .. " 0", "clear macro only clears the target marker")
 Check(qnMarkersBarClearWorld:GetAlpha() < 1, "clear world markers dimmed")
 QN_WORLD_MARKERS = nil
 FireEvent("GROUP_ROSTER_UPDATE")
-Check(A(skull, "type1") == "worldmarker" and qnMarkersBarClearWorld:GetAlpha() == 1, "world markers available again")
+Check(A(skull, "type2") == "worldmarker" and qnMarkersBarClearWorld:GetAlpha() == 1, "world markers available again")
 
 ---------------------------------------------------------------------------
 -- Normal buttons
@@ -135,7 +149,7 @@ Check(db.x == mk.defaults.x and db.y == mk.defaults.y, "/qnmarkers reset: defaul
 -- Tooltips
 ---------------------------------------------------------------------------
 skull._scripts.OnEnter(skull)
-Check(TOOLTIP.owner == skull and TOOLTIP.lines[1].text == RAID_TARGET_8 and TOOLTIP.lines[2].text == L["Left-click: place world marker\nRight-click: set target marker"],
+Check(TOOLTIP.owner == skull and TOOLTIP.lines[1].text == RAID_TARGET_8 and TOOLTIP.lines[2].text == L["Left-click: set target marker\nRight-click: place world marker"],
 	"marker tooltip: name and both clicks")
 Set("tooltips", false)
 TOOLTIP = { lines = {} }

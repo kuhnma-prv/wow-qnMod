@@ -18,6 +18,7 @@ ns.defaults = {
 	leaderOnly = false,        -- only as group leader or raid assistant
 	locked = false,
 	minimized = false,
+	leftClick = "target",      -- left-click on a marker: "target" (target marker) or "world" (world marker)
 
 	-- Buttons
 	showReady = true,
@@ -83,12 +84,14 @@ ns.defaults = {
 }
 
 ns.VISIBILITY = { always = true, group = true, raid = true }
+ns.LEFT_CLICK = { target = true, world = true }
 ns.ORIENTATION = { horizontal = true, vertical = true }
 
 -- Version of the settings (see qnCore.Migrate)
 -- 1.1: markers above nameplates (plates)
 -- 1.2: hide Blizzard's raid manager (hideRaidManager)
-local SETTINGS_VERSION = "1.2"
+-- 1.3: mouse buttons of the markers (leftClick)
+local SETTINGS_VERSION = "1.3"
 
 -- Values of the wrong type fall back to their default (nil); tables with keys are checked inside,
 -- color lists must be complete.
@@ -145,6 +148,9 @@ local function Sanitize(db)
 	end
 	if db.visibility ~= nil and not ns.VISIBILITY[db.visibility] then
 		db.visibility = nil
+	end
+	if db.leftClick ~= nil and not ns.LEFT_CLICK[db.leftClick] then
+		db.leftClick = nil
 	end
 	if db.orientation ~= nil and not ns.ORIENTATION[db.orientation] then
 		db.orientation = nil

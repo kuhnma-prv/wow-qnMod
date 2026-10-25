@@ -11,6 +11,7 @@ L["Commands:\n  /qnmarkers – open options\n  /qnmarkers show | hide | toggle �
 
 -- Bar.lua
 L["Drag: move bar\nLeft-click: minimize/expand\nRight-click: clear all world markers and the marker of your target"] = "Ziehen: Leiste verschieben\nLinksklick: minimieren/aufklappen\nRechtsklick: alle Bodenmarkierungen und die Markierung deines Ziels löschen"
+L["Left-click: set target marker\nRight-click: place world marker"] = "Linksklick: Zielmarkierung setzen\nRechtsklick: Bodenmarkierung setzen"
 L["Left-click: place world marker\nRight-click: set target marker"] = "Linksklick: Bodenmarkierung setzen\nRechtsklick: Zielmarkierung setzen"
 L["Left- or right-click: set target marker\nWorld markers are not available."] = "Links- oder Rechtsklick: Zielmarkierung setzen\nBodenmarkierungen sind nicht verfügbar."
 L["Requires group leader or assistant."] = "Nur als Gruppenleiter oder Assistent."
@@ -26,6 +27,10 @@ L["Leave the current group?"] = "Die aktuelle Gruppe verlassen?"
 -- Options.lua
 L["Raid Marker Bar"] = "Markierungsleiste"
 L["Show bar"] = "Leiste anzeigen"
+L["Left-click on a marker"] = "Linksklick auf Markierung"
+L["Target marker"] = "Zielmarkierung"
+L["World marker"] = "Bodenmarkierung"
+L["Target marker: left-click marks your current target (player or NPC), right-click places the world marker. World marker: the other way round."] = "Zielmarkierung: Linksklick markiert dein aktuelles Ziel (Spieler oder NSC), Rechtsklick setzt die Bodenmarkierung. Bodenmarkierung: umgekehrt."
 L["In a group"] = "In einer Gruppe"
 L["In a raid"] = "Im Schlachtzug"
 L["Also applies in combat."] = "Gilt auch im Kampf."

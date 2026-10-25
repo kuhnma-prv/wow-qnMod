@@ -1,16 +1,18 @@
 # qnMarkers – raid marker bar and nameplate markers
 
-qnMarkers adds a small, movable bar for marking: one button per raid marker places the world
-marker on the ground (left-click) or sets the target marker on your current target (right-click).
+qnMarkers adds a small, movable bar for marking: one button per raid marker sets the target marker
+on your current target – player or NPC – (left-click) or places the world marker on the ground
+(right-click).
 Further buttons start a ready check or a pull timer, clear the markers or leave the group.
 Optionally it shows an icon above nameplates – class, role, friend or guild member at a glance.
 
 ## Features
 
 - Eight marker buttons (Skull, Moon, Circle, Star, Cross, Diamond, Triangle, Square).
-  - **Left-click**: places the world marker of that symbol. Placed world markers glow on the bar,
+  - **Left-click**: sets the target marker on your current target (player or NPC).
+  - **Right-click**: places the world marker of that symbol. Placed world markers glow on the bar,
     also those placed by other group members.
-  - **Right-click**: sets the target marker on your current target.
+  - The option **Left-click on a marker** swaps both clicks.
   - Without world markers (the client reports them as not available) both clicks set the target marker.
 - Utility buttons, each can be switched off: **Ready Check**, **pull timer 5 and 10 seconds**,
   **Clear world markers**, **Clear target marker**, **Leave Party** (asks first; off by default).
@@ -22,7 +24,8 @@ Optionally it shows an icon above nameplates – class, role, friend or guild me
   leader or raid assistant.
 - Works with key bindings too: the buttons are named `qnMarkersBarMarker1` … `qnMarkersBarMarker8`
   (bar order), `qnMarkersBarClearWorld`, `qnMarkersBarClearTarget`, `qnMarkersBarGrip`, so a macro
-  like `/click qnMarkersBarMarker1 RightButton` sets the skull on your target.
+  like `/click qnMarkersBarMarker1` sets the skull on your target (`/click qnMarkersBarMarker1
+  RightButton` places the skull world marker).
 - Optionally hides Blizzard's raid manager at the left edge of the screen (the raid frames stay).
 - **Markers above nameplates** (off by default): an icon above the nameplates of friendly players,
   group members, enemy players, PvP-flagged players, NPCs or pets – you choose which.
@@ -54,6 +57,9 @@ All settings are stored per profile (= per Edit Mode layout, see qnCore).
   combat. Default: Always.
 - **Only as leader or assistant** – hides the bar unless you are the group leader or a raid
   assistant. Checked again after combat. Default: off.
+- **Left-click on a marker** – **Target marker**: left-click marks your current target (player or
+  NPC), right-click places the world marker. **World marker**: the other way round. Default: Target
+  marker.
 - **Lock position** – prevents moving the bar by its grip. Default: off.
 - **Show Tooltips** – tooltips on the buttons. Default: on.
 
