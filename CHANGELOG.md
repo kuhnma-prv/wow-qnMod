@@ -43,8 +43,9 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 - **qnUnitFrames 0.4.0:** opt-in "Align target frame": places the target frame with its top edge at the
   top edge of the player frame, with an adjustable gap (default 40 pixels); it is placed again when
   Blizzard moves it, but never while the Edit Mode is open. Also `/qnuf aligntarget`.
-- **qnUnitFrames 0.3.0:** the range icon shows the distance to the unit inside the icon (exact where
-  the game reports it, otherwise the range like "20-30"); option "Show distance" per frame, on by default.
+- **qnUnitFrames 0.3.0:** the range icon shows the actual distance to the unit inside the icon, where
+  the game reports it (no estimate); option "Show distance" per frame, on by default; `/qnuf distance`
+  shows what the game reports for the target.
 
 ### Changed
 
