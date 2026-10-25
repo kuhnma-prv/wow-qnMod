@@ -151,7 +151,6 @@ L["Font"] = "Schrift"
 
 -- Config: Buttons page
 L["Colors: |cFF9600FFcurse|r, |cFF966400disease|r, |cFF3296FFmagic|r, |cFF009600poison|r, |cFFc80000others (e.g. physical)|r."] = "Farben: |cFF9600FFFluch|r, |cFF966400Krankheit|r, |cFF3296FFMagie|r, |cFF009600Gift|r, |cFFc80000andere (z. B. körperlich)|r."
-L["Buttons"] = "Knöpfe"
 L["Icon position"] = "Symbolposition"
 L["Color code the border of debuff icons"] = "Rahmen von Schwächungszaubern einfärben"
 L["Default icon border"] = "Standard-Symbolrahmen"

@@ -33,6 +33,7 @@ Sprache: Deutsche Clients zeigen deutsche Texte, alle anderen Clients englische.
 | [qnTooltip](qnTooltip.md) | Anpassbare Tooltips: Hintergrund, Rahmen, Schriften, Skalierung, Position auf Wunsch, Lebensbalken, Kopfzeilen von Einheiten aus Bausteinen, Ziel und „Anvisiert von“, 3D-Modell, Gegenstandsstufe, IDs. | `/qntt`, `/qntooltip` |
 | [qnSkins](qnSkins.md) | Schmückende Bilder (Band mit Kordel, Kästen, 3D-Figur) um Aktionsleisten, Statusleisten und Mikromenü; gibt diesen Elementen auf Wunsch eine vordefinierte Position und Skalierung auf einem gewählten Monitor. | `/qnskins` |
 | [qnGatherer](qnGatherer.md) | Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze (in Entwicklung): erfasst Sammelpunkte, Fänge und Angelgebiete und zeigt die Punkte auf Weltkarte und Minikarte; Nachschlage- und Infofenster, Import aus GatherMate2/GatherTogether, Austausch mit der Gilde, Minikarten-Knopf und Titan-Panel-Plugin. | `/qngatherer`, `/qng` |
+| [qnMarkers](qnMarkers.md) | Verschiebbare Markierungsleiste: Boden- und Zielmarkierungen per Klick (gesetzte Bodenmarkierungen leuchten), Bereitschaftscheck, Pull-Timer, Markierungen löschen, Gruppe verlassen; Sichtbarkeit nach Gruppe/Schlachtzug, auch nur als Leiter oder Assistent. Wahlweise Symbole über Namensplaketten (Klasse, Rolle, Freunde, Gilde, Leuchten am Ziel); blendet auf Wunsch Blizzards Schlachtzugsmanager aus. | `/qnmarkers`, `/qnmk` |
 
 ## Optionale Addons
 
