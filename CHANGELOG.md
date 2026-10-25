@@ -13,8 +13,9 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
-- **qnMarkers 0.3.0:** new addon: movable raid marker bar. Left-click a marker to place its world
-  marker, right-click to set it on your target; placed world markers glow (also those of others).
+- **qnMarkers 0.3.1:** new addon: movable raid marker bar. Left-click a marker to set it on your
+  target (player or NPC), right-click to place its world marker (swappable in the options); placed
+  world markers glow (also those of others).
   Buttons for ready check, pull timer 5/10 seconds, clearing world markers or the target marker and
   leaving the group (with confirmation), each can be switched off. The grip moves, minimizes
   (left-click) and clears all markers (right-click). Horizontal/vertical, floating, scale, icon size,

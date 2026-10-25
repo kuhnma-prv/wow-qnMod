@@ -206,7 +206,10 @@ local function CreateMarkers()
 		end)
 		Tip(button, _G["RAID_TARGET_" .. marker.target], function()
 			if ns.WorldMarkersEnabled() then
-				return L["Left-click: place world marker\nRight-click: set target marker"]
+				if ns.db.leftClick == "world" then
+					return L["Left-click: place world marker\nRight-click: set target marker"]
+				end
+				return L["Left-click: set target marker\nRight-click: place world marker"]
 			end
 			return L["Left- or right-click: set target marker\nWorld markers are not available."]
 		end)
@@ -373,7 +376,7 @@ end
 
 local function ApplyAttributes()
 	for _, button in ipairs(markers) do
-		ns.ConfigureMarker(button, button.marker)
+		ns.ConfigureMarker(button, button.marker, ns.db.leftClick)
 	end
 	ns.ConfigureClearAll(grip)
 end

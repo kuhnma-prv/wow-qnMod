@@ -22,6 +22,10 @@ local function BuildBar(cat, layout)
 	}, L["Also applies in combat."]), shown, Shown)
 	S.Depends(B:Checkbox(cat, "leaderOnly", L["Only as leader or assistant"],
 		L["Hides the bar unless you are the group leader or a raid assistant. Checked again after combat."]), shown, Shown)
+	B:Dropdown(cat, "leftClick", L["Left-click on a marker"], {
+		{ "target", L["Target marker"] },
+		{ "world", L["World marker"] },
+	}, L["Target marker: left-click marks your current target (player or NPC), right-click places the world marker. World marker: the other way round."])
 	B:Checkbox(cat, "locked", L["Lock position"], L["Prevents moving the bar by its grip."])
 	B:Checkbox(cat, "tooltips", HUD_EDIT_MODE_SETTING_COOLDOWN_VIEWER_SHOW_TOOLTIPS)
 

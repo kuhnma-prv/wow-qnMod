@@ -13,7 +13,7 @@ SetEditModeLayout(1)
 
 local function Set(value) SETTINGS.QNMARKERS_HIDERAIDMANAGER:SetValue(value) end
 
-Check(qnMarkersDB.settingsVersion == "1.2" and mk.db.hideRaidManager == false, "settings version 1.2, off by default")
+Check(qnMarkersDB.settingsVersion == "1.3" and mk.db.hideRaidManager == false, "current settings version, off by default")
 Set(true)
 Check(true, "on before the manager exists: no error")
 

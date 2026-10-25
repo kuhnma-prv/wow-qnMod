@@ -1,17 +1,18 @@
 # qnMarkers – Markierungsleiste und Symbole über Namensplaketten
 
 qnMarkers fügt eine kleine, verschiebbare Leiste zum Markieren hinzu: Ein Knopf je Schlachtzugs-
-markierung setzt die Bodenmarkierung (Linksklick) oder die Zielmarkierung auf dein aktuelles Ziel
-(Rechtsklick). Weitere Knöpfe starten einen Bereitschaftscheck oder einen Pull-Timer, löschen die
+markierung setzt die Zielmarkierung auf dein aktuelles Ziel – Spieler oder NSC – (Linksklick) oder
+die Bodenmarkierung (Rechtsklick). Weitere Knöpfe starten einen Bereitschaftscheck oder einen Pull-Timer, löschen die
 Markierungen oder verlassen die Gruppe. Wahlweise zeigt es ein Symbol über Namensplaketten – Klasse,
 Rolle, Freund oder Gildenmitglied auf einen Blick.
 
 ## Funktionen
 
 - Acht Markierungsknöpfe (Totenschädel, Mond, Kreis, Stern, Kreuz, Diamant, Dreieck, Quadrat).
-  - **Linksklick**: setzt die Bodenmarkierung dieses Symbols. Gesetzte Bodenmarkierungen leuchten
+  - **Linksklick**: setzt die Zielmarkierung auf dein aktuelles Ziel (Spieler oder NSC).
+  - **Rechtsklick**: setzt die Bodenmarkierung dieses Symbols. Gesetzte Bodenmarkierungen leuchten
     auf der Leiste, auch die anderer Gruppenmitglieder.
-  - **Rechtsklick**: setzt die Zielmarkierung auf dein aktuelles Ziel.
+  - Die Option **Linksklick auf Markierung** tauscht beide Klicks.
   - Ohne Bodenmarkierungen (der Client meldet sie als nicht verfügbar) setzen beide Klicks die
     Zielmarkierung.
 - Hilfsknöpfe, jeder abschaltbar: **Bereitschaft**, **Pull-Timer 5 und 10 Sekunden**,
@@ -26,7 +27,8 @@ Rolle, Freund oder Gildenmitglied auf einen Blick.
 - Funktioniert auch mit Tastenbelegungen: Die Knöpfe heißen `qnMarkersBarMarker1` …
   `qnMarkersBarMarker8` (Reihenfolge der Leiste), `qnMarkersBarClearWorld`,
   `qnMarkersBarClearTarget`, `qnMarkersBarGrip`; ein Makro wie
-  `/click qnMarkersBarMarker1 RightButton` setzt den Totenschädel auf dein Ziel.
+  `/click qnMarkersBarMarker1` setzt den Totenschädel auf dein Ziel (`/click qnMarkersBarMarker1
+  RightButton` setzt die Totenschädel-Bodenmarkierung).
 - Blendet wahlweise Blizzards Schlachtzugsmanager am linken Bildschirmrand aus (die
   Schlachtzugsfenster bleiben).
 - **Symbole über Namensplaketten** (standardmäßig aus): ein Symbol über den Namensplaketten von
@@ -63,6 +65,9 @@ Alle Einstellungen werden pro Profil gespeichert (= pro Layout des Bearbeitungsm
   Schlachtzug**. Gilt auch im Kampf. Standard: Immer.
 - **Nur als Leiter oder Assistent** – blendet die Leiste aus, solange du weder Gruppenleiter noch
   Schlachtzugsassistent bist. Wird nach dem Kampf neu geprüft. Standard: aus.
+- **Linksklick auf Markierung** – **Zielmarkierung**: Linksklick markiert dein aktuelles Ziel
+  (Spieler oder NSC), Rechtsklick setzt die Bodenmarkierung. **Bodenmarkierung**: umgekehrt.
+  Standard: Zielmarkierung.
 - **Position sperren** – verhindert das Verschieben der Leiste an ihrem Griff. Standard: aus.
 - **Tooltips anzeigen** – Tooltips an den Knöpfen. Standard: an.
 
