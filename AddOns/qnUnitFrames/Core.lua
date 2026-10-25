@@ -201,7 +201,8 @@ lib.RegisterCommands(ns, "QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, {
 		ns.store:Set("enabled", false)
 		ns.Print(L["Click casting turned off. Turn it on with /qnuf on"])
 	end,
-}, L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"])
+	distance = function() ns.PrintDistanceInfo() end,
+}, L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off\n  /qnuf distance – what the game reports about the distance to the target"])
 
 ---------------------------------------------------------------------------
 -- Events
