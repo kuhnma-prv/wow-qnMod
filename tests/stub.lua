@@ -999,6 +999,12 @@ function UnitDistanceSquared(unit)
 	if d and QN_DISTANCE_CHECKED[unit] then return d * d, true end
 	return 0, false
 end
+-- QN_POSITION[unit] = { x, y, z, mapID }; without an entry the game reports nothing (nil)
+QN_POSITION = {}
+function UnitPosition(unit)
+	local p = QN_POSITION[unit]
+	if p then return p[1], p[2], p[3], p[4] end
+end
 -- PlayerScriptDocumentation: 1 inspect (28 yd), 2 trade (11.11), 3 duel (9.9), 4 follow (28)
 function CheckInteractDistance(unit, i)
 	local d = QN_DISTANCE[unit]

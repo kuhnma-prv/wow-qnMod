@@ -55,9 +55,10 @@ profile.
   negative values move the icon to the left.
 - **Vertical offset** – distance from the vertical center of the frame (−200 to 200, default 0);
   positive values move the icon up.
-- **Show distance** – shows the distance to the unit in yards inside the icon. Default: on. Exact
-  where the game reports the distance, otherwise the range between your range checks: "20-30"
-  (between 20 and 30 yards), "<5" (melee range).
+- **Show distance** – shows the actual distance to the unit in yards inside the icon. Default: on.
+  Only where the game reports the distance or the positions; otherwise the icon stays without a
+  number (no estimate from the range checks). `/qnuf distance` shows what the game reports for your
+  target.
 
 The size, offset and distance options can only be changed while the icon of that frame is turned on.
 
@@ -109,6 +110,7 @@ target.
 | `/qnuf clicks` | Open the Click Bindings page |
 | `/qnuf on` | Turn click casting on |
 | `/qnuf off` | Turn click casting off |
+| `/qnuf distance` | Show in the chat what the game reports about the distance to the target |
 | `/qnuf` + anything else | Show the list of commands |
 
 ## Tips & notes

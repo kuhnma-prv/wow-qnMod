@@ -1,6 +1,7 @@
 -- Scenario 3: qnUnitFrames - range icon of a hunter: Hunter's Mark (by ID and by name of the
 -- first rank) never chooses the icon, dead zone of spells with a minimum range shows no icon,
--- distance text inside the icon (exact / bracket / off), settings version 1.2
+-- distance text inside the icon (UnitDistanceSquared / UnitPosition / nothing reported / off),
+-- /qnuf distance, settings version 1.2
 
 -- Profile of the last session (settings version 1.1) with a broken distance value
 qnCoreCharDB = { layout = "preset:1" }
@@ -63,7 +64,7 @@ Check(not icon:IsShown(), "50 yd: Hunter's Mark (unknown rank, by name) does not
 QN_DISTANCE.target = 30
 RunTickers()
 Check(icon:IsShown() and icon.tex:GetTexture() == 1075, "30 yd: Auto Shot (first in the spell book of equal range)")
-Check(icon.text:GetText() == "28-35", "30 yd: bracket between interact distance and shot range")
+Check(icon.text:GetText() == "", "30 yd: game reports no distance, no estimate")
 
 ---------------------------------------------------------------------------
 -- Minimum range (dead zone)
@@ -78,13 +79,12 @@ Check(not icon:IsShown(), "6 yd, shots report in range: still no icon (duel dist
 QN_DISTANCE.target = 12
 RunTickers()
 Check(icon:IsShown() and icon.tex:GetTexture() == 1075, "12 yd: beyond duel distance, shot icon again")
-Check(icon.text:GetText() == "11-28", "12 yd: bracket between trade and inspect distance")
 QN_SPELLINFO[75].closeInRange, QN_SPELLINFO[3044].closeInRange = nil, nil
 
 QN_DISTANCE.target = 3
 RunTickers()
 Check(icon:IsShown() and icon.tex:GetTexture() == 1001, "3 yd: melee icon")
-Check(icon.text:GetText() == "<5", "3 yd: melee range text")
+Check(icon.text:GetText() == "", "3 yd: no range text in melee either")
 
 ---------------------------------------------------------------------------
 -- Exact distance, distance off
@@ -92,8 +92,23 @@ Check(icon.text:GetText() == "<5", "3 yd: melee range text")
 QN_DISTANCE.target = 30
 QN_DISTANCE_CHECKED.target = true
 RunTickers()
-Check(icon.text:GetText() == "30", "exact distance where the game reports it")
+Check(icon.text:GetText() == "30", "UnitDistanceSquared: actual distance")
 QN_DISTANCE_CHECKED.target = nil
+
+-- positions of player and target: distance in 3D, rounded
+QN_POSITION.player = { 100, 200, 10, 1429 }
+QN_POSITION.target = { 112, 216, 10.3, 1429 }
+RunTickers()
+Check(icon.text:GetText() == "20", "UnitPosition: distance from both positions")
+QN_POSITION.target[4] = 1430
+RunTickers()
+Check(icon.text:GetText() == "", "UnitPosition on different maps: nothing")
+QN_POSITION.target = { 112, 216, 10.3, 1429 }
+
+-- /qnuf distance prints what the game reports (runs without error)
+uf.PrintDistanceInfo()
+Check(uf.UnitDistance("target") and math.abs(uf.UnitDistance("target") - 20) < 0.1, "UnitDistance for the diagnosis")
+QN_POSITION.player, QN_POSITION.target = nil, nil
 
 S.SetIn(uf.store.builders, "rangeTargetDistance", false)
 Check(icon:IsShown() and icon.text:GetText() == "", "distance text off")

@@ -13,7 +13,7 @@ L["No modifier"] = "Ohne Zusatztaste"
 L["Blizzard default"] = "Blizzard-Standard"
 L["Assist"] = "Assistieren"
 L["Click casting turned off. Turn it on with /qnuf on"] = "Klickzauber ausgeschaltet. Einschalten mit /qnuf on"
-L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"] = "Befehle:\n  /qnuf – Optionen öffnen\n  /qnuf clicks – Klickbelegung bearbeiten\n  /qnuf on | off – Klickzauber ein-/ausschalten"
+L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off\n  /qnuf distance – what the game reports about the distance to the target"] = "Befehle:\n  /qnuf – Optionen öffnen\n  /qnuf clicks – Klickbelegung bearbeiten\n  /qnuf on | off – Klickzauber ein-/ausschalten\n  /qnuf distance – was das Spiel zur Entfernung zum Ziel meldet"
 
 -- Clicks.lua
 L["Macro: %s"] = "Makro: %s"
@@ -39,7 +39,7 @@ L["Shows to the right of the focus frame the icon of your farthest ranged action
 L["Distance from the right edge of the frame; negative values move the icon to the left."] = "Abstand vom rechten Rand des Rahmens; negative Werte verschieben das Symbol nach links."
 L["Distance from the vertical center of the frame; positive values move the icon up."] = "Abstand von der vertikalen Mitte des Rahmens; positive Werte verschieben das Symbol nach oben."
 L["Show distance"] = "Entfernung anzeigen"
-L["Shows the distance to the unit in yards inside the icon: exact where the game reports it, otherwise the range between your range checks (e.g. 20-30)."] = "Zeigt im Symbol die Entfernung zur Einheit in Metern: genau, wo das Spiel sie meldet, sonst den Bereich zwischen deinen Reichweitenprüfungen (z. B. 20-30)."
+L["Shows the actual distance to the unit in yards inside the icon. Only where the game reports the distance; otherwise the icon stays without a number."] = "Zeigt im Symbol die tatsächliche Entfernung zur Einheit in Metern. Nur, wo das Spiel die Entfernung meldet; sonst bleibt das Symbol ohne Zahl."
 
 -- ClicksPage.lua
 L["Other spell …"] = "Anderer Zauber …"

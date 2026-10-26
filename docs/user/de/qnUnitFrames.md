@@ -59,9 +59,10 @@ zusätzlich je Klasse.
   negative Werte verschieben das Symbol nach links.
 - **Vertikaler Versatz** – Abstand von der vertikalen Mitte des Rahmens (−200 bis 200,
   Standard 0); positive Werte verschieben das Symbol nach oben.
-- **Entfernung anzeigen** – zeigt im Symbol die Entfernung zur Einheit in Metern. Standard: an.
-  Genau, wo das Spiel die Entfernung meldet, sonst den Bereich zwischen deinen
-  Reichweitenprüfungen: „20-30“ (zwischen 20 und 30 Metern), „<5“ (Nahkampfreichweite).
+- **Entfernung anzeigen** – zeigt im Symbol die tatsächliche Entfernung zur Einheit in Metern.
+  Standard: an. Nur, wo das Spiel die Entfernung oder die Positionen meldet; sonst bleibt das Symbol
+  ohne Zahl (kein Schätzwert aus den Reichweitenprüfungen). Was das Spiel für dein Ziel meldet,
+  zeigt `/qnuf distance`.
 
 Größe, Versatz und Entfernung lassen sich nur ändern, solange das Symbol am jeweiligen Rahmen
 eingeschaltet ist.
@@ -116,6 +117,7 @@ Ziel mehr aus.
 | `/qnuf clicks` | Seite Klickbelegung öffnen |
 | `/qnuf on` | Klickzauber einschalten |
 | `/qnuf off` | Klickzauber ausschalten |
+| `/qnuf distance` | im Chat zeigen, was das Spiel zur Entfernung zum Ziel meldet |
 | `/qnuf` + etwas anderes | Liste der Befehle zeigen |
 
 ## Tipps & Hinweise
