@@ -27,13 +27,16 @@ overview and a detailed page per addon. Changes per release: [CHANGELOG](CHANGEL
 | **qnViewPort** | Shrinks the area in which the 3D world is rendered, border color/pattern, multi-monitor support; with Titan Panel: bars and tooltips per monitor | `/qnviewport`, `/qnvp`, `/viewport` |
 | **qnInventory** | Remembers bags, bank, mail and gold of all characters, shows item counts in the tooltip and shows bags, bank and mailbox of any character anywhere (windows like Blizzard's, with character selection) | `/qninventory`, `/qninv` |
 | **qnBuffMod** | Freely customizable buff and debuff windows | `/qnbuffmod`, `/qnbuff`, `/qnaura` |
-| **qnUnitFrames** | Click casting on Blizzard's party and raid frames (like HealBot), per profile and class | `/qnunitframes`, `/qnuf` |
+| **qnUnitFrames** | Click casting on Blizzard's party and raid frames (like HealBot), per profile and class; optional range icon with distance next to the target and focus frame | `/qnunitframes`, `/qnuf` |
 | **qnTooltip** | Customizable tooltips: look, optional position, unit lines built from elements, health bar, target, item level, IDs | `/qntooltip`, `/qntt` |
 | **qnSkins** | Decorative artwork (panels, 3D figures) around action bars, status bars and micro menu; optionally gives these elements a predefined position and scale, on the chosen monitor | `/qnskins` |
+| **qnGatherer** | Gathering database for herbs, ore, fishing and treasure (in development): nodes on the world map and minimap, journal, import from GatherMate2/GatherTogether, guild exchange | `/qngatherer`, `/qng` |
+| **qnMarkers** | Movable raid marker bar (world/target markers, ready check, pull timer), optional markers above nameplates, optionally hides Blizzard's raid manager | `/qnmarkers`, `/qnmk` |
 
 Optional dependencies: [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0)
 (qnThreatMeter, qnTooltip; qnCore registers its background patterns there as "qn …") and
-[Titan Panel](https://www.curseforge.com/wow/addons/titan-panel) (qnViewPort).
+[Titan Panel](https://www.curseforge.com/wow/addons/titan-panel) (qnViewPort, qnInventory, qnGatherer) and
+[TomTom](https://www.curseforge.com/wow/addons/tomtom) (qnGatherer).
 
 ## Installation
 
