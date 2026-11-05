@@ -36,11 +36,15 @@ ns.defaults = {
 	rangeFocusX = 0,
 	rangeFocusY = 0,
 	rangeFocusDistance = true,
+	-- target frame next to the player frame (Align.lua): on/off, gap in screen pixels
+	alignTarget = false,
+	alignTargetGap = 40,
 }
 
 -- limits of the range icon sliders (Options.lua, Sanitize)
 ns.RANGE_SIZE = { 12, 64 }
 ns.RANGE_OFFSET = { -200, 200 }
+ns.ALIGN_GAP = { 0, 400 }   -- gap of the aligned target frame in pixels
 
 ---------------------------------------------------------------------------
 -- Buttons and actions
@@ -150,7 +154,8 @@ end
 -- Version of the settings (see qnCore.Migrate)
 -- 1.1: range icon at the target and focus frame
 -- 1.2: distance text inside the range icon
-local SETTINGS_VERSION = "1.2"
+-- 1.3: target frame placed next to the player frame
+local SETTINGS_VERSION = "1.3"
 
 -- number within limits, otherwise nil (= default)
 local function Clamp(v, limits)
@@ -159,6 +164,10 @@ end
 
 -- Check of a profile on every load: removes broken entries (unknown action, wrong key).
 local function Sanitize(db)
+	if type(db.alignTarget) ~= "boolean" then
+		db.alignTarget = nil
+	end
+	db.alignTargetGap = Clamp(db.alignTargetGap, ns.ALIGN_GAP)
 	for _, entry in ipairs({ "rangeTarget", "rangeFocus" }) do
 		for _, flag in ipairs({ entry, entry .. "Distance" }) do
 			if type(db[flag]) ~= "boolean" then
@@ -196,12 +205,16 @@ end
 
 lib.RegisterCommands(ns, "QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, {
 	clicks = function() ns.OpenClicksPage() end,
+	aligntarget = function()
+		ns.store:Set("alignTarget", true)
+		ns.Print(L["Target frame placed next to the player frame. Turn it off in the options; the frame returns to its position after /reload."])
+	end,
 	on = function() ns.store:Set("enabled", true) end,
 	off = function()
 		ns.store:Set("enabled", false)
 		ns.Print(L["Click casting turned off. Turn it on with /qnuf on"])
 	end,
-}, L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"])
+}, L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf aligntarget – place the target frame next to the player frame\n  /qnuf on | off – turn click casting on/off"])
 
 ---------------------------------------------------------------------------
 -- Events
@@ -216,15 +229,18 @@ ns.OnLoad(function()
 		onSwitch = function()
 			ns.Apply()
 			ns.ApplyRange()
+			ns.ApplyAlign()
 			ns.RefreshClicksPage()
 		end,
 	})
 	ns.InitClicks()
 	ns.InitRange()
+	ns.InitAlign()
 	ns.InitOptions()
 end)
 
 ns.events.Register("PLAYER_LOGIN", function()
 	ns.Apply()
 	ns.ApplyRange()
+	ns.ApplyAlign()
 end)

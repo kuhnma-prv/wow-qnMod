@@ -13,12 +13,20 @@ L["No modifier"] = "Ohne Zusatztaste"
 L["Blizzard default"] = "Blizzard-Standard"
 L["Assist"] = "Assistieren"
 L["Click casting turned off. Turn it on with /qnuf on"] = "Klickzauber ausgeschaltet. Einschalten mit /qnuf on"
-L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"] = "Befehle:\n  /qnuf – Optionen öffnen\n  /qnuf clicks – Klickbelegung bearbeiten\n  /qnuf on | off – Klickzauber ein-/ausschalten"
+L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf aligntarget – place the target frame next to the player frame\n  /qnuf on | off – turn click casting on/off"] = "Befehle:\n  /qnuf – Optionen öffnen\n  /qnuf clicks – Klickbelegung bearbeiten\n  /qnuf aligntarget – Zielrahmen neben den Spielerrahmen setzen\n  /qnuf on | off – Klickzauber ein-/ausschalten"
 
 -- Clicks.lua
 L["Macro: %s"] = "Makro: %s"
 
+-- Core.lua (aligntarget)
+L["Target frame placed next to the player frame. Turn it off in the options; the frame returns to its position after /reload."] = "Zielrahmen neben den Spielerrahmen gesetzt. Ausschalten in den Optionen; der Rahmen kehrt nach /reload an seine Position zurück."
+
 -- Options.lua
+L["Target Frame"] = "Zielrahmen"
+L["Align target frame"] = "Zielrahmen ausrichten"
+L["Places the target frame with its top edge at the top edge of the player frame, to the right of it. The frame is placed again whenever Blizzard moves it, except while the Edit Mode is open. Turn off and /reload to get Blizzard's position back."] = "Setzt den Zielrahmen mit seiner Oberkante auf die Oberkante des Spielerrahmens, rechts daneben. Der Rahmen wird neu gesetzt, sobald Blizzard ihn verschiebt, außer solange der Bearbeitungsmodus offen ist. Ausschalten und /reload stellt Blizzards Position wieder her."
+L["Gap to the player frame"] = "Abstand zum Spielerrahmen"
+L["Distance in screen pixels between the player frame and the target frame."] = "Abstand in Bildschirmpixeln zwischen Spielerrahmen und Zielrahmen."
 L["Click casting enabled"] = "Klickzauber aktiv"
 L["Off: all qnUnitFrames bindings are removed; the frames behave as without the addon."] = "Aus: alle Belegungen von qnUnitFrames aufgehoben; die Rahmen verhalten sich wie ohne Addon."
 L["Click Bindings"] = "Klickbelegung"
