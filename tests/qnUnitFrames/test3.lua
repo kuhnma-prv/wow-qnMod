@@ -1,6 +1,6 @@
 -- Scenario 3: qnUnitFrames - range icon of a hunter: Hunter's Mark (by ID and by name of the
 -- first rank) never chooses the icon, dead zone of spells with a minimum range shows no icon,
--- distance text inside the icon (exact / bracket / off), settings version 1.2
+-- distance text inside the icon (exact / bracket / off), settings version 1.3
 
 -- Profile of the last session (settings version 1.1) with a broken distance value
 qnCoreCharDB = { layout = "preset:1" }
@@ -39,7 +39,7 @@ local uf = LoadAddon("qnUnitFrames")
 local S = qnCore.Settings
 
 local db = qnUnitFramesDB.profiles["preset:1"]
-Check(qnUnitFramesDB.settingsVersion == "1.2", "settings version 1.2")
+Check(qnUnitFramesDB.settingsVersion == "1.3", "settings version 1.3")
 Check(db.rangeTargetDistance == true and db.rangeFocusDistance == true, "distance text: broken value back to default, default on")
 
 SetEditModeLayout(1)

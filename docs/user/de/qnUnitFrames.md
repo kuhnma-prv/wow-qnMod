@@ -19,6 +19,7 @@ Reichweitensymbol neben dem Ziel- und dem Fokusrahmen zeigen.
 - Reichweitensymbol rechts neben dem Ziel- und/oder Fokusrahmen: zeigt das Symbol deiner
   einsetzbaren Fernkampfaktion mit der größten Reichweite, solange die Einheit in ihrer Reichweite
   ist, und in Nahkampfreichweite das Symbol des automatischen Angriffs.
+- Optional: setzt den Zielrahmen neben den Spielerrahmen (Oberkanten bündig, einstellbarer Abstand).
 - Änderungen im Kampf werden nach dem Kampf automatisch übernommen.
 
 ## Erste Schritte
@@ -49,6 +50,16 @@ zusätzlich je Klasse.
 - **Klassische Gruppenrahmen** – die Gruppenrahmen ohne diese Einstellung. Standard: an.
 - **Begleiterrahmen** – auch die Rahmen der Begleiter von Gruppenmitgliedern belegen.
   Standard: an.
+
+**Zielrahmen** – optionale Platzierung von Blizzards Zielrahmen:
+
+- **Zielrahmen ausrichten** – setzt den Zielrahmen mit seiner Oberkante auf die Oberkante des
+  Spielerrahmens, rechts daneben. Der Rahmen wird neu gesetzt, sobald Blizzard ihn verschiebt
+  (Anmeldung, Layoutwechsel), nicht aber solange der Bearbeitungsmodus offen ist; dort lässt er
+  sich weiterhin ziehen. Standard: aus. Um Blizzards Position zurückzubekommen, schalte die Option
+  aus und gib `/reload` ein.
+- **Abstand zum Spielerrahmen** – Abstand in Bildschirmpixeln (0 bis 400, Standard 40); nur
+  änderbar, solange die Option an ist.
 
 **Reichweitensymbol** – ein Block je Rahmen:
 
@@ -114,6 +125,7 @@ Ziel mehr aus.
 |---|---|
 | `/qnuf`, `/qnunitframes` (auch `config`, `options`) | Optionen öffnen |
 | `/qnuf clicks` | Seite Klickbelegung öffnen |
+| `/qnuf aligntarget` | „Zielrahmen ausrichten“ einschalten |
 | `/qnuf on` | Klickzauber einschalten |
 | `/qnuf off` | Klickzauber ausschalten |
 | `/qnuf` + etwas anderes | Liste der Befehle zeigen |

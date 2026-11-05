@@ -40,6 +40,9 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
   they are loaded, otherwise with the offline tool `tools\Convert-QnGatherer.ps1`), text export/import
   between qnGatherer users. Exchange of nodes with guild members who use qnGatherer (on by default,
   can be switched off; nothing is deleted through it), with a chat line when new nodes arrive.
+- **qnUnitFrames 0.4.0:** opt-in "Align target frame": places the target frame with its top edge at the
+  top edge of the player frame, with an adjustable gap (default 40 pixels); it is placed again when
+  Blizzard moves it, but never while the Edit Mode is open. Also `/qnuf aligntarget`.
 - **qnUnitFrames 0.3.0:** the range icon shows the distance to the unit inside the icon (exact where
   the game reports it, otherwise the range like "20-30"); option "Show distance" per frame, on by default.
 

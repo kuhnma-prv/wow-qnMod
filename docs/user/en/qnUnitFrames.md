@@ -16,6 +16,7 @@ In addition, qnUnitFrames can show a small range icon next to the target and foc
 - Bindings per class and per profile; another Edit Mode layout can have different bindings.
 - Range icon to the right of the target frame and/or focus frame: shows the icon of your farthest
   usable ranged attack while the unit is in its range, and the auto attack icon in melee range.
+- Optional: places the target frame next to the player frame (top edges aligned, adjustable gap).
 - Changes made in combat are applied automatically after combat.
 
 ## Getting started
@@ -45,6 +46,15 @@ profile.
   "Use Raid-Style Party Frames". Default: on.
 - **Classic party frames** – the party frames without that option. Default: on.
 - **Pet frames** – also bind the frames of party members' pets. Default: on.
+
+**Target Frame** – opt-in placement of Blizzard's target frame:
+
+- **Align target frame** – places the target frame with its top edge at the top edge of the player
+  frame, to the right of it. The frame is placed again whenever Blizzard moves it (login, layout
+  change), but not while the Edit Mode is open, so it can still be dragged there. Default: off.
+  To get Blizzard's position back, turn the option off and type `/reload`.
+- **Gap to the player frame** – distance in screen pixels (0 to 400, default 40); can only be
+  changed while the option is on.
 
 **Range Icon** – one block for each frame:
 
@@ -107,6 +117,7 @@ target.
 |---|---|
 | `/qnuf`, `/qnunitframes` (also `config`, `options`) | Open the options |
 | `/qnuf clicks` | Open the Click Bindings page |
+| `/qnuf aligntarget` | Turn on "Align target frame" |
 | `/qnuf on` | Turn click casting on |
 | `/qnuf off` | Turn click casting off |
 | `/qnuf` + anything else | Show the list of commands |
