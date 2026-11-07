@@ -17,13 +17,14 @@ reloads, and lets you shrink the Objective Tracker font below Blizzard's minimum
 - Optionally keep profession bags (herb, enchanting … bags, reagent bag) closed when all bags open.
 - **Remember tracking**: restores the minimap tracking selection (e.g. Find Herbs, Find Minerals)
   after logging in, /reload, changing zones and resurrection.
-- **Objective Tracker text size** 8–11 (below Blizzard's minimum), per profile.
+- **Objective Tracker text and header size** 8–11 / 8–13 (below Blizzard's minimums), each its own choice, per profile.
+- **Damage Meter header size** 8–12, per profile.
 
 ## Getting started
 
 Open *Options → AddOns → qnCore* (Esc → Options → AddOns tab). qnCore has three pages:
 
-- **qnCore** – profile button, Minimap, Objective Tracker
+- **qnCore** – profile button, Minimap, Objective Tracker, Damage Meter
 - **Bag Automation**
 - **Profiles**
 
@@ -49,8 +50,19 @@ Open *Options → AddOns → qnCore* (Esc → Options → AddOns tab). qnCore ha
 **Objective Tracker**
 
 - **Text Size** – font size of the Objective Tracker below Blizzard's minimum: **As in Edit Mode**,
-  8, 9, 10 or 11 (headers are 2 points larger). "As in Edit Mode" leaves Blizzard's slider in charge.
-  Default: As in Edit Mode. Stored per profile (= per Edit Mode layout).
+  8, 9, 10 or 11. "As in Edit Mode" leaves Blizzard's slider in charge. Default: As in Edit Mode.
+  Stored per profile (= per Edit Mode layout).
+- **Header size** – font size of the headers (e.g. "Quests") below Blizzard's minimum of 14: **Like the
+  text** (2 points larger than the text size, as in Edit Mode), 8, 9, 10, 11, 12 or 13. Independent
+  of the text size. Default: Like the text. Stored per profile.
+
+**Damage Meter**
+
+- **Header size** – font size of the header of the Damage Meter windows (timer, session, damage
+  meter type): **As Blizzard** (default size) or 8, 9, 10, 11 or 12. The header bar becomes lower
+  with a smaller font, so the bars move up. Applies to all windows, also ones you open later.
+  Blizzard's own text size (Edit Mode) only scales the bars and stays in charge of them. Stored per
+  profile.
 
 ### Bag Automation
 
@@ -124,7 +136,7 @@ In combat, copying and resetting are applied after combat (a chat message says s
   If you use another bag addon, turn **Bag automation enabled** off.
 - Tracking restore uses tracking spells one after another (with a short pause for the global
   cooldown) and waits until combat ends or you are alive again.
-- After changing the Objective Tracker text size, Blizzard adjusts the line spacing with its next own
+- After changing the Objective Tracker text or header size, Blizzard adjusts the line spacing with its next own
   rebuild of the tracker (quest progress, zone change, at the latest /reload).
 - With LibSharedMedia installed, qnCore registers its background patterns there as "qn …"
   (e.g. "qn Stripes"), so other addons can use them.

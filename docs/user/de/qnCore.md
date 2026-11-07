@@ -21,13 +21,14 @@ Blizzards Minimum von 12 verkleinern.
   Taschen aufgehen.
 - **Verfolgung merken**: stellt die Auswahl im Verfolgungsmenü der Minikarte (z. B. Kräutersuche,
   Mineraliensuche) nach dem Einloggen, /reload, Zonenwechsel und der Wiederbelebung wieder her.
-- **Schriftgröße der Questzielverfolgung** 8–11 (unter Blizzards Minimum), je Profil.
+- **Schriftgröße von Text und Überschrift der Questzielverfolgung** 8–11 / 8–13 (unter Blizzards Minimum), jeweils eigene Auswahl, je Profil.
+- **Überschriftsgröße der Schadensanzeige** 8–12, je Profil.
 
 ## Erste Schritte
 
 Öffne *Optionen → Addons → qnCore* (Esc → Optionen → Reiter Addons). qnCore hat drei Seiten:
 
-- **qnCore** – Profil-Schaltfläche, Minikarte, Questzielverfolgung
+- **qnCore** – Profil-Schaltfläche, Minikarte, Questzielverfolgung, Schadensanzeige
 - **Taschen-Automatik**
 - **Profile**
 
@@ -53,9 +54,19 @@ Blizzards Minimum von 12 verkleinern.
 **Questzielverfolgung**
 
 - **Schriftgröße** – Schriftgröße der Questzielverfolgung unter Blizzards Minimum:
-  **Wie im Bearbeitungsmodus**, 8, 9, 10 oder 11 (Überschriften 2 größer). Bei „Wie im
-  Bearbeitungsmodus“ gilt Blizzards Regler. Standard: Wie im Bearbeitungsmodus. Gilt je Profil
-  (= je Layout des Bearbeitungsmodus).
+  **Wie im Bearbeitungsmodus**, 8, 9, 10 oder 11. Bei „Wie im Bearbeitungsmodus“ gilt Blizzards
+  Regler. Standard: Wie im Bearbeitungsmodus. Gilt je Profil (= je Layout des Bearbeitungsmodus).
+- **Überschriftsgröße** – Schriftgröße der Überschriften (z. B. „Quests“) unter Blizzards Minimum von
+  14: **Wie der Text** (2 Punkte größer als die Textgröße, wie im Bearbeitungsmodus), 8, 9, 10, 11, 12
+  oder 13. Unabhängig von der Textgröße. Standard: Wie der Text. Gilt je Profil.
+
+**Schadensanzeige**
+
+- **Überschriftsgröße** – Schriftgröße der Überschrift der Fenster der Schadensanzeige (Timer,
+  Sitzung, Typ): **Wie Blizzard** (Standardgröße) oder 8, 9, 10, 11 oder 12. Mit kleinerer Schrift
+  wird die Überschriftsleiste niedriger, die Balken rücken nach oben. Gilt für alle Fenster, auch für
+  später geöffnete. Blizzards eigene Textgröße (Bearbeitungsmodus) skaliert nur die Balken und bleibt
+  dafür zuständig. Gilt je Profil.
 
 ### Taschen-Automatik
 
@@ -132,7 +143,7 @@ darauf hin).
   Wort. Nutzt du ein anderes Taschen-Addon, schalte **Taschen-Automatik aktiv** aus.
 - Beim Wiederherstellen der Verfolgung werden Verfolgungszauber nacheinander gewirkt (mit kurzer Pause
   für die globale Abklingzeit); im Kampf oder solange du tot bist, wartet qnCore damit.
-- Nach einer Änderung der Schriftgröße passt Blizzard die Zeilenabstände beim nächsten eigenen
+- Nach einer Änderung von Text- oder Überschriftsgröße passt Blizzard die Zeilenabstände beim nächsten eigenen
   Neuaufbau der Questzielverfolgung an (Questfortschritt, Zonenwechsel, spätestens /reload).
 - Ist LibSharedMedia installiert, meldet qnCore seine Hintergrundmuster dort als „qn …“ an
   (z. B. „qn Stripes“), sodass andere Addons sie nutzen können.

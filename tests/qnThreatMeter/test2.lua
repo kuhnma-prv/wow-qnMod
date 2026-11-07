@@ -18,7 +18,9 @@ SOUNDKIT = SOUNDKIT or { RAID_WARNING = 8959 }
 
 -- Built-in damage meter (Blizzard_DamageMeter, DamageMeterMixin)
 QN_DM = { barHeight = 30, spacing = 4, style = 1, textScale = 1.2, bgAlpha = 0.7, windowAlpha = 0.9, icons = false, classColor = true }
-DamageMeter = {}
+DamageMeter = { windowDataList = {} }
+function DamageMeter:SetupSessionWindow() end   -- qnCore hooks it (Damage Meter header size)
+function DamageMeter:ForEachSessionWindow() end
 function DamageMeter:GetBarHeight() return QN_DM.barHeight end
 function DamageMeter:SetBarHeight(v) QN_DM.barHeight = v end
 function DamageMeter:GetBarSpacing() return QN_DM.spacing end

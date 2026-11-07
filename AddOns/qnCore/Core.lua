@@ -1,7 +1,7 @@
 -- qnCore: own addon - defaults, startup, slash commands.
 -- The qnCore options for bags and tracking always apply account-wide: they live in
--- qnCoreDB.global and are tied neither to a profile nor to a character. The font of the
--- Objective Tracker applies per profile (qnCoreDB.profiles).
+-- qnCoreDB.global and are tied neither to a profile nor to a character. The fonts of the
+-- Objective Tracker and the Damage Meter header apply per profile (qnCoreDB.profiles).
 
 local ADDON, ns = ...
 local lib = qnCore
@@ -17,10 +17,12 @@ ns.defaults = {
 -- Settings per profile (qnCoreDB.profiles, qnCore's own profile)
 ns.profileDefaults = {
 	questTextSize = 0,             -- Objective Tracker font size, 0 = as in Edit Mode (QuestTracker.lua)
+	questHeaderSize = 0,           -- Objective Tracker header size, 0 = like the text size (QuestTracker.lua)
+	damageHeaderSize = 0,          -- Damage Meter header font size, 0 = Blizzard's (DamageMeter.lua)
 }
 
 -- Version of qnCore's settings (see qnCore.Migrate)
-local SETTINGS_VERSION = "1.1"
+local SETTINGS_VERSION = "1.2"
 
 -- Keys of qnCoreDB dropped without replacement
 local OBSOLETE = {
@@ -74,12 +76,16 @@ ns.OnLoad(function()
 		sv = "qnCoreDB",
 		settingsVersion = SETTINGS_VERSION,
 		defaults = ns.profileDefaults,
-		onSwitch = function() ns.QuestTracker.Apply() end,
+		onSwitch = function()
+			ns.QuestTracker.Apply()
+			ns.DamageMeter.Apply()
+		end,
 	})
 
 	ns.Bags.Init()
 	ns.Tracking.Init()
 	ns.QuestTracker.Init()
+	ns.DamageMeter.Init()
 	ns.InitOptions()
 	ns.InitProfilesPage()
 end)

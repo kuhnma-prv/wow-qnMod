@@ -14,7 +14,15 @@ L["Profile changed: %s"] = "Profil gewechselt: %s"
 
 -- Options.lua: Objective Tracker
 L["As in Edit Mode"] = "Wie im Bearbeitungsmodus"
-L["Objective Tracker text size below Blizzard's minimum of 12 (headers 2 larger). \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."] = "Schriftgröße der Questzielverfolgung unterhalb von Blizzards Minimum 12 (Überschriften 2 größer). „Wie im Bearbeitungsmodus“: es gilt Blizzards Regler. Gilt je Layout des Bearbeitungsmodus."
+L["Objective Tracker text size below Blizzard's minimum of 12. \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."] = "Schriftgröße der Questzielverfolgung unterhalb von Blizzards Minimum 12. „Wie im Bearbeitungsmodus“: es gilt Blizzards Regler. Gilt je Layout des Bearbeitungsmodus."
+L["Header size"] = "Überschriftsgröße"
+L["Like the text"] = "Wie der Text"
+L["Objective Tracker header size below Blizzard's minimum of 14. \"Like the text\": 2 larger than the text size (as in Edit Mode). Saved per Edit Mode layout."] = "Größe der Überschriften der Questzielverfolgung unterhalb von Blizzards Minimum 14. „Wie der Text“: 2 größer als die Textgröße (wie im Bearbeitungsmodus). Gilt je Layout des Bearbeitungsmodus."
+
+-- Options.lua: Damage Meter
+L["Damage Meter"] = "Schadensanzeige"
+L["As Blizzard"] = "Wie Blizzard"
+L["Font size of the header of the Damage Meter windows (timer, session, type). \"As Blizzard\": the default size. The header bar shrinks with it. Saved per Edit Mode layout."] = "Schriftgröße der Überschrift der Fenster der Schadensanzeige (Timer, Sitzung, Typ). „Wie Blizzard“: die Standardgröße. Die Überschriftsleiste wird entsprechend kleiner. Gilt je Layout des Bearbeitungsmodus."
 
 -- Library.lua
 L["Saved settings of %s have version %s, this addon version knows %s: nothing is converted."] = "Die gespeicherten Einstellungen von %s haben die Version %s, diese Addon-Version kennt %s: es wird nichts umgewandelt."
