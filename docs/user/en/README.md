@@ -22,7 +22,7 @@ Language: German clients show German texts, all other clients English.
 
 | Addon | What it does | Slash commands |
 |---|---|---|
-| [qnCore](qnCore.md) | Core of all qn addons (required): one settings profile per Edit Mode layout (copy, delete, reset), opens and closes bags automatically at auction house, bank, merchant and similar places, remembers minimap tracking, objective tracker font below 12. | `/qncore`, `/qnc` |
+| [qnCore](qnCore.md) | Core of all qn addons (required): one settings profile per Edit Mode layout (copy, delete, reset), opens and closes bags automatically at auction house, bank, merchant and similar places, remembers minimap tracking, objective tracker font (text and headers) below 12, header size of the Damage Meter. | `/qncore`, `/qnc` |
 | [qnThreatMeter](qnThreatMeter.md) | Threat meter for your group against the current target, styled like the built-in Damage Meter: value, TPS, percent, "Pull Aggro" bar, warning on high threat. | `/qnm`, `/qnthreatmeter` |
 | [qnNumKeyPad](qnNumKeyPad.md) | Action bar shaped like a numpad (6 keyboard layouts) with automatic key bindings, Ctrl set, stance switching and Logitech G502 support (mouse button → numpad key, spells and macros on mouse buttons). | `/qnnkp`, `/qnnumkeypad`, `/numpad` |
 | [qnLoadout](qnLoadout.md) | Loads ready-made sets per class: creates or updates `qn` macros and assigns the qnNumKeyPad keys (including the Ctrl set); exports the current state as a set. | `/qnloadout` |

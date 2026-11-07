@@ -13,6 +13,9 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Added
 
+- **qnCore 0.3.0:** own header size for the Objective Tracker (8–13, independent of the text size,
+  default "Like the text") and new option for the header font of the Damage Meter windows (8–12;
+  the header bar shrinks with it).
 - **qnMarkers 0.3.1:** new addon: movable raid marker bar. Left-click a marker to set it on your
   target (player or NPC), right-click to place its world marker (swappable in the options); placed
   world markers glow (also those of others).

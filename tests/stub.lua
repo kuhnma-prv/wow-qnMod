@@ -901,6 +901,40 @@ function DamageMeter:ShouldShowBarIcons() return QN_DM.icons end
 function DamageMeter:SetShowBarIcons(v) QN_DM.icons = v end
 function DamageMeter:ShouldUseClassColor() return QN_DM.classColor end
 function DamageMeter:SetUseClassColor(v) QN_DM.classColor = v end
+-- Damage Meter windows (Blizzard_DamageMeter, DamageMeterSessionWindow.xml/.lua): header texts are
+-- FontStrings inheriting GameFontNormalMed1, Header is a texture of height 32, SessionTimer is
+-- anchored TOPLEFT to it. DamageMeter:SetupSessionWindow creates/refreshes a window.
+TrackerFont("GameFontNormalMed1", 13)
+DamageMeter.windowDataList = {}
+local function DamageText(name)
+	local f = TrackerFont(name, 13)
+	f:SetFontObject("GameFontNormalMed1")
+	f.SetPoint = Frame.SetPoint
+	f.ClearAllPoints = Frame.ClearAllPoints
+	_G[name] = nil
+	return f
+end
+function DamageMeter:SetupSessionWindow(index, data)
+	if not data.sessionWindow then
+		local w = NewFrame("Frame", "DamageMeterSessionWindow" .. index)
+		w.Header = NewFrame("Frame")
+		w.Header:SetHeight(32)
+		w.SessionTimer = DamageText("QN_DMTimer" .. index)
+		w.SessionTimer:SetPoint("TOPLEFT", w.Header, "TOPLEFT", 1, -9)
+		w.sessionName, w.typeName, w.notActive = DamageText("QN_DMSession" .. index), DamageText("QN_DMType" .. index), DamageText("QN_DMNot" .. index)
+		function w:GetHeader() return self.Header end
+		function w:GetSessionTimerFontString() return self.SessionTimer end
+		function w:GetSessionName() return self.sessionName end
+		function w:GetDamageMeterTypeName() return self.typeName end
+		function w:GetNotActiveFontString() return self.notActive end
+		data.sessionWindow = w
+	end
+end
+function DamageMeter:ForEachSessionWindow(func, ...)
+	for _, data in pairs(self.windowDataList) do
+		if data.sessionWindow then func(data.sessionWindow, ...) end
+	end
+end
 -- qnViewPort needs: world map (Blizzard_WorldMap is not load-on-demand), CVar defaults
 WorldMapFrame = NewFrame("Frame", "WorldMapFrame")
 WorldMapFrame._shown = false

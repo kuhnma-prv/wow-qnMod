@@ -123,6 +123,6 @@ Check(not okLegacy, "Register with legacy: developer error")
 ---------------------------------------------------------------------------
 -- 4. all qn addons declare settings version 1.0
 ---------------------------------------------------------------------------
-Check(qnCoreDB.settingsVersion == "1.1", "qnCore: settings version 1.1")
+Check(qnCoreDB.settingsVersion == "1.2", "qnCore: settings version 1.2")
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

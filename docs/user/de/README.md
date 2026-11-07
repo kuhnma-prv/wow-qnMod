@@ -22,7 +22,7 @@ Sprache: Deutsche Clients zeigen deutsche Texte, alle anderen Clients englische.
 
 | Addon | Was es macht | Slash-Befehle |
 |---|---|---|
-| [qnCore](qnCore.md) | Kern aller qn-Addons (Pflicht): ein Einstellungsprofil je Layout des Bearbeitungsmodus (Kopieren, Löschen, Zurücksetzen), öffnet und schließt die Taschen automatisch an Auktionshaus, Bank, Händler und ähnlichen Orten, merkt sich die Verfolgung an der Minikarte, Schrift der Questzielverfolgung unter 12. | `/qncore`, `/qnc` |
+| [qnCore](qnCore.md) | Kern aller qn-Addons (Pflicht): ein Einstellungsprofil je Layout des Bearbeitungsmodus (Kopieren, Löschen, Zurücksetzen), öffnet und schließt die Taschen automatisch an Auktionshaus, Bank, Händler und ähnlichen Orten, merkt sich die Verfolgung an der Minikarte, Schrift der Questzielverfolgung (Text und Überschriften) unter 12, Überschriftsgröße der Schadensanzeige. | `/qncore`, `/qnc` |
 | [qnThreatMeter](qnThreatMeter.md) | Bedrohungsanzeige für die Gruppe gegen das aktuelle Ziel im Stil der eingebauten Schadensanzeige: Wert, TPS, Prozent, Balken „Aggro ziehen“, Warnung bei hoher Bedrohung. | `/qnm`, `/qnthreatmeter` |
 | [qnNumKeyPad](qnNumKeyPad.md) | Aktionsleiste in Form eines Ziffernblocks (6 Tastaturlayouts) mit automatischer Tastenbelegung, Strg-Set, Haltungswechsel und Unterstützung für die Logitech G502 (Maustaste → Ziffernblocktaste, Zauber und Makros auf Maustasten). | `/qnnkp`, `/qnnumkeypad`, `/numpad` |
 | [qnLoadout](qnLoadout.md) | Lädt fertige Sätze pro Klasse: legt `qn`-Makros an oder ändert sie und belegt die qnNumKeyPad-Tasten (auch das Strg-Set); exportiert den aktuellen Stand als Satz. | `/qnloadout` |
