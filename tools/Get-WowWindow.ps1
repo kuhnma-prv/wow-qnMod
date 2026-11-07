@@ -1,6 +1,6 @@
 #Requires -Version 7
 # Prints position, size and border state of the WoW window (read-only).
-param([string]$ProcessName = 'WowB')
+param([string]$ProcessName = 'Wow')
 Add-Type -Namespace W2 -Name N -MemberDefinition @'
 [DllImport("user32.dll")] public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr c);
 [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);

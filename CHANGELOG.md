@@ -45,6 +45,7 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Changed
 
+- **qnViewPort 0.1.10:** `Set-WowWindow.ps1` now resizes the WoW Forever window (`Wow.exe` from the `_forever_` folder) by default; new parameter `-Client`.
 - **qnCore 0.2.2:** texts used by several qn addons are translated once in qnCore; `/qncore options`
   opens the options like `/qncore config`.
 - **qnThreatMeter 0.2.2:** the bar texture list shows the own textures first, then those of
