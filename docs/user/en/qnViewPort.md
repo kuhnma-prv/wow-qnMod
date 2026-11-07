@@ -212,7 +212,8 @@ Without this file qnViewPort works with the values from the **Second Monitor** p
    Waits for the WoW window (up to 180 s), removes the window border, stretches the window over the
    selected monitors and updates `Monitors.lua` of the running client with the exact client area.
    Then `/reload` in the game.
-   - `-ProcessName <name>` – process of the client (default `WowB`)
+   - `-ProcessName <name>`, `-Client <folder>` – process and client folder (defaults `Wow` and
+     `_forever_`; only a process started from that folder is used)
    - `-KeepBorder` – keep title bar and frame
    - `-Select 1,2 -Main 1` – a different selection for this run only
    - `-X -Y -Width -Height` – fixed window rectangle, no monitor logic (does not update `Monitors.lua`)
