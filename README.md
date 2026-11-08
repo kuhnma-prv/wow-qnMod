@@ -20,7 +20,7 @@ overview and a detailed page per addon. Changes per release: [CHANGELOG](CHANGEL
 
 | Addon | What it does | Slash commands |
 |---|---|---|
-| **qnCore** | Core and library (required by all others): profiles per Edit Mode layout, settings builder, widgets, bag automation, remembers minimap tracking, quest tracker font size, "Profiles" page | `/qncore`, `/qnc` |
+| **qnCore** | Core and library (required by all others): profiles per Edit Mode layout, settings builder, widgets, bag automation, remembers minimap tracking, Objective Tracker and Damage Meter font sizes, "Profiles" page | `/qncore`, `/qnc` |
 | **qnThreatMeter** | Threat meter for your group against the current target (works with secret values) | `/qnthreatmeter`, `/qnm` |
 | **qnNumKeyPad** | Action bar in the shape of a numpad | `/qnnumkeypad`, `/qnnkp`, `/numpad` |
 | **qnLoadout** | Ready-made sets per class: `qn` macros and qnNumKeyPad assignments (requires qnNumKeyPad) | `/qnloadout` |
