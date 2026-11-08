@@ -22,7 +22,7 @@ Language: German clients show German texts, all other clients English.
 
 | Addon | What it does | Slash commands |
 |---|---|---|
-| [qnCore](qnCore.md) | Core of all qn addons (required): one settings profile per Edit Mode layout (copy, delete, reset), opens and closes bags automatically at auction house, bank, merchant and similar places, remembers minimap tracking, objective tracker font below 12. | `/qncore`, `/qnc` |
+| [qnCore](qnCore.md) | Core of all qn addons (required): one settings profile per Edit Mode layout (copy, delete, reset), opens and closes bags automatically at auction house, bank, merchant and similar places, remembers minimap tracking, objective tracker font (text and headers) below 12, header size of the Damage Meter. | `/qncore`, `/qnc` |
 | [qnThreatMeter](qnThreatMeter.md) | Threat meter for your group against the current target, styled like the built-in Damage Meter: value, TPS, percent, "Pull Aggro" bar, warning on high threat. | `/qnm`, `/qnthreatmeter` |
 | [qnNumKeyPad](qnNumKeyPad.md) | Action bar shaped like a numpad (6 keyboard layouts) with automatic key bindings, Ctrl set, stance switching and Logitech G502 support (mouse button → numpad key, spells and macros on mouse buttons). | `/qnnkp`, `/qnnumkeypad`, `/numpad` |
 | [qnLoadout](qnLoadout.md) | Loads ready-made sets per class: creates or updates `qn` macros and assigns the qnNumKeyPad keys (including the Ctrl set); exports the current state as a set. | `/qnloadout` |
@@ -32,13 +32,16 @@ Language: German clients show German texts, all other clients English.
 | [qnUnitFrames](qnUnitFrames.md) | Click casting on Blizzard's party, raid and pet frames (like HealBot), per class and profile; optional range icon next to the target and focus frame. | `/qnuf`, `/qnunitframes` |
 | [qnTooltip](qnTooltip.md) | Customizable tooltips: background, border, fonts, scale, optional position, health bar, unit lines built from elements, target and "Targeted by", 3D model, item level, IDs. | `/qntt`, `/qntooltip` |
 | [qnSkins](qnSkins.md) | Decorative artwork (band with cord, boxes, 3D figure) around action bars, status bars and micro menu; optionally gives these elements a predefined position and scale on a chosen monitor. | `/qnskins` |
+| [qnGatherer](qnGatherer.md) | Gathering database for herbs, ore, fishing and treasure (in development): records nodes, fishing catches and areas, shows the nodes on the world map and the minimap; journal and info window, import from GatherMate2/GatherTogether, exchange with the guild, minimap button and Titan Panel plugin. | `/qngatherer`, `/qng` |
+| [qnMarkers](qnMarkers.md) | Movable raid marker bar: world and target markers per click (placed world markers glow), ready check, pull timer, clearing markers, leaving the group; visibility by group/raid, also only as leader or assistant. Optional icons above nameplates (class, role, friends, guild, target glow); optionally hides Blizzard's raid manager. | `/qnmarkers`, `/qnmk` |
 
 ## Optional addons
 
 - [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0): more fonts,
   textures and borders for qnThreatMeter and qnTooltip.
 - [Titan Panel](https://www.curseforge.com/wow/addons/titan-panel): bars per monitor (qnViewPort),
-  bank and gold plugins (qnInventory).
+  bank and gold plugins (qnInventory), gathering plugin (qnGatherer).
+- [TomTom](https://www.curseforge.com/wow/addons/tomtom): waypoints from the world map menu of qnGatherer.
 
 ## General notes
 

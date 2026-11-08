@@ -183,34 +183,6 @@ ns.defaults = {
 }
 
 ---------------------------------------------------------------------------
--- Media
----------------------------------------------------------------------------
-
-function ns.LSM()
-	return LibStub and LibStub("LibSharedMedia-3.0", true)
-end
-
--- entries of an LSM media type as { name, name } (for dropdowns), without the names in skip
-function ns.LSMEntries(kind, skip)
-	local list = {}
-	local lsm = ns.LSM()
-	if lsm then
-		for _, name in ipairs(lsm:List(kind)) do
-			if not (skip and skip[name]) then
-				list[#list + 1] = { name, name }
-			end
-		end
-	end
-	return list
-end
-
--- path of an LSM file or nil
-function ns.LSMFetch(kind, name)
-	local lsm = ns.LSM()
-	return lsm and lsm:IsValid(kind, name) and lsm:Fetch(kind, name) or nil
-end
-
----------------------------------------------------------------------------
 -- Tooltip lines
 ---------------------------------------------------------------------------
 
@@ -250,17 +222,13 @@ function ns.FindLine(tip, text)
 	end
 end
 
--- color 0-1 as a six-digit hex value
-function ns.Hex(r, g, b)
-	return ("%02x%02x%02x"):format(math.floor(r * 255 + 0.5), math.floor(g * 255 + 0.5), math.floor(b * 255 + 0.5))
-end
-
--- hex value as r, g, b (nil for an invalid value)
-function ns.RGB(hex)
-	if type(hex) ~= "string" or not hex:match("^%x%x%x%x%x%x$") then
-		return nil
+-- Index of the first line of lineType in tooltip data (C_TooltipInfo), nil if there is none
+function ns.LineIndex(data, lineType)
+	for _, line in ipairs(data.lines or {}) do
+		if line.type == lineType then
+			return line.lineIndex
+		end
 	end
-	return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
 end
 
 -- UnitIsUnit as true/false. Non-comparable units (RequiresComparableUnitTokens) raise an error in
@@ -326,7 +294,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnTooltipDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		onSwitch = function()
 			ns.Apply()
 			ns.RefreshElementsPages()
@@ -353,13 +320,5 @@ end)
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNTOOLTIP", { "/qntt", "/qntooltip" }, function(cmd)
-	if cmd == "" or cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "reset" then
-		ns.store:ResetActive()
-		ns.Print(L["Settings reset."])
-	else
-		ns.Print(L["Commands: /qntt [config | reset]\n  config – open options\n  reset – reset all settings of the active profile"])
-	end
-end)
+lib.RegisterCommands(ns, "QNTOOLTIP", { "/qntt", "/qntooltip" }, { reset = "reset" },
+	L["Commands: /qntt [config | reset]\n  config – open options\n  reset – reset all settings of the active profile"])

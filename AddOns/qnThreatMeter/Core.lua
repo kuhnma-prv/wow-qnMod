@@ -72,53 +72,22 @@ ns.defaults = {
 -- Media
 ---------------------------------------------------------------------------
 
--- Atlas or file path; the key is stored, not the value.
-ns.textures = {
-	["Damage Meter"] = "UI-HUD-CoolDownManager-Bar",
-	["Blizzard"] = "Interface\\TargetingFrame\\UI-StatusBar",
-	["Flat"] = "Interface\\Buttons\\WHITE8X8",
-	["Raid"] = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill",
-	["Fertigkeit"] = "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar",
+-- { key, display name, atlas or file path }; the key is stored, not the value.
+ns.TEXTURES = {
+	{ "Damage Meter", DAMAGE_METER_LABEL, "UI-HUD-CoolDownManager-Bar" },
 }
+for _, t in ipairs(lib.Media.STATUSBARS) do
+	ns.TEXTURES[#ns.TEXTURES + 1] = t
+end
+ns.TEXTURES[#ns.TEXTURES + 1] = { "Fertigkeit", SKILL, "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar" }   -- do not translate: stored key
 
--- Display names of our own textures; the keys above are stored values.
-ns.textureLabels = {
-	["Damage Meter"] = DAMAGE_METER_LABEL,
-	["Flat"] = L["Flat"],
-	["Fertigkeit"] = SKILL,
-}
-
-local function GetLSM()
-	return LibStub and LibStub("LibSharedMedia-3.0", true)
+-- Dropdown entries: own textures, then those of LibSharedMedia
+function ns.TextureEntries()
+	return lib.Media.Entries(ns.TEXTURES, "statusbar")
 end
 
 function ns.GetTexturePath(name)
-	local LSM = GetLSM()
-	if LSM then
-		local path = LSM:Fetch("statusbar", name, true)
-		if path then
-			return path
-		end
-	end
-	return ns.textures[name] or ns.textures["Damage Meter"]
-end
-
-function ns.GetTextureNames()
-	local names, seen = {}, {}
-	for name in pairs(ns.textures) do
-		names[#names + 1] = name
-		seen[name] = true
-	end
-	local LSM = GetLSM()
-	if LSM then
-		for _, name in ipairs(LSM:List("statusbar")) do
-			if not seen[name] then
-				names[#names + 1] = name
-			end
-		end
-	end
-	table.sort(names)
-	return names
+	return lib.Media.File(ns.TEXTURES, "statusbar", name) or ns.TEXTURES[1][3]
 end
 
 
@@ -173,7 +142,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnThreatMeterDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		obsolete = OBSOLETE,
 		onSwitch = function()
 			ns.Threat.ApplySettings()
@@ -187,31 +155,23 @@ end)
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNTHREATMETER", { "/qnm", "/qnthreatmeter" }, function(cmd)
-	local T = ns.Threat
-	if cmd == "" or cmd == "toggle" then
-		T.Toggle()
-	elseif cmd == "lock" then
-		ns.store:Set("locked", not ns.db.locked)
-		ns.Print(ns.db.locked and L["Window locked."] or L["Window unlocked."])
-	elseif cmd == "test" then
+local function Toggle()
+	ns.Threat.Toggle()
+end
+
+-- reset also applies the settings via onSwitch; in combat only afterwards (deferred)
+lib.RegisterCommands(ns, "QNTHREATMETER", { "/qnm", "/qnthreatmeter" }, {
+	[""] = Toggle,
+	toggle = Toggle,
+	lock = function()
+		ns.Print(ns.store:Toggle("locked") and L["Window locked."] or L["Window unlocked."])
+	end,
+	test = function()
+		local T = ns.Threat
 		T.SetTestMode(not T.testMode)
 		ns.Print(T.testMode and L["Test mode on."] or L["Test mode off."])
-	elseif cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "check" then
-		ns.Diagnose()
-	elseif cmd == "visible" then
-		T.MoveIntoVisible()
-	elseif cmd == "reset" then
-		-- also applies the settings via onSwitch; in combat only afterwards (deferred)
-		if ns.store:ResetActive() then
-			ns.Print(L["In combat: settings will be reset after combat."])
-		else
-			ns.Print(L["Settings reset."])
-		end
-	else
-		-- one key for the whole help; Print outputs each line as a separate chat line
-		ns.Print(L["Commands: /qnm [toggle | lock | test | config | check | visible | reset]\n  toggle – show/hide window    lock – lock/unlock window\n  test – test mode             config – open options\n  check – API check            visible – move window into the visible area\n  reset – reset all settings"])
-	end
-end)
+	end,
+	check = function() ns.Diagnose() end,
+	visible = function() ns.Threat.MoveIntoVisible() end,
+	reset = "reset",
+}, L["Commands: /qnm [toggle | lock | test | config | check | visible | reset]\n  toggle – show/hide window    lock – lock/unlock window\n  test – test mode             config – open options\n  check – API check            visible – move window into the visible area\n  reset – reset all settings"])

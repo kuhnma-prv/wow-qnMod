@@ -22,8 +22,8 @@ mit Titan Panel die Titan-Leisten auf einzelne Monitore.
   ausblenden.
 - Sichtbarkeitsprüfung: listet Oberflächenelemente, die ganz oder teilweise auf keinem Monitor
   liegen, und holt sie auf Wunsch einzeln in den sichtbaren Bereich.
-- Tooltips der Taschenplätze, der Minikarte (Verfolgung, Zonentext, Post, Kalender, Uhr) und das
-  Verfolgungsmenü bleiben vollständig auf ihrem Monitor.
+- Tooltips der Taschenplätze, der Minikarte (Verfolgung, Zonentext, Post, Kalender, Uhr), das
+  Verfolgungsmenü und die Blizzard-Menüs und ihre Untermenüs bleiben vollständig auf ihrem Monitor.
 - Mit Titan Panel: jede durchgehende Titan-Leiste auf einem gewählten Monitor, Plugin-Tooltips auf
   dem Monitor des Plugins, Skalierung je Monitor.
 
@@ -226,7 +226,8 @@ Ohne diese Datei arbeitet qnViewPort mit den Werten der Seite **Zweiter Monitor*
    Wartet auf das WoW-Fenster (bis 180 s), entfernt den Fensterrahmen, zieht das Fenster über die
    ausgewählten Monitore und gleicht `Monitors.lua` des laufenden Clients mit dem genauen
    Fensterinhalt ab. Danach im Spiel `/reload`.
-   - `-ProcessName <Name>` – Prozess des Clients (Standard `WowB`)
+   - `-ProcessName <Name>`, `-Client <Ordner>` – Prozess und Client-Ordner (Standard `Wow` und
+     `_forever_`; nur ein aus diesem Ordner gestarteter Prozess wird verwendet)
    - `-KeepBorder` – Titelleiste und Rahmen behalten
    - `-Select 1,2 -Main 1` – andere Auswahl nur für diesen Aufruf
    - `-X -Y -Width -Height` – festes Fensterrechteck ohne Monitorlogik (aktualisiert `Monitors.lua` nicht)

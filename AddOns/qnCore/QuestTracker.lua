@@ -1,9 +1,10 @@
--- qnCore: smaller font in the Objective Tracker, per profile (= Edit Mode layout).
+-- qnCore: smaller font in the Objective Tracker (text and headers separately), per profile
+-- (= Edit Mode layout).
 --
 -- Blizzard's slider in Edit Mode ranges from 12 to 20: ObjectiveTrackerManager:SetTextSize
 -- rejects smaller values, font templates only exist from ObjectiveTrackerFont12. qnCore therefore
 -- sets the size of the two fonts ObjectiveTrackerLineFont and ObjectiveTrackerHeaderFont
--- directly (header 2 larger, as with Blizzard). Blizzard's slider stays untouched.
+-- directly (header: own choice, otherwise 2 larger than the text as with Blizzard). Blizzard's slider stays untouched.
 -- If Blizzard resets the font (layout switch, slider), a hook on SetFontObject restores the
 -- own size - even before Blizzard rebuilds the tracker.
 -- The tracker is NEVER rebuilt by qnCore: calling ObjectiveTrackerManager:UpdateAll
@@ -18,18 +19,29 @@ local _, ns = ...
 local QT = {}
 ns.QuestTracker = QT
 
-QT.SIZES = { 8, 9, 10, 11 }   -- choices below Blizzard's minimum
+QT.SIZES = { 8, 9, 10, 11 }          -- text choices below Blizzard's minimum of 12
+QT.HEADER_SIZES = { 8, 9, 10, 11, 12, 13 }   -- header choices below Blizzard's minimum of 14
 
 local LINE_BASE, HEADER_BASE = 12, 14   -- templates that file and height come from
 local HEADER_EXTRA = 2                  -- like headerExtraSize in Blizzard_ObjectiveTrackerManager.lua
 
 -- font templates last set by Blizzard (default from Blizzard_ObjectiveTrackerFonts.xml)
 local blizzLine, blizzHeader = "ObjectiveTrackerFont12", "ObjectiveTrackerFont14"
-local applied = 0   -- size currently set by qnCore, 0 = Blizzard's font
+local appliedLine, appliedHeader = 0, 0   -- sizes currently set by qnCore, 0 = Blizzard's font
 local hooked = false
 
-local function Wanted()
+local function WantedLine()
 	return ns.db and ns.db.questTextSize or 0
+end
+
+-- Header: own size if chosen, otherwise 2 larger than an own text size, otherwise Blizzard's
+local function WantedHeader()
+	local own = ns.db and ns.db.questHeaderSize or 0
+	if own > 0 then
+		return own
+	end
+	local line = WantedLine()
+	return line > 0 and line + HEADER_EXTRA or 0
 end
 
 -- Set font to size. File and height come from Blizzard's template of size base: each alphabet has
@@ -43,23 +55,18 @@ local function SetSize(font, base, size)
 	font:SetFont(path, height * size / base, flags or "")
 end
 
-local function Override(size)
-	SetSize(ObjectiveTrackerLineFont, LINE_BASE, size)
-	SetSize(ObjectiveTrackerHeaderFont, HEADER_BASE, size + HEADER_EXTRA)
-end
-
 -- Blizzard has set a font template: remember it and restore the own size
 local function OnLineFont(_, font)
 	blizzLine = font
-	if applied > 0 then
-		SetSize(ObjectiveTrackerLineFont, LINE_BASE, applied)
+	if appliedLine > 0 then
+		SetSize(ObjectiveTrackerLineFont, LINE_BASE, appliedLine)
 	end
 end
 
 local function OnHeaderFont(_, font)
 	blizzHeader = font
-	if applied > 0 then
-		SetSize(ObjectiveTrackerHeaderFont, HEADER_BASE, applied + HEADER_EXTRA)
+	if appliedHeader > 0 then
+		SetSize(ObjectiveTrackerHeaderFont, HEADER_BASE, appliedHeader)
 	end
 end
 
@@ -73,21 +80,27 @@ local function Hook()
 	return true
 end
 
--- Apply the size of the active profile (option, profile switch, start)
+-- Apply the sizes of the active profile (option, profile switch, start)
 function QT.Apply()
 	if not hooked then
 		return
 	end
-	local size = Wanted()
-	if size == applied then
-		return
+	local line, header = WantedLine(), WantedHeader()
+	if line ~= appliedLine then
+		appliedLine = line
+		if line > 0 then
+			SetSize(ObjectiveTrackerLineFont, LINE_BASE, line)
+		else
+			ObjectiveTrackerLineFont:SetFontObject(blizzLine)
+		end
 	end
-	applied = size
-	if size > 0 then
-		Override(size)
-	else
-		ObjectiveTrackerLineFont:SetFontObject(blizzLine)
-		ObjectiveTrackerHeaderFont:SetFontObject(blizzHeader)
+	if header ~= appliedHeader then
+		appliedHeader = header
+		if header > 0 then
+			SetSize(ObjectiveTrackerHeaderFont, HEADER_BASE, header)
+		else
+			ObjectiveTrackerHeaderFont:SetFontObject(blizzHeader)
+		end
 	end
 end
 

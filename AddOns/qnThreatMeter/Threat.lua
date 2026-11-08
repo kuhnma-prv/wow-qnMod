@@ -426,7 +426,7 @@ local function ShowPlainBar(bar, e, top, tankValue)
 	local showTPS = db.showTPS and e.tps ~= nil
 	local text = db.showValue and FormatValue(e.value) or ""
 	if showTPS then
-		local tps = FormatValue(math.floor(e.tps * 10 + 0.5) / 10)
+		local tps = FormatValue(qnCore.Round(e.tps * 10) / 10)
 		text = text ~= "" and ("%s (%s)"):format(text, tps) or tps
 	end
 	if db.showPercent then
@@ -641,7 +641,7 @@ function T.UpdateVisibility()
 end
 
 function T.Toggle()
-	ns.store:Set("shown", not db.shown)
+	ns.store:Toggle("shown")
 	if db.shown and not frame:IsShown() then
 		ns.Print(L["Window is enabled but currently hidden because of the visibility option."])
 	end
@@ -673,13 +673,13 @@ local function OpenMenu(owner)
 	MenuUtil.CreateContextMenu(owner, function(_, root)
 		root:CreateTitle("qnThreatMeter")
 		root:CreateCheckbox(LOCK_FRAME, function() return db.locked end, function()
-			ns.store:Set("locked", not db.locked)
+			ns.store:Toggle("locked")
 		end)
 		root:CreateCheckbox(L["Test Mode"], function() return T.testMode end, function()
 			T.SetTestMode(not T.testMode)
 		end)
 		root:CreateCheckbox(L["Use focus target"], function() return db.useFocus end, function()
-			ns.store:Set("useFocus", not db.useFocus)
+			ns.store:Toggle("useFocus")
 		end)
 		root:CreateDivider()
 		root:CreateButton(L["Options …"], ns.OpenOptions)
@@ -727,15 +727,8 @@ function T.Init()
 		Window.SavePosition(frame)
 	end)
 
-	local elapsed = 0
 	T.driver = CreateFrame("Frame")
-	T.driver:SetScript("OnUpdate", function(_, dt)
-		elapsed = elapsed + dt
-		if elapsed >= db.updateInterval then
-			elapsed = 0
-			T.Refresh()
-		end
-	end)
+	T.driver:SetScript("OnUpdate", (qnCore.Throttle(function() return db.updateInterval end, function() T.Refresh() end)))
 
 	for _, name in ipairs(DM_SETTERS) do
 		hooksecurefunc(DamageMeter, name, OnDamageMeterChanged)

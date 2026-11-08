@@ -37,12 +37,8 @@ function Tooltip.OwnerOf(unit)
 end
 
 local function NameAndColor(unit)
-	local name = Plain(UnitName(unit), nil)
-	if type(name) ~= "string" or name == "" then
-		name = UNKNOWN
-	end
 	local _, classFile = UnitClass(unit)
-	return name, lib.ClassColor(classFile) or CASTER_DEFAULT
+	return ns.UnitLabel(unit), lib.ClassColor(classFile) or CASTER_DEFAULT
 end
 
 -- Caster in class color, for companions/vehicles additionally "<owner>"
@@ -69,19 +65,15 @@ local function WindowTip(owner, anchor, id)
 	GameTooltip:Show()
 end
 
-local function OnUpdate(e, elapsed)
-	e.tipElapsed = (e.tipElapsed or 0) + elapsed
-	if e.tipElapsed >= REFRESH then
-		e.tipElapsed = 0
-		if GameTooltip:IsOwned(e) then
-			Tooltip.ShowEntry(e)
-		else
-			-- tooltip now belongs to someone else: do not leave the minimum width in place
-			e:SetScript("OnUpdate", nil)
-			GameTooltip:SetMinimumWidth(0)
-		end
+local OnUpdate, ResetUpdate = qnCore.Throttle(REFRESH, function(e)
+	if GameTooltip:IsOwned(e) then
+		Tooltip.ShowEntry(e)
+	else
+		-- tooltip now belongs to someone else: do not leave the minimum width in place
+		e:SetScript("OnUpdate", nil)
+		GameTooltip:SetMinimumWidth(0)
 	end
-end
+end)
 
 function Tooltip.ShowEntry(e)
 	local win, rec = e.win, e.rec
@@ -114,7 +106,7 @@ function Tooltip.ShowEntry(e)
 	end
 	GameTooltip:SetMinimumWidth(MIN_WIDTH)
 	GameTooltip:Show()
-	e.tipElapsed = 0
+	ResetUpdate(e)
 	e:SetScript("OnUpdate", OnUpdate)
 end
 

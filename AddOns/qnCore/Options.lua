@@ -25,14 +25,32 @@ local function Build(category, layout)
 		function(_, value) ns.Tracking.OnOptionChanged(value) end)
 
 	-- Objective Tracker (per profile) ----------------------------------------
-	local QB = S.New({ store = ns.store, prefix = "QNCORE_", apply = function() ns.QuestTracker.Apply() end })
-	local sizes = { { 0, L["As in Edit Mode"] } }
-	for _, size in ipairs(ns.QuestTracker.SIZES) do
-		sizes[#sizes + 1] = { size, tostring(size) }
+	local QB = S.New({ store = ns.store, prefix = "QNCORE_", apply = function()
+			ns.QuestTracker.Apply()
+			ns.DamageMeter.Apply()
+		end })
+	local function SizeList(first, list)
+		local sizes = { first }
+		for _, size in ipairs(list) do
+			sizes[#sizes + 1] = { size, tostring(size) }
+		end
+		return sizes
 	end
 	S.Header(layout, HUD_EDIT_MODE_OBJECTIVE_TRACKER_LABEL)
-	QB:Dropdown(category, "questTextSize", HUD_EDIT_MODE_SETTING_OBJECTIVE_TRACKER_TEXT_SIZE, sizes,
-		L["Objective Tracker text size below Blizzard's minimum of 12 (headers 2 larger). \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."],
+	QB:Dropdown(category, "questTextSize", HUD_EDIT_MODE_SETTING_OBJECTIVE_TRACKER_TEXT_SIZE,
+		SizeList({ 0, L["As in Edit Mode"] }, ns.QuestTracker.SIZES),
+		L["Objective Tracker text size below Blizzard's minimum of 12. \"As in Edit Mode\": Blizzard's slider applies. Saved per Edit Mode layout."],
+		Settings.VarType.Number)
+	QB:Dropdown(category, "questHeaderSize", L["Header size"],
+		SizeList({ 0, L["Like the text"] }, ns.QuestTracker.HEADER_SIZES),
+		L["Objective Tracker header size below Blizzard's minimum of 14. \"Like the text\": 2 larger than the text size (as in Edit Mode). Saved per Edit Mode layout."],
+		Settings.VarType.Number)
+
+	-- Damage Meter (per profile) ---------------------------------------------
+	S.Header(layout, L["Damage Meter"])
+	QB:Dropdown(category, "damageHeaderSize", L["Header size"],
+		SizeList({ 0, L["As Blizzard"] }, ns.DamageMeter.SIZES),
+		L["Font size of the header of the Damage Meter windows (timer, session, type). \"As Blizzard\": the default size. The header bar shrinks with it. Saved per Edit Mode layout."],
 		Settings.VarType.Number)
 
 	-- Bag Automation ---------------------------------------------------
@@ -57,8 +75,7 @@ local function Build(category, layout)
 	local same = BB:Checkbox(bags, "sameEverywhere", L["Same at every location"],
 		L["On: one setting applies to every location (auction house, bank, merchant …). Off: each location is set up separately."])
 
-	local function Same() return Bags.Config().sameEverywhere end
-	local function NotSame() return not Bags.Config().sameEverywhere end
+	local Same, NotSame = BB:When("sameEverywhere"), BB:When("sameEverywhere", false)
 
 	S.Depends(BB:Dropdown(bags, "allOpen", L["Everywhere: on open"], Bags.OPEN_MODES,
 		L["What happens to your bags when one of the locations opens."], Settings.VarType.String), same, Same)

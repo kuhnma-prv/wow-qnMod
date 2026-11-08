@@ -184,28 +184,21 @@ local function Build(category, layout)
 	S.Button(posLayout, L["Center horizontally"], L["Center"], function() ns.CenterBar(true) end)
 	S.Button(posLayout, L["Center vertically"], L["Center"], function() ns.CenterBar(false) end)
 	S.Button(posLayout, L["Reset position"], RESET, ns.ResetPosition)
-	B:Checkbox(pos, "autoVisible", L["Keep in visible area automatically"],
-		L["Moves the bar back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas that are actually visible on a monitor count."])
-	S.Button(posLayout, L["Find bar"], L["Move into visible area"], ns.MoveIntoVisible,
-		L["Moves the bar onto the nearest visible monitor now (/qnnkp visible)."])
+	B:KeepVisible(pos, posLayout, { bar = true, move = ns.MoveIntoVisible, slash = "/qnnkp visible" })
 
 	-- Visibility ----------------------------------------------------------
 	local vis, visLayout = Settings.RegisterVerticalLayoutSubcategory(category, HUD_EDIT_MODE_SETTING_AURA_FRAME_VISIBLE_SETTING)
 	S.Header(visLayout, L["Fading"])
 	local fade = B:Checkbox(vis, "fade", L["Fade out without mouseover"],
 		L["Fades the bar to the opacity set below while the mouse is not over it."])
-	local function Fading()
-		return ns.db.fade
-	end
+	local Fading = B:When("fade")
 	S.Depends(B:Slider(vis, "fadeAlpha", L["Faded opacity"], 0, 1, 0.05, S.FractionFormatter), fade, Fading)
 	S.Depends(B:Slider(vis, "fadeDelay", L["Delay"], 0, 3, 0.1, S.SecondsFormatter), fade, Fading)
 
 	S.Header(visLayout, L["Hiding"])
 	local custom = B:Checkbox(vis, "useCustom", L["Use custom condition"],
 		L["Replaces all of the following switches with a custom macro condition."])
-	local function NotCustom()
-		return not ns.db.useCustom
-	end
+	local NotCustom = B:When("useCustom", false)
 	S.Depends(B:Checkbox(vis, "hideVehicle", L["Hide in vehicle / while possessing"]), custom, NotCustom)
 	S.Depends(B:Checkbox(vis, "hideCombat", L["Hide in combat"]), custom, NotCustom)
 	S.Depends(B:Checkbox(vis, "hideNoCombat", L["Hide out of combat"]), custom, NotCustom)

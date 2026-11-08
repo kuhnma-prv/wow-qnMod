@@ -12,12 +12,7 @@ local UD = ns.UnitData
 local Unit = {}
 ns.Unit = Unit
 
-local function Plain(v)
-	if IsSecret(v) then
-		return nil
-	end
-	return v
-end
+local Plain = ns.Plain
 
 local function TextIs(text, ...)
 	if IsSecret(text) or text == nil then
@@ -46,20 +41,12 @@ local function ResolveUnit(data)
 end
 Unit.ResolveUnit = ResolveUnit
 
-local function LineIndex(data, lineType)
-	for _, line in ipairs(data.lines or {}) do
-		if line.type == lineType then
-			return line.lineIndex
-		end
-	end
-end
-
 -- start of the level line ("Level ", from TOOLTIP_UNIT_LEVEL = "Level %s") as a pattern
 local LEVEL_PREFIX = "^" .. (TOOLTIP_UNIT_LEVEL:match("^(.-)%%") or ""):gsub("%p", "%%%0")
 
 -- level line: line type UnitLevel, otherwise (Forever does not always set it) detect by text
 local function LevelLine(data)
-	local index = LineIndex(data, Enum.TooltipDataLineType.UnitLevel)
+	local index = ns.LineIndex(data, Enum.TooltipDataLineType.UnitLevel)
 	if index then
 		return index
 	end
@@ -152,7 +139,7 @@ local function NpcTitle(tip, index, cfg, raw, gray)
 		r, g, b = UD.Color(c.color, raw)
 	end
 	if r then
-		fmt = "|cff" .. ns.Hex(r, g, b) .. fmt .. "|r"
+		fmt = "|cff" .. qnCore.Hex(r, g, b) .. fmt .. "|r"
 	end
 	left:SetFormattedText(fmt, text)
 end

@@ -8,7 +8,7 @@ local lib = qnCore
 local L = ns.L
 local UI = lib.UI
 
-local page, sub   -- page: qnCore.UI.Page
+local page        -- qnCore.UI.Page
 local parent       -- content of the page (parent of the controls)
 local infoText, buttonDropdown
 local rows = {}
@@ -178,11 +178,7 @@ local function CreateRow(i, prefix, anchor)
 	row:SetHeight(ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, i == 1 and -12 or 0)
 	row:SetPoint("RIGHT", parent, "RIGHT", -16, 0)
-	if i % 2 == 0 then
-		local bg = row:CreateTexture(nil, "BACKGROUND")
-		bg:SetAllPoints()
-		bg:SetColorTexture(1, 1, 1, 0.04)
-	end
+	UI.Stripe(row, i)
 
 	row.label = UI.Text(row, "GameFontNormal", ns.ModifierText(prefix))
 	row.label:SetPoint("LEFT", 6, 0)
@@ -243,10 +239,7 @@ local function RefreshRow(row)
 	end
 end
 
-function ns.RefreshClicksPage()
-	if not (page and page.panel:IsVisible()) then
-		return
-	end
+local function Fill()
 	infoText:SetText(L["Bindings for %s in profile %s"]:format(UnitClass("player"), lib.Profiles.GetLabel(lib.Profiles.GetActiveKey())))
 	buttonDropdown:Refresh()
 	for _, row in ipairs(rows) do
@@ -262,25 +255,27 @@ function ns.RefreshClicksPage()
 	end
 end
 
+function ns.RefreshClicksPage()
+	if page then
+		page.Refresh()
+	end
+end
+
 ---------------------------------------------------------------------------
 -- Setup
 ---------------------------------------------------------------------------
 
-local function Build()
+local function Build(category)
 	page = UI.Page(L["Click Bindings"], { desc =
-		L["Clicks on Blizzard's party and raid frames cast spells or macros on the clicked member. The bindings apply per class and are stored in the active profile (Edit Mode layout). They cannot change in combat; changes follow after combat."] })
+		L["Clicks on Blizzard's party and raid frames cast spells or macros on the clicked member. The bindings apply per class and are stored in the active profile (Edit Mode layout). They cannot change in combat; changes follow after combat."],
+		refresh = Fill, parent = category })
 	parent = page.content
 
-	infoText = UI.Text(parent, "GameFontNormal")
-	infoText:SetPoint("TOPLEFT", page.top, "BOTTOMLEFT", 0, -14)
-
-	buttonDropdown = UI.Dropdown(parent, 200, ns.BUTTONS, function() return button end, function(v)
+	infoText, buttonDropdown = UI.PageHeader(page, L["Mouse button:"], 200, ns.BUTTONS, function() return button end, function(v)
 		button = v
 		ns.RefreshClicksPage()
 	end)
-	buttonDropdown:SetPoint("TOPLEFT", infoText, "BOTTOMLEFT", 110, -12)
 	ns.clicksUI.button = buttonDropdown
-	UI.Label(parent, buttonDropdown, L["Mouse button:"])
 
 	local clear = UI.Button(parent, L["Delete all"], 140, function()
 		StaticPopup_Show("QNUNITFRAMES_CLEAR", UnitClass("player"))
@@ -301,15 +296,12 @@ local function Build()
 	hint:SetWidth(620)
 
 	CreateMacroEditor(hint)
-
-	page.panel:SetScript("OnShow", ns.RefreshClicksPage)
 end
 
 function ns.InitClicksPage(category)
-	Build()
-	sub = Settings.RegisterCanvasLayoutSubcategory(category, page.panel, L["Click Bindings"])
+	Build(category)
 end
 
 function ns.OpenClicksPage()
-	lib.OpenCategory(sub)
+	page.Open()
 end

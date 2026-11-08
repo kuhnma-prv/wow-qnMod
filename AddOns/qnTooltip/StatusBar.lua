@@ -9,32 +9,14 @@ local IsSecret = ns.IsSecret
 local SB = {}
 ns.StatusBar = SB
 
--- { key, display name, file }
-SB.TEXTURES = {
-	{ "Blizzard", "Blizzard", "Interface\\TargetingFrame\\UI-StatusBar" },
-	{ "Flat", L["Flat"], "Interface\\Buttons\\WHITE8X8" },
-	{ "Raid", RAID, "Interface\\RaidFrame\\Raid-Bar-Hp-Fill" },
-}
+local Media = qnCore.Media
 
 function SB.TextureEntries()
-	local list, skip = {}, {}
-	for _, t in ipairs(SB.TEXTURES) do
-		list[#list + 1] = { t[1], t[2] }
-		skip[t[1]] = true
-	end
-	for _, e in ipairs(ns.LSMEntries("statusbar", skip)) do
-		list[#list + 1] = e
-	end
-	return list
+	return Media.Entries(Media.STATUSBARS, "statusbar")
 end
 
 local function TexturePath(key)
-	for _, t in ipairs(SB.TEXTURES) do
-		if t[1] == key then
-			return t[3]
-		end
-	end
-	return ns.LSMFetch("statusbar", key) or SB.TEXTURES[1][3]
+	return Media.File(Media.STATUSBARS, "statusbar", key) or Media.STATUSBAR
 end
 
 local function Bar()

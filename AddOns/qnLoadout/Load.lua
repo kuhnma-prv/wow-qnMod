@@ -127,12 +127,7 @@ end
 ---------------------------------------------------------------------------
 
 local function DoLoad(set)
-	if InCombatLockdown() then
-		ns.Print(L["Sets cannot be loaded in combat."])
-		return nil
-	end
-	if GetCursorInfo() then
-		ns.Print(L["Something is on the cursor – place or drop it first."])
+	if qnCore.Blocked(ns.Print, L["Sets cannot be loaded in combat."], true) then
 		return nil
 	end
 	local report = { created = 0, updated = 0, set = 0, cleared = 0, skipped = {} }

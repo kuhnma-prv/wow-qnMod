@@ -2,10 +2,11 @@
 // Usage: node check-locale.mjs [Addon ...]   (default: all qn* addons with a TOC in the AddOns folder)
 // Reports per addon:
 //   MISSING    L["…"] in the code, but no German translation in Locale.lua
-//   UNUSED     translation in Locale.lua whose key no longer appears in the code
+//   UNUSED     translation in Locale.lua whose key no longer appears in the code (qnCore: in no qn addon)
+//   SHARED     translation that qnCore already has with the same text (remove it from the addon)
 //   GERMAN?    text in the code that looks German and does not go through L[…]
 //   TOC        missing ## Notes (English) / ## Notes-deDE (German)
-// Exits with code 1 if MISSING, GERMAN? or TOC occur.
+// Exits with code 1 if MISSING, SHARED, GERMAN? or TOC occur.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -69,8 +70,8 @@ function looksGerman(v) {
   return GERMAN_WORDS.test(v) && /\s/.test(v);
 }
 
-let bad = 0;
-for (const a of names) {
+// translations and used keys of one addon; report gets GERMAN? and a missing Locale.lua
+function scan(a) {
   const dir = path.join(ADDONS, a);
   const report = [];
   // translations
@@ -105,11 +106,28 @@ for (const a of names) {
       }
     }
   }
+  return { dir, trans, used, report };
+}
+
+// Shared texts: qnCore's translations serve every addon (qnCore.NewLocale falls back to them), so a
+// key of qnCore's Locale.lua counts as used as soon as any qn addon uses it.
+const all = fs.readdirSync(ADDONS).filter(d => /^qn/.test(d) && fs.existsSync(path.join(ADDONS, d, d + '.toc')));
+const scans = new Map(all.map(a => [a, scan(a)]));
+const core = scans.get('qnCore');
+const usedAnywhere = new Set();
+for (const s of scans.values()) for (const k of s.used.keys()) usedAnywhere.add(k);
+
+let bad = 0;
+for (const a of names) {
+  const { dir, trans, used, report } = scans.get(a) || scan(a);
+  const shared = a === 'qnCore' ? new Map() : core.trans;
   for (const [k, where] of used) {
-    if (!trans.has(k)) report.push(`  MISSING    ${where}  ${JSON.stringify(k).slice(0, 110)}`);
+    if (!trans.has(k) && !shared.has(k)) report.push(`  MISSING    ${where}  ${JSON.stringify(k).slice(0, 110)}`);
   }
   for (const [k, t] of trans) {
-    if (!used.has(k)) report.push(`  UNUSED     Locale.lua:${t.line}  ${JSON.stringify(k).slice(0, 100)}`);
+    // a different German text is a deliberate override for this addon's context
+    if (shared.has(k) && shared.get(k).de === t.de) report.push(`  SHARED     Locale.lua:${t.line}  already translated in qnCore: ${JSON.stringify(k).slice(0, 80)}`);
+    else if (!(a === 'qnCore' ? usedAnywhere : used).has(k)) report.push(`  UNUSED     Locale.lua:${t.line}  ${JSON.stringify(k).slice(0, 100)}`);
   }
   // TOC
   const toc = fs.readFileSync(path.join(dir, a + '.toc'), 'utf8');

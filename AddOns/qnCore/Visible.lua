@@ -24,7 +24,7 @@ local KEEP_DELAY = 1.5   -- after loading or a new window size (qnViewPort arran
 ---------------------------------------------------------------------------
 
 local provider
-local listeners = {}
+local areaChanged = lib.NewSignal()
 
 -- Rectangle of a frame { l, r, t, b } or nil as long as it has no position.
 -- insets = true: include ClampRectInsets; a table { left, right, top, bottom } likewise.
@@ -57,18 +57,11 @@ function Visible.Area()
 end
 
 -- fn() after every change of the area
-function Visible.OnAreaChanged(fn)
-	listeners[#listeners + 1] = fn
-end
+Visible.OnAreaChanged = areaChanged.Add
 
 -- The provider reports a changed area; an error does not stop the others.
 function Visible.Notify()
-	for _, fn in ipairs(listeners) do
-		local ok, err = pcall(fn)
-		if not ok then
-			geterrorhandler()(err)
-		end
-	end
+	areaChanged.Fire()
 end
 
 ---------------------------------------------------------------------------

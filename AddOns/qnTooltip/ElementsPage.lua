@@ -117,7 +117,7 @@ local function PreviewText(e, c, raw, fmt)
 	if raw or not UD.COLORS[c.color] then
 		r, g, b = UD.Color(c.color, raw)
 	end
-	return r and ("|cff" .. ns.Hex(r, g, b) .. text .. "|r") or text
+	return r and ("|cff" .. qnCore.Hex(r, g, b) .. text .. "|r") or text
 end
 
 local INVALID = "|cffff4040%s|r"
@@ -137,7 +137,7 @@ end
 
 local function PickColor(kind, key)
 	local c = Config(kind, key)
-	local r, g, b = ns.RGB(c.color)
+	local r, g, b = qnCore.HexToRGB(c.color)
 	if not r then
 		r, g, b = 1, 1, 1
 	end
@@ -149,7 +149,7 @@ local function PickColor(kind, key)
 	ColorPickerFrame:SetupColorPickerAndShow({
 		r = r, g = g, b = b,
 		swatchFunc = function()
-			Set(ns.Hex(ColorPickerFrame:GetColorRGB()))
+			Set(qnCore.Hex(ColorPickerFrame:GetColorRGB()))
 		end,
 		-- Blizzard passes the previous values as a table (ColorPickerFrameMixin:OnCancel);
 		-- but we need the saved value, which may also be a color function
@@ -201,11 +201,7 @@ local function CreateRow(p, i)
 	row:SetHeight(ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
 	row:SetPoint("RIGHT", p.content, "RIGHT", 0, 0)
-	if i % 2 == 0 then
-		local bg = row:CreateTexture(nil, "BACKGROUND")
-		bg:SetAllPoints()
-		bg:SetColorTexture(1, 1, 1, 0.04)
-	end
+	UI.Stripe(row, i)
 	-- element currently being edited in the dialog
 	row.sel = row:CreateTexture(nil, "BORDER")
 	row.sel:SetAllPoints()
@@ -332,13 +328,7 @@ local function CreateEditor(p)
 	ed:SetSize(EDITOR_WIDTH, EDITOR_HEIGHT)
 	ed:SetPoint("CENTER", p.page, "CENTER", 0, 20)
 	ed:SetFrameStrata("DIALOG")
-	ed:SetToplevel(true)
-	ed:EnableMouse(true)
-	ed:SetMovable(true)
-	ed:SetClampedToScreen(true)
-	ed:RegisterForDrag("LeftButton")
-	ed:SetScript("OnDragStart", ed.StartMoving)
-	ed:SetScript("OnDragStop", ed.StopMovingOrSizing)
+	UI.Movable(ed, { toplevel = true })
 	ed:Hide()
 	ed.text = {}   -- visible only for text and number elements
 	p.editor = ed
@@ -388,26 +378,16 @@ local function CreateEditor(p)
 	ed.iconNote:SetPoint("TOPLEFT", PAD, -116)
 	ed.iconNote:SetWidth(EDITOR_WIDTH - 2 * PAD)
 
-	ed.format = CreateFrame("EditBox", nil, ed, "InputBoxTemplate")
-	ed.format:SetSize(174, 22)
-	ed.format:SetAutoFocus(false)
-	ed.format:SetMaxLetters(60)
+	ed.format = UI.EditBox(ed, 174, function()
+		local _, c = Selected(p)
+		return c and c.format or ""
+	end, function()
+		CommitFormat(p)
+	end)
 	ed.format:SetPoint("TOPLEFT", ed.filter, "BOTTOMLEFT", 6, -12)
 	ed.formatLabel = UI.Label(ed, ed.format, L["Format"], 16)
 	ed.format:SetScript("OnTextChanged", function()
 		UpdateResult(p)
-	end)
-	ed.format:SetScript("OnEnterPressed", function(self)
-		CommitFormat(p)
-		self:ClearFocus()
-	end)
-	ed.format:SetScript("OnEditFocusLost", function()
-		CommitFormat(p)
-	end)
-	ed.format:SetScript("OnEscapePressed", function(self)
-		local _, c = Selected(p)
-		self:SetText(c and c.format or "")
-		self:ClearFocus()
 	end)
 	ed.result = UI.Text(ed, "GameFontHighlight")
 	ed.result:SetPoint("LEFT", ed.format, "RIGHT", 14, 0)
@@ -460,7 +440,7 @@ local function RefreshEditor(p)
 		return
 	end
 	ed.color:Refresh()
-	local r, g, b = ns.RGB(c.color)
+	local r, g, b = qnCore.HexToRGB(c.color)
 	if r then
 		ed.swatch:SetColorTexture(r, g, b)
 	else
@@ -528,11 +508,8 @@ function OpenEditor(p, key)
 	ns.RefreshElementsPage(p.kind)
 end
 
-function ns.RefreshElementsPage(kind)
-	local p = pages[kind]
-	if not (p and p.page:IsVisible()) then
-		return
-	end
+local function Fill(p)
+	local kind = p.kind
 	p.raw = SampleRaw(kind)
 	local sorted = Sorted(kind)
 	for i, item in ipairs(sorted) do
@@ -541,6 +518,13 @@ function ns.RefreshElementsPage(kind)
 	p.content:SetHeight(#ns.ELEMENTS[kind] * ROW_HEIGHT)
 	RefreshEditor(p)
 	p.ui.Fit()
+end
+
+function ns.RefreshElementsPage(kind)
+	local p = pages[kind]
+	if p then
+		p.ui.Refresh()
+	end
 end
 
 function ns.RefreshElementsPages()
@@ -565,9 +549,11 @@ local function Preview(kind)
 	GameTooltip:Show()
 end
 
-local function Build(p, title)
+local function Build(p, title, category)
 	local kind = p.kind
 	p.ui = UI.Page(title, {
+		refresh = function() Fill(p) end,
+		parent = category,
 		desc = L["The header lines of the tooltip are built from these elements. Line and order set their placement; color, format and filter apply per element. Icons have neither color nor format. The values are stored in the active profile."],
 		descWidth = 600,
 		defaults = function()
@@ -601,10 +587,6 @@ local function Build(p, title)
 	p.content = content
 
 	CreateEditor(p)
-
-	p.page:SetScript("OnShow", function()
-		ns.RefreshElementsPage(kind)
-	end)
 end
 
 lib.Popup.Confirm("QNTOOLTIP_ELEMENTS_RESET", L["Reset the elements for %s to the defaults?"], RESET, function(kind)
@@ -615,10 +597,9 @@ end)
 function ns.InitElementsPage(category, kind, title)
 	local p = { kind = kind, rows = {} }
 	pages[kind] = p
-	Build(p, title)
-	p.sub = Settings.RegisterCanvasLayoutSubcategory(category, p.page, title)
+	Build(p, title, category)
 end
 
 function ns.OpenElementsPage(kind)
-	lib.OpenCategory(pages[kind].sub)
+	pages[kind].ui.Open()
 end

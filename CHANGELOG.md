@@ -11,6 +11,72 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-08
+
+### Added
+
+- **qnCore 0.3.0:** own header size for the Objective Tracker (8–13, independent of the text size,
+  default "Like the text") and new option for the header font of the Damage Meter windows (8–12;
+  the header bar shrinks with it).
+- **qnMarkers 0.3.1:** new addon: movable raid marker bar. Left-click a marker to set it on your
+  target (player or NPC), right-click to place its world marker (swappable in the options); placed
+  world markers glow (also those of others).
+  Buttons for ready check, pull timer 5/10 seconds, clearing world markers or the target marker and
+  leaving the group (with confirmation), each can be switched off. The grip moves, minimizes
+  (left-click) and clears all markers (right-click). Horizontal/vertical, floating, scale, icon size,
+  spacing, colors; visibility always / in a group / in a raid (also in combat), optionally only as
+  leader or assistant. Opt-in markers above nameplates: class, role or texture icon (with fallback)
+  for friendly players, group members, enemy players (opt-in), PvP-flagged players, NPCs and pets;
+  role filter, hearts for friends and shields for guild members, size, offset, shape, background,
+  class-colored border, target glow, optionally only in arenas. Opt-in: hide Blizzard's raid manager
+  (transparent and click-through, the raid frames stay). Options pages, `/qnmarkers`.
+- **qnGatherer 0.7.4:** new addon (in development): gathering database for herbs, ore, fishing and
+  treasure. Records nodes while gathering (also nodes you lack the skill or the profession for, with
+  the required skill), fish schools, every fishing catch per character and the fishing areas you
+  learn. Shows the nodes on the world map (tooltip, right-click menu: delete, waypoint, TomTom) and on the minimap (tracking
+  ring nearby, nodes outside slide along the edge, rotating and square minimaps). Options pages
+  (visibility per kind, world map, minimap, filter, fishing, data maintenance), `/qngatherer`, key
+  bindings, minimap button and Titan plugin. Journal window (zones with search, map preview with
+  nodes and areas, resources with required skill and catches) and an info window that opens while
+  fishing (optionally while gathering). Import from GatherMate2 and GatherTogether (in the game while
+  they are loaded, otherwise with the offline tool `tools\Convert-QnGatherer.ps1`), text export/import
+  between qnGatherer users. Exchange of nodes with guild members who use qnGatherer (on by default,
+  can be switched off; nothing is deleted through it), with a chat line when new nodes arrive.
+- **qnUnitFrames 0.4.0:** opt-in "Align target frame": places the target frame with its top edge at the
+  top edge of the player frame, with an adjustable gap (default 40 pixels); it is placed again when
+  Blizzard moves it, but never while the Edit Mode is open. Also `/qnuf aligntarget`.
+- **qnUnitFrames 0.3.0:** the range icon shows the actual distance to the unit inside the icon, where
+  the game reports it (no estimate); option "Show distance" per frame, on by default; `/qnuf distance`
+  shows what the game reports for the target.
+
+### Changed
+
+- **qnNumKeyPad 0.2.1:** provides a global interface for qnLoadout to place spells and macros on the numpad keys.
+- **qnViewPort 0.1.10:** `Set-WowWindow.ps1` now resizes the WoW Forever window (`Wow.exe` from the `_forever_` folder) by default; new parameter `-Client`.
+- **qnCore 0.2.2:** texts used by several qn addons are translated once in qnCore; `/qncore options`
+  opens the options like `/qncore config`.
+- **qnThreatMeter 0.2.2:** the bar texture list shows the own textures first, then those of
+  LibSharedMedia; "Raid" uses Blizzard's name (German client: "Schlachtzug").
+
+### Fixed
+
+- **qnInventory 0.3.5:** the bags, bank and mail views of other characters close again when you click
+  their button a second time, your own bank and mail views update while open, and opening your own bags
+  hides the bags view of another character instead of overlapping it.
+- **qnCore 0.2.3:** after going back to an older addon version, settings saved by a newer version are
+  left untouched (this session works on a copy and says that changes are not saved).
+- **qnBuffMod 0.1.3:** changing target, focus or pet in combat no longer leaves the auras of the previous
+  unit in its window until the end of the fight.
+- **qnTooltip 0.1.5:** `/qntt reset` in combat now says that the settings will be reset after combat
+  instead of "Settings reset.".
+- **qnViewPort 0.1.9:** Blizzard menus (e.g. the chat button menu) and their submenus now open completely inside
+  the monitor they belong to; submenus go to the left of their entry if there is no room on the right.
+- **qnUnitFrames 0.3.0:** for hunters the range icon no longer uses Hunter's Mark (shown up to
+  100 yards, far beyond any attack) and disappears again in the dead zone below the minimum range of
+  the shots.
+
+## [0.3.0] - 2026-10-10
+
 ### Added
 
 - **qnViewPort 0.1.6:** optional "Talent window on" (page "Placement"): the talent window keeps
@@ -97,6 +163,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
   (items and gold per character), **qnBuffMod** (aura windows), **qnUnitFrames** (click casting on
   party and raid frames), **qnTooltip** (customizable tooltips).
 
-[Unreleased]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.2.0...develop
+[Unreleased]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.4.0...develop
+[0.4.0]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kuhnma-prv/wow-qnMod/releases/tag/v0.1.0

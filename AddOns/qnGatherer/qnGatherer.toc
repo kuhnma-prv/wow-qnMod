@@ -1,0 +1,42 @@
+## Interface: 16001
+## Title: qnMod [|cffeda55fGatherer|r] |cff00aa000.7.4|r
+## IconTexture: Interface\AddOns\qnCore\Media\qnIcon
+## Notes: Gathering database for herbs, ore, fishing and treasure with icons on the world map and the minimap, journal, info window, import from GatherMate2/GatherTogether, exchange with the guild (in development).
+## Notes-deDE: Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze mit Symbolen auf Weltkarte und Minikarte, Nachschlage- und Infofenster, Import aus GatherMate2/GatherTogether, Austausch mit der Gilde (in Entwicklung).
+## Author: qn
+## Version: 0.7.4
+## Group: qnCore
+## Category-enUS: User Interface
+## Category-deDE: Benutzerinterface
+## Category-esES: Interfaz de usuario
+## Category-esMX: Interfaz de usuario
+## Category-frFR: Interface utilisateur
+## Category-itIT: Interfaccia utente
+## Category-koKR: 사용자 인터페이스
+## Category-ptBR: Interface do usuário
+## Category-ruRU: Интерфейс пользователя
+## Category-zhCN: 用户界面
+## Category-zhTW: 使用者介面
+## SavedVariables: qnGathererDB
+## Dependencies: qnCore
+## OptionalDeps: Titan, TomTom
+
+Locale.lua
+Core.lua
+Kinds.lua
+DB.lua
+Collector.lua
+Fishing.lua
+Display.lua
+WorldMap.lua
+WorldMapPins.xml
+Minimap.lua
+Journal.lua
+Mini.lua
+Import.lua
+ImportGatherMate2.lua
+ImportGatherTogether.lua
+Sync.lua
+Options.lua
+Launcher.lua
+Titan.lua

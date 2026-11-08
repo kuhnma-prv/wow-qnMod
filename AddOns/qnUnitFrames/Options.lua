@@ -26,6 +26,15 @@ local function Build(category, layout)
 	B:Checkbox(category, "pets", L["Pet frames"],
 		L["Also bind the frames of party members' pets."])
 
+	-- target frame next to the player frame (Align.lua)
+	local A = S.New({ store = ns.store, prefix = "QNUF_", apply = function() ns.ApplyAlign() end })
+	S.Header(layout, L["Target Frame"])
+	local IsAligned = A:When("alignTarget")
+	local aligned = A:Checkbox(category, "alignTarget", L["Align target frame"],
+		L["Places the target frame with its top edge at the top edge of the player frame, to the right of it. The frame is placed again whenever Blizzard moves it, except while the Edit Mode is open. Turn off and /reload to get Blizzard's position back."])
+	S.Depends(A:Slider(category, "alignTargetGap", L["Gap to the player frame"], ns.ALIGN_GAP[1], ns.ALIGN_GAP[2], 1, nil,
+		L["Distance in screen pixels between the player frame and the target frame."]), aligned, IsAligned)
+
 	-- range icon: one block per frame (Range.lua)
 	local R = S.New({ store = ns.store, prefix = "QNUF_", apply = function() ns.ApplyRange() end })
 	S.Header(layout, L["Range Icon"])
@@ -37,9 +46,7 @@ local function Build(category, layout)
 	}
 	for _, entry in ipairs(ns.RANGE_UNITS) do
 		local key = entry.key
-		local function IsOn()
-			return R.settings[key]:GetValue()
-		end
+		local IsOn = R:When(key)
 		local on = R:Checkbox(category, key, frames[key][1], frames[key][2])
 		local size, offset = ns.RANGE_SIZE, ns.RANGE_OFFSET
 		S.Depends(R:Slider(category, key .. "Size", HUD_EDIT_MODE_SETTING_ACTION_BAR_ICON_SIZE, size[1], size[2], 1), on, IsOn)
@@ -47,6 +54,8 @@ local function Build(category, layout)
 			L["Distance from the right edge of the frame; negative values move the icon to the left."]), on, IsOn)
 		S.Depends(R:Slider(category, key .. "Y", L["Vertical offset"], offset[1], offset[2], 1, nil,
 			L["Distance from the vertical center of the frame; positive values move the icon up."]), on, IsOn)
+		S.Depends(R:Checkbox(category, key .. "Distance", L["Show distance"],
+			L["Shows the actual distance to the unit in yards inside the icon. Only where the game reports the distance; otherwise the icon stays without a number."]), on, IsOn)
 	end
 
 	ns.InitClicksPage(category)

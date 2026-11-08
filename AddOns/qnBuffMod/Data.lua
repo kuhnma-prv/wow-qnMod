@@ -173,17 +173,7 @@ ns.RANGES = {
 }
 local RANGES = ns.RANGES
 
-local function ValidColor(c)
-	if type(c) ~= "table" then
-		return false
-	end
-	for i = 1, 4 do
-		if type(c[i]) ~= "number" then
-			return false
-		end
-	end
-	return true
-end
+local ValidColor = qnCore.ValidColor
 ns.ValidColor = ValidColor
 
 -- A saved value as a valid value or nil (= default)
@@ -215,7 +205,7 @@ local function Checked(key, v, default)
 		end
 		local r = RANGES[key]
 		if r then
-			return math.max(r[1], math.min(r[2], v))
+			return qnCore.Clamp(v, r[1], r[2])
 		end
 		return v
 	elseif kind == "string" then
@@ -320,7 +310,6 @@ function ns.RegisterStore(onSwitch)
 		ns = ns,
 		sv = "qnBuffModDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		sanitize = Sanitize,
 		onSwitch = onSwitch,
 	})

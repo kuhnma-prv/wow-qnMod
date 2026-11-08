@@ -16,6 +16,7 @@ In addition, qnUnitFrames can show a small range icon next to the target and foc
 - Bindings per class and per profile; another Edit Mode layout can have different bindings.
 - Range icon to the right of the target frame and/or focus frame: shows the icon of your farthest
   usable ranged attack while the unit is in its range, and the auto attack icon in melee range.
+- Optional: places the target frame next to the player frame (top edges aligned, adjustable gap).
 - Changes made in combat are applied automatically after combat.
 
 ## Getting started
@@ -46,6 +47,15 @@ profile.
 - **Classic party frames** – the party frames without that option. Default: on.
 - **Pet frames** – also bind the frames of party members' pets. Default: on.
 
+**Target Frame** – opt-in placement of Blizzard's target frame:
+
+- **Align target frame** – places the target frame with its top edge at the top edge of the player
+  frame, to the right of it. The frame is placed again whenever Blizzard moves it (login, layout
+  change), but not while the Edit Mode is open, so it can still be dragged there. Default: off.
+  To get Blizzard's position back, turn the option off and type `/reload`.
+- **Gap to the player frame** – distance in screen pixels (0 to 400, default 40); can only be
+  changed while the option is on.
+
 **Range Icon** – one block for each frame:
 
 - **At the target frame** / **At the focus frame** – shows the range icon to the right of the
@@ -55,8 +65,12 @@ profile.
   negative values move the icon to the left.
 - **Vertical offset** – distance from the vertical center of the frame (−200 to 200, default 0);
   positive values move the icon up.
+- **Show distance** – shows the actual distance to the unit in yards inside the icon. Default: on.
+  Only where the game reports the distance or the positions; otherwise the icon stays without a
+  number (no estimate from the range checks). `/qnuf distance` shows what the game reports for your
+  target.
 
-The size and offset sliders can only be changed while the icon of that frame is turned on.
+The size, offset and distance options can only be changed while the icon of that frame is turned on.
 
 How the range icon decides what to show (checked about five times per second):
 
@@ -65,7 +79,10 @@ How the range icon decides what to show (checked about five times per second):
   duel distance (about 10 yards) decides.
 - **Otherwise:** the icon of your farthest harmful ranged spell from the spellbook that can be
   used right now appears, as soon as the unit is within its range. Missing mana, rage or energy
-  does not hide it.
+  does not hide it. Hunter's Mark does not count: its range is far beyond every attack.
+- **Minimum range:** spells with a minimum range (hunter shots) do not count while the unit is
+  outside melee range but within the duel distance (about 10 yards). As a hunter you then see no
+  icon in the dead zone.
 - No icon if you cannot attack the unit (e.g. friendly units), if it is out of range of all these
   spells or if the range cannot be checked.
 
@@ -101,8 +118,10 @@ target.
 |---|---|
 | `/qnuf`, `/qnunitframes` (also `config`, `options`) | Open the options |
 | `/qnuf clicks` | Open the Click Bindings page |
+| `/qnuf aligntarget` | Turn on "Align target frame" |
 | `/qnuf on` | Turn click casting on |
 | `/qnuf off` | Turn click casting off |
+| `/qnuf distance` | Show in the chat what the game reports about the distance to the target |
 | `/qnuf` + anything else | Show the list of commands |
 
 ## Tips & notes

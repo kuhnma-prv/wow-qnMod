@@ -246,7 +246,9 @@ rot = andere (z. B. körperlich).
   kürzesten Restzeit. Nutze sie außerhalb des Kampfes.
 - Im Kampf hält der Client Aurendaten zurück. Die Fenster zeigen dann den letzten bekannten Stand
   und aktualisieren sich nach dem Kampf; eine Chat-Meldung weist einmal darauf hin. Betroffene
-  Zauber erscheinen eventuell ohne Restzeit oder mit Fragezeichen.
+  Zauber erscheinen eventuell ohne Restzeit oder mit Fragezeichen. Wechselst du im Kampf Ziel,
+  Fokus oder Begleiter, bleibt dieses Fenster bis zum Ende des Kampfes leer, statt die Zauber der
+  vorherigen Einheit zu zeigen.
 - Fenster anlegen und löschen geht im Kampf nicht. Änderungen der Sichtbarkeit im Kampf greifen
   nach dem Kampf.
 - Rechtsklick entfernt nur eigene Stärkungszauber, nur in einem Fenster für den Spieler und nur

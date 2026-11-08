@@ -22,7 +22,7 @@ Sprache: Deutsche Clients zeigen deutsche Texte, alle anderen Clients englische.
 
 | Addon | Was es macht | Slash-Befehle |
 |---|---|---|
-| [qnCore](qnCore.md) | Kern aller qn-Addons (Pflicht): ein Einstellungsprofil je Layout des Bearbeitungsmodus (Kopieren, Löschen, Zurücksetzen), öffnet und schließt die Taschen automatisch an Auktionshaus, Bank, Händler und ähnlichen Orten, merkt sich die Verfolgung an der Minikarte, Schrift der Questzielverfolgung unter 12. | `/qncore`, `/qnc` |
+| [qnCore](qnCore.md) | Kern aller qn-Addons (Pflicht): ein Einstellungsprofil je Layout des Bearbeitungsmodus (Kopieren, Löschen, Zurücksetzen), öffnet und schließt die Taschen automatisch an Auktionshaus, Bank, Händler und ähnlichen Orten, merkt sich die Verfolgung an der Minikarte, Schrift der Questzielverfolgung (Text und Überschriften) unter 12, Überschriftsgröße der Schadensanzeige. | `/qncore`, `/qnc` |
 | [qnThreatMeter](qnThreatMeter.md) | Bedrohungsanzeige für die Gruppe gegen das aktuelle Ziel im Stil der eingebauten Schadensanzeige: Wert, TPS, Prozent, Balken „Aggro ziehen“, Warnung bei hoher Bedrohung. | `/qnm`, `/qnthreatmeter` |
 | [qnNumKeyPad](qnNumKeyPad.md) | Aktionsleiste in Form eines Ziffernblocks (6 Tastaturlayouts) mit automatischer Tastenbelegung, Strg-Set, Haltungswechsel und Unterstützung für die Logitech G502 (Maustaste → Ziffernblocktaste, Zauber und Makros auf Maustasten). | `/qnnkp`, `/qnnumkeypad`, `/numpad` |
 | [qnLoadout](qnLoadout.md) | Lädt fertige Sätze pro Klasse: legt `qn`-Makros an oder ändert sie und belegt die qnNumKeyPad-Tasten (auch das Strg-Set); exportiert den aktuellen Stand als Satz. | `/qnloadout` |
@@ -32,13 +32,16 @@ Sprache: Deutsche Clients zeigen deutsche Texte, alle anderen Clients englische.
 | [qnUnitFrames](qnUnitFrames.md) | Klickzauber auf Blizzards Gruppen-, Schlachtzugs- und Begleiterrahmen (wie HealBot), je Klasse und Profil; optional ein Reichweitensymbol am Ziel- und Fokusrahmen. | `/qnuf`, `/qnunitframes` |
 | [qnTooltip](qnTooltip.md) | Anpassbare Tooltips: Hintergrund, Rahmen, Schriften, Skalierung, Position auf Wunsch, Lebensbalken, Kopfzeilen von Einheiten aus Bausteinen, Ziel und „Anvisiert von“, 3D-Modell, Gegenstandsstufe, IDs. | `/qntt`, `/qntooltip` |
 | [qnSkins](qnSkins.md) | Schmückende Bilder (Band mit Kordel, Kästen, 3D-Figur) um Aktionsleisten, Statusleisten und Mikromenü; gibt diesen Elementen auf Wunsch eine vordefinierte Position und Skalierung auf einem gewählten Monitor. | `/qnskins` |
+| [qnGatherer](qnGatherer.md) | Sammel-Datenbank für Kräuter, Erz, Angeln und Schätze (in Entwicklung): erfasst Sammelpunkte, Fänge und Angelgebiete und zeigt die Punkte auf Weltkarte und Minikarte; Nachschlage- und Infofenster, Import aus GatherMate2/GatherTogether, Austausch mit der Gilde, Minikarten-Knopf und Titan-Panel-Plugin. | `/qngatherer`, `/qng` |
+| [qnMarkers](qnMarkers.md) | Verschiebbare Markierungsleiste: Boden- und Zielmarkierungen per Klick (gesetzte Bodenmarkierungen leuchten), Bereitschaftscheck, Pull-Timer, Markierungen löschen, Gruppe verlassen; Sichtbarkeit nach Gruppe/Schlachtzug, auch nur als Leiter oder Assistent. Wahlweise Symbole über Namensplaketten (Klasse, Rolle, Freunde, Gilde, Leuchten am Ziel); blendet auf Wunsch Blizzards Schlachtzugsmanager aus. | `/qnmarkers`, `/qnmk` |
 
 ## Optionale Addons
 
 - [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0): weitere Schriften,
   Texturen und Rahmen für qnThreatMeter und qnTooltip.
 - [Titan Panel](https://www.curseforge.com/wow/addons/titan-panel): Leisten je Monitor (qnViewPort),
-  Bank- und Gold-Plugins (qnInventory).
+  Bank- und Gold-Plugins (qnInventory), Sammel-Plugin (qnGatherer).
+- [TomTom](https://www.curseforge.com/wow/addons/tomtom): Wegpunkte aus dem Weltkartenmenü von qnGatherer.
 
 ## Allgemeine Hinweise
 

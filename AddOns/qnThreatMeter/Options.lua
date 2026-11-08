@@ -9,13 +9,6 @@ local S = qnCore.Settings
 -- Values from the menu and slash commands are set via ns.store:Set (qnCore): that way the
 -- settings window shows them too.
 
-local function TextureEntries()
-	local list = {}
-	for _, name in ipairs(ns.GetTextureNames()) do
-		list[#list + 1] = { name, ns.textureLabels[name] or name }
-	end
-	return list
-end
 
 local function Build(cat, layout)
 	local B = S.New({ store = ns.store, prefix = "QNTHREATMETER_", apply = function() ns.Threat.ApplySettings() end })
@@ -30,18 +23,13 @@ local function Build(cat, layout)
 	})
 	B:Checkbox(cat, "showTitle", L["Show title bar"])
 	B:Slider(cat, "scale", L["Scale"], 0.5, 2, 0.05, S.DecimalFormatter)
-	B:Checkbox(cat, "autoVisible", L["Keep in visible area automatically"],
-		L["Moves the window back onto a monitor after dragging, on login and when the monitor arrangement changes. With qnViewPort and monitor data, only areas actually visible on a monitor count."])
-	S.Button(layout, L["Find window"], L["Move into visible area"],
-		function() ns.Threat.MoveIntoVisible() end, L["Moves the window onto the nearest visible monitor now (/qnm visible)."])
+	B:KeepVisible(cat, layout, { move = function() ns.Threat.MoveIntoVisible() end, slash = "/qnm visible" })
 
 	S.Header(layout, L["Bars"])
 	local link = B:Checkbox(cat, "linkDamageMeter", L["Use Damage Meter settings"],
 		L["Takes style, bar height, spacing, text size, icons, class colors and transparency from the Edit Mode settings of the built-in Damage Meter."])
 	-- Only usable as long as the values do not come from the Damage Meter.
-	local function NotLinked()
-		return not ns.db.linkDamageMeter
-	end
+	local NotLinked = B:When("linkDamageMeter", false)
 	S.Depends(B:Dropdown(cat, "style", HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE, {
 		{ 0, HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE_DEFAULT },
 		{ 1, HUD_EDIT_MODE_SETTING_DAMAGE_METER_STYLE_THIN },
@@ -54,7 +42,7 @@ local function Build(cat, layout)
 	S.Depends(B:Checkbox(cat, "showIcons", L["Show class icons"]), link, NotLinked)
 	S.Depends(B:Checkbox(cat, "classColors", CLASS_COLORS), link, NotLinked)
 	S.Depends(B:Slider(cat, "bgAlpha", L["Background opacity"], 0, 1, 0.05, S.FractionFormatter), link, NotLinked)
-	B:Dropdown(cat, "texture", L["Bar texture"], TextureEntries)
+	B:Dropdown(cat, "texture", L["Bar texture"], ns.TextureEntries)
 	B:Checkbox(cat, "showRank", L["Rank before the name"])
 	B:Checkbox(cat, "useMyColor", L["Color your own bar red"])
 	B:Checkbox(cat, "useTankColor", L["Color the tank bar dark red"])

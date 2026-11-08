@@ -8,7 +8,7 @@ local K = ns.kind
 local Entry = {}
 ns.Entry = Entry
 
-local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
+local BAR_TEXTURE = qnCore.Media.STATUSBAR
 local SPARK_TEXTURE = "Interface\\CastingBar\\UI-CastingBar-Spark"
 local GOLD = { 1, 0.82, 0 }
 local RED = { 1, 0, 0 }

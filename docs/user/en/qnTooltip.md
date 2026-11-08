@@ -217,7 +217,7 @@ requested via inspect out of combat and shows "??" until it is known.
 | Command | Effect |
 |---|---|
 | `/qntt`, `/qntooltip` (also `config`, `options`) | Open the options |
-| `/qntt reset` | Reset all settings of the active profile |
+| `/qntt reset` | Reset all settings of the active profile (in combat: after combat) |
 | `/qntt` + anything else | Show the list of commands |
 
 ## Tips & notes

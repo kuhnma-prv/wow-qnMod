@@ -24,20 +24,27 @@ ns.defaults = {
 	pets = true,          -- party pet frames
 	tooltip = true,       -- show bindings in the frames' tooltip
 	bindings = {},        -- [class] = { [key] = { type, value } }
-	-- range icon (Range.lua) per frame: on/off, size, offset from the frame's right edge
+	-- range icon (Range.lua) per frame: on/off, size, offset from the frame's right edge,
+	-- distance text inside the icon
 	rangeTarget = false,
 	rangeTargetSize = 24,
 	rangeTargetX = 0,
 	rangeTargetY = 0,
+	rangeTargetDistance = true,
 	rangeFocus = false,
 	rangeFocusSize = 24,
 	rangeFocusX = 0,
 	rangeFocusY = 0,
+	rangeFocusDistance = true,
+	-- target frame next to the player frame (Align.lua): on/off, gap in screen pixels
+	alignTarget = false,
+	alignTargetGap = 40,
 }
 
 -- limits of the range icon sliders (Options.lua, Sanitize)
 ns.RANGE_SIZE = { 12, 64 }
 ns.RANGE_OFFSET = { -200, 200 }
+ns.ALIGN_GAP = { 0, 400 }   -- gap of the aligned target frame in pixels
 
 ---------------------------------------------------------------------------
 -- Buttons and actions
@@ -146,21 +153,26 @@ end
 
 -- Version of the settings (see qnCore.Migrate)
 -- 1.1: range icon at the target and focus frame
-local SETTINGS_VERSION = "1.1"
+-- 1.2: distance text inside the range icon
+-- 1.3: target frame placed next to the player frame
+local SETTINGS_VERSION = "1.3"
 
 -- number within limits, otherwise nil (= default)
 local function Clamp(v, limits)
-	if type(v) ~= "number" then
-		return nil
-	end
-	return math.min(math.max(v, limits[1]), limits[2])
+	return lib.Clamp(v, limits[1], limits[2])
 end
 
 -- Check of a profile on every load: removes broken entries (unknown action, wrong key).
 local function Sanitize(db)
+	if type(db.alignTarget) ~= "boolean" then
+		db.alignTarget = nil
+	end
+	db.alignTargetGap = Clamp(db.alignTargetGap, ns.ALIGN_GAP)
 	for _, entry in ipairs({ "rangeTarget", "rangeFocus" }) do
-		if type(db[entry]) ~= "boolean" then
-			db[entry] = nil
+		for _, flag in ipairs({ entry, entry .. "Distance" }) do
+			if type(db[flag]) ~= "boolean" then
+				db[flag] = nil
+			end
 		end
 		db[entry .. "Size"] = Clamp(db[entry .. "Size"], ns.RANGE_SIZE)
 		db[entry .. "X"] = Clamp(db[entry .. "X"], ns.RANGE_OFFSET)
@@ -191,20 +203,19 @@ end
 -- Slash commands
 ---------------------------------------------------------------------------
 
-lib.RegisterSlash("QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, function(cmd)
-	if cmd == "" or cmd == "config" or cmd == "options" then
-		ns.OpenOptions()
-	elseif cmd == "clicks" then
-		ns.OpenClicksPage()
-	elseif cmd == "on" then
-		ns.store:Set("enabled", true)
-	elseif cmd == "off" then
+lib.RegisterCommands(ns, "QNUNITFRAMES", { "/qnunitframes", "/qnuf" }, {
+	clicks = function() ns.OpenClicksPage() end,
+	aligntarget = function()
+		ns.store:Set("alignTarget", true)
+		ns.Print(L["Target frame placed next to the player frame. Turn it off in the options; the frame returns to its position after /reload."])
+	end,
+	on = function() ns.store:Set("enabled", true) end,
+	off = function()
 		ns.store:Set("enabled", false)
 		ns.Print(L["Click casting turned off. Turn it on with /qnuf on"])
-	else
-		ns.Print(L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf on | off – turn click casting on/off"])
-	end
-end)
+	end,
+	distance = function() ns.PrintDistanceInfo() end,
+}, L["Commands:\n  /qnuf – open options\n  /qnuf clicks – edit click bindings\n  /qnuf aligntarget – place the target frame next to the player frame\n  /qnuf on | off – turn click casting on/off\n  /qnuf distance – what the game reports about the distance to the target"])
 
 ---------------------------------------------------------------------------
 -- Events
@@ -215,20 +226,22 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnUnitFramesDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		sanitize = Sanitize,
 		onSwitch = function()
 			ns.Apply()
 			ns.ApplyRange()
+			ns.ApplyAlign()
 			ns.RefreshClicksPage()
 		end,
 	})
 	ns.InitClicks()
 	ns.InitRange()
+	ns.InitAlign()
 	ns.InitOptions()
 end)
 
 ns.events.Register("PLAYER_LOGIN", function()
 	ns.Apply()
 	ns.ApplyRange()
+	ns.ApplyAlign()
 end)

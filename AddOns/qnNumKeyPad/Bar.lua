@@ -21,9 +21,7 @@ local cursorGrid = false    -- player is currently holding an action on the curs
 local keepPending = false   -- anchor change in combat: offsets not yet converted
 
 -- Offsets are stored rounded to whole UIParent units.
-local function Round(v)
-	return math.floor(v + 0.5)
-end
+local Round = qnCore.Round
 
 ---------------------------------------------------------------------------
 -- Action slots
@@ -212,10 +210,9 @@ end
 -- Save the position at the configured anchor: relative to UIParent (with qnViewPort possibly not
 -- at 0,0), in UIParent units
 local function SavePosition()
-	local point = ns.db.point
-	local x, y = qnCore.PointOffset(bar, point, point, true)
-	if x then
-		ns.store:SetValues({ x = Round(x), y = Round(y) })
+	local p = qnCore.SavePoint(bar, ns.db.point, ns.db.point)
+	if p then
+		ns.store:SetValues({ x = p[3], y = p[4] })
 	end
 end
 
@@ -223,8 +220,6 @@ local function CreateOverlay()
 	overlay = CreateFrame("Frame", nil, bar)
 	overlay:SetAllPoints()
 	overlay:SetFrameLevel(bar:GetFrameLevel() + 50)
-	overlay:EnableMouse(true)
-	overlay:RegisterForDrag("LeftButton")
 
 	local tex = overlay:CreateTexture(nil, "BACKGROUND")
 	tex:SetAllPoints()
@@ -234,48 +229,33 @@ local function CreateOverlay()
 	text:SetPoint("TOP", 0, -INSET - 2)
 	text:SetText("qnNumKeyPad")
 
-	overlay:SetScript("OnDragStart", function()
-		if InCombatLockdown() then
-			return
-		end
-		bar:StartMoving()
-	end)
-	overlay:SetScript("OnDragStop", function()
-		bar:StopMovingOrSizing()
-		if not InCombatLockdown() then
-			SavePosition()   -- ns.Apply then triggers the visible-area check
-		end
-	end)
+	qnCore.UI.Movable(bar, {
+		handle = overlay,
+		canMove = function() return not InCombatLockdown() end,
+		onStop = function()
+			if not InCombatLockdown() then
+				SavePosition()   -- ns.Apply then triggers the visible-area check
+			end
+		end,
+	})
 	overlay:SetScript("OnMouseUp", function(_, mouse)
 		if mouse == "RightButton" then
 			ns.OpenOptions()
 		end
 	end)
-	overlay:SetScript("OnEnter", function(self)
-		GameTooltip:SetOwner(self, "ANCHOR_TOP")
-		GameTooltip:AddLine("qnNumKeyPad")
-		GameTooltip:AddLine(L["Left-click and drag: move"], 1, 1, 1)
-		GameTooltip:AddLine(L["Right-click: options"], 1, 1, 1)
-		GameTooltip:AddLine(L["/qnnkp lock: lock position"], 1, 1, 1)
-		GameTooltip:Show()
-	end)
-	overlay:SetScript("OnLeave", GameTooltip_Hide)
+	qnCore.UI.Tooltip(overlay, "qnNumKeyPad", table.concat({
+		L["Left-click and drag: move"], L["Right-click: options"], L["/qnnkp lock: lock position"] }, "\n"), "ANCHOR_TOP")
 	overlay:Hide()
 end
 
 local function CreateFader()
 	fader = CreateFrame("Frame")
-	local elapsed, lastOver = 0, 0
+	local lastOver = 0
 	local lastAlpha   -- last opacity set; nil = set on the next pass
 	fader:SetScript("OnShow", function()
 		lastAlpha = nil   -- without fading, ApplyCosmetic sets the opacity itself
 	end)
-	fader:SetScript("OnUpdate", function(_, e)
-		elapsed = elapsed + e
-		if elapsed < 0.05 then
-			return
-		end
-		elapsed = 0
+	fader:SetScript("OnUpdate", (qnCore.Throttle(0.05, function()
 		local db = ns.db
 		local now = GetTime()
 		local over = bar:IsVisible() and (bar:IsMouseOver()
@@ -288,7 +268,7 @@ local function CreateFader()
 			lastAlpha = alpha
 			bar:SetAlpha(alpha)
 		end
-	end)
+	end)))
 	fader:Hide()
 end
 
@@ -390,9 +370,7 @@ local function ApplyPosition()
 	end
 	local db = ns.db
 	bar:SetScale(db.scale)
-	local s = bar:GetScale()
-	bar:ClearAllPoints()
-	bar:SetPoint(db.point, UIParent, db.point, db.x / s, db.y / s)
+	qnCore.RestorePoint(bar, { db.point, db.point, db.x, db.y })
 end
 
 -- Page for keys 1-12: modifier set (Ctrl and Alt together: neither), then the stance; nil = always 0.

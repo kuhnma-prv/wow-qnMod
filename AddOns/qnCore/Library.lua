@@ -1,4 +1,4 @@
--- qnCore: core and library of the qn addons (qnThreatMeter, qnNumKeyPad, qnViewPort, qnInventory, qnBuffMod, qnUnitFrames).
+-- qnCore: core and library of the qn addons.
 -- Library: shared helper functions, globally reachable as qnCore.
 --
 -- The qn addons (qnCore itself included) call
@@ -83,10 +83,31 @@ function lib.ClassColoredName(name, classFile, fallback)
 	if not c then
 		return name
 	end
-	local function Byte(v)
-		return math.floor(v * 255 + 0.5)
+	return ("|cff%s%s|r"):format(lib.Hex(c.r, c.g, c.b), name)
+end
+
+-- r, g, b, a of a color list { r, g, b, a } (as stored by Settings.Builder:Color); missing
+-- r, g, b = default (0), missing a = 1
+function lib.UnpackColor(c, default)
+	local d = default or 0
+	return c[1] or d, c[2] or d, c[3] or d, c[4] or 1
+end
+
+-- "rrggbb" for color values 0-1
+function lib.Hex(r, g, b)
+	return ("%02x%02x%02x"):format(lib.Round(r * 255), lib.Round(g * 255), lib.Round(b * 255))
+end
+
+-- r, g, b (0-1) of exactly "rrggbb"; nil for any other value
+function lib.HexToRGB(hex)
+	local r, g, b
+	if type(hex) == "string" then
+		r, g, b = hex:match("^(%x%x)(%x%x)(%x%x)$")
 	end
-	return ("|cff%02x%02x%02x%s|r"):format(Byte(c.r), Byte(c.g), Byte(c.b), name)
+	if not r then
+		return nil
+	end
+	return tonumber(r, 16) / 255, tonumber(g, 16) / 255, tonumber(b, 16) / 255
 end
 
 ---------------------------------------------------------------------------
@@ -98,6 +119,8 @@ end
 --   local L = qnCore.NewLocale(ns, ADDON)
 --   if not qnCore.GERMAN then return end
 --   L["English text"] = "Deutscher Text"
+-- Texts that several addons use are translated once in qnCore's Locale.lua ("shared
+-- texts"); every addon's L falls back to them.
 -- If a translation is missing, the English text appears; /qncore locale lists
 -- such keys. If Blizzard has a matching text (GlobalStrings like CANCEL,
 -- DELETE), it is used instead of an own key.
@@ -111,6 +134,10 @@ function lib.NewLocale(addonNS, name)
 		return addonNS.L
 	end
 	local L = setmetatable({}, { __index = function(_, key)
+		local shared = key ~= nil and ns.L and rawget(ns.L, key)
+		if shared then
+			return shared
+		end
 		if lib.GERMAN and key ~= nil then
 			local list = lib.missing[name or "?"] or {}
 			lib.missing[name or "?"] = list
@@ -139,6 +166,42 @@ function lib.MergeDefaults(db, defaults)
 		end
 	end
 	return db
+end
+
+-- Keys of t as a sorted list (cmp as for table.sort, optional)
+function lib.SortedKeys(t, cmp)
+	local keys = {}
+	for k in pairs(t) do
+		keys[#keys + 1] = k
+	end
+	table.sort(keys, cmp)
+	return keys
+end
+
+-- For sanitize: v within minV..maxV (clamped), nil if v is not a number (= default)
+function lib.Clamp(v, minV, maxV)
+	if type(v) ~= "number" then
+		return nil
+	end
+	return math.min(math.max(v, minV), maxV)
+end
+
+-- For sanitize: true if c is a color list { r, g, b, a } of numbers
+function lib.ValidColor(c)
+	if type(c) ~= "table" then
+		return false
+	end
+	for i = 1, 4 do
+		if type(c[i]) ~= "number" then
+			return false
+		end
+	end
+	return true
+end
+
+-- Nearest integer (halves upwards)
+function lib.Round(v)
+	return math.floor(v + 0.5)
 end
 
 -- Deletes obsolete keys from t; "dual.uiOnMain" stands for t.dual.uiOnMain.
@@ -252,6 +315,25 @@ function lib.NewEventHub()
 	return hub
 end
 
+-- List of callbacks: signal.Add(fn), signal.Fire(...) calls every fn(...) in registration order;
+-- an error does not stop the others.
+function lib.NewSignal()
+	local listeners = {}
+	local signal = {}
+	function signal.Add(fn)
+		listeners[#listeners + 1] = fn
+	end
+	function signal.Fire(...)
+		for _, fn in ipairs(listeners) do
+			local ok, err = pcall(fn, ...)
+			if not ok then
+				geterrorhandler()(err)
+			end
+		end
+	end
+	return signal
+end
+
 ---------------------------------------------------------------------------
 -- Position of frames relative to UIParent
 -- All calculations use the effective scale; UIParent may be moved or shrunk
@@ -287,6 +369,23 @@ function lib.PointOffset(frame, point, relPoint, inParentUnits)
 	end
 	local s = inParentUnits and UIParent:GetEffectiveScale() or frame:GetEffectiveScale()
 	return (px - rx) / s, (py - ry) / s
+end
+
+-- Position to store: { point, relPoint, x, y } relative to UIParent in UIParent units (independent
+-- of the frame's scale), rounded; nil as long as frame has no position. Not via GetPoint: after
+-- dragging the anchor may be attached to the screen, and UIParent may not be at 0,0 (qnViewPort).
+function lib.SavePoint(frame, point, relPoint)
+	local x, y = lib.PointOffset(frame, point, relPoint, true)
+	if x then
+		return { point, relPoint, lib.Round(x), lib.Round(y) }
+	end
+end
+
+-- Sets a position from lib.SavePoint; scale = the frame's scale (default frame:GetScale()).
+function lib.RestorePoint(frame, p, scale)
+	local s = scale or frame:GetScale()
+	frame:ClearAllPoints()
+	frame:SetPoint(p[1] or "CENTER", UIParent, p[2] or "CENTER", (p[3] or 0) / s, (p[4] or 0) / s)
 end
 
 -- Corner of UIParent closest to point of frame (default CENTER), e.g. "TOPRIGHT".
@@ -348,6 +447,21 @@ lib.NewEventHub().Register("PLAYER_REGEN_ENABLED", function()
 	end
 end)
 
+-- true (with a message via print) if a change is not possible now: in combat (combatText,
+-- default "Not possible in combat.") or, with checkCursor, while something is on the cursor
+-- (PlaceAction and similar would swap with it).
+function lib.Blocked(print, combatText, checkCursor)
+	if InCombatLockdown() then
+		print(combatText or ns.L["Not possible in combat."])
+		return true
+	end
+	if checkCursor and GetCursorInfo() then
+		print(ns.L["Something is on the cursor – place or drop it first."])
+		return true
+	end
+	return false
+end
+
 -- Returns a function that calls fn after delay seconds (default 0 = in the next frame).
 -- Further calls until then are merged; arguments are not passed on.
 function lib.Debounce(fn, delay)
@@ -362,6 +476,26 @@ function lib.Debounce(fn, delay)
 			fn()
 		end)
 	end
+end
+
+-- OnUpdate handler that calls fn(frame) at most every interval seconds (number or function that
+-- returns it, read on every frame). Counts per frame, so one handler can serve several frames.
+-- Returns the handler and reset(frame) (count from 0 again, e.g. when showing).
+function lib.Throttle(interval, fn)
+	local elapsed = setmetatable({}, { __mode = "k" })
+	local function OnUpdate(frame, dt)
+		local e = (elapsed[frame] or 0) + dt
+		if e < (type(interval) == "function" and interval() or interval) then
+			elapsed[frame] = e
+			return
+		end
+		elapsed[frame] = 0
+		fn(frame)
+	end
+	local function Reset(frame)
+		elapsed[frame] = 0
+	end
+	return OnUpdate, Reset
 end
 
 ---------------------------------------------------------------------------
@@ -380,6 +514,29 @@ function lib.RegisterSlash(id, commands, handler)
 		local cmd, rest = msg:match("^(%S*)%s*(.-)$")
 		handler(cmd:lower(), rest, msg)
 	end
+end
+
+-- Slash commands of a qn addon: list = { [subcommand] = fn(rest, msg) | "reset" }. Without a
+-- matching entry "", "config" and "options" open the options (addonNS.OpenOptions), everything
+-- else prints help (one key, each line becomes a chat line). "reset" resets the active profile
+-- (addonNS.store; in combat only afterwards) and reports it.
+function lib.RegisterCommands(addonNS, id, commands, list, help)
+	lib.RegisterSlash(id, commands, function(cmd, rest, msg)
+		local fn = list[cmd]
+		if fn == "reset" then
+			if addonNS.store:ResetActive() then
+				addonNS.Print(ns.L["In combat: settings will be reset after combat."])
+			else
+				addonNS.Print(ns.L["Settings reset."])
+			end
+		elseif fn then
+			fn(rest, msg)
+		elseif cmd == "" or cmd == "config" or cmd == "options" then
+			addonNS.OpenOptions()
+		else
+			addonNS.Print(help)
+		end
+	end)
 end
 
 ---------------------------------------------------------------------------

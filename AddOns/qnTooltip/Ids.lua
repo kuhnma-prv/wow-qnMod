@@ -3,27 +3,17 @@
 
 local _, ns = ...
 local L = ns.L
-local IsSecret = ns.IsSecret
 
 local Ids = {}
 ns.Ids = Ids
 
 local ICON = "|T%s:16:16:0:0:32:32:2:30:2:30|t %s"
 
-local function Plain(v)
-	if IsSecret(v) then
-		return nil
-	end
-	return v
-end
+local Plain = ns.Plain
 
+-- first line of lineType, otherwise the first line
 local function LineIndex(data, lineType)
-	for _, line in ipairs(data.lines or {}) do
-		if line.type == lineType then
-			return line.lineIndex
-		end
-	end
-	return 1
+	return ns.LineIndex(data, lineType) or 1
 end
 
 -- icon before the text of a line (the text may be secret)

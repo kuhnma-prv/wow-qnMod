@@ -16,12 +16,7 @@ local scratch = {}     -- settings source while the selected window does not exi
 
 -- Window IDs of the active profile, ascending
 function ns.WindowIDs()
-	local ids = {}
-	for id in pairs(ns.db and ns.db.windows or {}) do
-		ids[#ids + 1] = id
-	end
-	table.sort(ids)
-	return ids
+	return qnCore.SortedKeys(ns.db and ns.db.windows or {})
 end
 
 function ns.GetWindow(id)
@@ -110,11 +105,7 @@ local function Create(settings)
 end
 
 local function CombatBlocked()
-	if InCombatLockdown() then
-		ns.Print(L["Not possible in combat."])
-		return true
-	end
-	return false
+	return lib.Blocked(ns.Print)
 end
 
 -- New window with defaults or with the settings of copyFrom; appears in the center of the screen

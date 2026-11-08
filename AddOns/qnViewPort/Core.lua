@@ -170,28 +170,24 @@ eBottom:SetPoint("TOP", WorldFrame, "BOTTOM")
 function ns.SetBorderColor(c)
 	c = c or ns.defaults.color
 	for _, tex in ipairs(edges) do
-		tex:SetColorTexture(c[1] or 0, c[2] or 0, c[3] or 0, c[4] or 1)
+		tex:SetColorTexture(lib.UnpackColor(c))
 	end
 end
 
 -- Tileable Blizzard textures (used with horizTile/vertTile in the Forever source)
 ns.PATTERNS = {
-	{ "rock", L["Rock"], "Interface\\FrameGeneral\\UI-Background-Rock" },
-	{ "marble", L["Marble"], "Interface\\FrameGeneral\\UI-Background-Marble" },
+	{ "rock", L["Rock"], lib.Media.ROCK },
+	{ "marble", L["Marble"], lib.Media.MARBLE },
 	{ "wood", L["Wood"], "Interface\\BlackMarket\\BlackMarketBackground-Tile" },
 	{ "dialog", L["Dialog"], "Interface\\DialogFrame\\UI-DialogBox-Background" },
 	{ "dialogDark", L["Dialog (dark)"], "Interface\\DialogFrame\\UI-DialogBox-Background-Dark" },
-	{ "tooltip", L["Tooltip"], "Interface\\Tooltips\\UI-Tooltip-Background" },
+	{ "tooltip", L["Tooltip"], lib.Media.TOOLTIP_BG },
 	{ "parchment", L["Parchment"], "Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal" },
 	{ "achievement", ACHIEVEMENTS, "Interface\\AchievementFrame\\UI-Achievement-AchievementBackground" },
 }
 -- followed by our own patterns from qnCore
 for _, p in ipairs(lib.Patterns) do
 	ns.PATTERNS[#ns.PATTERNS + 1] = { p[1], p[2], p[3] }
-end
-
-local function LSM()
-	return LibStub and LibStub("LibSharedMedia-3.0", true)
 end
 
 -- Comparable file path: case and separators make no difference to WoW
@@ -215,7 +211,7 @@ function ns.PatternChoices()
 		list[#list + 1] = { p[1], p[2] }
 		seen[FileKey(p[3])] = true
 	end
-	local lsm = LSM()
+	local lsm = lib.LSM()
 	if lsm then
 		for _, name in ipairs(lsm:List("background")) do
 			local key = FileKey(lsm:Fetch("background", name))
@@ -235,8 +231,7 @@ local function PatternFile(key)
 		end
 	end
 	local name = type(key) == "string" and key:match("^lsm:(.+)$")
-	local lsm = name and LSM()
-	return lsm and lsm:IsValid("background", name) and lsm:Fetch("background", name) or nil
+	return name and lib.Media.LSMFetch("background", name) or nil
 end
 
 function ns.SetBorderPattern(key, alpha)
@@ -402,7 +397,6 @@ ns.OnLoad(function()
 		ns = ns,
 		sv = "qnViewPortDB",
 		settingsVersion = SETTINGS_VERSION,
-		defaults = ns.defaults,
 		onSwitch = ns.ApplyProfile,
 	})
 	ns.global = lib.MergeDefaults(store.global, GLOBAL_DEFAULTS)

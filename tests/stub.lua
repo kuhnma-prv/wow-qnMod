@@ -21,11 +21,11 @@ function nop() end
 function Mixin(obj, ...) for i = 1, select("#", ...) do for k, v in pairs((select(i, ...))) do obj[k] = v end end return obj end
 function CreateFromMixins(...) return Mixin({}, ...) end
 function GetClassAtlas(class) return "classicon-" .. tostring(class):lower() end
--- Context menu: MENU_LOG holds the entries of the most recently created menu ({ kind, text })
+-- Context menu: MENU_LOG holds the entries of the most recently created menu ({ kind, text, callback })
 MENU_LOG = {}
 local function MenuRoot()
 	local root = {}
-	local function add(kind) return function(_, text) MENU_LOG[#MENU_LOG + 1] = { kind, text } return MenuRoot() end end
+	local function add(kind) return function(_, text, fn) MENU_LOG[#MENU_LOG + 1] = { kind, text, fn } return MenuRoot() end end
 	root.CreateTitle, root.CreateButton, root.CreateCheckbox, root.CreateRadio = add("title"), add("button"), add("checkbox"), add("radio")
 	root.CreateDivider, root.CreateSpacer, root.SetTag = add("divider"), add("spacer"), nop
 	return root
@@ -65,6 +65,8 @@ function AdvanceTime(dt) now = now + dt end
 local timers = {}
 C_Timer = {}
 function C_Timer.After(s, fn) timers[#timers + 1] = fn end
+-- one-shot timer that can be cancelled (runs with RunTimers like C_Timer.After)
+function C_Timer.NewTimer(s, fn) local t = {} function t:Cancel() self.cancelled = true end timers[#timers + 1] = function() if not t.cancelled then fn() end end return t end
 -- Tickers only run via RunTickers() (one pass over all non-cancelled ones)
 local tickers = {}
 function C_Timer.NewTicker(s, fn) local t = { fn = fn } function t:Cancel() self.cancelled = true end tickers[#tickers + 1] = t return t end
@@ -97,6 +99,12 @@ VALID.ACCOUNT_MONEY = true   -- CurrencyInfoDocumentation (qnInventory)
 VALID.SPELLS_CHANGED = true   -- SpellBookDocumentation (qnUnitFrames)
 VALID.ITEM_DATA_LOAD_RESULT = true   -- ItemDocumentation (qnLoadout)
 VALID.PLAYER_ACCOUNT_BANK_TAB_SLOTS_CHANGED = true   -- BankDocumentation (qnInventory)
+-- UnitDocumentation, LootDocumentation, SystemDocumentation (qnGatherer)
+for _, e in ipairs({ "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
+	"UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED", "LOOT_OPENED", "UI_ERROR_MESSAGE", "PLAYER_LOGOUT",
+	"SKILL_LINES_CHANGED", "UNIT_SPELLCAST_STOP", "CHAT_MSG_ADDON" }) do
+	VALID[e] = true
+end
 C_EventUtils ={ IsEventValid = function(e) return VALID[e] or false end }
 
 local Frame = {}
@@ -201,6 +209,7 @@ function Frame:GetChecked() return self._checked end
 function Frame:SetChecked(v) self._checked = v end
 function Frame:GetText() return self._text or (self._kind == "EditBox" and "" or nil) end
 function Frame:SetText(v) self._text = v end
+function Frame:GetStringHeight() local n = 1 for _ in tostring(self._text or ""):gmatch("\n") do n = n + 1 end return n * 12 end
 -- The client also formats secret numbers (tables in the scenarios) with %d/%f: output them as %s then
 function Frame:SetFormattedText(f, ...)
 	local ok, text = pcall(string.format, f, ...)
@@ -504,7 +513,8 @@ function C_CVar.SetCVar(k, v) C_CVar._v[k] = v log("SetCVar %s=%s", k, tostring(
 function C_CVar.GetCVarBool(k) return C_CVar._v[k] == "1" end
 C_VideoOptions = { GetCurrentGameWindowSize = function() return { x = 5760, y = 2160 } end }
 C_Container = { GetContainerNumSlots = function(id) return 16 end, GetContainerItemInfo = function() return nil end }
-C_Map = { GetBestMapForUnit = function() return 1 end }
+C_Map = { GetBestMapForUnit = function() return 1 end, GetMapWorldSize = function() return 1000, 1000 end,
+	GetMapInfo = function(m) return QN_MAPINFO and QN_MAPINFO[m] or { mapID = m, name = "Map " .. tostring(m) } end }
 C_ActionBar = setmetatable({}, { __index = function() return function() return false end end })
 C_Bank = { FetchPurchasedBankTabData = function() return {} end }
 
@@ -634,7 +644,9 @@ C_UnitAuras = { GetAuraDataByIndex = function(unit, i, filter)
 	end
 end }
 C_Spell = { IsSpellUsable = function() return true, false end }
-function C_Spell.GetSpellName(id) return QN_SPELLS[id] end
+-- gathering spells of Forever (qnGatherer offers its kinds only if the client knows the spell)
+QN_GATHER_SPELLS = { [2366] = "Herb Gathering", [2575] = "Mining", [7620] = "Fishing", [3365] = "Opening", [22810] = "Opening", [1804] = "Pick Lock" }
+function C_Spell.GetSpellName(id) return QN_SPELLS[id] or QN_GATHER_SPELLS[id] end
 -- spell ID or name (SpellIdentifier)
 function C_Spell.PickupSpell(spell)
 	if type(spell) == "string" then
@@ -670,6 +682,7 @@ function CreateColor(r, g, b, a)
 	local c = { r = r, g = g, b = b, a = a or 1 }
 	function c:GetRGB() return self.r, self.g, self.b end
 	function c:GenerateHexColor() return ("ff%02x%02x%02x"):format(math.floor(self.r * 255 + 0.5), math.floor(self.g * 255 + 0.5), math.floor(self.b * 255 + 0.5)) end
+	function c:WrapTextInColorCode(s) return "|c" .. self:GenerateHexColor() .. s .. "|r" end
 	return c
 end
 function CreateColorFromHexString(h)
@@ -888,6 +901,40 @@ function DamageMeter:ShouldShowBarIcons() return QN_DM.icons end
 function DamageMeter:SetShowBarIcons(v) QN_DM.icons = v end
 function DamageMeter:ShouldUseClassColor() return QN_DM.classColor end
 function DamageMeter:SetUseClassColor(v) QN_DM.classColor = v end
+-- Damage Meter windows (Blizzard_DamageMeter, DamageMeterSessionWindow.xml/.lua): header texts are
+-- FontStrings inheriting GameFontNormalMed1, Header is a texture of height 32, SessionTimer is
+-- anchored TOPLEFT to it. DamageMeter:SetupSessionWindow creates/refreshes a window.
+TrackerFont("GameFontNormalMed1", 13)
+DamageMeter.windowDataList = {}
+local function DamageText(name)
+	local f = TrackerFont(name, 13)
+	f:SetFontObject("GameFontNormalMed1")
+	f.SetPoint = Frame.SetPoint
+	f.ClearAllPoints = Frame.ClearAllPoints
+	_G[name] = nil
+	return f
+end
+function DamageMeter:SetupSessionWindow(index, data)
+	if not data.sessionWindow then
+		local w = NewFrame("Frame", "DamageMeterSessionWindow" .. index)
+		w.Header = NewFrame("Frame")
+		w.Header:SetHeight(32)
+		w.SessionTimer = DamageText("QN_DMTimer" .. index)
+		w.SessionTimer:SetPoint("TOPLEFT", w.Header, "TOPLEFT", 1, -9)
+		w.sessionName, w.typeName, w.notActive = DamageText("QN_DMSession" .. index), DamageText("QN_DMType" .. index), DamageText("QN_DMNot" .. index)
+		function w:GetHeader() return self.Header end
+		function w:GetSessionTimerFontString() return self.SessionTimer end
+		function w:GetSessionName() return self.sessionName end
+		function w:GetDamageMeterTypeName() return self.typeName end
+		function w:GetNotActiveFontString() return self.notActive end
+		data.sessionWindow = w
+	end
+end
+function DamageMeter:ForEachSessionWindow(func, ...)
+	for _, data in pairs(self.windowDataList) do
+		if data.sessionWindow then func(data.sessionWindow, ...) end
+	end
+end
 -- qnViewPort needs: world map (Blizzard_WorldMap is not load-on-demand), CVar defaults
 WorldMapFrame = NewFrame("Frame", "WorldMapFrame")
 WorldMapFrame._shown = false
@@ -963,20 +1010,34 @@ function C_SpellBook.IsAutoAttackSpellBookItem(slot, bank)
 	local item = C_SpellBook.GetSpellBookItemInfo(slot, bank)
 	return item and item.isAutoAttack or false
 end
--- Range checks (qnUnitFrames): QN_SPELLINFO[id] = { maxRange, harmful, usable, noPower, icon },
--- QN_DISTANCE[unit] = distance in yards; nil range = cannot be checked (unknown spell, no unit,
--- QN_FRIENDLY[unit] for harmful spells)
-QN_SPELLINFO, QN_DISTANCE, QN_FRIENDLY = {}, {}, {}
+-- Range checks (qnUnitFrames): QN_SPELLINFO[id] = { name, minRange, maxRange, harmful, usable,
+-- noPower, icon }, QN_DISTANCE[unit] = distance in yards; nil range = cannot be checked (unknown
+-- spell, no unit, QN_FRIENDLY[unit] for harmful spells); QN_DISTANCE_CHECKED[unit]: UnitDistanceSquared
+-- reports the distance (otherwise 0, false)
+QN_SPELLINFO, QN_DISTANCE, QN_FRIENDLY, QN_DISTANCE_CHECKED = {}, {}, {}, {}
 function C_Spell.IsSpellHarmful(id) local s = QN_SPELLINFO[id] return s and s.harmful or false end
 function C_Spell.GetSpellInfo(id)
 	local s = QN_SPELLINFO[id]
-	if s then return { name = s.name or tostring(id), spellID = id, iconID = s.icon or id, originalIconID = s.icon or id, castTime = 0, minRange = 0, maxRange = s.maxRange or 0 } end
+	if s then return { name = s.name or tostring(id), spellID = id, iconID = s.icon or id, originalIconID = s.icon or id, castTime = 0, minRange = s.minRange or 0, maxRange = s.maxRange or 0 } end
 end
 function C_Spell.IsSpellInRange(id, unit)
 	local s, d = QN_SPELLINFO[id], QN_DISTANCE[unit]
 	if not s or s.unchecked or not d or not UnitExists(unit) or (s.harmful and QN_FRIENDLY[unit]) then return nil end
-	-- alwaysInRange: as Heroic Strike in the game (true at charge distance)
-	return s.alwaysInRange or d <= (s.maxRange or 0)
+	-- alwaysInRange: as Heroic Strike in the game (true at charge distance);
+	-- closeInRange: within the minimum range still true (not known how the game reports it)
+	if s.alwaysInRange then return true end
+	return d <= (s.maxRange or 0) and (s.closeInRange or d >= (s.minRange or 0))
+end
+function UnitDistanceSquared(unit)
+	local d = QN_DISTANCE[unit]
+	if d and QN_DISTANCE_CHECKED[unit] then return d * d, true end
+	return 0, false
+end
+-- QN_POSITION[unit] = { x, y, z, mapID }; without an entry the game reports nothing (nil)
+QN_POSITION = {}
+function UnitPosition(unit)
+	local p = QN_POSITION[unit]
+	if p then return p[1], p[2], p[3], p[4] end
 end
 -- PlayerScriptDocumentation: 1 inspect (28 yd), 2 trade (11.11), 3 duel (9.9), 4 follow (28)
 function CheckInteractDistance(unit, i)
@@ -1469,4 +1530,145 @@ function UnitTooltipData(unit)
 	if d.pvp then lines[#lines + 1] = { type = 0, leftText = PVP } end
 	for _, extra in ipairs(d.extra or {}) do lines[#lines + 1] = { type = 0, leftText = extra } end
 	return { type = Enum.TooltipDataType.Unit, guid = d.guid, lines = lines, healthGUID = d.guid }
+end
+
+-- qnGatherer needs: loot window, player position and facing, item class
+-- (scenarios set QN_LOOT = { { item = id, n = count, source = guid }, ... }, QN_POS = { x, y },
+-- QN_FACING, QN_ITEMCLASS[id] = { classID, subClassID })
+Enum.LootSlotType = { None = 0, Item = 1, Money = 2, Currency = 3 }
+Enum.ItemClass = Enum.ItemClass or { Tradegoods = 7 }
+QN_LOOT = {}
+function GetNumLootItems() return #QN_LOOT end
+function GetLootSlotType(i) local l = QN_LOOT[i] if not l then return 0 end return l.item and 1 or 2 end
+function GetLootSlotLink(i) local l = QN_LOOT[i] return l and l.item and ("|cffffffff|Hitem:" .. l.item .. "::::::::|h[x]|h|r") end
+function GetLootSlotInfo(i) local l = QN_LOOT[i] if l then return 134400, "x", l.n or 1 end end
+function GetLootSourceInfo(i) local l = QN_LOOT[i] if l and l.source then return l.source, l.n or 1 end end
+function GetPlayerFacing() return QN_FACING end
+C_Map.GetPlayerMapPosition = function() if QN_POS then return { GetXY = function() return QN_POS[1], QN_POS[2] end } end end
+C_Item.GetItemInfoInstant = function(id) local c = QN_ITEMCLASS and QN_ITEMCLASS[id] if c then return id, "", "", "", 134400, c[1], c[2] end end
+
+-- qnGatherer needs: skill lines (QN_SKILLS[skillLineID] = rank), minimap view radius, map canvas mixins
+QN_SKILLS = {}
+C_SkillInfo = { GetSkillLineInfoByID = function(id) local r = QN_SKILLS[id] if r then return { skillID = id, name = "", rank = r, maxRank = 300 } end end }
+C_Minimap.GetViewRadius = function() return QN_VIEW_RADIUS or 100 end
+MapCanvasDataProviderMixin = MapCanvasDataProviderMixin or { GetMap = function(self) return self.owningMap end }
+MapCanvasPinMixin = MapCanvasPinMixin or {}
+AM_PIN_SCALE_STYLE_WITH_TERRAIN = 3
+
+-- qnGatherer journal: map art (QN_MAPART[map] = { layer, textures }) and explored overlays (QN_EXPLORED[map])
+C_Map.GetMapArtLayers = function(map) local a = QN_MAPART and QN_MAPART[map] return a and { a.layer } or {} end
+C_Map.GetMapArtLayerTextures = function(map) local a = QN_MAPART and QN_MAPART[map] return a and a.textures or {} end
+C_MapExplorationInfo = { GetExploredMapTextures = function(map) return QN_EXPLORED and QN_EXPLORED[map] or {} end }
+C_Map.GetMapArtID = function(map) return QN_MAPARTID and QN_MAPARTID[map] or map end
+
+-- qnGatherer guild exchange: addon messages (QN_SENT collects { prefix, text, channel, target },
+-- QN_SEND_RESULT overrides the result, QN_CHAT_LOCKDOWN, QN_IN_GUILD = false outside a guild)
+Enum.SendAddonMessageResult = { Success = 0, InvalidPrefix = 1, InvalidMessage = 2, AddonMessageThrottle = 3, InvalidChatType = 4,
+	NotInGroup = 5, TargetRequired = 6, InvalidChannel = 7, ChannelThrottle = 8, GeneralError = 9, NotInGuild = 10,
+	AddOnMessageLockdown = 11, TargetOffline = 12 }
+QN_SENT = {}
+C_ChatInfo = C_ChatInfo or {}
+C_ChatInfo.RegisterAddonMessagePrefix = function(p) QN_PREFIXES = QN_PREFIXES or {} QN_PREFIXES[p] = true return 0 end
+C_ChatInfo.SendAddonMessage = function(p, t, c, tg) local r = QN_SEND_RESULT or 0 if r == 0 then QN_SENT[#QN_SENT + 1] = { p, t, c, tg } end return r end
+C_ChatInfo.InChatMessagingLockdown = function() return QN_CHAT_LOCKDOWN or false end
+function IsInGuild() return QN_IN_GUILD ~= false end
+function Ambiguate(name) return (name:gsub("%-" .. GetNormalizedRealmName() .. "$", "")) end
+
+-- qnMarkers needs: raid markers (RaidMarkersDocumentation), group leader functions (PartyInfo-,
+-- UnitDocumentation) and secure clicks of action buttons (SecureTemplates.lua: SecureActionButton_OnClick
+-- for mouse clicks acts on release; SecureButton_GetModifiedAttribute excerpt: "<name><button number>"
+-- before "<name>"; SECURE_ACTIONS.worldmarker, raidtarget, macro).
+-- QN_WORLD_MARKERS = false: world markers not available (IsRaidMarkerSystemEnabled);
+-- QN_WORLD_ACTIVE[index] = placed world markers; QN_RAID_TARGETS[unit] = target marker;
+-- QN_PARTY_CALLS: calls of C_PartyInfo ("readycheck", "countdown 5", "leave"); QN_MACROS_RUN: macro texts;
+-- QN_LEADER / QN_ASSIST: player is group leader / assistant.
+VALID.PARTY_LEADER_CHANGED = true   -- PartyInfoDocumentation
+-- NamePlateManager-, PartyInfo-, FriendList-, GuildInfo-, UnitDocumentation (nameplate markers)
+for _, e in ipairs({ "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "PLAYER_ROLES_ASSIGNED", "FRIENDLIST_UPDATE",
+	"BN_FRIEND_INFO_CHANGED", "PLAYER_GUILD_UPDATE", "UNIT_FACTION" }) do VALID[e] = true end
+QN_WORLD_ACTIVE, QN_RAID_TARGETS, QN_PARTY_CALLS, QN_MACROS_RUN = {}, {}, {}, {}
+function IsRaidMarkerSystemEnabled() return QN_WORLD_MARKERS ~= false end
+function IsRaidMarkerActive(i) return QN_WORLD_ACTIVE[i] or false end
+function PlaceRaidMarker(i) QN_WORLD_ACTIVE[i] = true end
+function ClearRaidMarker(i) if i then QN_WORLD_ACTIVE[i] = nil else wipe(QN_WORLD_ACTIVE) end end
+GetRaidTargetIndex = GetRaidTargetIndex or function(u) return QN_RAID_TARGETS[u] end
+function SetRaidTarget(u, i) QN_RAID_TARGETS[u] = i ~= 0 and i or nil end
+function RemoveRaidTargets() wipe(QN_RAID_TARGETS) end
+function UnitIsGroupLeader(u) return u == "player" and QN_LEADER or false end
+function UnitIsGroupAssistant(u) return u == "player" and QN_ASSIST or false end
+C_PartyInfo = C_PartyInfo or {}
+function C_PartyInfo.DoReadyCheck() QN_PARTY_CALLS[#QN_PARTY_CALLS + 1] = "readycheck" end
+function C_PartyInfo.DoCountdown(s) QN_PARTY_CALLS[#QN_PARTY_CALLS + 1] = "countdown " .. s end
+function C_PartyInfo.LeaveParty() QN_PARTY_CALLS[#QN_PARTY_CALLS + 1] = "leave" end
+-- Mouse click on a secure action button (mouseButton "LeftButton"/"RightButton"), then PostClick.
+function SecureClick(f, mouseButton)
+	local suffix = ({ LeftButton = "1", RightButton = "2", MiddleButton = "3" })[mouseButton] or ""
+	local function Attr(name) local v = f:GetAttribute(name .. suffix) if v == nil then v = f:GetAttribute(name) end return v end
+	local kind = Attr("type")
+	if kind == "worldmarker" then
+		local marker, action = tonumber(Attr("marker")), Attr("action") or "toggle"
+		if action == "set" then PlaceRaidMarker(marker or 1)
+		elseif action == "clear" then ClearRaidMarker(marker)
+		elseif action == "toggle" then marker = marker or 1 if IsRaidMarkerActive(marker) then ClearRaidMarker(marker) else PlaceRaidMarker(marker) end end
+	elseif kind == "raidtarget" then
+		local unit, marker, action = Attr("unit") or "target", tonumber(Attr("marker")) or 1, Attr("action") or "toggle"
+		if action == "set" and GetRaidTargetIndex(unit) ~= marker then SetRaidTarget(unit, marker)
+		elseif action == "clear" then SetRaidTarget(unit, 0)
+		elseif action == "clear-all" then RemoveRaidTargets()
+		elseif action == "toggle" then if GetRaidTargetIndex(unit) == marker then SetRaidTarget(unit, 0) else SetRaidTarget(unit, marker) end end
+	elseif kind == "macro" then
+		QN_MACROS_RUN[#QN_MACROS_RUN + 1] = Attr("macrotext")
+	end
+	if f._scripts.PostClick then f._scripts.PostClick(f, mouseButton, false) end
+end
+-- qnMarkers needs: nameplates, only on request of a scenario: call EnableNamePlates() after
+-- EnableTooltips() (units in QN_UNITS). Modeled on the Forever source:
+--   C_NamePlate.GetNamePlateForUnit / GetNamePlates (NamePlateDocumentation), events
+--   NAME_PLATE_UNIT_ADDED/REMOVED (the plate is still found while REMOVED is handled,
+--   NamePlateDriverMixin:OnNamePlateRemoved), GetIconForRole (Blizzard_SharedXMLBase\TextureUtil.lua),
+--   UnitCreatureType returns name, id.
+-- AddNamePlate(unit, data) puts data into QN_UNITS and adds a nameplate; RemoveNamePlate(unit).
+-- Unit fields additionally: inParty, myGuild, enemy, pvp, otherPet, creatureID.
+-- QN_NO_ATLAS[atlas] = true: C_Texture.GetAtlasInfo finds no such atlas. QN_BNET[guid]: Battle.net friend.
+-- Textures record SetAtlas (._atlas), SetDesaturated (._desat), SetRotation (._rotation), portraits (._portrait).
+function EnableNamePlates()
+	QN_PLATES, QN_NO_ATLAS, QN_BNET = {}, {}, {}
+	local U = function(u) local r = UNIT_RESOLVE(u) return r and QN_UNITS[r] end
+	C_NamePlate = {
+		GetNamePlateForUnit = function(u) return QN_PLATES[u] end,
+		GetNamePlates = function() local t = {} for _, p in pairs(QN_PLATES) do t[#t + 1] = p end return t end,
+	}
+	function AddNamePlate(unit, data)
+		QN_UNITS[unit] = data
+		if data.guid then QN_GUIDS[data.guid] = unit end
+		QN_PLATES[unit] = QN_PLATES[unit] or NewFrame("Frame", nil, WorldFrame)
+		FireEvent("NAME_PLATE_UNIT_ADDED", unit)
+		RunTimers()
+		return QN_PLATES[unit]
+	end
+	function RemoveNamePlate(unit)
+		FireEvent("NAME_PLATE_UNIT_REMOVED", unit)
+		QN_PLATES[unit], QN_UNITS[unit] = nil, nil
+		RunTimers()
+	end
+	function UnitInParty(u) local d = U(u) return d and d.inParty or false end
+	function UnitIsInMyGuild(u) local d = U(u) return d and d.myGuild or false end
+	function UnitIsEnemy(a, b) local d = U(b) return d and d.enemy or false end
+	function UnitIsPVP(u) local d = U(u) return d and d.pvp or false end
+	function UnitIsOtherPlayersPet(u) local d = U(u) return d and d.otherPet or false end
+	function UnitCreatureType(u) local d = U(u) if d then return d.creature, d.creatureID end end
+	C_Texture = C_Texture or {}
+	C_Texture.GetAtlasInfo = function(a) if a and not QN_NO_ATLAS[a] then return { file = a } end end
+	local ROLE_ICONS = { GUIDE = "UI-LFG-RoleIcon-Leader", TANK = "UI-LFG-RoleIcon-Tank", HEALER = "UI-LFG-RoleIcon-Healer", DAMAGER = "UI-LFG-RoleIcon-DPS", NONE = "UI-LFG-RoleIcon-DPS" }
+	function GetIconForRole(role) return ROLE_ICONS[role] end
+	C_BattleNet = C_BattleNet or {}
+	C_BattleNet.GetAccountInfoByGUID = function(guid) return QN_BNET[guid] and { isFriend = true } or nil end
+	function SetPortraitTexture(tex, unit) tex._portrait = unit tex._texture = nil tex._atlas = nil end
+	function Frame:SetAtlas(a) self._atlas, self._texture = a, nil end
+	function Frame:SetTexture(t) self._texture, self._atlas = t, nil end
+	function Frame:SetDesaturated(on) self._desat = on end
+	function Frame:SetRotation(r) self._rotation = r end
+	function Frame:SetIgnoreParentAlpha(on) self._ignoreAlpha = on end
+	function Frame:AddMaskTexture(m) self._mask = m end
+	function Frame:RemoveMaskTexture() self._mask = nil end
 end

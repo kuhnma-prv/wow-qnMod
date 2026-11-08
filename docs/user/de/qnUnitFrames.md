@@ -19,6 +19,7 @@ Reichweitensymbol neben dem Ziel- und dem Fokusrahmen zeigen.
 - Reichweitensymbol rechts neben dem Ziel- und/oder Fokusrahmen: zeigt das Symbol deiner
   einsetzbaren Fernkampfaktion mit der größten Reichweite, solange die Einheit in ihrer Reichweite
   ist, und in Nahkampfreichweite das Symbol des automatischen Angriffs.
+- Optional: setzt den Zielrahmen neben den Spielerrahmen (Oberkanten bündig, einstellbarer Abstand).
 - Änderungen im Kampf werden nach dem Kampf automatisch übernommen.
 
 ## Erste Schritte
@@ -50,6 +51,16 @@ zusätzlich je Klasse.
 - **Begleiterrahmen** – auch die Rahmen der Begleiter von Gruppenmitgliedern belegen.
   Standard: an.
 
+**Zielrahmen** – optionale Platzierung von Blizzards Zielrahmen:
+
+- **Zielrahmen ausrichten** – setzt den Zielrahmen mit seiner Oberkante auf die Oberkante des
+  Spielerrahmens, rechts daneben. Der Rahmen wird neu gesetzt, sobald Blizzard ihn verschiebt
+  (Anmeldung, Layoutwechsel), nicht aber solange der Bearbeitungsmodus offen ist; dort lässt er
+  sich weiterhin ziehen. Standard: aus. Um Blizzards Position zurückzubekommen, schalte die Option
+  aus und gib `/reload` ein.
+- **Abstand zum Spielerrahmen** – Abstand in Bildschirmpixeln (0 bis 400, Standard 40); nur
+  änderbar, solange die Option an ist.
+
 **Reichweitensymbol** – ein Block je Rahmen:
 
 - **Am Zielrahmen** / **Am Fokusrahmen** – zeigt das Reichweitensymbol rechts neben dem Rahmen.
@@ -59,8 +70,13 @@ zusätzlich je Klasse.
   negative Werte verschieben das Symbol nach links.
 - **Vertikaler Versatz** – Abstand von der vertikalen Mitte des Rahmens (−200 bis 200,
   Standard 0); positive Werte verschieben das Symbol nach oben.
+- **Entfernung anzeigen** – zeigt im Symbol die tatsächliche Entfernung zur Einheit in Metern.
+  Standard: an. Nur, wo das Spiel die Entfernung oder die Positionen meldet; sonst bleibt das Symbol
+  ohne Zahl (kein Schätzwert aus den Reichweitenprüfungen). Was das Spiel für dein Ziel meldet,
+  zeigt `/qnuf distance`.
 
-Größe und Versatz lassen sich nur ändern, solange das Symbol am jeweiligen Rahmen eingeschaltet ist.
+Größe, Versatz und Entfernung lassen sich nur ändern, solange das Symbol am jeweiligen Rahmen
+eingeschaltet ist.
 
 So entscheidet das Reichweitensymbol, was es zeigt (Prüfung etwa fünfmal pro Sekunde):
 
@@ -69,7 +85,11 @@ So entscheidet das Reichweitensymbol, was es zeigt (Prüfung etwa fünfmal pro S
   (z. B. als Druide ohne Tiergestalt), entscheidet die Duell-Entfernung (etwa 10 Meter).
 - **Sonst:** Es erscheint das Symbol deines gerade einsetzbaren schädlichen Fernkampfzaubers aus
   dem Zauberbuch mit der größten Reichweite, sobald die Einheit in seiner Reichweite ist. Fehlendes
-  Mana, Wut oder Energie blendet es nicht aus.
+  Mana, Wut oder Energie blendet es nicht aus. Mal des Jägers zählt nicht: Seine Reichweite liegt
+  weit über jedem Angriff.
+- **Mindestreichweite:** Zauber mit Mindestreichweite (Schüsse des Jägers) zählen nicht, solange
+  die Einheit außerhalb der Nahkampfreichweite, aber innerhalb der Duell-Entfernung (etwa 10 Meter)
+  ist. Als Jäger siehst du in der toten Zone dann kein Symbol.
 - Kein Symbol, wenn du die Einheit nicht angreifen kannst (z. B. freundliche Einheiten), wenn sie
   außerhalb der Reichweite all dieser Zauber ist oder sich die Reichweite nicht prüfen lässt.
 
@@ -106,8 +126,10 @@ Ziel mehr aus.
 |---|---|
 | `/qnuf`, `/qnunitframes` (auch `config`, `options`) | Optionen öffnen |
 | `/qnuf clicks` | Seite Klickbelegung öffnen |
+| `/qnuf aligntarget` | „Zielrahmen ausrichten“ einschalten |
 | `/qnuf on` | Klickzauber einschalten |
 | `/qnuf off` | Klickzauber ausschalten |
+| `/qnuf distance` | im Chat zeigen, was das Spiel zur Entfernung zum Ziel meldet |
 | `/qnuf` + etwas anderes | Liste der Befehle zeigen |
 
 ## Tipps & Hinweise

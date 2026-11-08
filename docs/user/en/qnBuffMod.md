@@ -223,7 +223,8 @@ Debuff colors: purple = curse, brown = disease, blue = magic, green = poison, re
   combat.
 - In combat the client withholds aura data. The windows then show the last known state and
   update after combat; a chat message tells you once. Affected auras may appear without time
-  remaining or with a question mark.
+  remaining or with a question mark. If you change target, focus or pet in combat, that window
+  stays empty until the end of combat instead of showing the previous unit's auras.
 - Adding and deleting windows is not possible in combat. Visibility changes made in combat apply
   after combat.
 - Right-click cancels only your own buffs, only in a window for the player and only out of

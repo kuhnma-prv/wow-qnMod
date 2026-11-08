@@ -41,9 +41,12 @@ Check(b.content._h == 50 + b.padTop, "Fit: hidden elements do not count")
 
 -- 4. all canvas pages of the addons via UI.Page
 local panels = {}
+local inPage = false   -- UI.Page registers subpages itself (opts.parent)
 local origPage = UI.Page
 function UI.Page(...)
+	inPage = true
 	local p = origPage(...)
+	inPage = false
 	panels[p.panel] = true
 	return p
 end
@@ -54,7 +57,7 @@ local function Watch(name)
 		local args = { ... }
 		local frame, title = args[#args - 1], args[#args]
 		canvas = canvas + 1
-		if not panels[frame] then bad[#bad + 1] = title end
+		if not (panels[frame] or inPage) then bad[#bad + 1] = title end
 		return orig(...)
 	end
 end

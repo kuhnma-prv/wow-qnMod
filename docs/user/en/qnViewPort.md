@@ -20,8 +20,8 @@ Titan Panel, puts the Titan bars on individual monitors.
 - World Map extras: follow the current zone, open on login, do not fade while moving.
 - Visibility check: lists interface elements that are fully or partly outside every monitor and
   moves them one at a time on request.
-- Tooltips of bag slots, the minimap (tracking, zone text, mail, calendar, clock) and the tracking
-  menu stay completely on their monitor.
+- Tooltips of bag slots, the minimap (tracking, zone text, mail, calendar, clock), the tracking
+  menu and Blizzard menus and their submenus stay completely on their monitor.
 - With Titan Panel: each full-width Titan bar on a chosen monitor, plugin tooltips on the plugin's
   monitor, scale factor per monitor.
 
@@ -212,7 +212,8 @@ Without this file qnViewPort works with the values from the **Second Monitor** p
    Waits for the WoW window (up to 180 s), removes the window border, stretches the window over the
    selected monitors and updates `Monitors.lua` of the running client with the exact client area.
    Then `/reload` in the game.
-   - `-ProcessName <name>` – process of the client (default `WowB`)
+   - `-ProcessName <name>`, `-Client <folder>` – process and client folder (defaults `Wow` and
+     `_forever_`; only a process started from that folder is used)
    - `-KeepBorder` – keep title bar and frame
    - `-Select 1,2 -Main 1` – a different selection for this run only
    - `-X -Y -Width -Height` – fixed window rectangle, no monitor logic (does not update `Monitors.lua`)

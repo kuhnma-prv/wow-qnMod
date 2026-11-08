@@ -6,8 +6,8 @@
     Afterwards qnViewPort\Monitors.lua of the running client is updated with the exact client area.
 
 .EXAMPLE
-    ./Set-WowWindow.ps1                          # WoW Beta (WowB), monitors from monitors.json, borderless
-    ./Set-WowWindow.ps1 -ProcessName Wow         # Retail/other client
+    ./Set-WowWindow.ps1                          # WoW Forever (Wow.exe in _forever_), monitors from monitors.json, borderless
+    ./Set-WowWindow.ps1 -Client _classic_beta_ -ProcessName WowB   # other client
     ./Set-WowWindow.ps1 -Select 1,2 -Main 1      # other selection for this run only
     ./Set-WowWindow.ps1 -X 0 -Y 0 -Width 5760 -Height 2160   # fixed rectangle, no monitor logic
     ./Set-WowWindow.ps1 -KeepBorder              # keep title bar and frame
@@ -16,10 +16,12 @@ param(
     [int]$X, [int]$Y, [int]$Width, [int]$Height,
     [int[]]$Select,
     [int]$Main,
-    [string]$ProcessName = 'WowB',
+    [string]$ProcessName = 'Wow',
+    # client folder inside the WoW root; only a process started from it is used (empty = any)
+    [string]$Client = '_forever_',
     [switch]$KeepBorder,
     [int]$TimeoutSec = 180,
-    # WoW root folder (contains _retail_, _classic_beta_ …); default: see Get-QnWowRoot in qnMonitors.ps1
+    # WoW root folder (contains _retail_, _forever_ …); default: see Get-QnWowRoot in qnMonitors.ps1
     [string]$WowRoot,
     [string]$ConfigPath
 )
@@ -70,12 +72,13 @@ if ($fixed) {
 $deadline = (Get-Date).AddSeconds($TimeoutSec)
 do {
     $proc = Get-Process -Name $ProcessName -ErrorAction SilentlyContinue |
-        Where-Object MainWindowHandle -ne 0 | Select-Object -First 1
+        Where-Object { $_.MainWindowHandle -ne 0 -and (-not $Client -or $_.Path -like "*$Client*") } |
+        Select-Object -First 1
     if (-not $proc) { Start-Sleep -Seconds 2 }
 } until ($proc -or (Get-Date) -gt $deadline)
 
 if (-not $proc) {
-    Write-Error "No window of process '$ProcessName' found within $TimeoutSec s."
+    Write-Error "No window of process '$ProcessName'$(if ($Client) { " in $Client" }) found within $TimeoutSec s."
     exit 1
 }
 $hWnd = $proc.MainWindowHandle
