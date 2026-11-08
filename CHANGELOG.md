@@ -11,6 +11,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-08
+
 ### Added
 
 - **qnCore 0.3.0:** own header size for the Objective Tracker (8–13, independent of the text size,
@@ -161,7 +163,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
   (items and gold per character), **qnBuffMod** (aura windows), **qnUnitFrames** (click casting on
   party and raid frames), **qnTooltip** (customizable tooltips).
 
-[Unreleased]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.3.0...develop
+[Unreleased]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.4.0...develop
+[0.4.0]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kuhnma-prv/wow-qnMod/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kuhnma-prv/wow-qnMod/releases/tag/v0.1.0
