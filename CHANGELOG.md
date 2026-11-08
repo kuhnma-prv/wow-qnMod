@@ -49,6 +49,7 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Changed
 
+- **qnNumKeyPad 0.2.1:** provides a global interface for qnLoadout to place spells and macros on the numpad keys.
 - **qnViewPort 0.1.10:** `Set-WowWindow.ps1` now resizes the WoW Forever window (`Wow.exe` from the `_forever_` folder) by default; new parameter `-Client`.
 - **qnCore 0.2.2:** texts used by several qn addons are translated once in qnCore; `/qncore options`
   opens the options like `/qncore config`.
