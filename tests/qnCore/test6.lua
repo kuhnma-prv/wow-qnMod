@@ -12,7 +12,17 @@ Check(table.concat(LOG, ";") == "OpenAllBags(nil);CloseBag(3);CloseBag(5)", "des
 Check(OPEN[1] and OPEN[2] and OPEN[4] and OPEN[0], "normal bags stay open")
 LOG = {}
 FireEvent("MERCHANT_SHOW") RunTimers()
-Check(table.concat(LOG, ";") == "CloseAllBags(nil);OpenAllBags(nil);CloseBag(3);CloseBag(5)", "also with automation: " .. table.concat(LOG, ";"))
+Check(table.concat(LOG, ";") == "", "bags already open (Blizzard's window): automation calls no bag function (taint): " .. table.concat(LOG, ";"))
+OPEN = {}
+LOG = {}
+FireEvent("MERCHANT_SHOW") RunTimers()
+Check(table.concat(LOG, ";") == "OpenAllBags(nil);CloseBag(3);CloseBag(5)", "bags closed: automation opens them: " .. table.concat(LOG, ";"))
+LOG = {}
+FireEvent("MERCHANT_CLOSED") RunTimers()
+Check(table.concat(LOG, ";") == "CloseAllBags(nil)", "close: only while a bag is open: " .. table.concat(LOG, ";"))
+LOG = {}
+FireEvent("MERCHANT_CLOSED") RunTimers()
+Check(table.concat(LOG, ";") == "", "close: bags already closed, nothing called: " .. table.concat(LOG, ";"))
 -- combined bags: slot 3 is in the shared window, close only the reagent bag
 C_CVar._v.combinedBags = "1"
 LOG = {}

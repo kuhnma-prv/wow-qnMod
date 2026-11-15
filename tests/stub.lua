@@ -527,11 +527,15 @@ Enum = {
 }
 
 -- Record bag functions
-for _, fn in ipairs({ "CloseAllBags", "OpenBackpack", "OpenBag", "ToggleAllBags", "ToggleBackpack", "ToggleBag", "UpdateContainerFrameAnchors" }) do
+for _, fn in ipairs({ "ToggleAllBags", "ToggleBackpack", "ToggleBag", "UpdateContainerFrameAnchors" }) do
 	_G[fn] = function(a) log("%s(%s)", fn, tostring(a)) end
 end
 
 OPEN = {}
+function CloseAllBags(a) log("CloseAllBags(%s)", tostring(a)) OPEN = {} end
+function OpenBackpack(a) log("OpenBackpack(%s)", tostring(a)) OPEN[0] = true end
+function OpenBag(a) log("OpenBag(%s)", tostring(a)) OPEN[a] = true end
+function IsAnyBagOpen() for i = 0, NUM_TOTAL_BAG_FRAMES do if OPEN[i] then return true end end return false end
 EventRegistry = { cbs = {} }
 function EventRegistry:RegisterCallback(ev, fn, owner) self.cbs[ev] = self.cbs[ev] or {} table.insert(self.cbs[ev], fn) end
 function EventRegistry:TriggerEvent(ev) for _, fn in ipairs(self.cbs[ev] or {}) do fn() end end
