@@ -121,26 +121,48 @@ local function Setting(cfg, venue, what)
 	return cfg[(cfg.sameEverywhere and "all" or venue.key) .. what]
 end
 
+-- Calling Blizzard's bag functions from addon code runs them tainted: the item buttons they
+-- set up carry tainted fields and using an item afterwards is blocked ("qnCore was blocked").
+-- Therefore only touch the bags when their state differs from the wanted one; Blizzard's own
+-- windows (bank, merchant, mail ...) have usually opened them already, untainted.
+local function OnlyBackpackOpen()
+	if not IsBagOpen(Enum.BagIndex.Backpack) then
+		return false
+	end
+	for id = 1, NUM_TOTAL_BAG_FRAMES do
+		if IsBagOpen(id) then
+			return false
+		end
+	end
+	return true
+end
+
 local function OnOpen(venue)
 	local cfg = Bags.Config()
 	if not cfg.enabled then
 		return
 	end
 	local mode = Setting(cfg, venue, "Open")
-	if mode == "all" or mode == "backpack" or mode == "closed" then
-		-- Close everything first: OpenAllBags does nothing while a bag is open.
-		CloseAllBags()
-		if mode == "backpack" then
-			OpenBackpack()
-		elseif mode == "all" then
+	if mode == "all" then
+		-- OpenAllBags does nothing while a bag is open, so a bag state already set stays
+		if not IsAnyBagOpen() then
 			OpenAllBags()
+		end
+	elseif mode == "backpack" then
+		if not OnlyBackpackOpen() then
+			CloseAllBags()
+			OpenBackpack()
+		end
+	elseif mode == "closed" then
+		if IsAnyBagOpen() then
+			CloseAllBags()
 		end
 	end
 end
 
 local function OnClose(venue)
 	local cfg = Bags.Config()
-	if cfg.enabled and Setting(cfg, venue, "Close") then
+	if cfg.enabled and Setting(cfg, venue, "Close") and IsAnyBagOpen() then
 		CloseAllBags()
 	end
 end

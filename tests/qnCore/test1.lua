@@ -60,7 +60,7 @@ SetEditModeLayout(3, true)
 local Bags = core.Bags
 LOG = {}
 FireEvent("MERCHANT_SHOW") RunTimers()
-Check(table.concat(LOG, ";") == "CloseAllBags(nil);OpenAllBags(nil)", "merchant: open all bags: " .. table.concat(LOG, ";"))
+Check(table.concat(LOG, ";") == "OpenAllBags(nil)", "merchant: open all bags: " .. table.concat(LOG, ";"))
 SETTINGS.QNCORE_BAGS_MERCHANTOPEN:SetValue("backpack")
 LOG = {}
 FireEvent("MERCHANT_SHOW") RunTimers()

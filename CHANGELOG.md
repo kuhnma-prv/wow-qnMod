@@ -11,6 +11,11 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ## [Unreleased]
 
+### Fixed
+
+- **qnCore 0.3.1:** using an item from the bags after opening the bank (or merchant, mail ...) no longer
+  fails with "qnCore was blocked"; the bag automation leaves bags alone that Blizzard's window already opened.
+
 ## [0.4.1] - 2026-11-08
 
 ### Added
