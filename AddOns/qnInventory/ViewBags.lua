@@ -77,12 +77,13 @@ function view:Refresh()
 	local char = ns.CharFromKey(self.key)
 	local containers = char and char.containers
 	shown = 0
-	-- like Blizzard (UpdateItemSort): backpack first, slots ascending; the grid starts at the bottom right
+	-- like Blizzard (SortItems in UpdateItemSort): bags and slots descending, laid out from the
+	-- bottom right, so backpack slot 1 ends up at the top left
 	if containers then
-		for bag = Enum.BagIndex.Backpack, Constants.InventoryConstants.NumBagSlots do
+		for bag = Constants.InventoryConstants.NumBagSlots, Enum.BagIndex.Backpack, -1 do
 			local c = containers[bag]
 			if c then
-				for slot = 1, c.size do
+				for slot = c.size, 1, -1 do
 					shown = shown + 1
 					local b = Button(shown)
 					ns.SetItem(b, c.items[slot])

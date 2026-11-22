@@ -1,5 +1,6 @@
 -- Scenario 6: qnInventory 0.3.4 - bags view of another character lists the slots in the order of
--- Blizzard's combined bags (UpdateItemSort: backpack first, slots ascending, grid from the bottom right)
+-- Blizzard's combined bags (SortItems: bags and slots descending, grid from the bottom right, so
+-- backpack slot 1 is at the top left)
 
 LoadAddon("qnCore")
 local inv = LoadAddon("qnInventory")
@@ -23,8 +24,8 @@ inv.Show("bags", key)
 AnchorUtil.GridLayout = orig
 
 Check(#order == 5, "five slots in the grid: " .. #order)
-Check(order[1] == "|Hitem:100|h[A]|h" and order[2] == "-" and order[3] == "|Hitem:103|h[C]|h",
-	"first = backpack slot 1 (bottom right), then slots ascending: " .. table.concat(order, ","))
-Check(order[4] == "|Hitem:200|h[D]|h" and order[5] == "|Hitem:201|h[E]|h", "bag 1 after the backpack: " .. table.concat(order, ","))
+Check(order[1] == "|Hitem:201|h[E]|h" and order[2] == "|Hitem:200|h[D]|h", "first (bottom right) = last bag, slots descending: " .. table.concat(order, ","))
+Check(order[3] == "|Hitem:103|h[C]|h" and order[4] == "-" and order[5] == "|Hitem:100|h[A]|h",
+	"backpack last, its slot 1 = last = top left: " .. table.concat(order, ","))
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")
