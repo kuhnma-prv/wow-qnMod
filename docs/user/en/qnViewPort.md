@@ -167,7 +167,9 @@ Only present if Titan Panel is loaded. Settings are per profile.
 
 - One dropdown per full-width Titan bar (two at the top, two at the bottom; names as in Titan):
   **As Titan (entire UI)** (default) or a monitor (numbers as on the **Monitors** page). The bar
-  then lies on the top or bottom edge of that monitor. The bars are still turned on and off in Titan.
+  then lies on the top or bottom edge of that monitor. The bars are still turned on and off in Titan;
+  if a bar is placed on a monitor but turned off in Titan, the red hint **Turned off in Titan** appears
+  next to its dropdown.
 - **Apply**: places the bars on their monitors again, e.g. after the monitor arrangement changed.
 - **Scale per monitor**: one slider per monitor, 50–200 % in 5 % steps, default 100 %. Size of
   Titan's bars, plugins and tooltips on this monitor in addition to Titan's own scale – useful for

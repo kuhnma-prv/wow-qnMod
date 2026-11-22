@@ -11,6 +11,11 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ## [Unreleased]
 
+### Added
+
+- **qnViewPort 0.1.11:** the Titan Panel page shows a red hint "Turned off in Titan" next to a bar that is
+  placed on a monitor but not turned on in Titan (so it is not displayed).
+
 ### Fixed
 
 - **qnInventory 0.3.6:** the bags view of another character opens again (it failed with a missing

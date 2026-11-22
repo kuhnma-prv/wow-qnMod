@@ -265,6 +265,8 @@ end
 
 local ui, page   -- qnCore.UI.Page and its content (parent of the controls)
 local dropdowns = {}
+local offHints = {}   -- bar name -> hint "turned off in Titan"
+Titan.offHints = offHints
 
 -- Entries of a dropdown; a saved monitor that no longer exists stays visible.
 function Titan.Entries(bar)
@@ -319,6 +321,10 @@ function Titan.RefreshOptions()
 	for _, dd in ipairs(dropdowns) do
 		dd:Refresh()
 	end
+	-- a bar placed on a monitor but turned off in Titan is invisible: say so
+	for bar, hint in pairs(offHints) do
+		hint:SetShown((tonumber(DB()[bar]) or 0) > 0 and not BarShown(bar))
+	end
 	if not scaleText then
 		return
 	end
@@ -351,6 +357,11 @@ local function BuildPage()
 		UI.Label(page, dd, data and data.locale_name or b.name)
 		UI.Tooltip(dd, data and data.locale_name or b.name, L["Numbers as on the \"Monitors\" page."])
 		dropdowns[#dropdowns + 1] = dd
+		local hint = UI.Text(page, "GameFontNormalSmall", L["Turned off in Titan"])
+		hint:SetPoint("LEFT", dd, "RIGHT", 12, 0)
+		hint:SetTextColor(1, 0.3, 0.3)
+		hint:Hide()
+		offHints[b.name] = hint
 		anchor = dd
 	end
 

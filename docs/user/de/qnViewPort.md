@@ -179,7 +179,8 @@ Nur vorhanden, wenn Titan Panel geladen ist. Die Einstellungen gelten je Profil.
 - Eine Auswahlliste je durchgehender Titan-Leiste (zwei oben, zwei unten; Namen wie in Titan):
   **Wie Titan (ganze Oberfläche)** (Standard) oder ein Monitor (Nummern wie auf der Seite
   **Monitore**). Die Leiste liegt dann an der oberen bzw. unteren Kante dieses Monitors. Ein- und
-  ausgeschaltet werden die Leisten weiter in Titan.
+  ausgeschaltet werden die Leisten weiter in Titan; ist eine Leiste einem Monitor zugeordnet, in Titan
+  aber ausgeschaltet, erscheint neben ihrer Auswahlliste der rote Hinweis **In Titan ausgeschaltet**.
 - **Übernehmen**: legt die Leisten erneut an ihre Monitore, z. B. nach einer Änderung der
   Monitoranordnung.
 - **Skalierung je Monitor**: ein Schieberegler je Monitor, 50–200 % in 5-%-Schritten, Standard
