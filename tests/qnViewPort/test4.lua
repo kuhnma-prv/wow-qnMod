@@ -367,6 +367,18 @@ Check(Near(_G[P .. "Bar"]._scale, 1.2) and Near(btn._scale, 1.2) and Near(bag._s
 	"factor removed: Titan's scale again")
 tt.RefreshOptions()
 Check(true, "options page with sliders per monitor refreshed")
+-- hint next to the dropdown: bar on a monitor but turned off in Titan
+vp.db.titan.Bar2 = 2
+vars[P .. "Bar2"].show = false
+tt.RefreshOptions()
+Check(tt.offHints.Bar2 and tt.offHints.Bar2:IsShown(), "hint: bar on a monitor but turned off in Titan")
+Check(not tt.offHints.Bar:IsShown() or vp.db.titan.Bar ~= 0, "hint: none for a bar that is not placed")
+vars[P .. "Bar2"].show = true
+tt.RefreshOptions()
+Check(not tt.offHints.Bar2:IsShown(), "hint gone once the bar is turned on in Titan")
+vp.db.titan.Bar2 = 0
+tt.RefreshOptions()
+Check(not tt.offHints.Bar2:IsShown(), "no hint without a monitor")
 TITAN_VARS.Scale = 1
 
 print(FAILS and ("FAILED: " .. FAILS) or "all checks passed")

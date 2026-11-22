@@ -135,6 +135,7 @@ L["Only in dual monitor mode, when the game window spans several monitors."] = "
 L["Blizzard interface on the main monitor (until reset or /reload)."] = "Blizzard-Oberfläche auf dem Hauptmonitor (bis zum Zurücksetzen oder /reload)."
 
 -- Titan.lua
+L["Turned off in Titan"] = "In Titan ausgeschaltet"
 L["As Titan (entire UI)"] = "Wie Titan (ganze Oberfläche)"
 L["Scale per monitor"] = "Skalierung je Monitor"
 L["Size of Titan's bars, plugins and tooltips on this monitor, in addition to Titan's own scale. For monitors with different pixel density, e.g. about 65 % for a monitor at 100 % Windows scaling next to a main monitor at 150 %."] = "Größe der Leisten, Plugins und Tooltips von Titan auf diesem Monitor, zusätzlich zu Titans eigener Skalierung. Für Monitore mit unterschiedlicher Pixeldichte, z. B. etwa 65 % für einen Monitor mit 100 % Windows-Skalierung neben einem Hauptmonitor mit 150 %."
