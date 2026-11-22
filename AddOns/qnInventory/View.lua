@@ -86,7 +86,10 @@ function ns.Show(kind, key)
 	local view = views[kind]
 	if kind == "bags" and selected == ns.PlayerKey() then
 		if view.frame then view.frame:Hide() end
-		OpenAllBags()
+		-- only when none is open: Blizzard's code runs tainted when called from here
+		if not IsAnyBagOpen() then
+			OpenAllBags()
+		end
 	else
 		view:Show(selected)
 	end
@@ -99,8 +102,15 @@ function ns.Toggle(kind, key)
 	key = key or selected or ns.PlayerKey()
 	if kind == "bags" and key == ns.PlayerKey() then
 		selected = key
-		if view.frame then view.frame:Hide() end
-		ToggleAllBags()
+		if view.frame and view.frame:IsShown() then
+			-- the view of another character is replaced by Blizzard's bags (already open or not)
+			view.frame:Hide()
+			if not IsAnyBagOpen() then
+				ToggleAllBags()
+			end
+		else
+			ToggleAllBags()
+		end
 		RefreshHeaders()
 	elseif view.frame and view.frame:IsShown() and view.key == key then
 		view.frame:Hide()

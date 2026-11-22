@@ -56,7 +56,7 @@ anderen Ansichten (**Taschen**, **Bank**, **Post**).
 
 Taschen- und Bankansicht haben ein Suchfeld, das nicht passende Items abdunkelt. Item-Tooltips
 funktionieren wie gewohnt, Umschalt-/Strg-Klick fügt einen Chat-Link ein bzw. öffnet die
-Anprobe. Die Fenster lassen sich per Ziehen verschieben und mit Escape schließen. Ist für einen
+Anprobe. Die Fenster lassen sich per Ziehen verschieben und mit Escape schließen. Solange Blizzards Taschen offen sind, öffnet sich die Taschenansicht eines anderen Charakters links daneben (Blizzards Taschen werden nicht geschlossen). Ist für einen
 Charakter noch nichts erfasst, steht ein Hinweis im Fenster.
 
 ### Titan-Panel-Plugins

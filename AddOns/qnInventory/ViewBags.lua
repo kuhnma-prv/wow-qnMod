@@ -22,8 +22,6 @@ local function Button(i)
 	if not b then
 		b = ns.CreateItemButton(frame)
 		b.emptyBackgroundAtlas = "bags-item-slot64"
-		local bg = b:CreateTexture(nil, "BACKGROUND", "ItemSlotBackgroundCombinedBagsTemplate", -6)
-		bg:SetAllPoints()
 		buttons[i] = b
 	end
 	return b
@@ -62,13 +60,14 @@ local function Create()
 	ns.AttachHeader(frame, "bags")
 end
 
--- At the position of Blizzard's bags, otherwise their default position
+-- Left of Blizzard's bags while they are open (they are not closed: that would run Blizzard's
+-- code tainted), otherwise at their default position
 local function Place()
 	local live = ContainerFrameCombinedBags
 	frame:ClearAllPoints()
 	frame:SetScale(live:GetScale())
-	if live:IsShown() and live:GetRight() then
-		frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMLEFT", live:GetRight(), live:GetBottom())
+	if live:IsShown() then
+		frame:SetPoint("BOTTOMRIGHT", live, "BOTTOMLEFT", -8, 0)
 	else
 		frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", CONTAINER_OFFSET_X, CONTAINER_OFFSET_Y)
 	end
@@ -118,8 +117,6 @@ function view:Show(key)
 	self.key = key
 	local wasShown = frame:IsShown()
 	if not wasShown then Place() end
-	-- close Blizzard's bags only after placing
-	CloseAllBags()
 	self:Refresh()
 	frame:Show()
 end
