@@ -53,7 +53,8 @@ qnInventory's own windows. It holds a character dropdown and buttons for the oth
 
 Bags and bank views have a search box that dims items that do not match. Item tooltips work as
 usual, Shift/Ctrl-click inserts a chat link or opens the dressing room. The windows can be moved
-by dragging and closed with Escape. A notice in the window tells you if nothing has been recorded
+by dragging and closed with Escape. While Blizzard's bags are open, the bags view of another
+character opens to their left (Blizzard's bags are not closed). A notice in the window tells you if nothing has been recorded
 yet for the character.
 
 ### Titan Panel plugins
