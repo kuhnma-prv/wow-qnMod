@@ -25,6 +25,7 @@ local function Fake(entry, w, h)
 end
 
 vp.Layout.MonitorAt = function() return area end
+vp.Layout.MonitorAtPoint = function() return area end
 local rect
 qnCore.Visible.FrameAbs = function(f) return f.rect end
 
@@ -55,6 +56,18 @@ root.rect = { l = 5700, r = 5900, t = 400, b = 100 }
 vp.Layout.FitMenu(root)
 p = root._points[1]
 Check(p[1] == "TOPLEFT" and p[2] == UIParent and p[4] == 5560 and p[5] == 477, "root menu: pushed into the monitor (" .. tostring(p[4]) .. "," .. tostring(p[5]) .. ")")
+
+-- 4b. context menu at the cursor near the right edge of the last monitor: its center lies beyond all
+-- monitors, it must still be pushed into the monitor under the cursor
+local ctx = Fake(UIParent, 200, 300)
+ctx._points[1] = { "TOPLEFT", UIParent, "BOTTOMLEFT", 5700, 1000 }
+ctx.rect = { l = 5700, r = 5900, t = 1000, b = 700 }
+local realAt = vp.Layout.MonitorAt
+vp.Layout.MonitorAt = function() return nil end   -- center not on any monitor
+vp.Layout.FitMenu(ctx)
+vp.Layout.MonitorAt = realAt
+p = ctx._points[1]
+Check(p[4] == 5560, "context menu at the right edge: pushed into the monitor (" .. tostring(p[4]) .. ")")
 
 -- 5. hook registered
 Check(#(EventRegistry.cbs["MenuProxy.OnShow"] or {}) >= 1, "MenuProxy.OnShow callback registered")

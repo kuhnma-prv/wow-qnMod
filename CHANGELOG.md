@@ -18,6 +18,9 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 ### Fixed
 
+- **qnViewPort 0.1.12:** context menus (e.g. on a character name in the chat) near the edge of a monitor
+  are now moved completely into that monitor; before, they could stick out on the second monitor.
+
 - **qnInventory 0.3.6:** the bags view of another character opens again (it failed with a missing
   slot template), and opening it no longer blocks item actions in your own bags afterwards. While
   Blizzard's bags are open, the view appears to their left instead of closing them. The slots are

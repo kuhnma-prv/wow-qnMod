@@ -333,6 +333,15 @@ function Layout.MonitorAt(frame)
 	end
 end
 
+-- Monitor (abs rectangle) containing the point; nil = none
+function Layout.MonitorAtPoint(x, y)
+	for _, r in ipairs(Layout.GetVisibleAbs()) do
+		if x >= r.l and x <= r.r and y >= r.b and y <= r.t then
+			return r
+		end
+	end
+end
+
 -- Re-anchors tip to owner if it is anchored there and extends beyond owner's monitor.
 -- The current side stays if it fits; otherwise the other side, and whatever still
 -- sticks out is pushed inside. If it fits, the anchor stays unchanged (Titan's control frames
@@ -402,11 +411,16 @@ function Layout.FitToMonitor(tip, owner)
 	tip:SetPoint(v .. hz, owner, (v == "TOP" and "BOTTOM" or "TOP") .. hz, dx / s, dy / s)
 end
 
--- Pushes a menu (any anchors) by the shortest way into the monitor of its anchor frame
--- (UIParent: the monitor of the menu itself). Does nothing if it fits.
+-- Pushes a menu (any anchors) by the shortest way into the monitor of its anchor frame.
+-- Context menus are anchored to UIParent at the cursor: their monitor is the one under their
+-- top left corner (the cursor), not the one under their center – the center can lie on another
+-- monitor or beyond all of them. Does nothing if it fits.
 local function PushIntoMonitor(menu, rel)
 	local m = Visible.FrameAbs(menu)
-	local area = (rel and rel ~= UIParent and Layout.MonitorAt(rel)) or Layout.MonitorAt(menu)
+	local area = rel and rel ~= UIParent and Layout.MonitorAt(rel)
+	if not area and m then
+		area = Layout.MonitorAtPoint(m.l + 1, m.t - 1) or Layout.MonitorAt(menu)
+	end
 	local s = menu:GetEffectiveScale()
 	if not (m and area and s and s > 0) then
 		return
