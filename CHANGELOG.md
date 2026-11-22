@@ -15,7 +15,8 @@ Categories: **Added** (new features), **Changed** (changes to existing behavior)
 
 - **qnInventory 0.3.6:** the bags view of another character opens again (it failed with a missing
   slot template), and opening it no longer blocks item actions in your own bags afterwards. While
-  Blizzard's bags are open, the view appears to their left instead of closing them.
+  Blizzard's bags are open, the view appears to their left instead of closing them. The slots are
+  now in the same order as in your own bags (Hearthstone at the top left).
 
 - **qnCore 0.3.1:** using an item from the bags after opening the bank (or merchant, mail ...) no longer
   fails with "qnCore was blocked"; the bag automation leaves bags alone that Blizzard's window already opened.
